@@ -1,0 +1,440 @@
+/* MAGIC WIZARD - ENTERPRISE KILLER STYLES */
+.magicWizard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    #667eea 0%, 
+    #764ba2 25%, 
+    #f093fb 50%, 
+    #f5576c 75%, 
+    #4facfe 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.wizardContainer {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #8B4513, #D4AF37);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progressFill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.wizardContent {
+  padding: 3rem;
+  text-align: center;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wizardStep {
+  width: 100%;
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Welcome Step */
+.welcomeStep .floatingIcons {
+  position: relative;
+  height: 150px;
+  margin-bottom: 2rem;
+}
+
+.floatingIcons .icon {
+  position: absolute;
+  font-size: 2.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.icon1 { top: 20px; left: 20%; animation-delay: 0s; }
+.icon2 { top: 10px; right: 20%; animation-delay: 0.5s; }
+.icon3 { bottom: 20px; left: 15%; animation-delay: 1s; }
+.icon4 { bottom: 10px; right: 15%; animation-delay: 1.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.wizardTitle {
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8B4513, #D4AF37);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem;
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.2); }
+}
+
+.wizardSubtitle {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.featuresPreview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.featureItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: rgba(139, 69, 19, 0.1);
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+}
+
+.featureItem:hover {
+  transform: translateY(-5px);
+}
+
+.featureIcon {
+  font-size: 2rem;
+}
+
+.btnMagic {
+  background: linear-gradient(135deg, #8B4513, #D4AF37);
+  color: white;
+  border: none;
+  padding: 1.5rem 3rem;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(139, 69, 19, 0.3);
+}
+
+.btnMagic:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(139, 69, 19, 0.4);
+}
+
+/* Analysis Step */
+.analysisStep .analysisAnimation {
+  position: relative;
+  height: 200px;
+  margin-bottom: 2rem;
+}
+
+.scannerLine {
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #8B4513, transparent);
+  animation: scan 2s ease-in-out infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.dataPoints {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.dataPoint {
+  padding: 1rem;
+  background: rgba(139, 69, 19, 0.1);
+  border-radius: 12px;
+  border-left: 4px solid #8B4513;
+  transition: all 0.3s ease;
+}
+
+.dataPoint.active {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: #22c55e;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.dataPoint.loading {
+  background: rgba(249, 115, 22, 0.1);
+  border-left-color: #f97316;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.detectedInfo {
+  background: rgba(139, 69, 19, 0.05);
+  padding: 2rem;
+  border-radius: 16px;
+  margin-top: 2rem;
+}
+
+.infoItem {
+  margin-bottom: 1rem;
+  text-align: left;
+  font-size: 1.1rem;
+}
+
+/* Brand Step */
+.brandStep .colorAnalyzer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.analyzingSpinner {
+  width: 80px;
+  height: 80px;
+  border: 6px solid rgba(139, 69, 19, 0.2);
+  border-top: 6px solid #8B4513;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.colorPalette {
+  display: flex;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.colorSwatch {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: scale(1);
+  transition: transform 0.3s ease;
+}
+
+.colorSwatch:hover {
+  transform: scale(1.05);
+}
+
+.brandSuccess {
+  color: #22c55e;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+/* Deploy Step */
+.deployStep .deployAnimation {
+  position: relative;
+  height: 150px;
+  margin-bottom: 2rem;
+}
+
+.rocket {
+  font-size: 4rem;
+  animation: launch 2s ease-in-out infinite;
+}
+
+@keyframes launch {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(10deg); }
+}
+
+.deployEffects {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.effect {
+  position: absolute;
+  font-size: 2rem;
+  animation: explode 1s ease-out infinite;
+}
+
+.effect:nth-child(1) { animation-delay: 0s; }
+.effect:nth-child(2) { animation-delay: 0.3s; }
+.effect:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes explode {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+.deployFeatures {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.deployItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(139, 69, 19, 0.1);
+  border-radius: 16px;
+  text-align: left;
+}
+
+.deployIcon {
+  font-size: 2rem;
+}
+
+.btnLaunch {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  border: none;
+  padding: 1.5rem 3rem;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+}
+
+.btnLaunch:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+}
+
+/* Step Titles */
+.stepTitle {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.stepDescription {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Wizard Footer */
+.wizardFooter {
+  padding: 2rem;
+  background: rgba(139, 69, 19, 0.05);
+}
+
+.stepIndicator {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.stepDot {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.stepDot.active {
+  background: linear-gradient(135deg, #8B4513, #D4AF37);
+  transform: scale(1.1);
+}
+
+.stepIcon {
+  font-size: 1.5rem;
+}
+
+.stepDot.active .stepIcon {
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wizardContainer {
+    margin: 1rem;
+    border-radius: 16px;
+  }
+  
+  .wizardContent {
+    padding: 2rem;
+  }
+  
+  .featuresPreview {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .colorPalette {
+    flex-direction: column;
+    align-items: center;
+  }
+}
