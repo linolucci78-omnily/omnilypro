@@ -1,0 +1,170 @@
+/* Professional icon styles for EnterpriseWizard */
+
+.labelIcon {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+  color: #6b7280;
+}
+
+.sectionIcon {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+  color: #374151;
+}
+
+/* Logo Upload Styles */
+.logoUploadZone {
+  margin-top: 8px;
+}
+
+.logoUploadContainer {
+  width: 100%;
+}
+
+.logoUploadBox {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  background-color: #ffffff;
+}
+
+.logoPlaceholderIcon {
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.logoUploadBox p {
+  margin: 8px 0 20px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.uploadButtonLarge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+
+.uploadButtonLarge:hover {
+  background-color: #2563eb;
+}
+
+.uploadInfo {
+  display: block;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+
+.uploadButton:hover {
+  background-color: #2563eb;
+}
+
+.uploadHint {
+  display: block;
+  margin-top: 12px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* Logo Preview Styles */
+.logoPreviewContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+.logoPreview {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f9fafb;
+}
+
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logoActions {
+  display: flex;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.replaceButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  color: #374151;
+}
+
+.replaceButton:hover {
+  background-color: #e5e7eb;
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #dc2626;
+}
+
+.removeButton:hover {
+  background-color: #fee2e2;
+}

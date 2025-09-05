@@ -1,0 +1,706 @@
+.pos-simulator {
+  width: 100%;
+  min-height: 100vh;
+  background: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+}
+
+.pos-simulator.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  background: #0f172a;
+}
+
+/* Simulator Header */
+.simulator-header {
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.simulator-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.simulator-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.simulator-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.organization-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.organization-selector label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.organization-selector select {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #374151;
+  min-width: 200px;
+}
+
+.organization-selector select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.view-switcher {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.view-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-btn.active {
+  background: white;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn:hover:not(.active) {
+  color: #374151;
+}
+
+.action-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* State Indicator */
+.state-indicator {
+  background: #1e293b;
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.state-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.state-label {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.state-value {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.state-idle { background: #6b7280; }
+.state-welcome { background: #3b82f6; }
+.state-reading-card { background: #f59e0b; }
+.state-customer-found { background: #10b981; }
+.state-transaction { background: #8b5cf6; }
+.state-completed { background: #059669; }
+
+.transaction-info {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Screens Container */
+.screens-container {
+  flex: 1;
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+  min-height: 0;
+}
+
+.screens-container.dual {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  height: auto; /* Let content define height */
+}
+
+.screens-container.customer,
+.screens-container.merchant {
+  grid-template-columns: 1fr;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Screen Components */
+.screen {
+  background: #1f2937;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.screen-header {
+  background: #374151;
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.screen-header h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.screen-resolution {
+  font-family: 'Monaco', 'Consolas', monospace;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.screen-content {
+  background: white;
+  overflow: hidden;
+}
+
+/* DIMENSIONI REALI POS ZCS Z108S */
+
+/* Customer Display: 3.95" (480x480px IPS) */
+.customer-screen {
+  flex: 0 0 480px;
+}
+
+.customer-screen .screen-content {
+  width: 480px;
+  height: 480px;
+  border: 2px solid #333;
+  border-radius: 8px;
+}
+
+/* Merchant Display: 8" (1280x800px IPS) */
+.merchant-screen {
+  flex: 0 0 1280px;
+}
+
+.merchant-screen .screen-content {
+  width: 1280px;
+  height: 800px;
+  border: 2px solid #333;
+  border-radius: 8px;
+}
+
+.customer-screen .screen-content {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+/* Debug Panel */
+.debug-panel {
+  position: absolute;
+  top: 80px;
+  right: 24px;
+  width: 280px;
+  max-height: 70vh;
+  background: rgba(0, 0, 0, 0.95);
+  color: white;
+  border-radius: 12px;
+  overflow-y: auto;
+  font-size: 11px;
+  z-index: 100;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.debug-panel:hover {
+  opacity: 1;
+}
+
+.debug-header {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+  justify-content: space-between;
+}
+
+.debug-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.debug-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.debug-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.debug-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.debug-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #60a5fa;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+  padding-bottom: 6px;
+}
+
+.debug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.debug-item:last-child {
+  margin-bottom: 0;
+}
+
+.debug-label {
+  opacity: 0.8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.debug-value {
+  font-weight: 600;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 11px;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Hardware Indicators */
+.hardware-indicators {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  gap: 16px;
+  z-index: 100;
+}
+
+.hardware-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.indicator-dot.connected {
+  background: #10b981;
+}
+
+.indicator-dot.warning {
+  background: #f59e0b;
+}
+
+.indicator-dot.error {
+  background: #ef4444;
+}
+
+/* Fullscreen Mode */
+.pos-simulator.fullscreen .simulator-header {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.pos-simulator.fullscreen .simulator-title h2 {
+  color: white;
+}
+
+.pos-simulator.fullscreen .connection-status {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pos-simulator.fullscreen .view-switcher {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pos-simulator.fullscreen .view-btn {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pos-simulator.fullscreen .view-btn.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.pos-simulator.fullscreen .control-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.pos-simulator.fullscreen .screens-container {
+  padding: 16px;
+}
+
+.pos-simulator.fullscreen .screen {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Media Queries per Dimensioni Reali POS ZCS Z108 */
+
+/* KIOSK MODE - Display Cliente 3.95" - 480x854 (6.1cm x 10.8cm) */
+@media screen and (width: 480px) and (height: 854px) {
+  .pos-simulator {
+    background: #000;
+  }
+  
+  .simulator-header,
+  .state-indicator,
+  .debug-panel,
+  .hardware-indicators {
+    display: none; /* Nascondi elementi UI in kiosk mode */
+  }
+  
+  .screens-container {
+    padding: 0;
+    grid-template-columns: 1fr;
+  }
+  
+  .customer-screen {
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  .customer-screen .screen-header {
+    display: none;
+  }
+  
+  .customer-screen .screen-content {
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+  }
+  
+  /* Ottimizzazioni font per 7" */
+  .business-name {
+    font-size: 28px !important;
+  }
+  
+  .customer-welcome h2 {
+    font-size: 32px !important;
+  }
+  
+  .points-value {
+    font-size: 36px !important;
+  }
+  
+  .tap-instruction h2 {
+    font-size: 24px !important;
+  }
+  
+  .promo-card h3 {
+    font-size: 20px !important;
+  }
+}
+
+/* KIOSK MODE - Display Merchant 8" - 1280x800 (17.2cm x 10.8cm) */
+@media screen and (width: 1280px) and (height: 800px) {
+  .pos-simulator {
+    background: #000;
+  }
+  
+  .simulator-header,
+  .state-indicator,
+  .debug-panel,
+  .hardware-indicators {
+    display: none; /* Nascondi elementi UI in kiosk mode */
+  }
+  
+  .screens-container {
+    padding: 0;
+    grid-template-columns: 1fr;
+  }
+  
+  .merchant-screen {
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  .merchant-screen .screen-header {
+    display: none;
+  }
+  
+  .merchant-screen .screen-content {
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+  }
+  
+  /* Ottimizzazioni layout per 10.1" */
+  .control-header {
+    padding: 12px 16px;
+  }
+  
+  .hardware-status {
+    padding: 12px 16px;
+  }
+  
+  .control-body {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .panel-header h3 {
+    font-size: 16px !important;
+  }
+  
+  .customer-name {
+    font-size: 18px !important;
+  }
+  
+  .amount-input input {
+    font-size: 18px !important;
+    padding: 10px 10px 10px 36px;
+  }
+}
+
+/* Modalità Dual Screen per Testing su Desktop */
+@media screen and (min-width: 1400px) and (min-height: 900px) {
+  .screens-container.dual {
+    max-width: 1600px;
+    margin: 0 auto;
+    grid-template-columns: 1024px 1280px; /* Dimensioni esatte */
+    justify-content: center;
+  }
+  
+  .customer-screen .screen-content {
+    width: 1024px;
+    height: 768px;
+    min-height: 768px;
+    max-height: 768px;
+  }
+  
+  .merchant-screen .screen-content {
+    width: 1280px; 
+    height: 800px;
+    min-height: 800px;
+    max-height: 800px;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .screens-container.dual {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    max-height: calc(100vh - 200px);
+  }
+  
+  .screen-content {
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .simulator-header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .simulator-controls {
+    justify-content: space-between;
+    gap: 12px;
+  }
+  
+  .action-controls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .control-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .screens-container {
+    padding: 16px;
+  }
+  
+  .screen-content {
+    min-height: 400px;
+  }
+  
+  .debug-panel {
+    position: static;
+    margin: 16px;
+    width: auto;
+  }
+  
+  .hardware-indicators {
+    position: static;
+    margin: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .simulator-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .simulator-title h2 {
+    font-size: 18px;
+  }
+  
+  .view-switcher {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .view-btn {
+    text-align: center;
+  }
+  
+  .transaction-info {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+  
+  .screen-content {
+    min-height: 350px;
+  }
+}

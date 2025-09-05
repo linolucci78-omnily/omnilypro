@@ -20,6 +20,15 @@ export interface Organization {
   secondary_color: string
   created_at: string
   updated_at: string
+  // Additional fields for admin page
+  email?: string
+  phone?: string
+  website?: string
+  address?: string
+  business_type?: string
+  is_active: boolean
+  pos_enabled: boolean
+  pos_model?: string
 }
 
 // API functions
@@ -80,6 +89,64 @@ export const organizationsApi = {
 
     if (error) throw error
     return data
+  },
+
+  // Update organization
+  async update(id: string, updates: Partial<Organization>): Promise<Organization> {
+    const { data, error } = await supabase
+      .from('organizations')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete organization
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('organizations')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  // Bulk delete organizations
+  async bulkDelete(ids: string[]): Promise<void> {
+    const { error } = await supabase
+      .from('organizations')
+      .delete()
+      .in('id', ids)
+
+    if (error) throw error
+  },
+
+  // Toggle organization status
+  async toggleStatus(id: string, isActive: boolean): Promise<Organization> {
+    return this.update(id, { is_active: isActive })
+  },
+
+  // Get organizations stats
+  async getStats() {
+    const { data: all, error } = await supabase
+      .from('organizations')
+      .select('id, is_active, pos_enabled, created_at')
+
+    if (error) throw error
+
+    const now = new Date()
+    const monthAgo = new Date()
+    monthAgo.setMonth(monthAgo.getMonth() - 1)
+
+    return {
+      total: all.length,
+      active: all.filter(o => o.is_active).length,
+      withPOS: all.filter(o => o.pos_enabled).length,
+      newThisMonth: all.filter(o => new Date(o.created_at) >= monthAgo).length
+    }
   },
 
   // Generate demo data for new organization

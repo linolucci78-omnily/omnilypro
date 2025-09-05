@@ -1,14 +1,37 @@
 import React, { useState } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { organizationsApi } from '../../lib/supabase'
-import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Clock, Gift, Palette, UserPlus, Bell, Star, Euro, Settings, Globe, Smartphone } from 'lucide-react'
+// import { useAuth } from '../../contexts/AuthContext' // Temporary disabled
+import { organizationService } from '../../services/organizationService.js'
+import { getMockUser } from '../../services/mockAuth.js'
+import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Clock, Gift, Palette, UserPlus, Bell, Star, Euro, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer } from 'lucide-react'
 import styles from './EnterpriseWizard.module.css'
+import './icon-styles.css'
+import POSTestPanel from '../POS/POSTestPanel'
 
 const EnterpriseWizard: React.FC = () => {
-  const { user } = useAuth()
-  const [currentStep, setCurrentStep] = useState(0)
+  // const { user } = useAuth() // TODO: Enable when auth is ready
+  const user = getMockUser() // Temporary mock for development
+  
+  // Carica step salvato da localStorage
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem('omnily-wizard-step')
+    return saved ? parseInt(saved) : 0
+  })
+  
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  
+  // Carica dati salvati da localStorage  
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem('omnily-wizard-data')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        console.warn('Errore caricamento dati salvati:', e)
+      }
+    }
+    
+    // Dati di default se non ci sono salvataggi
+    return {
     // Step 1: Organization Basics
     organizationName: '',
     partitaIVA: '',
@@ -16,7 +39,10 @@ const EnterpriseWizard: React.FC = () => {
     industry: 'retail',
     teamSize: '1-10',
     phoneNumber: '',
+    businessEmail: '',
     website: '',
+    tagline: '',
+    logoUrl: '',
     address: '',
     city: '',
     province: '',
@@ -55,8 +81,13 @@ const EnterpriseWizard: React.FC = () => {
     // Step 5: Branding Setup
     primaryColor: '#ef4444',
     secondaryColor: '#dc2626',
-    logoUrl: '',
     appName: '',
+    
+    // Social Media Links
+    facebookUrl: '',
+    instagramUrl: '',
+    linkedinUrl: '',
+    twitterUrl: '',
     
     // Step 6: Channels Integration
     enablePOS: true,
@@ -75,7 +106,17 @@ const EnterpriseWizard: React.FC = () => {
     adminName: '',
     adminEmail: '',
     
-    // Step 9: Notifications & Communication
+    // Step 9: POS Integration
+    posEnabled: true,
+    posModel: 'Z108', // Z90, Z91, Z92, Z100, Z108, Z70, Z45
+    posConnection: 'usb', // usb, bluetooth
+    enableReceiptPrint: true,
+    enableNFC: true,
+    enableEMV: true,
+    enablePinPad: true,
+    posTestResults: null,
+    
+    // Step 10: Notifications & Communication
     enableEmailNotifications: true,
     enableSMS: false,
     enablePushNotifications: true,
@@ -85,12 +126,13 @@ const EnterpriseWizard: React.FC = () => {
     enableAdvancedAnalytics: true,
     reportFrequency: 'weekly',
     kpiTracking: ['customer_retention', 'average_transaction', 'loyalty_roi']
+    }
   })
 
   const steps = [
     {
       title: 'Benvenuto in OMNILY PRO',
-      subtitle: 'Setup enterprise completo in 10 step',
+      subtitle: 'Setup enterprise completo in 11 step',
       icon: Award
     },
     {
@@ -134,9 +176,14 @@ const EnterpriseWizard: React.FC = () => {
       icon: UserPlus
     },
     {
-      title: 'Analytics e Reports',
-      subtitle: 'KPI tracking e frequenza report',
-      icon: BarChart3
+      title: 'Integrazione POS',
+      subtitle: 'Terminale ZCS per NFC e pagamenti',
+      icon: CreditCard
+    },
+    {
+      title: 'Notifiche e Comunicazioni',
+      subtitle: 'Email, SMS e push notifications',
+      icon: Bell
     },
     {
       title: 'Sistema Operativo',
@@ -162,7 +209,11 @@ const EnterpriseWizard: React.FC = () => {
   ]
 
   const handleInputChange = (field: string, value: string | boolean | string[] | any[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    const newData = { ...formData, [field]: value }
+    setFormData(newData)
+    
+    // Salva automaticamente in localStorage
+    localStorage.setItem('omnily-wizard-data', JSON.stringify(newData))
   }
 
   // 🇮🇹 RICONOSCIMENTO AUTOMATICO PARTITA IVA - FEATURE ENTERPRISE ITALIANA
@@ -214,7 +265,7 @@ const EnterpriseWizard: React.FC = () => {
           cap: parsedAddress.cap,
         }));
         
-        console.log('✅ Partita IVA validata:', data);
+        console.log('Partita IVA validata:', data);
         return true;
       }
       return false;
@@ -252,7 +303,9 @@ const EnterpriseWizard: React.FC = () => {
         return false // Optional
       case 8: // Team step
         return !formData.adminName || !formData.adminEmail
-      case 9: // Analytics step
+      case 9: // POS step
+        return false // Optional - POS configuration is optional
+      case 10: // Notifications step
         return false // Optional
       default:
         return false
@@ -269,9 +322,10 @@ const EnterpriseWizard: React.FC = () => {
       case 5: return 'Integra Canali'
       case 6: return 'Setup Marketing'
       case 7: return 'Gestione Team'
-      case 8: return 'Configure Analytics'
-      case 9: return 'Deploy Sistema'
-      case 10: return 'Lancia Dashboard'
+      case 8: return 'Integra POS'
+      case 9: return 'Configure Notifiche'
+      case 10: return 'Deploy Sistema'
+      case 11: return 'Lancia Dashboard'
       default: return 'Continua'
     }
   }
@@ -279,7 +333,9 @@ const EnterpriseWizard: React.FC = () => {
   const handleNext = async () => {
     if (currentStep < steps.length - 2) {
       // Navigate to next step
-      setCurrentStep(currentStep + 1)
+      const nextStep = currentStep + 1
+      setCurrentStep(nextStep)
+      localStorage.setItem('omnily-wizard-step', nextStep.toString())
     } else if (currentStep === steps.length - 2) {
       // Last config step - deploy
       setLoading(true)
@@ -302,28 +358,80 @@ const EnterpriseWizard: React.FC = () => {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+      const prevStep = currentStep - 1
+      setCurrentStep(prevStep)
+      localStorage.setItem('omnily-wizard-step', prevStep.toString())
     }
   }
 
+  const resetWizard = () => {
+    if (confirm('Sei sicuro di voler ricominciare da capo? Tutti i dati inseriti andranno persi.')) {
+      localStorage.removeItem('omnily-wizard-data')
+      localStorage.removeItem('omnily-wizard-step')
+      window.location.reload()
+    }
+  }
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      processLogoFile(file)
+    }
+  }
+
+  const processLogoFile = (file: File) => {
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Il file è troppo grande. Massimo 2MB.')
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Seleziona un file immagine valido.')
+      return
+    }
+
+    // Create preview URL
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string
+      handleInputChange('logoUrl', imageUrl)
+    }
+    reader.readAsDataURL(file)
+  }
+
+
   const createOrganization = async () => {
-    const slug = formData.organizationName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-
-    const newOrg = await organizationsApi.create({
-      name: formData.organizationName,
-      slug: `${slug}-${Date.now()}`,
-      domain: formData.website.replace(/https?:\/\//, ''),
-      industry: formData.industry,
-      primary_color: '#2563eb',
-      secondary_color: '#1d4ed8',
-      plan_type: 'free'
-    })
-
-    console.log('Organization created:', newOrg)
-    return newOrg
+    try {
+      console.log('🚀 Creating organization with wizard data...')
+      
+      // Call organization service with complete wizard data
+      const result = await organizationService.createOrganization(formData, user)
+      
+      if (result.success) {
+        console.log('Organization created successfully:', result.organization.name)
+        console.log('🌐 Subdomain:', result.subdomain)
+        console.log('Dashboard URL:', result.dashboardUrl)
+        
+        // Store organization data for redirect
+        localStorage.setItem('newOrganization', JSON.stringify(result))
+        
+        // Pulisci i dati del wizard completato
+        localStorage.removeItem('omnily-wizard-data')
+        localStorage.removeItem('omnily-wizard-step')
+        
+        return result
+      } else {
+        throw new Error(result.error || 'Failed to create organization')
+      }
+      
+    } catch (error) {
+      console.error('❌ Organization creation failed:', error)
+      // Show error to user
+      alert('Errore nella creazione dell\'organizzazione: ' + error.message)
+      throw error
+    }
   }
 
   const renderStep = () => {
@@ -482,6 +590,168 @@ const EnterpriseWizard: React.FC = () => {
                   />
                 </div>
               </div>
+
+              {/* Nuovi campi per contatti e branding */}
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}><Phone size={16} className={styles.labelIcon} /> Telefono Aziendale</label>
+                  <input
+                    type="tel"
+                    className={styles.input}
+                    placeholder="+39 02 1234567"
+                    value={formData.phoneNumber}
+                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}><Mail size={16} className={styles.labelIcon} /> Email Aziendale</label>
+                  <input
+                    type="email"
+                    className={styles.input}
+                    placeholder="info@miazienda.it"
+                    value={formData.businessEmail}
+                    onChange={(e) => handleInputChange('businessEmail', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}><Globe2 size={16} className={styles.labelIcon} /> Sito Web</label>
+                  <input
+                    type="url"
+                    className={styles.input}
+                    placeholder="https://www.miazienda.it"
+                    value={formData.website}
+                    onChange={(e) => handleInputChange('website', e.target.value)}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}><MessageSquare size={16} className={styles.labelIcon} /> Tagline/Slogan</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="La migliore pizza della città"
+                    value={formData.tagline}
+                    onChange={(e) => handleInputChange('tagline', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Upload logo */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}><Building2 size={16} className={styles.labelIcon} /> Logo Aziendale</label>
+                
+                <div className={styles.logoUploadZone}>
+                  {/* Layout sempre uguale: Pulsante + Anteprima affiancati */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    
+                    {/* Pulsante upload sempre visibile */}
+                    <div>
+                      <input
+                        type="file"
+                        id="logoUpload"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleLogoUpload(e)}
+                      />
+                      
+                      <label 
+                        htmlFor="logoUpload" 
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '12px 24px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontWeight: '600',
+                          fontSize: '16px',
+                          cursor: 'pointer',
+                          textDecoration: 'none'
+                        }}
+                      >
+                        <Upload size={18} />
+                        {formData.logoUrl ? 'Sostituisci Logo' : 'Carica Logo'}
+                      </label>
+                      
+                      <div style={{ marginTop: '8px' }}>
+                        <small style={{ color: '#9ca3af', fontSize: '12px' }}>
+                          JPG, PNG, SVG • Max 2MB
+                        </small>
+                      </div>
+                    </div>
+                    
+                    {/* Anteprima logo */}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '12px',
+                      flex: '1'
+                    }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#f9fafb',
+                        overflow: 'hidden'
+                      }}>
+                        {formData.logoUrl ? (
+                          <img 
+                            src={formData.logoUrl} 
+                            alt="Logo preview" 
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        ) : (
+                          <div style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center',
+                            color: '#9ca3af'
+                          }}>
+                            <Building2 size={24} />
+                            <small style={{ fontSize: '10px', marginTop: '4px' }}>Preview</small>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Pulsante rimuovi quando c'è il logo */}
+                      {formData.logoUrl && (
+                        <button 
+                          type="button"
+                          onClick={() => handleInputChange('logoUrl', '')}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            backgroundColor: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            color: '#dc2626'
+                          }}
+                        >
+                          <X size={14} />
+                          Rimuovi
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         )
@@ -827,7 +1097,7 @@ const EnterpriseWizard: React.FC = () => {
               </div>
 
               <div className={styles.bonusSection}>
-                <h4>⚡ Moltiplicatori per Categoria</h4>
+                <h4><Zap size={16} className={styles.sectionIcon} /> Moltiplicatori per Categoria</h4>
                 {formData.bonusCategories.map((bonus, index) => (
                   <div key={index} className={styles.formRow}>
                     <div className={styles.formGroup}>
@@ -849,7 +1119,7 @@ const EnterpriseWizard: React.FC = () => {
               </div>
 
               <div className={styles.previewCard}>
-                <h4>📊 Anteprima Moltiplicatori</h4>
+                <h4><BarChart3 size={16} className={styles.sectionIcon} /> Anteprima Moltiplicatori</h4>
                 <div className={styles.multiplierPreview}>
                   {formData.bonusCategories.map((bonus, index) => (
                     <div key={index} className={styles.previewItem}>
@@ -1027,14 +1297,63 @@ const EnterpriseWizard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Social Media Links */}
+              <div className={styles.socialSection}>
+                <h4><Globe size={16} className={styles.sectionIcon} /> Collegamenti Social</h4>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}><Globe size={16} className={styles.labelIcon} /> Facebook</label>
+                    <input
+                      type="url"
+                      className={styles.input}
+                      placeholder="https://www.facebook.com/miazienda"
+                      value={formData.facebookUrl}
+                      onChange={(e) => handleInputChange('facebookUrl', e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}><Globe size={16} className={styles.labelIcon} /> Instagram</label>
+                    <input
+                      type="url"
+                      className={styles.input}
+                      placeholder="https://www.instagram.com/miazienda"
+                      value={formData.instagramUrl}
+                      onChange={(e) => handleInputChange('instagramUrl', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}><Users size={16} className={styles.labelIcon} /> LinkedIn</label>
+                    <input
+                      type="url"
+                      className={styles.input}
+                      placeholder="https://www.linkedin.com/company/miazienda"
+                      value={formData.linkedinUrl}
+                      onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}><MessageSquare size={16} className={styles.labelIcon} /> Twitter/X</label>
+                    <input
+                      type="url"
+                      className={styles.input}
+                      placeholder="https://twitter.com/miazienda"
+                      value={formData.twitterUrl}
+                      onChange={(e) => handleInputChange('twitterUrl', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className={styles.brandPreview}>
-                <h4>🎨 Anteprima Brand</h4>
+                <h4><Palette size={16} className={styles.sectionIcon} /> Anteprima Brand</h4>
                 <div className={styles.mockupCard} style={{
                   background: `linear-gradient(135deg, ${formData.primaryColor}, ${formData.secondaryColor})`
                 }}>
                   <div className={styles.mockupContent}>
                     <h3>{formData.organizationName || 'La Tua Azienda'}</h3>
-                    <p>Sistema Loyalty Personalizzato</p>
+                    <p>{formData.tagline || 'Sistema Loyalty Personalizzato'}</p>
                     <div className={styles.mockupButton}>
                       Guadagna {formData.pointsName}
                     </div>
@@ -1311,8 +1630,150 @@ const EnterpriseWizard: React.FC = () => {
           </div>
         )
 
-      // Step 5: Notifications
-      case 5:
+      // Step 9: POS Integration
+      case 9:
+        return (
+          <div className={styles.stepContent}>
+            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
+              <CreditCard size={32} />
+            </div>
+            <h2 className={styles.stepTitle}>Integrazione POS ZCS</h2>
+            <p className={styles.stepDescription}>
+              Configura terminale POS per tessere loyalty NFC e transazioni
+            </p>
+            
+            <div className={styles.form}>
+              <div className={styles.posConfig}>
+                <div className={styles.inputGroup}>
+                  <label>Modello POS ZCS</label>
+                  <select
+                    value={formData.posModel}
+                    onChange={(e) => handleInputChange('posModel', e.target.value)}
+                    className={styles.input}
+                  >
+                    <option value="Z108">Z108 - Android POS (Consigliato)</option>
+                    <option value="Z100">Z100 - Smart POS</option>
+                    <option value="Z92">Z92 - Smart POS</option>
+                    <option value="Z91">Z91 - Smart POS</option>
+                    <option value="Z90">Z90 - Smart POS</option>
+                    <option value="Z70">Z70 - MPOS Bluetooth</option>
+                    <option value="Z45">Z45 - Card Reader USB</option>
+                  </select>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Connessione</label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="posConnection"
+                        value="usb"
+                        checked={formData.posConnection === 'usb'}
+                        onChange={(e) => handleInputChange('posConnection', e.target.value)}
+                      />
+                      <span>USB</span>
+                    </label>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="posConnection"
+                        value="bluetooth"
+                        checked={formData.posConnection === 'bluetooth'}
+                        onChange={(e) => handleInputChange('posConnection', e.target.value)}
+                      />
+                      <span>Bluetooth</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.posFeatures}>
+                <h4>Funzionalità POS</h4>
+                <div className={styles.featureGrid}>
+                  <div className={styles.featureCard}>
+                    <div className={styles.featureHeader}>
+                      <Printer size={20} />
+                      <span>Stampa Ricevute</span>
+                      <input
+                        type="checkbox"
+                        className={styles.featureToggle}
+                        checked={formData.enableReceiptPrint}
+                        onChange={(e) => handleInputChange('enableReceiptPrint', e.target.checked)}
+                      />
+                    </div>
+                    <small>Stampa automatica ricevute con QR code loyalty</small>
+                  </div>
+
+                  <div className={styles.featureCard}>
+                    <div className={styles.featureHeader}>
+                      <Smartphone size={20} />
+                      <span>Lettore NFC</span>
+                      <input
+                        type="checkbox"
+                        className={styles.featureToggle}
+                        checked={formData.enableNFC}
+                        onChange={(e) => handleInputChange('enableNFC', e.target.checked)}
+                      />
+                    </div>
+                    <small>Lettura tessere loyalty contactless</small>
+                  </div>
+
+                  <div className={styles.featureCard}>
+                    <div className={styles.featureHeader}>
+                      <CreditCard size={20} />
+                      <span>EMV Chip & PIN</span>
+                      <input
+                        type="checkbox"
+                        className={styles.featureToggle}
+                        checked={formData.enableEMV}
+                        onChange={(e) => handleInputChange('enableEMV', e.target.checked)}
+                      />
+                    </div>
+                    <small>Pagamenti sicuri con chip e PIN</small>
+                  </div>
+
+                  <div className={styles.featureCard}>
+                    <div className={styles.featureHeader}>
+                      <Shield size={20} />
+                      <span>PinPad Sicuro</span>
+                      <input
+                        type="checkbox"
+                        className={styles.featureToggle}
+                        checked={formData.enablePinPad}
+                        onChange={(e) => handleInputChange('enablePinPad', e.target.checked)}
+                      />
+                    </div>
+                    <small>Crittografia PIN avanzata DUKPT</small>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.posPreview}>
+                <div className={styles.previewHeader}>
+                  <h4>Test Connessione POS</h4>
+                  <div className={styles.posStatus}>
+                    <div className={styles.statusDot}></div>
+                    <span>POS {formData.posModel} Configurato</span>
+                  </div>
+                </div>
+                
+                <POSTestPanel
+                  posModel={formData.posModel}
+                  posConnection={formData.posConnection}
+                  onTestComplete={(results) => {
+                    console.log('Test POS completato:', results)
+                    // Salva risultati test in formData se necessario
+                    handleInputChange('posTestResults', results)
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )
+
+      // Step 10: Notifications
+      case 10:
         return (
           <div className={styles.stepContent}>
             <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
@@ -1368,8 +1829,8 @@ const EnterpriseWizard: React.FC = () => {
           </div>
         )
 
-      // Step 6: Deploy Complete
-      case 6:
+      // Step 11: Deploy Complete
+      case 11:
         return (
           <div className={styles.stepContent}>
             <div className={styles.successIcon}>
@@ -1407,6 +1868,12 @@ const EnterpriseWizard: React.FC = () => {
               </div>
               <div className={styles.feature}>
                 <div className={styles.featureIcon}>
+                  <CreditCard size={16} />
+                </div>
+                <span>POS ZCS integrato</span>
+              </div>
+              <div className={styles.feature}>
+                <div className={styles.featureIcon}>
                   <Bell size={16} />
                 </div>
                 <span>Notifiche attivate</span>
@@ -1421,7 +1888,7 @@ const EnterpriseWizard: React.FC = () => {
 
             <div className={styles.successActions}>
               <p className={styles.successMessage}>
-                🎉 Reindirizzamento alla dashboard in corso...
+Reindirizzamento alla dashboard in corso...
               </p>
             </div>
           </div>
@@ -1441,6 +1908,19 @@ const EnterpriseWizard: React.FC = () => {
             <div className={styles.sidebarLogo}>
               <div className={styles.sidebarLogoIcon}>O</div>
               <span className={styles.sidebarLogoText}>OMNILY PRO</span>
+            </div>
+            
+            {/* Indicatore salvataggio automatico */}
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#10b981', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '4px',
+              marginTop: '8px'
+            }}>
+              <CheckCircle2 size={12} />
+              Auto-salvataggio attivo
             </div>
           </div>
           
