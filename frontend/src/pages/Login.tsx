@@ -30,7 +30,7 @@ const Login: React.FC = () => {
     try {
       if (authMode === 'signup') {
         await signUp(email, password)
-        setMessage('✅ Registrazione completata! Controlla la tua email per confermare l\'account.')
+        setMessage('✅ Registrazione completata! Controlla la tua email (inclusa la cartella SPAM) per confermare l\'account. Se non ricevi l\'email, controlla le impostazioni del provider o riprova.')
       } else {
         await signIn(email, password)
         setMessage('✅ Login effettuato con successo!')

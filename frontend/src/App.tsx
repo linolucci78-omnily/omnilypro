@@ -13,6 +13,7 @@ import Admin from './pages/Admin'
 import BusinessCustomers from './pages/BusinessCustomers'
 import BusinessOwners from './pages/BusinessOwners'
 import UpdatePassword from './pages/UpdatePassword'
+import AuthCallback from './pages/AuthCallback'
 import POSSimulator from './components/POS/POSSimulator'
 import Z108POSInterface from './components/POS/Z108POSInterface'
 
@@ -46,6 +47,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route 
               path="/onboarding" 

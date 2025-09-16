@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string) => Promise<any>
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
@@ -62,11 +62,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin + '/auth/callback'
+      }
     })
+
     if (error) throw error
+
+    // Log per debug
+    console.log('SignUp result:', data)
+
+    return data
   }
 
   const signOut = async () => {
