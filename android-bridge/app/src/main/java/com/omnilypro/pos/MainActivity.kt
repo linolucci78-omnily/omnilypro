@@ -42,8 +42,8 @@ class MainActivity : AppCompatActivity() {
         
         setContentView(webView)
         
-        // Load React app in POS mode from Vercel
-        val url = "https://omnilypro.vercel.app?pos=true"
+        // Load React app login page in POS mode
+        val url = "https://omnilypro.vercel.app/login?pos=true"
         Log.d(TAG, "🌐 Loading URL: $url")
 
         // Test URL first - you can change this for debugging
@@ -100,9 +100,45 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "✅ Page loaded successfully: $url")
                 
-                // Inject ZCS bridge availability
+                // Inject ZCS bridge availability and POS styling
                 webView.evaluateJavascript(
                     """
+                    // Add POS-specific styling
+                    const posStyle = document.createElement('style');
+                    posStyle.textContent = `
+                        body {
+                            zoom: 1.2 !important;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                        }
+                        .login-container {
+                            max-width: 500px !important;
+                            margin: 5vh auto !important;
+                            padding: 3rem !important;
+                            border-radius: 20px !important;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+                            background: white !important;
+                        }
+                        .login-header h1 {
+                            font-size: 2.5rem !important;
+                            margin-bottom: 1rem !important;
+                        }
+                        .form-group input {
+                            font-size: 1.3rem !important;
+                            padding: 1rem !important;
+                            border-radius: 10px !important;
+                        }
+                        .btn-primary {
+                            font-size: 1.3rem !important;
+                            padding: 1rem 2rem !important;
+                            border-radius: 10px !important;
+                        }
+                        .navbar {
+                            display: none !important;
+                        }
+                    `;
+                    document.head.appendChild(posStyle);
+
+                    // ZCS Native Bridge
                     window.ZCSNativeBridge = {
                         available: true,
                         readNFC: function() {
@@ -119,6 +155,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     };
                     console.log('🚀 OMNILY POS Native Bridge Ready!');
+                    console.log('🎨 POS Styling Applied!');
                     """, null
                 )
             }

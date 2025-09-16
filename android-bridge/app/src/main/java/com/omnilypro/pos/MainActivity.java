@@ -41,8 +41,8 @@ public class MainActivity extends AppCompatActivity {
         
         setContentView(webView);
         
-        // Load React app in POS mode from Vercel
-        String url = "https://omnilypro.vercel.app?pos=true";
+        // Load React app login page in POS mode
+        String url = "https://omnilypro.vercel.app/login?pos=true";
         Log.d(TAG, "Loading URL: " + url);
         webView.loadUrl(url);
         
