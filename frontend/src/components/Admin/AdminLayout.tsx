@@ -13,7 +13,6 @@ import {
   HelpCircle,
   Database,
   Activity,
-  UserCheck,
   Mail,
   Palette,
   Package,

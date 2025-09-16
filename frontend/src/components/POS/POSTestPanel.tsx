@@ -15,7 +15,12 @@ const POSTestPanel: React.FC<POSTestPanelProps> = ({
 }) => {
   const [isConnected, setIsConnected] = useState(false)
   const [testing, setTesting] = useState(false)
-  const [testResults, setTestResults] = useState<any>({})
+  const [testResults, setTestResults] = useState<Record<string, boolean>>({
+    led: false,
+    beeper: false,
+    printer: false,
+    scanner: false,
+  })
   const [logs, setLogs] = useState<string[]>([])
 
   const addLog = (message: string) => {
@@ -52,14 +57,14 @@ const POSTestPanel: React.FC<POSTestPanelProps> = ({
       const results = await zcsSDK.testHardware()
       
       if (results.success) {
-        setTestResults(results.results)
+        setTestResults(results.results || {})
         addLog('✅ Test hardware completato')
         
-        const passedTests = Object.values(results.results).filter(Boolean).length
-        const totalTests = Object.keys(results.results).length
+        const passedTests = Object.values(results.results || {}).filter(Boolean).length
+        const totalTests = Object.keys(results.results || {}).length
         addLog(`📊 Risultati: ${passedTests}/${totalTests} componenti OK`)
         
-        onTestComplete(results.results)
+        onTestComplete(results.results || {})
       } else {
         addLog(`❌ Test fallito: ${results.error}`)
       }
@@ -80,7 +85,7 @@ const POSTestPanel: React.FC<POSTestPanelProps> = ({
         addLog(`📱 Tipo RF: ${result.rfCardType}`)
       }
     } catch (error) {
-      addLog(`❌ Lettura NFC fallita: ${error.message}`)
+      addLog(`❌ Lettura NFC fallita: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
@@ -103,7 +108,7 @@ const POSTestPanel: React.FC<POSTestPanelProps> = ({
         addLog('✅ Ricevuta stampata con successo!')
       }
     } catch (error) {
-      addLog(`❌ Stampa fallita: ${error.message}`)
+      addLog(`❌ Stampa fallita: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 

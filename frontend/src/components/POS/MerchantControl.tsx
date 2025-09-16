@@ -9,7 +9,6 @@ import {
   Wifi, 
   Settings,
   Play,
-  Square,
   RotateCcw,
   CheckCircle2,
   AlertCircle,
@@ -24,10 +23,12 @@ import {
 } from 'lucide-react'
 import './MerchantControl.css'
 
+type DisplayState = 'idle' | 'welcome' | 'reading-card' | 'customer-found' | 'transaction' | 'rewards' | 'completed'
+
 interface MerchantControlProps {
-  onDisplayStateChange: (state: string) => void
+  onDisplayStateChange: (state: DisplayState) => void
   onTransactionUpdate: (transaction: any) => void
-  displayState: string
+  displayState: DisplayState
   zcsSDK: any // ZCS SDK reference
 }
 
@@ -39,11 +40,19 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
 }) => {
   const [currentCustomer, setCurrentCustomer] = useState<any>(null)
   const [transactionAmount, setTransactionAmount] = useState('')
-  const [connectionStatus, setConnectionStatus] = useState('connected')
+  const [connectionStatus] = useState('connected')
   const [isReading, setIsReading] = useState(false)
-  const [selectedRewards, setSelectedRewards] = useState<string[]>([])
   const [showCustomerDetails, setShowCustomerDetails] = useState(true)
-  const [recentTransactions, setRecentTransactions] = useState([])
+  
+  interface Transaction {
+    id: string;
+    customer: string;
+    amount: number;
+    points: number;
+    timestamp: Date;
+    status: string;
+  }
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
   const [hardwareStatus, setHardwareStatus] = useState({
     nfc: 'connected',
     printer: 'connected',
@@ -169,7 +178,6 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
 
   const handleReset = () => {
     setCurrentCustomer(null)
-    setSelectedRewards([])
     setTransactionAmount('')
     onDisplayStateChange('idle')
     onTransactionUpdate(null)

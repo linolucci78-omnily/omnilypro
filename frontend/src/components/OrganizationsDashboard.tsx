@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { organizationsApi, customersApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
-import { BarChart3, Users, Gift, Target, TrendingUp, Calendar, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp,  Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import './OrganizationsDashboard.css'
 
@@ -257,7 +257,7 @@ const OrganizationsDashboard: React.FC = () => {
                           <div>Nessun cliente trovato per "{searchTerm}"</div>
                         </td>
                       </tr>
-                    ) : filteredCustomers.map((customer, index) => (
+                    ) : filteredCustomers.map((customer, _index) => (
                       <tr key={customer.id}>
                         <td>
                           <div className="customer-cell">
@@ -302,7 +302,7 @@ const OrganizationsDashboard: React.FC = () => {
                             {customer.is_active ? '✅ ATTIVO' : '❌ INATTIVO'}
                           </span>
                         </td>
-                        <td>{new Date(customer.created_at).toLocaleDateDateString('it-IT')}</td>
+                        <td>{new Date(customer.created_at).toLocaleDateString('it-IT')}</td>
                         <td>
                           <div className="action-buttons">
                             <button className="action-btn-blue">
@@ -543,7 +543,7 @@ const OrganizationsDashboard: React.FC = () => {
                       <div>0</div>
                     </div>
                     <div className="chart-bars">
-                      {chartData.map((data, index) => (
+                      {chartData.map((data, _index) => (
                         <div key={data.month} className="chart-bar-group">
                           <div 
                             className="chart-bar stamps-bar"

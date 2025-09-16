@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { CreditCard, Gift, CheckCircle2, Star, Clock, User, Trophy, Zap } from 'lucide-react'
+import { CreditCard, Gift, CheckCircle2, Star, Clock,  Trophy, Zap } from 'lucide-react'
 import './CustomerDisplay.css'
+
+type DisplayState = 'idle' | 'welcome' | 'reading-card' | 'customer-found' | 'transaction' | 'rewards' | 'completed';
 
 interface CustomerDisplayProps {
   merchantData?: {
@@ -25,8 +27,8 @@ interface CustomerDisplayProps {
       available: boolean
     }>
   }
-  displayState: 'idle' | 'welcome' | 'reading-card' | 'customer-found' | 'transaction' | 'rewards' | 'completed'
-  onStateChange?: (state: string) => void
+  displayState: DisplayState
+  onStateChange?: (state: DisplayState) => void
 }
 
 const CustomerDisplay: React.FC<CustomerDisplayProps> = ({

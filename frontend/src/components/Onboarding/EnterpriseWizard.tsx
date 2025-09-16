@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 // import { useAuth } from '../../contexts/AuthContext' // Temporary disabled
-import { organizationService } from '../../services/organizationService.js'
-import { getMockUser } from '../../services/mockAuth.js'
-import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Clock, Gift, Palette, UserPlus, Bell, Star, Euro, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer } from 'lucide-react'
+import { organizationService } from '../../services/organizationService'
+import { getMockUser } from '../../services/mockAuth'
+import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer } from 'lucide-react'
 import styles from './EnterpriseWizard.module.css'
 import './icon-styles.css'
 import POSTestPanel from '../POS/POSTestPanel'
@@ -256,7 +256,7 @@ const EnterpriseWizard: React.FC = () => {
           parsedAddress.province = match[4];
         }
 
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
           ...prev,
           organizationName: data.traderName || prev.organizationName,
           address: parsedAddress.address,
@@ -269,14 +269,14 @@ const EnterpriseWizard: React.FC = () => {
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.log('⚠️ Errore validazione P.IVA:', error);
       return false;
     }
   };
 
   const handlePartitaIVAChange = async (piva: string) => {
-    setFormData(prev => ({ ...prev, partitaIVA: piva }))
+    setFormData((prev: any) => ({ ...prev, partitaIVA: piva }))
     
     if (piva.length === 11) {
       console.log('🔍 Validazione Partita IVA in corso...')
@@ -349,7 +349,7 @@ const EnterpriseWizard: React.FC = () => {
         setTimeout(() => {
           window.location.href = '/dashboard'
         }, 4000)
-      } catch (error) {
+      } catch (error: any) {
         console.error('Setup failed:', error)
         setLoading(false)
       }
@@ -361,14 +361,6 @@ const EnterpriseWizard: React.FC = () => {
       const prevStep = currentStep - 1
       setCurrentStep(prevStep)
       localStorage.setItem('omnily-wizard-step', prevStep.toString())
-    }
-  }
-
-  const resetWizard = () => {
-    if (confirm('Sei sicuro di voler ricominciare da capo? Tutti i dati inseriti andranno persi.')) {
-      localStorage.removeItem('omnily-wizard-data')
-      localStorage.removeItem('omnily-wizard-step')
-      window.location.reload()
     }
   }
 
@@ -426,10 +418,10 @@ const EnterpriseWizard: React.FC = () => {
         throw new Error(result.error || 'Failed to create organization')
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Organization creation failed:', error)
       // Show error to user
-      alert('Errore nella creazione dell\'organizzazione: ' + error.message)
+      alert('Errore nella creazione dell\'organizzazione: ' + (error as Error).message)
       throw error
     }
   }
@@ -851,12 +843,12 @@ const EnterpriseWizard: React.FC = () => {
                   <h4>🏆 I Tuoi Livelli Loyalty</h4>
                   <p className={styles.sectionDescription}>Crea livelli personalizzati per la tua attività. Esempio: "Pizza Lover → Pizza Master → Pizza Legend"</p>
                   
-                  {formData.loyaltyTiers.map((tier, index) => (
+                  {formData.loyaltyTiers.map((tier: any, index: any) => (
                     <div key={index} className={styles.tierItem}>
                       <div className={styles.tierHeader}>
                         <div 
                           className={styles.tierColor} 
-                          style={{ 
+                          style={{
                             background: tier.gradient 
                               ? `linear-gradient(135deg, ${tier.color}, ${tier.gradientEnd})` 
                               : tier.color 
@@ -868,7 +860,7 @@ const EnterpriseWizard: React.FC = () => {
                             type="button"
                             className={styles.removeBtn}
                             onClick={() => {
-                              const newTiers = formData.loyaltyTiers.filter((_, i) => i !== index)
+                              const newTiers = formData.loyaltyTiers.filter((_: any, i: any) => i !== index)
                               handleInputChange('loyaltyTiers', newTiers)
                             }}
                           >
@@ -985,7 +977,7 @@ const EnterpriseWizard: React.FC = () => {
                     onClick={() => {
                       const newTiers = [...formData.loyaltyTiers, {
                         name: 'Nuovo Livello',
-                        threshold: String(Math.max(...formData.loyaltyTiers.map(t => parseInt(t.threshold) || 0)) + 200),
+                        threshold: String(Math.max(...formData.loyaltyTiers.map((t: any) => parseInt(t.threshold) || 0)) + 200),
                         multiplier: '1.2',
                         color: '#10b981',
                         gradient: false,
@@ -1017,7 +1009,7 @@ const EnterpriseWizard: React.FC = () => {
                   {formData.enableTierSystem && formData.loyaltyTiers.length > 0 && (
                     <div className={styles.previewItem}>
                       <Shield size={16} />
-                      <span>Livelli: {formData.loyaltyTiers.map(tier => `${tier.name} x${tier.multiplier}`).join(', ')}</span>
+                      <span>Livelli: {formData.loyaltyTiers.map((tier: any) => `${tier.name} x${tier.multiplier}`).join(', ')}</span>
                     </div>
                   )}
                 </div>
@@ -1058,7 +1050,7 @@ const EnterpriseWizard: React.FC = () => {
               <div className={styles.categoriesSection}>
                 <h4>📦 Categorie Prodotti</h4>
                 <div className={styles.categoryList}>
-                  {formData.productCategories.map((category, index) => (
+                  {formData.productCategories.map((category: any, index: any) => (
                     <div key={index} className={styles.categoryItem}>
                       <input
                         type="text"
@@ -1075,7 +1067,7 @@ const EnterpriseWizard: React.FC = () => {
                         type="button"
                         className={styles.removeBtn}
                         onClick={() => {
-                          const newCategories = formData.productCategories.filter((_, i) => i !== index)
+                          const newCategories = formData.productCategories.filter((_: any, i: any) => i !== index)
                           handleInputChange('productCategories', newCategories)
                         }}
                       >
@@ -1098,7 +1090,7 @@ const EnterpriseWizard: React.FC = () => {
 
               <div className={styles.bonusSection}>
                 <h4><Zap size={16} className={styles.sectionIcon} /> Moltiplicatori per Categoria</h4>
-                {formData.bonusCategories.map((bonus, index) => (
+                {formData.bonusCategories.map((bonus: any, index: any) => (
                   <div key={index} className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>{bonus.category}</label>
@@ -1120,8 +1112,8 @@ const EnterpriseWizard: React.FC = () => {
 
               <div className={styles.previewCard}>
                 <h4><BarChart3 size={16} className={styles.sectionIcon} /> Anteprima Moltiplicatori</h4>
-                <div className={styles.multiplierPreview}>
-                  {formData.bonusCategories.map((bonus, index) => (
+                  <div className={styles.multiplierPreview}>
+                    {formData.bonusCategories.map((bonus: any, index: any) => (
                     <div key={index} className={styles.previewItem}>
                       <Star size={16} />
                       <span>{bonus.category}: {bonus.multiplier}x punti</span>
@@ -1164,7 +1156,7 @@ const EnterpriseWizard: React.FC = () => {
                           if (e.target.checked) {
                             newTypes.push(type.value)
                           } else {
-                            newTypes = newTypes.filter(t => t !== type.value)
+                            newTypes = newTypes.filter((t: any) => t !== type.value)
                           }
                           handleInputChange('rewardTypes', newTypes)
                         }}
@@ -1177,7 +1169,7 @@ const EnterpriseWizard: React.FC = () => {
 
               <div className={styles.rewardsSection}>
                 <h4>🎁 Rewards Predefiniti</h4>
-                {formData.defaultRewards.map((reward, index) => (
+                {formData.defaultRewards.map((reward: any, index: any) => (
                   <div key={index} className={styles.rewardItem}>
                     <div className={styles.formRow}>
                       <div className={styles.formGroup}>
@@ -1223,7 +1215,7 @@ const EnterpriseWizard: React.FC = () => {
                         type="button"
                         className={styles.removeBtn}
                         onClick={() => {
-                          const newRewards = formData.defaultRewards.filter((_, i) => i !== index)
+                          const newRewards = formData.defaultRewards.filter((_: any, i: any) => i !== index)
                           handleInputChange('defaultRewards', newRewards)
                         }}
                       >

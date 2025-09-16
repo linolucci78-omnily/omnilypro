@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Mail, FileText, Shield, Printer, Download } from 'lucide-react';
-import { supabase, customersApi } from '../lib/supabase';
+import { customersApi } from '../lib/supabase';
 import GDPRConsent from './GDPRConsent';
 import './RegistrationWizard.css';
 

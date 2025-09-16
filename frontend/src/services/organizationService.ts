@@ -10,7 +10,7 @@ export class OrganizationService {
      * @param {Object} wizardData - Complete data from wizard steps
      * @param {Object} userInfo - Current user info
      */
-    async createOrganization(wizardData, userInfo) {
+    async createOrganization(wizardData: any, _userInfo: any) {
         try {
             console.log('ORGANIZATION SERVICE: Creating organization from wizard data...', wizardData)
             
@@ -149,7 +149,7 @@ export class OrganizationService {
                 dashboardUrl: `/dashboard?org=${organization.id}`
             }
             
-        } catch (error) {
+        } catch (error: any) {
             console.error('Organization creation failed:', error)
             return {
                 success: false,
@@ -161,7 +161,7 @@ export class OrganizationService {
     /**
      * Generate unique slug from organization name
      */
-    async generateUniqueSlug(orgName) {
+    async generateUniqueSlug(orgName: any) {
         // Convert to slug format
         let baseSlug = orgName
             .toLowerCase()
@@ -178,7 +178,7 @@ export class OrganizationService {
         let counter = 0
         
         while (true) {
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('organizations')
                 .select('slug')
                 .eq('slug', slug)
@@ -200,7 +200,7 @@ export class OrganizationService {
     /**
      * Add user to organization with role
      */
-    async addUserToOrganization(orgId, userId, role = 'org_admin') {
+    async addUserToOrganization(orgId: any, userId: any, role = 'org_admin') {
         const { data, error } = await supabase
             .from('organization_users')
             .insert({
@@ -223,7 +223,7 @@ export class OrganizationService {
     /**
      * Send team invitations
      */
-    async sendTeamInvites(orgId, emails, invitedBy) {
+    async sendTeamInvites(orgId: any, emails: any, invitedBy: any) {
         const invites = []
         
         for (const email of emails) {
@@ -262,7 +262,7 @@ export class OrganizationService {
     /**
      * Initialize usage tracking for new organization
      */
-    async initializeUsageTracking(orgId) {
+    async initializeUsageTracking(orgId: any) {
         const today = new Date().toISOString().split('T')[0]
         
         const trackingEntries = [
@@ -294,7 +294,7 @@ export class OrganizationService {
     /**
      * Get organization by slug
      */
-    async getOrganizationBySlug(slug) {
+    async getOrganizationBySlug(slug: any) {
         const { data, error } = await supabase
             .from('organizations')
             .select('*')
@@ -312,7 +312,7 @@ export class OrganizationService {
     /**
      * Get user organizations
      */
-    async getUserOrganizations(userId) {
+    async getUserOrganizations(userId: any) {
         const { data, error } = await supabase
             .from('organization_users')
             .select(`
@@ -327,7 +327,7 @@ export class OrganizationService {
             return []
         }
         
-        return data?.map(item => ({
+        return data?.map((item: any) => ({
             ...item.organizations,
             userRole: item.role,
             joinedAt: item.joined_at

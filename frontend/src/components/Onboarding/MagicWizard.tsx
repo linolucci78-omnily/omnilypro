@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { organizationsApi } from '../../lib/supabase'
 import styles from './MagicWizard.module.css'
@@ -88,7 +88,7 @@ const MagicWizard: React.FC = () => {
   }
 
   // Simulate brand color extraction
-  const extractBrandColors = async (domain: string) => {
+  const extractBrandColors = async (_domain: string) => {
     // Simulate API call to extract colors from website
     setIsAnalyzing(true)
     await new Promise(resolve => setTimeout(resolve, 2000))

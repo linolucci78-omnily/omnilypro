@@ -17,13 +17,14 @@ interface POSSimulatorProps {
 }
 
 const POSSimulator: React.FC<POSSimulatorProps> = ({
-  organizationData = {
+  organizationData: _organizationData = {
     name: 'OMNILY PRO DEMO',
     primaryColor: '#ef4444',
     secondaryColor: '#dc2626'
   }
 }) => {
-  const [displayState, setDisplayState] = useState<string>('idle')
+  type DisplayState = 'completed' | 'idle' | 'welcome' | 'reading-card' | 'customer-found' | 'transaction' | 'rewards';
+  const [displayState, setDisplayState] = useState<DisplayState>('idle');
   const [currentTransaction, setCurrentTransaction] = useState<any>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [activeView, setActiveView] = useState<'dual' | 'customer' | 'merchant'>('dual')
@@ -89,7 +90,7 @@ const POSSimulator: React.FC<POSSimulatorProps> = ({
     }
   }, [displayState])
 
-  const handleDisplayStateChange = (newState: string) => {
+  const handleDisplayStateChange = (newState: DisplayState) => {
     setDisplayState(newState)
   }
 
