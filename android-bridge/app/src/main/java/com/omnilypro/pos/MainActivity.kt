@@ -43,7 +43,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(webView)
         
         // Load React app in POS mode from Vercel
-        webView.loadUrl("https://omnilypro.vercel.app?pos=true")
+        val url = "https://omnilypro.vercel.app?pos=true"
+        Log.d(TAG, "🌐 Loading URL: $url")
+
+        // Test URL first - you can change this for debugging
+        // webView.loadUrl("https://www.google.com") // Test basic connectivity
+        webView.loadUrl(url)
         
         Log.d(TAG, "OMNILY POS WebView initialized")
     }
@@ -73,7 +78,14 @@ class MainActivity : AppCompatActivity() {
         webSettings.domStorageEnabled = true
         webSettings.allowFileAccess = true
         webSettings.allowContentAccess = true
+        webSettings.allowUniversalAccessFromFileURLs = true
+        webSettings.allowFileAccessFromFileURLs = true
+        webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        webSettings.cacheMode = WebSettings.LOAD_DEFAULT
         webSettings.userAgentString = webSettings.userAgentString + " OmnilyPOS"
+
+        Log.d(TAG, "🔧 WebView configured with User-Agent: ${webSettings.userAgentString}")
+        Log.d(TAG, "🔧 JavaScript enabled: ${webSettings.javaScriptEnabled}")
         
         // Add JavaScript interface for ZCS SDK
         webView.addJavascriptInterface(ZCSBridge(this), "OmnilyPOS")
@@ -81,12 +93,12 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                Log.d(TAG, "Page started loading: $url")
+                Log.d(TAG, "🚀 Page started loading: $url")
             }
-            
+
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
-                Log.d(TAG, "Page loaded: $url")
+                Log.d(TAG, "✅ Page loaded successfully: $url")
                 
                 // Inject ZCS bridge availability
                 webView.evaluateJavascript(
@@ -113,7 +125,27 @@ class MainActivity : AppCompatActivity() {
             
             override fun onReceivedError(view: WebView, request: android.webkit.WebResourceRequest, error: android.webkit.WebResourceError) {
                 super.onReceivedError(view, request, error)
-                Log.e(TAG, "WebView error: ${error.description}")
+                Log.e(TAG, "❌ WebView error: ${error.description} | Error code: ${error.errorCode} | URL: ${request.url}")
+
+                // Load a simple error page
+                view.loadData(
+                    """
+                    <html><body style='padding:20px; font-family:Arial; text-align:center;'>
+                    <h2>🚫 Errore di Connessione</h2>
+                    <p>URL: ${request.url}</p>
+                    <p>Errore: ${error.description}</p>
+                    <p>Codice: ${error.errorCode}</p>
+                    <button onclick='location.reload()'>Riprova</button>
+                    </body></html>
+                    """.trimIndent(),
+                    "text/html",
+                    "UTF-8"
+                )
+            }
+
+            override fun onReceivedHttpError(view: WebView, request: android.webkit.WebResourceRequest, errorResponse: android.webkit.WebResourceResponse) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                Log.e(TAG, "❌ HTTP Error: ${errorResponse.statusCode} | URL: ${request.url}")
             }
         }
     }
