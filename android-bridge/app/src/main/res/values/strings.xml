@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OMNILY POS</string>
+    <string name="app_name">OMNILYPRO</string>
     <string name="loading">Caricamento OMNILY PRO...</string>
     <string name="error_connection">Errore di connessione</string>
     <string name="hardware_test">Test Hardware</string>
