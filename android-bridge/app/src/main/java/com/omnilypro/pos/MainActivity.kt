@@ -42,8 +42,8 @@ class MainActivity : AppCompatActivity() {
         
         setContentView(webView)
         
-        // Load React app in POS mode
-        webView.loadUrl("http://192.168.1.184:3000?pos=true")
+        // Load React app in POS mode from Vercel
+        webView.loadUrl("https://omnilypro.vercel.app?pos=true")
         
         Log.d(TAG, "OMNILY POS WebView initialized")
     }
