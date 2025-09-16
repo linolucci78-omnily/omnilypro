@@ -42,7 +42,7 @@ const AdminLayout: React.FC = () => {
       group: 'Gestione',
       items: [
         { path: '/admin/organizations', icon: Building2, label: 'Aziende' },
-        { path: '/admin/users', icon: Users, label: 'Utenti' },
+        { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
         { path: '/admin/pos', icon: CreditCard, label: 'Sistemi POS' },
         { path: '/admin/subscriptions', icon: Package, label: 'Abbonamenti' }
       ]
@@ -189,7 +189,7 @@ const AdminLayout: React.FC = () => {
         </div>
 
         {/* Page Content */}
-        <div className="admin-main">
+        <div className="admin-main" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
           <Outlet />
         </div>
       </div>

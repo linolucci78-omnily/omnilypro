@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+
+# Android Studio
+.idea/
+
+# Local configuration
+local.properties
+
+# APKs
+*.apk
+*.aab
+
+# Logs
+*.log
+
+# Libraries
+*.jar
+
+# Other
+.DS_Store
+capture_temp/

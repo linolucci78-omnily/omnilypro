@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react'
-import { organizationsApi } from '../lib/supabase'
-import type { Organization } from '../lib/supabase'
-import { BarChart3, Users, Gift, Target, TrendingUp, Calendar, Settings, HelpCircle, LogOut } from 'lucide-react'
+import { organizationsApi, customersApi } from '../lib/supabase'
+import type { Organization, Customer } from '../lib/supabase'
+import { BarChart3, Users, Gift, Target, TrendingUp, Calendar, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
+import RegistrationWizard from './RegistrationWizard'
 import './OrganizationsDashboard.css'
 
 const OrganizationsDashboard: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [customerStats, setCustomerStats] = useState({
+    total: 0,
+    male: 0,
+    female: 0,
+    withNotifications: 0
+  })
   const [loading, setLoading] = useState(true)
+  const [customersLoading, setCustomersLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState('dashboard')
+  const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
 
   // Mock data for demo - replace with real data
   const metrics = {
@@ -37,6 +49,25 @@ const OrganizationsDashboard: React.FC = () => {
     fetchOrganizations()
   }, [])
 
+  useEffect(() => {
+    if (activeSection === 'members') {
+      fetchCustomers()
+    }
+  }, [activeSection])
+
+  useEffect(() => {
+    const lowercasedFilter = searchTerm.toLowerCase();
+    const filtered = customers.filter(customer => {
+      return (
+        customer.name.toLowerCase().includes(lowercasedFilter) ||
+        (customer.email && customer.email.toLowerCase().includes(lowercasedFilter)) ||
+        (customer.phone && customer.phone.includes(lowercasedFilter)) ||
+        customer.id.slice(0, 8).toLowerCase().includes(lowercasedFilter)
+      );
+    });
+    setFilteredCustomers(filtered);
+  }, [searchTerm, customers]);
+
   const fetchOrganizations = async () => {
     try {
       setLoading(true)
@@ -49,6 +80,33 @@ const OrganizationsDashboard: React.FC = () => {
       setLoading(false)
     }
   }
+
+  const fetchCustomers = async () => {
+    try {
+      setCustomersLoading(true)
+      // Per ora carichiamo tutti i clienti, poi possiamo filtrare per organizzazione
+      const [customersData, statsData] = await Promise.all([
+        customersApi.getAll(),
+        customersApi.getStats()
+      ])
+      
+      setCustomers(customersData)
+      setCustomerStats(statsData)
+    } catch (err) {
+      console.error('Errore nel caricamento clienti:', err)
+      // In caso di errore, non impostiamo errore generale ma solo log
+    } finally {
+      setCustomersLoading(false)
+    }
+  }
+
+  const handleQRScan = () => {
+    alert('Simulazione: Scansione QR code avviata...');
+  };
+
+  const handleNFCScan = () => {
+    alert('Simulazione: Lettura tessera NFC avviata...');
+  };
 
   const sidebarItems = [
     { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
@@ -83,20 +141,192 @@ const OrganizationsDashboard: React.FC = () => {
       
       case 'members':
         return (
-          <div className="section-content">
-            <h2>Gestione Clienti</h2>
-            <div className="cards-grid">
-              <div className="feature-card">
-                <h3>Lista Clienti</h3>
-                <p>Visualizza e gestisci tutti i tuoi clienti iscritti</p>
-                <button className="btn-primary">Vai alla Lista</button>
+          <div className="dashboard-content full-width">
+            {/* Complete Customer List Section */}
+            <div className="customer-list-container">
+              {/* Header */}
+              <div className="customer-list-header">
+                <div className="header-left">
+                  <div className="header-icon">
+                    <Users size={24} />
+                  </div>
+                  <div className="header-content">
+                    <h2>LISTA COMPLETA CLIENTI</h2>
+                    <p>Visualizza, cerca e gestisci tutti i clienti registrati.</p>
+                  </div>
+                </div>
               </div>
-              <div className="feature-card">
-                <h3>Segmentazione</h3>
-                <p>Crea segmenti di clienti per campagne mirate</p>
-                <button className="btn-primary">Crea Segmenti</button>
+
+              {/* Statistics Cards */}
+              <div className="customer-stats-row">
+                <div className="customer-stat-card total">
+                  <div className="stat-icon">
+                    <Users size={20} />
+                  </div>
+                  <div className="stat-info">
+                    <div className="stat-number">{customerStats.total}</div>
+                    <div className="stat-label">CLIENTI TOTALI</div>
+                  </div>
+                </div>
+                
+                <div className="customer-stat-card male">
+                  <div className="stat-icon">
+                    <Users size={20} />
+                  </div>
+                  <div className="stat-info">
+                    <div className="stat-number">{customerStats.male}</div>
+                    <div className="stat-label">MASCHI</div>
+                  </div>
+                </div>
+                
+                <div className="customer-stat-card female">
+                  <div className="stat-icon">
+                    <Users size={20} />
+                  </div>
+                  <div className="stat-info">
+                    <div className="stat-number">{customerStats.female}</div>
+                    <div className="stat-label">FEMMINE</div>
+                  </div>
+                </div>
+                
+                <div className="customer-stat-card notifications">
+                  <div className="stat-icon">
+                    <Target size={20} />
+                  </div>
+                  <div className="stat-info">
+                    <div className="stat-number">{customerStats.withNotifications}</div>
+                    <div className="stat-label">CON NOTIFICHE</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Table Controls */}
+              <div className="customer-table-controls">
+                <div className="search-bar">
+                  <Search size={18} className="search-icon" />
+                  <input 
+                    type="text" 
+                    placeholder="Cerca cliente per nome, email, o ID..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="table-actions">
+                  <button className="btn-secondary" onClick={handleQRScan}>
+                    <QrCode size={16} />
+                    <span>Scansiona QR</span>
+                  </button>
+                  <button className="btn-secondary" onClick={handleNFCScan}>
+                    <CreditCard size={16} />
+                    <span>Leggi Tessera</span>
+                  </button>
+                  <button 
+                    className="btn-primary"
+                    onClick={() => setShowRegistrationWizard(true)}
+                  >
+                    <Users size={16} />
+                    <span>Nuovo Cliente</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer Table */}
+              <div className="customer-table-wrapper">
+                <table className="customer-table-new">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Contatti</th>
+                      <th>Punti</th>
+                      <th>Livello</th>
+                      <th>Stato</th>
+                      <th>Registrato</th>
+                      <th>Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customersLoading ? (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
+                          <div className="loading-spinner">🔄 Caricamento clienti...</div>
+                        </td>
+                      </tr>
+                    ) : filteredCustomers.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
+                          <div>Nessun cliente trovato per "{searchTerm}"</div>
+                        </td>
+                      </tr>
+                    ) : filteredCustomers.map((customer, index) => (
+                      <tr key={customer.id}>
+                        <td>
+                          <div className="customer-cell">
+                            <div className={`customer-avatar-new ${customer.gender || 'male'}`}>
+                              <Users size={16} />
+                            </div>
+                            <div className="customer-info-new">
+                              <div className="customer-name-new">{customer.name}</div>
+                              <div className="customer-id">#{customer.id.slice(0, 8)}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="contact-cell">
+                            {customer.email && (
+                              <div className="contact-item">
+                                <span>📧</span>
+                                <span>{customer.email}</span>
+                              </div>
+                            )}
+                            {customer.phone && (
+                              <div className="contact-item">
+                                <span>📱</span>
+                                <span>{customer.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="points-cell">
+                            <Target size={16} color="#ef4444" />
+                            <span>{customer.points}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`level-badge ${customer.tier.toLowerCase()}`}>
+                            {customer.tier}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={customer.is_active ? "status-active" : "status-inactive"}>
+                            {customer.is_active ? '✅ ATTIVO' : '❌ INATTIVO'}
+                          </span>
+                        </td>
+                        <td>{new Date(customer.created_at).toLocaleDateDateString('it-IT')}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button className="action-btn-blue">
+                              <Target size={14} />
+                            </button>
+                            <button className="action-btn-black">
+                              <Users size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
+
+            {/* Professional Registration Wizard */}
+            <RegistrationWizard
+              isOpen={showRegistrationWizard}
+              onClose={() => setShowRegistrationWizard(false)}
+              organizationId={organizations.length > 0 ? organizations[0].id : "00000000-0000-0000-0000-000000000000"}
+              onCustomerCreated={fetchCustomers}
+            />
           </div>
         )
       

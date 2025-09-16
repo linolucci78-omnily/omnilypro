@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 const Login: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login')
@@ -95,7 +96,7 @@ const Login: React.FC = () => {
               />
             </div>
             <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-              {loading ? '🔄 Invio...' : 'Invia link per il reset'}
+              {loading ? 'Invio...' : 'Invia link per il reset'}
             </button>
           </form>
         ) : (
@@ -114,15 +115,34 @@ const Login: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="La tua password"
-                required
-                minLength={6}
-              />
+              <div className="password-input-container">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="La tua password"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {authMode === 'login' && (
@@ -142,7 +162,7 @@ const Login: React.FC = () => {
               className="btn btn-primary btn-full"
               disabled={loading}
             >
-              {loading ? '🔄 Elaborazione...' : (authMode === 'signup' ? '📝 Registrati' : '🔑 Accedi')}
+              {loading ? 'Elaborazione...' : (authMode === 'signup' ? 'Registrati' : 'Accedi')}
             </button>
 
             <div className="auth-divider">
@@ -154,7 +174,7 @@ const Login: React.FC = () => {
               onClick={handleGoogleLogin}
               className="btn btn-google btn-full"
             >
-              🌐 Continua con Google
+              Continua con Google
             </button>
           </form>
         )}

@@ -251,7 +251,7 @@ const POSSimulator: React.FC<POSSimulatorProps> = ({
 
       {/* Debug Panel */}
       {showDebugPanel && (
-      <div className="debug-panel">
+        <div className="debug-panel">
         <div className="debug-header">
           <Settings size={16} />
           <span>Debug & Dimensioni Reali</span>
@@ -329,7 +329,7 @@ const POSSimulator: React.FC<POSSimulatorProps> = ({
             )}
           </div>
         </div>
-      </div>
+        </div>
       )}
 
       {/* Hardware Status Indicators */}

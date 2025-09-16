@@ -10,10 +10,34 @@ import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import Admin from './pages/Admin'
+import BusinessCustomers from './pages/BusinessCustomers'
+import BusinessOwners from './pages/BusinessOwners'
 import UpdatePassword from './pages/UpdatePassword'
 import POSSimulator from './components/POS/POSSimulator'
+import Z108POSInterface from './components/POS/Z108POSInterface'
 
 function App() {
+  // Detect if running in POS mode (only via URL parameter)
+  const isPOSMode = typeof window !== 'undefined' && (
+    window.location.search.includes('pos=true')
+  )
+
+  // POS Mode - Requires authentication but shows POS interface
+  if (isPOSMode) {
+    // Remove all margins/padding for POS mode
+    document.body.style.margin = '0'
+    document.body.style.padding = '0'
+    document.body.style.overflow = 'auto'
+    
+    return (
+      <AuthProvider>
+        <div className="App" style={{ margin: 0, padding: 0 }}>
+          <Z108POSInterface />
+        </div>
+      </AuthProvider>
+    )
+  }
+
   return (
     <Router>
       <AuthProvider>
@@ -40,6 +64,14 @@ function App() {
               } 
             />
             <Route 
+              path="/dashboard/customers" 
+              element={
+                <ProtectedRoute>
+                  <BusinessCustomers />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/admin/*" 
               element={
                 <ProtectedRoute>
@@ -49,6 +81,7 @@ function App() {
             >
               <Route index element={<AdminDashboard />} />
               <Route path="organizations" element={<Admin />} />
+              <Route path="business-owners" element={<BusinessOwners />} />
             </Route>
             <Route 
               path="/pos-simulator" 

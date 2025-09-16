@@ -15,7 +15,8 @@ import {
   Phone,
   Mail,
   Globe,
-  CreditCard
+  CreditCard,
+  Monitor
 } from 'lucide-react'
 import { organizationsApi } from '../lib/supabase'
 import type { Organization } from '../lib/supabase'
@@ -351,6 +352,13 @@ const Admin: React.FC = () => {
                   
                   <td>
                     <div className="actions-menu">
+                      <button 
+                        className="action-btn primary"
+                        onClick={() => window.open('/dashboard', '_blank')}
+                        title="Accedi al Dashboard Azienda"
+                      >
+                        <Monitor size={16} />
+                      </button>
                       <button className="action-btn">
                         <Eye size={16} />
                       </button>

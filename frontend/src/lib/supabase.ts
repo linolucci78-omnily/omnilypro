@@ -31,6 +31,26 @@ export interface Organization {
   pos_model?: string
 }
 
+export interface Customer {
+  id: string
+  organization_id: string
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  gender?: 'male' | 'female'
+  birth_date?: string
+  points: number
+  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Argento' | 'Bronzo'
+  total_spent: number
+  visits: number
+  is_active: boolean
+  notifications_enabled: boolean
+  created_at: string
+  updated_at: string
+  last_visit?: string
+}
+
 // API functions
 export const organizationsApi = {
   // Get all organizations
@@ -170,6 +190,100 @@ export const organizationsApi = {
       customers: demoCustomers.length,
       workflows: 3,
       transactions: 25
+    }
+  }
+}
+
+// Customers API
+export const customersApi = {
+  // Get all customers for an organization
+  async getAll(organizationId?: string): Promise<Customer[]> {
+    let query = supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get customer by ID
+  async getById(id: string): Promise<Customer | null> {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Create new customer
+  async create(customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>): Promise<Customer> {
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{
+        ...customerData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Update customer
+  async update(id: string, updates: Partial<Customer>): Promise<Customer> {
+    const { data, error } = await supabase
+      .from('customers')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete customer
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  // Get customers statistics
+  async getStats(organizationId?: string) {
+    let query = supabase
+      .from('customers')
+      .select('id, gender, is_active, notifications_enabled, created_at')
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+
+    const { data: all, error } = await query
+
+    if (error) throw error
+
+    return {
+      total: all.length,
+      male: all.filter(c => c.gender === 'male').length,
+      female: all.filter(c => c.gender === 'female').length,
+      active: all.filter(c => c.is_active).length,
+      withNotifications: all.filter(c => c.notifications_enabled).length
     }
   }
 }
