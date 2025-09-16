@@ -17,7 +17,10 @@ const Login: React.FC = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      const from = (location.state as any)?.from?.pathname || '/dashboard'
+      // Check if in POS mode
+      const isPOSMode = window.location.search.includes('pos=true')
+      const defaultPath = isPOSMode ? '/pos' : '/dashboard'
+      const from = (location.state as any)?.from?.pathname || defaultPath
       navigate(from, { replace: true })
     }
   }, [user, navigate, location])
@@ -76,7 +79,8 @@ const Login: React.FC = () => {
       <div className="login-container">
         <div className="login-header">
           <Link to="/" className="login-logo">
-            🚀 <span>OMNILY PRO</span>
+            <img src="/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '40px', marginRight: '10px' }} />
+            <span>OMNILY PRO</span>
           </Link>
           <h1>{getTitle()}</h1>
           <p>Benvenuto nella piattaforma SaaS multi-tenant</p>

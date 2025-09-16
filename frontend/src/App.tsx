@@ -23,19 +23,33 @@ function App() {
     window.location.search.includes('pos=true')
   )
 
-  // POS Mode - Requires authentication but shows POS interface
+  // POS Mode - Start with login, then show POS interface
   if (isPOSMode) {
     // Remove all margins/padding for POS mode
     document.body.style.margin = '0'
     document.body.style.padding = '0'
     document.body.style.overflow = 'auto'
-    
+
     return (
-      <AuthProvider>
-        <div className="App" style={{ margin: 0, padding: 0 }}>
-          <Z108POSInterface />
-        </div>
-      </AuthProvider>
+      <Router>
+        <AuthProvider>
+          <div className="App" style={{ margin: 0, padding: 0 }}>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route
+                path="/pos"
+                element={
+                  <ProtectedRoute>
+                    <Z108POSInterface />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
+        </AuthProvider>
+      </Router>
     )
   }
 
