@@ -1,65 +1,54 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import './App.css'
-import { AuthProvider } from './contexts/AuthContext'
-import Navbar from './components/Layout/Navbar'
-import ProtectedRoute from './components/Auth/ProtectedRoute'
-import AdminLayout from './components/Admin/AdminLayout'
-import Landing from './pages/Landing'
-import Login from './pages/Login'
-import Onboarding from './pages/Onboarding'
-import Dashboard from './pages/Dashboard'
-import AdminDashboard from './pages/AdminDashboard'
-import Admin from './pages/Admin'
-import BusinessCustomers from './pages/BusinessCustomers'
-import BusinessOwners from './pages/BusinessOwners'
-import UpdatePassword from './pages/UpdatePassword'
-import AuthCallback from './pages/AuthCallback'
-import POSSimulator from './components/POS/POSSimulator'
-import Z108POSInterface from './components/POS/Z108POSInterface'
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Onboarding from './pages/Onboarding';
+import UpdatePassword from './pages/UpdatePassword';
+import AuthCallback from './pages/AuthCallback';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import Navbar from './components/Layout/Navbar';
+import Landing from './pages/Landing';
+import Z108POSInterface from './components/POS/Z108POSInterface';
+import AdminLayout from './components/Admin/AdminLayout';
+import AdminDashboard from './pages/AdminDashboard';
+import Admin from './pages/Admin';
+import BusinessOwners from './pages/BusinessOwners';
+import BusinessCustomers from './pages/BusinessCustomers';
+import POSSimulator from './components/POS/POSSimulator';
 
 function App() {
-  // Detect if running in POS mode (only via URL parameter)
-  const isPOSMode = typeof window !== 'undefined' && (
-    window.location.search.includes('pos=true')
-  )
+  useEffect(() => {
+    // Controlla se l'app è in esecuzione all'interno della nostra WebView POS
+    if (navigator.userAgent.includes('OMNILY-POS-APP')) {
+      document.body.classList.add('pos-view');
+    }
+  }, []);
 
-  // Check if we should redirect to /pos from hash
-  const shouldRedirectToPOS = typeof window !== 'undefined' && 
-    window.location.hash === '#/pos' && isPOSMode
+  // Logica per rilevare la modalità POS tramite parametro URL (mantenuta per flessibilità)
+  const isPOSMode = typeof window !== 'undefined' && window.location.search.includes('pos=true');
 
-  // Handle hash-based routing for POS
-  if (shouldRedirectToPOS && window.location.pathname !== '/pos') {
-    window.history.replaceState(null, '', '/pos?pos=true')
-  }
-
-  // POS Mode - Handle both login and POS interface routes
+  // Se siamo in modalità POS (rilevata da URL), usa un layout semplificato
   if (isPOSMode) {
-    // Remove all margins/padding for POS mode
-    document.body.style.margin = '0'
-    document.body.style.padding = '0'
-    document.body.style.overflow = 'auto'
-
     return (
       <Router>
         <AuthProvider>
-          <div className="App" style={{ margin: 0, padding: 0 }}>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route
-                path="/pos"
-                element={
-                  <ProtectedRoute>
-                    <Z108POSInterface />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </div>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route
+              path="/pos"
+              element={
+                <ProtectedRoute>
+                  <Z108POSInterface />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </AuthProvider>
       </Router>
-    )
+    );
   }
 
   return (
@@ -119,4 +108,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
