@@ -23,6 +23,15 @@ function App() {
     window.location.search.includes('pos=true')
   )
 
+  // Check if we should redirect to /pos from hash
+  const shouldRedirectToPOS = typeof window !== 'undefined' && 
+    window.location.hash === '#/pos' && isPOSMode
+
+  // Handle hash-based routing for POS
+  if (shouldRedirectToPOS && window.location.pathname !== '/pos') {
+    window.history.replaceState(null, '', '/pos?pos=true')
+  }
+
   // POS Mode - Handle both login and POS interface routes
   if (isPOSMode) {
     // Remove all margins/padding for POS mode
@@ -40,7 +49,11 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route
                 path="/pos"
-                element={<Z108POSInterface />}
+                element={
+                  <ProtectedRoute>
+                    <Z108POSInterface />
+                  </ProtectedRoute>
+                }
               />
             </Routes>
           </div>
