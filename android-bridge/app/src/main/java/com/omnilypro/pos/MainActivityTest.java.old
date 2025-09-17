@@ -1,0 +1,124 @@
+package com.omnilypro.pos;
+
+import android.os.Bundle;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.webkit.WebSettings;
+import androidx.appcompat.app.AppCompatActivity;
+import android.util.Log;
+
+public class MainActivityTest extends AppCompatActivity {
+
+    private WebView webView;
+    private final String TAG = "OmnilyPOS";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Log.d(TAG, "🚀 SIMPLE TEST MainActivity Starting...");
+
+        try {
+            // Force portrait orientation
+            setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            Log.d(TAG, "✅ Portrait orientation set");
+
+            // Setup WebView
+            webView = new WebView(this);
+            Log.d(TAG, "✅ WebView created");
+
+            // Fix black screen issue
+            webView.setBackgroundColor(0xFFFFFFFF); // White background
+
+            WebSettings webSettings = webView.getSettings();
+            webSettings.setJavaScriptEnabled(true);
+            webSettings.setDomStorageEnabled(true);
+            webSettings.setAllowFileAccess(true);
+            webSettings.setAllowContentAccess(true);
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+            webSettings.setLoadWithOverviewMode(true);
+            webSettings.setUseWideViewPort(true);
+            webSettings.setSupportZoom(true);
+            webSettings.setBuiltInZoomControls(false);
+            webSettings.setDisplayZoomControls(false);
+            // Use normal browser user agent for better compatibility
+            webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+
+            // FORCE CLEAR ALL CACHE AND STORAGE
+            webView.clearCache(true);
+            webView.clearHistory();
+            webView.clearFormData();
+            android.webkit.CookieManager.getInstance().removeAllCookies(null);
+            android.webkit.WebStorage.getInstance().deleteAllData();
+
+            Log.d(TAG, "✅ WebView configured with User-Agent: " + webSettings.getUserAgentString());
+
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                    super.onPageStarted(view, url, favicon);
+                    Log.d(TAG, "🚀 Page started loading: " + url);
+                }
+
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    super.onPageFinished(view, url);
+                    Log.d(TAG, "✅ Page loaded: " + url);
+
+                    // EMERGENCY: If OMNILYPRO page, force simple CSS
+                    if (url.contains("omnilypro")) {
+                        Log.d(TAG, "🚨 OMNILYPRO detected - applying emergency fix!");
+                        webView.evaluateJavascript(
+                            "document.body.style.zoom = '1.3';" +
+                            "document.body.style.backgroundColor = 'white';" +
+                            "document.body.style.display = 'block';" +
+                            "document.body.style.visibility = 'visible';" +
+                            "document.body.style.minHeight = '100vh';" +
+                            "console.log('OMNILYPRO EMERGENCY CSS APPLIED!');",
+                            new android.webkit.ValueCallback<String>() {
+                                @Override
+                                public void onReceiveValue(String value) {
+                                    Log.d(TAG, "🎯 OMNILYPRO CSS APPLIED!");
+                                }
+                            }
+                        );
+                    }
+                }
+
+                @Override
+                public void onReceivedError(WebView view, android.webkit.WebResourceRequest request, android.webkit.WebResourceError error) {
+                    super.onReceivedError(view, request, error);
+                    Log.e(TAG, "❌ WebView error: " + error.getDescription() + " for URL: " + request.getUrl());
+                }
+
+                @Override
+                public void onReceivedHttpError(WebView view, android.webkit.WebResourceRequest request, android.webkit.WebResourceResponse errorResponse) {
+                    super.onReceivedHttpError(view, request, errorResponse);
+                    Log.e(TAG, "🌐 HTTP error: " + errorResponse.getStatusCode() + " for URL: " + request.getUrl());
+                }
+            });
+
+            setContentView(webView);
+            Log.d(TAG, "✅ Content view set");
+
+            // TEST INTERNET CONNECTION FIRST
+            Log.d(TAG, "🌐 Testing internet with simple site first...");
+            webView.loadUrl("https://www.google.com");
+
+            // After 5 seconds, load OMNILYPRO (simple version that works)
+            webView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "🚀 Now loading OMNILYPRO...");
+                    webView.loadUrl("https://omnilypro.vercel.app/login");
+                }
+            }, 5000);
+
+            Log.d(TAG, "✅ TEST MainActivity initialized successfully!");
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ FATAL ERROR in onCreate: " + e.getMessage(), e);
+        }
+    }
+}

@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace "com.omnilypro.pos"
-    compileSdk 32
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.omnilypro.pos"
         minSdkVersion 21
-        targetSdkVersion 32
+        targetSdkVersion 34
         versionCode 2
         versionName "1.1.0"
     }
@@ -42,10 +42,8 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.4.0'
     
     
-    // ZCS SDK dependencies - SmartPos 1.9.8
-    implementation files('libs/SmartPos_1.9.8_R250701.jar')
-    implementation files('libs/core-3.2.1.jar')  
-    implementation files('libs/emv_2.0.0_R240607.jar')
+    // ZCS SDK dependencies - SmartPos 1.9.8 (same as demo)
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>OMNILY PRO Test</title>
+</head>
+
+<body>
+    <h1>OMNILY PRO Database Test</h1>
+    <button id="testBtn">Test Database Connection</button>
+    <div id="result"></div>
+
+    <script>
+        var SUPABASE_URL = "https://sjvatdnvewohvswfrdiv.supabase.co";
+        var API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZzd2ZyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM0ODUsImV4cCI6MjA3MjMxOTQ4NX0.310-1eBrnWxaDYVJ2QeEhx9xmqVljTBqSDArLMjFiMk";
+
+        document.getElementById("testBtn").addEventListener("click", async function () {
+            document.getElementById("result").innerHTML = "Testing...";
+
+            var url = SUPABASE_URL + "/rest/v1/organizations?select=*&limit=1";
+            var headers = {
+                "apikey": API_KEY,
+                "Authorization": "Bearer " + API_KEY,
+                "Content-Type": "application/json"
+            };
+
+              try {
+                var response = await fetch(url, { headers: headers });
+                var data = await response.json();
+
+                console.log("Response status:", response.status);
+                console.log("Response data:", data);
+
+                if (response.ok && data.length > 0) {
+                    document.getElementById("result").innerHTML = "✅ Success! Found: " + data[0].name;
+                } else {
+                    document.getElementById("result").innerHTML = "❌ Failed - Status: " + response.status + " - " + JSON.stringify(data);
+                }
+            } catch (error) {
+                console.error("Full error:", error);
+                document.getElementById("result").innerHTML = "❌ Error: " + error.message;
+            }
+        });
+    </script>
+</body>
+
+</html>

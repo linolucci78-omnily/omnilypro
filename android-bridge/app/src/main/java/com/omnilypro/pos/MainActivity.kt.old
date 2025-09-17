@@ -1,0 +1,327 @@
+package com.omnilypro.pos
+
+import android.os.Bundle
+import android.webkit.WebView
+import android.webkit.JavascriptInterface
+import android.webkit.WebViewClient
+import android.webkit.WebSettings
+import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
+import org.json.JSONObject
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var webView: WebView
+    private val TAG = "OmnilyPOS"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        Log.d(TAG, "🚀 OMNILY POS Starting...")
+
+        try {
+            // Force portrait orientation BEFORE anything else
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            Log.d(TAG, "✅ Portrait orientation set")
+
+            // Setup WebView
+            Log.d(TAG, "🌐 Setting up WebView...")
+            webView = WebView(this)
+            setupWebView()
+            Log.d(TAG, "✅ WebView configured")
+
+            setContentView(webView)
+            Log.d(TAG, "✅ Content view set")
+
+            // Load React app login page in POS mode
+            val url = "https://omnilypro.vercel.app/login?pos=true"
+            Log.d(TAG, "🌐 Loading URL: $url")
+            webView.loadUrl(url)
+
+            Log.d(TAG, "✅ OMNILY POS WebView initialized successfully!")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ FATAL ERROR in onCreate: ${e.message}", e)
+            throw e // Re-throw to see the full stack trace
+        }
+    }
+
+    private fun setupWebView() {
+        val webSettings: WebSettings = webView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+        webSettings.allowFileAccess = true
+        webSettings.allowContentAccess = true
+        webSettings.allowUniversalAccessFromFileURLs = true
+        webSettings.allowFileAccessFromFileURLs = true
+        webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        webSettings.userAgentString = webSettings.userAgentString + " OmnilyPOS"
+
+        Log.d(TAG, "🔧 WebView configured with User-Agent: ${webSettings.userAgentString}")
+        Log.d(TAG, "🔧 JavaScript enabled: ${webSettings.javaScriptEnabled}")
+
+        // Add JavaScript interface for ZCS SDK
+        webView.addJavascriptInterface(ZCSBridge(this), "OmnilyPOS")
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                Log.d(TAG, "🚀 Page started loading: $url")
+            }
+
+            override fun onPageFinished(view: WebView, url: String) {
+                super.onPageFinished(view, url)
+                Log.d(TAG, "✅ Page loaded successfully: $url")
+
+                // Inject ZCS bridge availability and POS styling
+                webView.evaluateJavascript(
+                    """
+                    // Add POS-specific styling optimized for Z108S 8" display
+                    const posStyle = document.createElement('style');
+                    posStyle.textContent = `
+                        body {
+                            zoom: 1.3 !important;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            overflow-x: hidden !important;
+                        }
+                        .login-container {
+                            max-width: 600px !important;
+                            margin: 3vh auto !important;
+                            padding: 2.5rem !important;
+                            border-radius: 25px !important;
+                            box-shadow: 0 25px 80px rgba(0,0,0,0.4) !important;
+                            background: white !important;
+                            min-height: calc(94vh - 6rem) !important;
+                        }
+                        .login-header {
+                            text-align: center !important;
+                            margin-bottom: 2rem !important;
+                        }
+                        .login-header h1 {
+                            font-size: 2.8rem !important;
+                            margin-bottom: 1.5rem !important;
+                            color: #333 !important;
+                        }
+                        .login-logo img {
+                            height: 60px !important;
+                            margin-bottom: 1rem !important;
+                        }
+                        .form-group {
+                            margin-bottom: 2rem !important;
+                        }
+                        .form-group label {
+                            font-size: 1.4rem !important;
+                            font-weight: 600 !important;
+                            margin-bottom: 0.8rem !important;
+                            display: block !important;
+                        }
+                        .form-group input {
+                            font-size: 1.5rem !important;
+                            padding: 1.2rem 1.5rem !important;
+                            border-radius: 15px !important;
+                            border: 2px solid #e1e5e9 !important;
+                            width: 100% !important;
+                            box-sizing: border-box !important;
+                            min-height: 60px !important;
+                        }
+                        .form-group input:focus {
+                            border-color: #667eea !important;
+                            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+                        }
+                        .btn-primary {
+                            font-size: 1.6rem !important;
+                            padding: 1.3rem 2.5rem !important;
+                            border-radius: 15px !important;
+                            min-height: 65px !important;
+                            width: 100% !important;
+                            margin-top: 1rem !important;
+                        }
+                        .navbar {
+                            display: none !important;
+                        }
+                        .auth-tabs {
+                            margin-bottom: 2rem !important;
+                        }
+                        .auth-tabs button {
+                            font-size: 1.3rem !important;
+                            padding: 0.8rem 1.5rem !important;
+                        }
+                        .message {
+                            font-size: 1.2rem !important;
+                            padding: 1rem !important;
+                            margin: 1rem 0 !important;
+                        }
+                    `;
+                    document.head.appendChild(posStyle);
+
+                    // ZCS Native Bridge
+                    window.ZCSNativeBridge = {
+                        available: true,
+                        readNFC: function() {
+                            return OmnilyPOS.readNFCCard();
+                        },
+                        print: function(data) {
+                            return OmnilyPOS.printReceipt(data);
+                        },
+                        scanQR: function() {
+                            return OmnilyPOS.scanQRCode();
+                        },
+                        testHardware: function() {
+                            return OmnilyPOS.testHardware();
+                        }
+                    };
+                    // Debug screen info
+                    console.log('📱 SCREEN INFO:');
+                    console.log('Resolution:', window.screen.width + 'x' + window.screen.height);
+                    console.log('Available:', window.screen.availWidth + 'x' + window.screen.availHeight);
+                    console.log('Viewport:', window.innerWidth + 'x' + window.innerHeight);
+                    console.log('Device Pixel Ratio:', window.devicePixelRatio);
+
+                    console.log('🚀 OMNILY POS Native Bridge Ready!');
+                    console.log('🎨 POS Styling Applied!');
+                    """, null
+                )
+            }
+
+            override fun onReceivedError(view: WebView, request: android.webkit.WebResourceRequest, error: android.webkit.WebResourceError) {
+                super.onReceivedError(view, request, error)
+                Log.e(TAG, "❌ WebView error: ${error.description} | Error code: ${error.errorCode} | URL: ${request.url}")
+
+                // Load a simple error page
+                view.loadData(
+                    """
+                    <html><body style='padding:20px; font-family:Arial; text-align:center;'>
+                    <h2>🚫 Errore di Connessione</h2>
+                    <p>URL: ${request.url}</p>
+                    <p>Errore: ${error.description}</p>
+                    <p>Codice: ${error.errorCode}</p>
+                    <button onclick='location.reload()'>Riprova</button>
+                    </body></html>
+                    """.trimIndent(),
+                    "text/html",
+                    "UTF-8"
+                )
+            }
+
+            override fun onReceivedHttpError(view: WebView, request: android.webkit.WebResourceRequest, errorResponse: android.webkit.WebResourceResponse) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                Log.e(TAG, "❌ HTTP Error: ${errorResponse.statusCode} | URL: ${request.url}")
+            }
+        }
+    }
+}
+
+class ZCSBridge(private val activity: MainActivity) {
+
+    private val TAG = "ZCSBridge"
+
+    @JavascriptInterface
+    fun readNFCCard(): String {
+        Log.d(TAG, "Reading NFC card...")
+
+        return try {
+            // Simulate successful NFC read
+            val result = JSONObject().apply {
+                put("success", true)
+                put("cardNo", "1234567890123456")
+                put("rfUid", "A1B2C3D4")
+                put("cardType", "MIFARE_1K")
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            Log.d(TAG, "NFC read successful: ${result.toString()}")
+            result.toString()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "NFC read failed", e)
+            JSONObject().apply {
+                put("success", false)
+                put("error", e.message ?: "Unknown error")
+            }.toString()
+        }
+    }
+
+    @JavascriptInterface
+    fun printReceipt(receiptData: String): String {
+        Log.d(TAG, "Printing receipt: $receiptData")
+
+        return try {
+            val data = JSONObject(receiptData)
+            val content = data.getString("content")
+
+            // Simulate print
+            Log.d(TAG, "🖨️ PRINT SIMULATED: $content")
+
+            val result = JSONObject().apply {
+                put("success", true)
+                put("message", "🖨️ PRINT SIMULATED (No ZCS SDK)")
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            Log.d(TAG, "Print simulation completed")
+            result.toString()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Print failed", e)
+            JSONObject().apply {
+                put("success", false)
+                put("error", e.message ?: "Print error")
+            }.toString()
+        }
+    }
+
+    @JavascriptInterface
+    fun scanQRCode(): String {
+        Log.d(TAG, "Scanning QR code...")
+
+        return try {
+            // Simulate QR scan
+            val result = JSONObject().apply {
+                put("success", true)
+                put("qrData", "https://omnilypro.app/customer/12345")
+                put("format", "QR_CODE")
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            Log.d(TAG, "QR scan successful")
+            result.toString()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "QR scan failed", e)
+            JSONObject().apply {
+                put("success", false)
+                put("error", e.message ?: "Scan error")
+            }.toString()
+        }
+    }
+
+    @JavascriptInterface
+    fun testHardware(): String {
+        Log.d(TAG, "Testing hardware components...")
+
+        return try {
+            val result = JSONObject().apply {
+                put("success", true)
+                put("nfc", true)
+                put("printer", true)
+                put("scanner", true)
+                put("display", true)
+                put("beeper", true)
+                put("led", true)
+            }
+
+            Log.d(TAG, "Hardware test completed")
+            result.toString()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Hardware test failed", e)
+            JSONObject().apply {
+                put("success", false)
+                put("error", e.message ?: "Hardware test error")
+            }.toString()
+        }
+    }
+}
