@@ -63,7 +63,8 @@ public class MainActivityFinal extends AppCompatActivity {
         setupWebView();
         setupCustomerDisplay();
         
-        // Load POS interface
+        // Load the main POS interface
+        Log.d(TAG, "Loading main POS interface");
         webView.loadUrl("https://omnilypro.vercel.app/?pos=true");
     }
     
@@ -375,7 +376,7 @@ public class MainActivityFinal extends AppCompatActivity {
             });
             
             // Carica la versione cliente della pagina
-            customerWebView.loadUrl("https://omnilypro.vercel.app/pos");
+            customerWebView.loadUrl("https://omnilypro.vercel.app/?pos=true");
             setContentView(customerWebView);
         }
         
