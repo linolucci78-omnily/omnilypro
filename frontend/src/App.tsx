@@ -23,7 +23,7 @@ function App() {
     window.location.search.includes('pos=true')
   )
 
-  // POS Mode - Start with login, then show POS interface
+  // POS Mode - Handle both login and POS interface routes
   if (isPOSMode) {
     // Remove all margins/padding for POS mode
     document.body.style.margin = '0'
@@ -40,11 +40,7 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route
                 path="/pos"
-                element={
-                  <ProtectedRoute>
-                    <Z108POSInterface />
-                  </ProtectedRoute>
-                }
+                element={<Z108POSInterface />}
               />
             </Routes>
           </div>
