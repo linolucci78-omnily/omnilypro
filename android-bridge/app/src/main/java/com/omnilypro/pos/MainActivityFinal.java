@@ -17,14 +17,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-import android.widget.TextView;
-import android.widget.ProgressBar;
-import android.widget.LinearLayout;
-import android.widget.ImageView;
-import android.view.Gravity;
-import android.view.View;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -66,137 +58,82 @@ public class MainActivityFinal extends AppCompatActivity {
         
         Log.d(TAG, "Starting OMNILY POS with Dual Screen");
         
-        // Mostra la splash screen come prima cosa
-        showSplashScreen();
-
         initZcsSDK();
         requestNeededPermission();
         setupWebView();
         setupCustomerDisplay();
-
-        // Carica l'URL dopo aver configurato tutto
-        webView.loadUrl("https://omnilypro.vercel.app/");
-        Log.d(TAG, "Loading homepage, will redirect to login via JavaScript");
-
-        // Timer per rimuovere la splash screen e mostrare la WebView
-        new android.os.Handler().postDelayed(() -> {
-            Log.d(TAG, "Splash timer completed - showing WebView");
-            runOnUiThread(() -> {
-                setContentView(webView);
-                Log.d(TAG, "WebView displayed after splash - should be on login form");
-            });
-        }, 8000);
-    }
-
-    private void showSplashScreen() {
-        LinearLayout splashLayout = new LinearLayout(this);
-        splashLayout.setOrientation(LinearLayout.VERTICAL);
-        splashLayout.setGravity(Gravity.CENTER);
-        splashLayout.setBackgroundColor(Color.parseColor("#c0392b"));
-        splashLayout.setPadding(60, 60, 60, 60);
-
-        TextView logoText = new TextView(this);
-        logoText.setText("OMNILY");
-        logoText.setTextSize(48);
-        logoText.setTextColor(Color.WHITE);
-        logoText.setTypeface(null, android.graphics.Typeface.BOLD);
-        logoText.setGravity(Gravity.CENTER);
-
-        TextView subtitle = new TextView(this);
-        subtitle.setText("POS System");
-        subtitle.setTextSize(16);
-        subtitle.setTextColor(Color.parseColor("#bdc3c7"));
-        subtitle.setGravity(Gravity.CENTER);
-        subtitle.setPadding(0, 0, 0, 40);
-
-        ProgressBar progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        progressBar.setIndeterminate(true);
-        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(600, 12);
-        progressParams.setMargins(0, 20, 0, 20);
-        progressBar.setLayoutParams(progressParams);
-
-        TextView loadingText = new TextView(this);
-        loadingText.setText("Connessione in corso...");
-        loadingText.setTextSize(14);
-        loadingText.setTextColor(Color.parseColor("#95a5a6"));
-        loadingText.setGravity(Gravity.CENTER);
-
-        splashLayout.addView(logoText);
-        splashLayout.addView(subtitle);
-        splashLayout.addView(progressBar);
-        splashLayout.addView(loadingText);
-
-        setContentView(splashLayout);
+        
+                // Load the web application in both WebViews with POS parameter
+        webView.loadUrl("https://omnilypro.vercel.app/?pos=true#/pos");
+        Log.d(TAG, "Loading main display URL: https://omnilypro.vercel.app/?pos=true#/pos");
     }
     
-    @SuppressLint("SetJavaScriptEnabled")
     private void setupWebView() {
         webView = new WebView(this);
         WebSettings webSettings = webView.getSettings();
-
-        // Impostazioni base
+        
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
-        webSettings.setMediaPlaybackRequiresUserGesture(false);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setLoadWithOverviewMode(true);
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
-
-        // Aggiungi un token custom allo User-Agent
-        String userAgent = webSettings.getUserAgentString();
-        if (!userAgent.contains("OMNILY-POS-APP")) {
-            userAgent += " OMNILY-POS-APP";
-        }
-        webSettings.setUserAgentString(userAgent);
-        Log.d(TAG, "User-Agent impostato a: " + userAgent);
-
-        // Bridge per la comunicazione tra Android e JavaScript
+        
         webView.addJavascriptInterface(new OmnilyPOSBridge(), "OmnilyPOS");
-
-        // Client per la gestione degli eventi della WebView
+        
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                Log.d(TAG, "Page finished loading: " + url);
-
-                // Se siamo sulla homepage, inietta lo script per cliccare il login
-                if (url.equals("https://omnilypro.vercel.app/")) {
-                    Log.d(TAG, "Homepage loaded, injecting script to click login button.");
-                    String script = "setTimeout(() => { " +
-                                    "  console.log('Searching for login button...'); " +
-                                    "  const buttons = document.querySelectorAll('button, a, [role=\"button\"]'); " +
-                                    "  let found = false; " +
-                                    "  for (const btn of buttons) { " +
-                                    "    const text = btn.textContent.toLowerCase(); " +
-                                    "    if (text.includes('login') || text.includes('accedi')) { " +
-                                    "      console.log('Login button found, clicking:', btn.outerHTML); " +
-                                    "      btn.click(); " +
-                                    "      found = true; " +
-                                    "      break; " +
-                                    "    } " +
-                                    "  } " +
-                                    "  if (!found) { console.log('Login button not found.'); } " +
-                                    "}, 2000);";
-                    view.evaluateJavascript(script, null);
-                }
+                Log.d(TAG, "Page loaded: " + url);
+                injectPOSOptimizations();
             }
-
+            
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
                 Log.e(TAG, "WebView Error: " + description + " - URL: " + failingUrl);
             }
-
+            
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 Log.d(TAG, "Page started loading: " + url);
             }
         });
-
+        
         webView.setWebChromeClient(new WebChromeClient());
+        setContentView(webView);
+    }
+    
+    private void injectPOSOptimizations() {
+        android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int screenWidth = metrics.widthPixels;
+        
+        String css = 
+            "* { box-sizing: border-box !important; } " +
+            "body { margin: 0 !important; padding: 2px !important; font-size: 11px !important; } " +
+            ".container, .container-fluid { max-width: " + (screenWidth - 8) + "px !important; margin: 0 auto !important; } " +
+            ".sidebar, .side-nav, .navigation, .nav-sidebar { " +
+            "  display: block !important; visibility: visible !important; opacity: 1 !important; " +
+            "  position: fixed !important; left: 0 !important; width: 150px !important; " +
+            "  height: 100vh !important; background: #f8f9fa !important; z-index: 1000 !important; font-size: 10px !important; " +
+            "} " +
+            ".main-content, .content { margin-left: 150px !important; padding: 4px !important; } " +
+            "input, button, select { font-size: 12px !important; padding: 4px 6px !important; } " +
+            ".btn { padding: 4px 8px !important; font-size: 11px !important; } " +
+            ".table { font-size: 10px !important; } " +
+            ".table th, .table td { padding: 2px 4px !important; }";
+        
+        webView.evaluateJavascript(
+            "const style = document.createElement('style'); " +
+            "style.textContent = '" + css + "'; " +
+            "document.head.appendChild(style);",
+            null
+        );
     }
     
     private void initZcsSDK() {
@@ -339,6 +276,7 @@ public class MainActivityFinal extends AppCompatActivity {
         }
     }
     
+    @RequiresApi(api = 31)
     private void requestNeededPermission() {
         boolean allPermissionsGranted = true;
         for (String permission : permissions) {
@@ -375,6 +313,7 @@ public class MainActivityFinal extends AppCompatActivity {
         if (customerPresentation != null) {
             customerPresentation.cancel();
         }
+        // ZCS SDK cleanup - remove manual destroy call
         Log.d(TAG, "Activity destroyed");
     }
     
@@ -390,29 +329,23 @@ public class MainActivityFinal extends AppCompatActivity {
     private void setupCustomerDisplay() {
         try {
             DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-            if (displayManager == null) {
-                Log.w(TAG, "DisplayManager not available");
-                return;
-            }
-
             Display[] displays = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
-
+            
             if (displays != null && displays.length > 0) {
+                // Usa l'ultimo display disponibile per il cliente
                 Display customerDisplay = displays[displays.length - 1];
-                if (customerDisplay != null) {
-                    customerPresentation = new CustomerPresentation(this, customerDisplay);
-                    customerPresentation.show();
-                    Log.d(TAG, "Customer display initialized on: " + customerDisplay.getName());
-                }
-            }
-            else {
+                customerPresentation = new CustomerPresentation(this, customerDisplay);
+                customerPresentation.show();
+                Log.d(TAG, "Customer display initialized on: " + customerDisplay.getName());
+            } else {
                 Log.w(TAG, "No secondary display found for customer");
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error setting up customer display: " + e.getMessage(), e);
+            Log.e(TAG, "Error setting up customer display: " + e.getMessage());
         }
     }
     
+    // Classe per gestire il display cliente
     private class CustomerPresentation extends Presentation {
         private WebView customerWebView;
         
@@ -442,7 +375,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             });
             
-            customerWebView.loadUrl("https://omnilypro.vercel.app/");
+            // Carica l'interfaccia POS per il display cliente
+            customerWebView.loadUrl("https://omnilypro.vercel.app/?pos=true#/pos");
             setContentView(customerWebView);
         }
         

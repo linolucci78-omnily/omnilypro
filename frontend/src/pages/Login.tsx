@@ -75,15 +75,16 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        {/* Logo visibile solo in modalità POS */}
-        <div className="pos-logo-container">
-          <img src="/OMNILYPRO.png" alt="OMNILY PRO" />
-          <span>OMNILY PRO</span>
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-header">
+          <Link to="/" className="login-logo">
+            <img src="/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '40px', marginRight: '10px' }} />
+            <span>OMNILY PRO</span>
+          </Link>
+          <h1>{getTitle()}</h1>
+          <p>Benvenuto nella piattaforma SaaS multi-tenant</p>
         </div>
-
-        <h2>Login</h2>
 
         {authMode === 'reset' ? (
           <form onSubmit={handlePasswordReset} className="login-form">
