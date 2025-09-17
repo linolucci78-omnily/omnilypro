@@ -18,9 +18,10 @@ import POSSimulator from './components/POS/POSSimulator'
 import Z108POSInterface from './components/POS/Z108POSInterface'
 
 function App() {
-  // Detect if running in POS mode (only via URL parameter)
+  // Detect if running in POS mode (supports both pos=true and posomnily=true)
   const isPOSMode = typeof window !== 'undefined' && (
-    window.location.search.includes('pos=true')
+    window.location.search.includes('pos=true') || 
+    window.location.search.includes('posomnily=true')
   )
 
   // Check if we should redirect to /pos from hash
@@ -29,7 +30,8 @@ function App() {
 
   // Handle hash-based routing for POS
   if (shouldRedirectToPOS && window.location.pathname !== '/pos') {
-    window.history.replaceState(null, '', '/pos?pos=true')
+    const posParam = window.location.search.includes('posomnily=true') ? 'posomnily=true' : 'pos=true'
+    window.history.replaceState(null, '', `/pos?${posParam}`)
   }
 
   // POS Mode - Handle both login and POS interface routes

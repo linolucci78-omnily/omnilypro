@@ -58,14 +58,17 @@ public class MainActivityFinal extends AppCompatActivity {
         
         Log.d(TAG, "Starting OMNILY POS with Dual Screen");
         
+        // MOSTRA SPLASH SCREEN SUBITO - NASCONDE TUTTO
+        showSplashScreen();
+        
         initZcsSDK();
         requestNeededPermission();
         setupWebView();
         setupCustomerDisplay();
         
-                // Load the web application in both WebViews with POS parameter
-        webView.loadUrl("https://omnilypro.vercel.app/?pos=true#/pos");
-        Log.d(TAG, "Loading main display URL: https://omnilypro.vercel.app/?pos=true#/pos");
+        // CARICA HOMEPAGE MA MANTIENI INVISIBILE - SPLASH MASCHERA TUTTO
+        webView.loadUrl("https://omnilypro.vercel.app/?posomnily=true");
+        Log.d(TAG, "Loading homepage INVISIBLY - splash will hide navigation");
     }
     
     private void setupWebView() {
@@ -88,7 +91,25 @@ public class MainActivityFinal extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 Log.d(TAG, "Page loaded: " + url);
-                injectPOSOptimizations();
+                
+                // APPLICA CSS POS SU OGNI PAGINA!
+                injectPOSCSS();
+                
+                // Se siamo sulla homepage, auto-click Login
+                if (url.contains("omnilypro.vercel.app") && !url.contains("/login")) {
+                    Log.d(TAG, "Homepage detected, auto-clicking Login button...");
+                    autoClickLogin(view);
+                } else if (url.contains("/login")) {
+                    // Se siamo su login, mostra WebView dopo 2 secondi
+                    Log.d(TAG, "LOGIN PAGE detected!");
+                    new android.os.Handler().postDelayed(() -> {
+                        setContentView(webView);
+                        Log.d(TAG, "Login page ready - showing WebView!");
+                    }, 2000);
+                } else {
+                    // Per tutte le altre pagine, mostra subito
+                    setContentView(webView);
+                }
             }
             
             @Override
@@ -105,28 +126,54 @@ public class MainActivityFinal extends AppCompatActivity {
         });
         
         webView.setWebChromeClient(new WebChromeClient());
-        setContentView(webView);
+        // NON mostrare WebView subito - splash screen maschera tutto
     }
     
-    private void injectPOSOptimizations() {
+    private void injectPOSCSS() {
         android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         int screenWidth = metrics.widthPixels;
         
+        // CSS UNIVERSALE PER TUTTA L'APP POS
         String css = 
-            "* { box-sizing: border-box !important; } " +
-            "body { margin: 0 !important; padding: 2px !important; font-size: 11px !important; } " +
-            ".container, .container-fluid { max-width: " + (screenWidth - 8) + "px !important; margin: 0 auto !important; } " +
-            ".sidebar, .side-nav, .navigation, .nav-sidebar { " +
-            "  display: block !important; visibility: visible !important; opacity: 1 !important; " +
-            "  position: fixed !important; left: 0 !important; width: 150px !important; " +
-            "  height: 100vh !important; background: #f8f9fa !important; z-index: 1000 !important; font-size: 10px !important; " +
+            "/* RIMUOVI MARGINI/PADDING DA TUTTO */ " +
+            "* { margin: 0 !important; padding: 5px !important; box-sizing: border-box !important; } " +
+            "body, html { margin: 0 !important; padding: 10px !important; font-size: 18px !important; } " +
+            
+            "/* NASCONDI HEADER/NAVBAR SU TUTTE LE PAGINE */ " +
+            ".navbar, .header, .top-bar, .nav-bar, .navigation { display: none !important; visibility: hidden !important; height: 0 !important; } " +
+            
+            "/* INPUT GRANDI PER POS */ " +
+            "input[type='text'], input[type='email'], input[type='password'], input[type='tel'], input[type='number'] { " +
+            "  font-size: 22px !important; padding: 15px !important; height: 60px !important; " +
+            "  margin: 10px 0 !important; border: 2px solid #ddd !important; border-radius: 6px !important; " +
             "} " +
-            ".main-content, .content { margin-left: 150px !important; padding: 4px !important; } " +
-            "input, button, select { font-size: 12px !important; padding: 4px 6px !important; } " +
-            ".btn { padding: 4px 8px !important; font-size: 11px !important; } " +
-            ".table { font-size: 10px !important; } " +
-            ".table th, .table td { padding: 2px 4px !important; }";
+            
+            "/* BOTTONI GRANDI PER POS */ " +
+            "button, .btn, input[type='submit'] { " +
+            "  font-size: 20px !important; font-weight: bold !important; " +
+            "  padding: 18px !important; height: 65px !important; margin: 10px 0 !important; " +
+            "  border-radius: 6px !important; cursor: pointer !important; min-width: 120px !important; " +
+            "} " +
+            
+            "/* TITOLI E TESTO GRANDI */ " +
+            "h1, h2, h3, .title, .heading { font-size: 28px !important; margin: 15px 0 !important; } " +
+            "p, span, div, label { font-size: 18px !important; line-height: 1.4 !important; } " +
+            
+            "/* TABELLE POS-FRIENDLY */ " +
+            ".table, table { font-size: 16px !important; } " +
+            ".table th, .table td, th, td { padding: 12px 8px !important; font-size: 16px !important; } " +
+            
+            "/* FORM E CONTAINER */ " +
+            ".container, .form-container, .login-container, .auth-container { " +
+            "  max-width: 90% !important; margin: 20px auto !important; padding: 20px !important; " +
+            "} " +
+            
+            "/* NASCONDI SIDEBAR E FOOTER */ " +
+            ".sidebar, .footer, .breadcrumb, .nav, .menu { display: none !important; } " +
+            
+            "/* SPAZIO PER TOUCH FRIENDLY */ " +
+            "a, button, .clickable { min-height: 50px !important; padding: 15px !important; } ";
         
         webView.evaluateJavascript(
             "const style = document.createElement('style'); " +
@@ -375,8 +422,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             });
             
-            // Carica l'interfaccia POS per il display cliente
-            customerWebView.loadUrl("https://omnilypro.vercel.app/?pos=true#/pos");
+            // Carica l'interfaccia POS per il display cliente con posomnily
+            customerWebView.loadUrl("https://omnilypro.vercel.app/?posomnily=true");
             setContentView(customerWebView);
         }
         
@@ -409,5 +456,99 @@ public class MainActivityFinal extends AppCompatActivity {
                 "document.head.appendChild(style); " +
                 "})()", null);
         }
+    }
+    
+    private void autoClickLogin(WebView webView) {
+        String clickLoginJS = 
+            "console.log('🔍 Searching for navbar-login...');" +
+            "var loginButton = document.querySelector('.navbar-login');" +
+            "if (!loginButton) loginButton = document.querySelector('a[href=\"/login\"]');" +
+            "if (!loginButton) loginButton = document.querySelector('.navbar-link');" +
+            "if (loginButton) {" +
+            "  console.log('✅ Found Login button:', loginButton.className, loginButton.href);" +
+            "  loginButton.click();" +
+            "  console.log('🎯 Login button clicked!');" +
+            "  'SUCCESS';" +
+            "} else {" +
+            "  console.log('❌ No Login button found');" +
+            "  var allLinks = document.querySelectorAll('a');" +
+            "  console.log('Found ' + allLinks.length + ' links total');" +
+            "  for(var i = 0; i < Math.min(5, allLinks.length); i++) {" +
+            "    console.log('Link ' + i + ':', allLinks[i].className, allLinks[i].href, allLinks[i].textContent);" +
+            "  }" +
+            "  'NOT_FOUND';" +
+            "}";
+        
+        webView.evaluateJavascript(clickLoginJS, result -> {
+            Log.d(TAG, "Auto-login result: " + result);
+            // Il WebView sarà mostrato quando la pagina di login finisce di caricare
+        });
+    }
+    
+    private void showSplashScreen() {
+        // SPLASH SCREEN PROFESSIONALE OMNILY
+        android.widget.RelativeLayout splashLayout = new android.widget.RelativeLayout(this);
+        splashLayout.setBackgroundColor(android.graphics.Color.parseColor("#D32F2F")); // Rosso OMNILY
+        
+        // LOGO OMNILY
+        android.widget.TextView logoText = new android.widget.TextView(this);
+        logoText.setText("OMNILY");
+        logoText.setTextSize(48);
+        logoText.setTextColor(android.graphics.Color.WHITE);
+        logoText.setTypeface(null, android.graphics.Typeface.BOLD);
+        logoText.setGravity(android.view.Gravity.CENTER);
+        
+        // PRO TEXT
+        android.widget.TextView proText = new android.widget.TextView(this);
+        proText.setText("PRO");
+        proText.setTextSize(24);
+        proText.setTextColor(android.graphics.Color.WHITE);
+        proText.setGravity(android.view.Gravity.CENTER);
+        
+        // LOADING TEXT
+        android.widget.TextView loadingText = new android.widget.TextView(this);
+        loadingText.setText("Caricamento...");
+        loadingText.setTextSize(18);
+        loadingText.setTextColor(android.graphics.Color.WHITE);
+        loadingText.setGravity(android.view.Gravity.CENTER);
+        
+        // PROGRESS BAR
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar.setIndeterminate(true);
+        
+        // LAYOUT PARAMETERS
+        android.widget.RelativeLayout.LayoutParams logoParams = new android.widget.RelativeLayout.LayoutParams(
+            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT,
+            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
+        logoParams.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT);
+        logoParams.setMargins(0, -100, 0, 0);
+        
+        android.widget.RelativeLayout.LayoutParams proParams = new android.widget.RelativeLayout.LayoutParams(
+            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT,
+            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
+        proParams.addRule(android.widget.RelativeLayout.CENTER_HORIZONTAL);
+        proParams.addRule(android.widget.RelativeLayout.BELOW, logoText.hashCode());
+        
+        android.widget.RelativeLayout.LayoutParams loadingParams = new android.widget.RelativeLayout.LayoutParams(
+            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT,
+            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
+        loadingParams.addRule(android.widget.RelativeLayout.CENTER_HORIZONTAL);
+        loadingParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_BOTTOM);
+        loadingParams.setMargins(0, 0, 0, 150);
+        
+        android.widget.RelativeLayout.LayoutParams progressParams = new android.widget.RelativeLayout.LayoutParams(
+            600, android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
+        progressParams.addRule(android.widget.RelativeLayout.CENTER_HORIZONTAL);
+        progressParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_BOTTOM);
+        progressParams.setMargins(0, 0, 0, 100);
+        
+        logoText.setId(logoText.hashCode());
+        splashLayout.addView(logoText, logoParams);
+        splashLayout.addView(proText, proParams);
+        splashLayout.addView(loadingText, loadingParams);
+        splashLayout.addView(progressBar, progressParams);
+        
+        setContentView(splashLayout); // MOSTRA SPLASH SUBITO
+        Log.d(TAG, "Splash screen displayed - masking navigation");
     }
 }
