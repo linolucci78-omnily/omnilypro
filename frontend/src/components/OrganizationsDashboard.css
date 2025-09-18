@@ -1861,6 +1861,26 @@
     font-size: 0.7rem !important;
     line-height: 1 !important;
   }
+
+  /* FIX BOTTONI CHE CAUSANO OVERFLOW */
+  .customer-table-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .customer-table-controls .table-actions {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  .btn-secondary, .btn-primary {
+    flex: 1 !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+  }
 }
 
 @media (max-width: 768px) {
