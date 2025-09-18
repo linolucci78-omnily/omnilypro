@@ -24,10 +24,9 @@ function App() {
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
 
-  // Check if this should be customer display (only for popup windows)
+  // Check if this should be customer display
   const isCustomerDisplay = typeof window !== 'undefined' &&
-    window.location.hash === '#customer-display' && isPOSMode &&
-    window.opener !== null // Solo se è una finestra popup
+    window.location.hash === '#customer-display' && isPOSMode
 
   console.log('🔍 DEBUG App.tsx:', {
     isPOSMode,
@@ -36,7 +35,8 @@ function App() {
     pathname: typeof window !== 'undefined' ? window.location.pathname : 'undefined',
     hash: typeof window !== 'undefined' ? window.location.hash : 'undefined',
     hasOpener: typeof window !== 'undefined' ? window.opener !== null : 'undefined',
-    isPopup: typeof window !== 'undefined' && window.opener !== null
+    isPopup: typeof window !== 'undefined' && window.opener !== null,
+    shouldShowCustomerDisplay: typeof window !== 'undefined' && window.location.hash === '#customer-display' && isPOSMode
   })
 
   // Check if we should redirect to /pos from hash
