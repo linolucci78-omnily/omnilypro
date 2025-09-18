@@ -18,11 +18,9 @@ import POSSimulator from './components/POS/POSSimulator'
 import Z108POSInterface from './components/POS/Z108POSInterface'
 
 function App() {
-  // Detect if running in POS mode (supports both pos=true and posomnily=true)
-  const isPOSMode = typeof window !== 'undefined' && (
-    window.location.search.includes('pos=true') || 
+  // Detect if running in POS mode (only posomnily=true)
+  const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
-  )
 
   // Check if we should redirect to /pos from hash
   const shouldRedirectToPOS = typeof window !== 'undefined' && 
