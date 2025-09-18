@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import POSHeader from './POSHeader';
 import POSSidebar from './POSSidebar';
 import './POSLayout.css';
@@ -12,9 +12,16 @@ interface POSLayoutProps {
 const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {} }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    console.log('📱 SIDEBAR STATE CHANGED:', sidebarOpen);
+  }, [sidebarOpen]);
+
   const toggleSidebar = () => {
-    console.log('🔄 TOGGLE SIDEBAR:', sidebarOpen, '->', !sidebarOpen);
-    setSidebarOpen(!sidebarOpen);
+    console.log('🔄 TOGGLE SIDEBAR CALLED, current:', sidebarOpen);
+    setSidebarOpen(prev => {
+      console.log('🔄 SETTING STATE FROM', prev, 'TO', !prev);
+      return !prev;
+    });
   };
 
   const closeSidebar = () => {
