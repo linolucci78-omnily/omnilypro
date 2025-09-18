@@ -55,7 +55,7 @@ const POSDashboardWrapper: React.FC = () => {
 
     // Cleanup: chiudi il customer display quando il componente viene smontato
     return () => {
-      clearTimeout(timer);
+      // clearTimeout(timer); // Disabilitato con auto-popup
       if (customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
         customerDisplayWindow.current.close();
       }
