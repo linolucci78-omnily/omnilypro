@@ -12,6 +12,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const navigate = useNavigate();
 
   const handleMenuToggle = () => {
+    console.log('🍔 HAMBURGER CLICKED!', window.innerWidth);
     onMenuToggle();
   };
 
@@ -32,7 +33,11 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
       <button
         className="pos-hamburger-btn"
         onClick={handleMenuToggle}
-        onTouchEnd={handleMenuToggle}
+        onTouchStart={(e) => {
+          console.log('👆 TOUCH START!');
+          e.preventDefault();
+          handleMenuToggle();
+        }}
         aria-label="Apri menu"
         style={{ touchAction: 'manipulation' }}
       >

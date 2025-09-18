@@ -46,6 +46,11 @@
   background: #ef4444 !important; /* DEBUG: rosso quando cliccato */
 }
 
+.pos-hamburger-btn:focus {
+  background: #10b981 !important; /* DEBUG: verde quando focused */
+  outline: 3px solid #fbbf24;
+}
+
 .hamburger-line {
   width: 24px;
   height: 3px;

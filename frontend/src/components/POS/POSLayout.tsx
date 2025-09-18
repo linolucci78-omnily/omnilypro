@@ -13,6 +13,7 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
+    console.log('🔄 TOGGLE SIDEBAR:', sidebarOpen, '->', !sidebarOpen);
     setSidebarOpen(!sidebarOpen);
   };
 
