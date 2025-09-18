@@ -20,8 +20,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    // Redirect to login with return URL
-    return <Navigate to="/login" state={{ from: location }} replace />
+    // Mantieni parametro POS se presente
+    const isPOSMode = window.location.search.includes('posomnily=true')
+    const loginPath = isPOSMode ? '/login?posomnily=true' : '/login'
+    return <Navigate to={loginPath} state={{ from: location }} replace />
   }
 
   return <>{children}</>

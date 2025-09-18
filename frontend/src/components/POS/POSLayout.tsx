@@ -10,12 +10,10 @@ interface POSLayoutProps {
 }
 
 const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {} }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true); // DEBUG: Forza apertura
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
-    console.log('🔄 POSLayout toggleSidebar called, current state:', sidebarOpen);
     setSidebarOpen(!sidebarOpen);
-    console.log('🔄 New sidebar state will be:', !sidebarOpen);
   };
 
   const closeSidebar = () => {

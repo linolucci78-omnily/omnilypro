@@ -12,7 +12,6 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const navigate = useNavigate();
 
   const handleMenuToggle = () => {
-    console.log('🍔 Hamburger clicked!'); // Debug
     onMenuToggle();
   };
 
