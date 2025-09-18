@@ -60,6 +60,24 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
         />
       </div>
 
+      {/* Customer Display Button */}
+      <button
+        onClick={() => navigate('/customer-display?posomnily=true')}
+        style={{
+          padding: '8px 12px',
+          background: '#10b981',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          fontSize: '12px',
+          fontWeight: '600',
+          cursor: 'pointer'
+        }}
+        title="Apri Customer Display"
+      >
+        📺 Display
+      </button>
+
       {/* User Info + Quick Logout */}
       <div className="pos-header-user">
         <div className="pos-user-info">
