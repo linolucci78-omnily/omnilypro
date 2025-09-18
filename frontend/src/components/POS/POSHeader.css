@@ -31,6 +31,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 8px;
+  position: relative;
+  z-index: 9999; /* FORZA hamburger sopra tutto */
+  pointer-events: auto !important;
 }
 
 .pos-hamburger-btn:hover {
@@ -40,6 +43,7 @@
 
 .pos-hamburger-btn:active {
   transform: scale(0.95);
+  background: #ef4444 !important; /* DEBUG: rosso quando cliccato */
 }
 
 .hamburger-line {

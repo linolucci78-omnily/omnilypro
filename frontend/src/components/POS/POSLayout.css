@@ -32,3 +32,17 @@
 body.pos-sidebar-open {
   overflow: hidden;
 }
+
+/* OVERRIDE GLOBALE - Nascondi TUTTE le sidebar in POS mode */
+body:has(.pos-layout) .sidebar,
+body:has(.pos-header) .sidebar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  left: -1000px !important;
+  width: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}

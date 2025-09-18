@@ -7,6 +7,11 @@ interface POSHeaderProps {
 }
 
 const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
+
+  const handleMenuToggle = () => {
+    console.log('🍔 Hamburger clicked!'); // Debug
+    onMenuToggle();
+  };
   const { user, signOut } = useAuth();
 
   const handleQuickLogout = async () => {
@@ -24,7 +29,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
       {/* Hamburger Menu Button */}
       <button
         className="pos-hamburger-btn"
-        onClick={onMenuToggle}
+        onClick={handleMenuToggle}
         aria-label="Apri menu"
       >
         <div className="hamburger-line"></div>

@@ -22,6 +22,11 @@
   visibility: hidden !important;
   opacity: 0 !important;
   left: -500px !important;
+  width: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
 }
 
 /* ========== SIDEBAR ========== */
