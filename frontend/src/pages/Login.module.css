@@ -36,7 +36,7 @@
 }
 
 .logoContainer img {
-  height: 64px; /* Più grande per POS */
+  height: 80px; /* Ancora più grande per POS */
   margin-bottom: 1rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
