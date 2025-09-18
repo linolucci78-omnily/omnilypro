@@ -1840,8 +1840,17 @@
 }
 
 /* Responsive */
-/* Tablet POS - FORZA 2 colonne per tutti i tablet */
+/* Tablet POS - FORZA TUTTO RESPONSIVE */
 @media (max-width: 1200px) {
+  /* FORZA CONTAINER A NON OVERFLOW */
+  .customer-list-container,
+  .dashboard-content.full-width,
+  .dashboard-content {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
   .customer-stats-row {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px;
@@ -1880,6 +1889,19 @@
     min-width: 0 !important;
     white-space: nowrap !important;
     font-size: 12px !important;
+  }
+
+  /* FORZA ANCHE IL LAYOUT POS A NON OVERFLOW */
+  .pos-main-content {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  /* RIDURRE PADDING GENERALE SU TABLET */
+  .pos-main-content {
+    padding: 1rem 0.5rem !important;
   }
 }
 
