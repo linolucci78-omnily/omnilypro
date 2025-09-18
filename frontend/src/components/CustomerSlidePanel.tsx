@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown } from 'lucide-react';
 import './CustomerSlidePanel.css';
 
 import type { Customer } from '../lib/supabase';
@@ -72,9 +72,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               className="customer-tier"
               style={{ backgroundColor: getTierColor(customer.tier) }}
             >
-              <Star size={16} />
-              {customer.tier}
-            </div>
+              {customer.tier === 'Platinum' && <Crown size={16} />}
+              {customer.tier === 'Gold' && <Sparkles size={16} />}
+              {customer.tier === 'Silver' && <Award size={16} />}
+              {customer.tier === 'Bronze' && <Star size={16} />}
+              {customer.tier}</div>
           </div>
           <button className="panel-close-btn" onClick={onClose}>
             <X size={24} />
@@ -84,14 +86,23 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         {/* Quick Stats */}
         <div className="customer-quick-stats">
           <div className="stat-item">
+            <div className="stat-icon">
+              <Award size={24} />
+            </div>
             <div className="stat-number">{customer.points}</div>
             <div className="stat-label">Punti</div>
           </div>
           <div className="stat-item">
+            <div className="stat-icon">
+              <Euro size={24} />
+            </div>
             <div className="stat-number">€{customer.total_spent.toFixed(2)}</div>
             <div className="stat-label">Speso</div>
           </div>
           <div className="stat-item">
+            <div className="stat-icon">
+              <TrendingUp size={24} />
+            </div>
             <div className="stat-number">{customer.visits}</div>
             <div className="stat-label">Visite</div>
           </div>
