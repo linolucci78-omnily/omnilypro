@@ -75,6 +75,7 @@ function App() {
                 path="/customer-display"
                 element={<CustomerDisplay />}
               />
+              <Route path="*" element={<Login />} />
             </Routes>
           </div>
         </AuthProvider>
@@ -130,9 +131,13 @@ function App() {
               <Route path="organizations" element={<Admin />} />
               <Route path="business-owners" element={<BusinessOwners />} />
             </Route>
-            <Route 
-              path="/pos-simulator" 
-              element={<POSSimulator />} 
+            <Route
+              path="/pos-simulator"
+              element={<POSSimulator />}
+            />
+            <Route
+              path="/customer-display"
+              element={<CustomerDisplay />}
             />
           </Routes>
         </div>
