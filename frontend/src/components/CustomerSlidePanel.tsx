@@ -57,7 +57,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       {/* Overlay */}
       {isOpen && (
         <div
-          className="slide-panel-overlay"
+          className="customer-slide-panel-overlay"
           onClick={onClose}
         />
       )}
@@ -65,11 +65,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       {/* Slide Panel */}
       <div className={`customer-slide-panel ${isOpen ? 'open' : ''}`}>
         {/* Header */}
-        <div className="panel-header">
-          <div className="customer-header-info">
+        <div className="customer-panel-header">
+          <div className="customer-slide-panel-header-info">
             <h2>{customer.name}</h2>
             <div
-              className="customer-tier"
+              className="customer-slide-panel-tier"
               style={{ backgroundColor: getTierColor(customer.tier) }}
             >
               {customer.tier === 'Platinum' && <Crown size={16} />}
@@ -78,40 +78,40 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               {customer.tier === 'Bronze' && <Star size={16} />}
               {customer.tier}</div>
           </div>
-          <button className="panel-close-btn" onClick={onClose}>
+          <button className="customer-panel-close-btn" onClick={onClose}>
             <X size={16} />
           </button>
         </div>
 
         {/* Quick Stats */}
-        <div className="customer-quick-stats">
-          <div className="stat-item">
-            <div className="stat-icon">
+        <div className="customer-slide-panel-quick-stats">
+          <div className="customer-slide-panel-stat-item">
+            <div className="customer-slide-panel-stat-icon">
               <Award size={24} />
             </div>
-            <div className="stat-number">{customer.points}</div>
-            <div className="stat-label">Punti</div>
+            <div className="customer-slide-panel-stat-number">{customer.points}</div>
+            <div className="customer-slide-panel-stat-label">Punti</div>
           </div>
-          <div className="stat-item">
-            <div className="stat-icon">
+          <div className="customer-slide-panel-stat-item">
+            <div className="customer-slide-panel-stat-icon">
               <Euro size={24} />
             </div>
-            <div className="stat-number">€{customer.total_spent.toFixed(2)}</div>
-            <div className="stat-label">Speso</div>
+            <div className="customer-slide-panel-stat-number">€{customer.total_spent.toFixed(2)}</div>
+            <div className="customer-slide-panel-stat-label">Speso</div>
           </div>
-          <div className="stat-item">
-            <div className="stat-icon">
+          <div className="customer-slide-panel-stat-item">
+            <div className="customer-slide-panel-stat-icon">
               <TrendingUp size={24} />
             </div>
-            <div className="stat-number">{customer.visits}</div>
-            <div className="stat-label">Visite</div>
+            <div className="customer-slide-panel-stat-number">{customer.visits}</div>
+            <div className="customer-slide-panel-stat-label">Visite</div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="panel-actions">
+        <div className="customer-panel-actions">
           <button
-            className="action-btn primary"
+            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-primary"
             onClick={() => {
               onAddPoints?.(customer.id, 10);
               // Solo ora aggiorniamo il customer display con i nuovi punti
@@ -122,7 +122,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             Aggiungi Punti
           </button>
           <button
-            className="action-btn secondary"
+            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-secondary"
             onClick={() => {
               onNewTransaction?.(customer.id);
               // Aggiorna customer display con info vendita
@@ -132,51 +132,51 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <ShoppingBag size={20} />
             Nuova Vendita
           </button>
-          <button className="action-btn tertiary">
+          <button className="customer-slide-panel-action-btn customer-slide-panel-action-btn-tertiary">
             <Gift size={20} />
             Premi
           </button>
         </div>
 
         {/* Contact Info */}
-        <div className="customer-contact">
+        <div className="customer-slide-panel-contact">
           <h3>Contatti</h3>
-          <div className="contact-item">
+          <div className="customer-slide-panel-contact-item">
             <Mail size={18} />
             <span>{customer.email}</span>
           </div>
           {customer.phone && (
-            <div className="contact-item">
+            <div className="customer-slide-panel-contact-item">
               <Phone size={18} />
               <span>{customer.phone}</span>
             </div>
           )}
           {customer.address && (
-            <div className="contact-item">
+            <div className="customer-slide-panel-contact-item">
               <MapPin size={18} />
               <span>{customer.address}</span>
             </div>
           )}
-          <div className="contact-item">
+          <div className="customer-slide-panel-contact-item">
             <Calendar size={18} />
             <span>Iscritto: {new Date(customer.created_at).toLocaleDateString('it-IT')}</span>
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="customer-activity">
+        <div className="customer-slide-panel-activity">
           <h3>Attività Recente</h3>
-          <div className="activity-item">
-            <div className="activity-date">Oggi</div>
-            <div className="activity-text">Acquisto caffè - +2 punti</div>
+          <div className="customer-slide-panel-activity-item">
+            <div className="customer-slide-panel-activity-date">Oggi</div>
+            <div className="customer-slide-panel-activity-text">Acquisto caffè - +2 punti</div>
           </div>
-          <div className="activity-item">
-            <div className="activity-date">Ieri</div>
-            <div className="activity-text">Riscatto premio - -50 punti</div>
+          <div className="customer-slide-panel-activity-item">
+            <div className="customer-slide-panel-activity-date">Ieri</div>
+            <div className="customer-slide-panel-activity-text">Riscatto premio - -50 punti</div>
           </div>
-          <div className="activity-item">
-            <div className="activity-date">3 giorni fa</div>
-            <div className="activity-text">Acquisto cornetto - +1 punto</div>
+          <div className="customer-slide-panel-activity-item">
+            <div className="customer-slide-panel-activity-date">3 giorni fa</div>
+            <div className="customer-slide-panel-activity-text">Acquisto cornetto - +1 punto</div>
           </div>
         </div>
       </div>
