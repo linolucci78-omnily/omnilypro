@@ -88,8 +88,8 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
 
   return (
     <>
-      {/* Backdrop */}
-      {isOpen && (
+      {/* Backdrop TEMPORANEAMENTE DISATTIVATO per debug */}
+      {false && isOpen && (
         <div
           className="pos-sidebar-backdrop"
           onClick={() => {
