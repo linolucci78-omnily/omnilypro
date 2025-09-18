@@ -25,6 +25,7 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
   };
 
   const closeSidebar = () => {
+    console.log('❌ CLOSE SIDEBAR CALLED!');
     setSidebarOpen(false);
   };
 

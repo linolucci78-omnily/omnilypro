@@ -79,7 +79,10 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       {isOpen && (
         <div
           className="pos-sidebar-backdrop"
-          onClick={onClose}
+          onClick={() => {
+            console.log('🎭 BACKDROP CLICKED!');
+            onClose();
+          }}
         />
       )}
 
