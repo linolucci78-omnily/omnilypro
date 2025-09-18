@@ -46,11 +46,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  React.useEffect(() => {
-    if (isOpen && customer) {
-      updateCustomerDisplay();
-    }
-  }, [isOpen, customer]);
+  // NON aggiorniamo automaticamente il customer display quando apriamo il pannello
+  // Questo causava interferenze con popup indesiderati sul display principale
+  // L'aggiornamento del customer display avviene solo tramite azioni specifiche
 
   return (
     <>
@@ -112,14 +110,22 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         <div className="panel-actions">
           <button
             className="action-btn primary"
-            onClick={() => onAddPoints?.(customer.id, 10)}
+            onClick={() => {
+              onAddPoints?.(customer.id, 10);
+              // Solo ora aggiorniamo il customer display con i nuovi punti
+              updateCustomerDisplay();
+            }}
           >
             <Plus size={20} />
             Aggiungi Punti
           </button>
           <button
             className="action-btn secondary"
-            onClick={() => onNewTransaction?.(customer.id)}
+            onClick={() => {
+              onNewTransaction?.(customer.id);
+              // Aggiorna customer display con info vendita
+              updateCustomerDisplay();
+            }}
           >
             <ShoppingBag size={20} />
             Nuova Vendita
