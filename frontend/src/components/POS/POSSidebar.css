@@ -29,7 +29,6 @@
 
 .pos-sidebar-open {
   left: 0 !important; /* Scorri dentro - FORZA */
-  border: 5px solid #00ff00 !important; /* DEBUG: bordo verde quando aperta */
 }
 
 /* Header Sidebar */

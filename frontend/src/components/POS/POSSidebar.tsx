@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import {
+  MdDashboard,
+  MdLoyalty,
+  MdPeople,
+  MdCampaign,
+  MdTrendingUp,
+  MdSettings,
+  MdHelp,
+  MdLogout
+} from 'react-icons/md';
 import './POSSidebar.css';
 
 interface POSSidebarProps {
@@ -39,43 +49,43 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   const menuItems = [
     {
       id: 'dashboard',
-      icon: '■',
+      icon: MdDashboard,
       label: 'Dashboard',
       color: '#ef4444'
     },
     {
       id: 'stamps',
-      icon: '●',
+      icon: MdLoyalty,
       label: 'Tessere Punti',
       color: '#10b981'
     },
     {
       id: 'members',
-      icon: '▲',
+      icon: MdPeople,
       label: 'Clienti',
       color: '#3b82f6'
     },
     {
       id: 'communications',
-      icon: '♦',
+      icon: MdCampaign,
       label: 'Comunicazioni',
       color: '#f59e0b'
     },
     {
       id: 'campaigns',
-      icon: '↗',
+      icon: MdTrendingUp,
       label: 'Campagne',
       color: '#8b5cf6'
     },
     {
       id: 'settings',
-      icon: '⚡',
+      icon: MdSettings,
       label: 'Impostazioni',
       color: '#6b7280'
     },
     {
       id: 'support',
-      icon: '?',
+      icon: MdHelp,
       label: 'Aiuto & Supporto',
       color: '#ef4444'
     }
@@ -127,7 +137,9 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
               className={`pos-menu-item ${activeSection === item.id ? 'pos-menu-item-active' : ''}`}
               style={{ '--item-color': item.color } as React.CSSProperties}
             >
-              <span className="pos-menu-icon">{item.icon}</span>
+              <span className="pos-menu-icon">
+                <item.icon size={24} />
+              </span>
               <span className="pos-menu-label">{item.label}</span>
             </button>
           ))}
@@ -139,7 +151,9 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
             onClick={handleSignOut}
             className="pos-logout-btn"
           >
-            <span className="pos-menu-icon">←</span>
+            <span className="pos-menu-icon">
+              <MdLogout size={24} />
+            </span>
             <span className="pos-menu-label">Logout</span>
           </button>
         </div>

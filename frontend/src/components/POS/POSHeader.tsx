@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { MdLogout } from 'react-icons/md';
 import './POSHeader.css';
 
 interface POSHeaderProps {
@@ -12,7 +13,6 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const navigate = useNavigate();
 
   const handleMenuToggle = (e: React.MouseEvent) => {
-    console.log('🍔 HAMBURGER CLICKED!', window.innerWidth);
     e.stopPropagation();
     e.preventDefault();
     onMenuToggle();
@@ -36,7 +36,6 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
         className="pos-hamburger-btn"
         onClick={handleMenuToggle}
         onTouchStart={(e) => {
-          console.log('👆 TOUCH START!');
           e.preventDefault();
           e.stopPropagation();
           handleMenuToggle(e as any);
@@ -68,7 +67,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
           onClick={handleQuickLogout}
           title="Logout rapido"
         >
-←
+          <MdLogout size={20} />
         </button>
       </div>
     </header>
