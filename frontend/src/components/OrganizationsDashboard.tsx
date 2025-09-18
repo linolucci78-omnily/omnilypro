@@ -71,8 +71,31 @@ const OrganizationsDashboard: React.FC = () => {
   const fetchOrganizations = async () => {
     try {
       setLoading(true)
-      const data = await organizationsApi.getAll()
-      setOrganizations(data)
+
+      // TEMPORANEO: Dati mock per testare il POS
+      const mockData = [
+        {
+          id: '1',
+          name: 'OMNILY Demo Store',
+          slug: 'demo-store',
+          domain: 'demo.omnily.it',
+          plan_type: 'pro',
+          plan_status: 'active',
+          max_customers: 1000,
+          max_workflows: 10,
+          logo_url: null,
+          primary_color: '#ef4444',
+          secondary_color: '#dc2626',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          pos_enabled: true,
+          pos_model: 'ZCS-Z108'
+        }
+      ]
+
+      // Usa dati mock invece di chiamare l'API
+      setOrganizations(mockData)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore nel caricamento')
@@ -84,14 +107,52 @@ const OrganizationsDashboard: React.FC = () => {
   const fetchCustomers = async () => {
     try {
       setCustomersLoading(true)
-      // Per ora carichiamo tutti i clienti, poi possiamo filtrare per organizzazione
-      const [customersData, statsData] = await Promise.all([
-        customersApi.getAll(),
-        customersApi.getStats()
-      ])
-      
-      setCustomers(customersData)
-      setCustomerStats(statsData)
+
+      // TEMPORANEO: Dati mock per clienti
+      const mockCustomers = [
+        {
+          id: '1',
+          organization_id: '1',
+          name: 'Mario Rossi',
+          email: 'mario.rossi@email.it',
+          phone: '+39 333 1234567',
+          gender: 'male' as const,
+          points: 120,
+          tier: 'Bronzo' as const,
+          total_spent: 450.50,
+          visits: 8,
+          is_active: true,
+          notifications_enabled: true,
+          created_at: '2024-01-15T10:30:00Z',
+          updated_at: '2024-01-20T15:45:00Z'
+        },
+        {
+          id: '2',
+          organization_id: '1',
+          name: 'Giulia Bianchi',
+          email: 'giulia.bianchi@email.it',
+          phone: '+39 349 7654321',
+          gender: 'female' as const,
+          points: 280,
+          tier: 'Argento' as const,
+          total_spent: 750.25,
+          visits: 15,
+          is_active: true,
+          notifications_enabled: false,
+          created_at: '2024-01-10T09:15:00Z',
+          updated_at: '2024-01-22T11:20:00Z'
+        }
+      ]
+
+      const mockStats = {
+        total: 145,
+        male: 78,
+        female: 67,
+        withNotifications: 98
+      }
+
+      setCustomers(mockCustomers)
+      setCustomerStats(mockStats)
     } catch (err) {
       console.error('Errore nel caricamento clienti:', err)
       // In caso di errore, non impostiamo errore generale ma solo log
