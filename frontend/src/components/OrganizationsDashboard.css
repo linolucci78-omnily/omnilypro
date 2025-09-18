@@ -1840,10 +1840,10 @@
 }
 
 /* Responsive */
-/* Tablet POS - da 769px a 1024px */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet POS - FORZA 2 colonne per tutti i tablet */
+@media (max-width: 1200px) {
   .customer-stats-row {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px;
     padding: 16px;
   }
