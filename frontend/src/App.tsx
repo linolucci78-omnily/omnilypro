@@ -34,7 +34,9 @@ function App() {
     isCustomerDisplay,
     search: typeof window !== 'undefined' ? window.location.search : 'undefined',
     pathname: typeof window !== 'undefined' ? window.location.pathname : 'undefined',
-    hash: typeof window !== 'undefined' ? window.location.hash : 'undefined'
+    hash: typeof window !== 'undefined' ? window.location.hash : 'undefined',
+    hasOpener: typeof window !== 'undefined' ? window.opener !== null : 'undefined',
+    isPopup: typeof window !== 'undefined' && window.opener !== null
   })
 
   // Check if we should redirect to /pos from hash
@@ -47,8 +49,8 @@ function App() {
     window.history.replaceState(null, '', `/pos?${posParam}`)
   }
 
-  // Customer Display Mode - Direct render
-  if (isCustomerDisplay) {
+  // Customer Display Mode - Direct render (ONLY for popup windows)
+  if (isCustomerDisplay && window.opener !== null) {
     document.body.style.margin = '0'
     document.body.style.padding = '0'
     document.body.style.overflow = 'hidden'
