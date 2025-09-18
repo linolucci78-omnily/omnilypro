@@ -6,6 +6,9 @@ import RegistrationWizard from './RegistrationWizard'
 import './OrganizationsDashboard.css'
 
 const OrganizationsDashboard: React.FC = () => {
+  // Detect POS mode
+  const isPOSMode = typeof window !== 'undefined' &&
+    window.location.search.includes('posomnily=true')
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
   const [customerStats, setCustomerStats] = useState({
@@ -628,9 +631,10 @@ const OrganizationsDashboard: React.FC = () => {
   if (error) return <div className="error">❌ Errore: {error}</div>
 
   return (
-    <div className="dashboard-layout">
-      {/* Sidebar */}
-      <div className="sidebar">
+    <div className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}>
+      {/* Sidebar - Hidden in POS mode */}
+      {!isPOSMode && (
+        <div className="sidebar">
         <div className="sidebar-header">
           <div className="logo">
             <div className="logo-icon">O</div>
@@ -658,7 +662,8 @@ const OrganizationsDashboard: React.FC = () => {
         <div className="sidebar-footer">
           <div className="version">Version 0.1.0 (48)</div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="main-content">
