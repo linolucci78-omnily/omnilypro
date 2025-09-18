@@ -28,15 +28,10 @@ const Login: React.FC = () => {
     }
 
     if (user) {
-      // CORREZIONE: Conserva parametri POS nel redirect
-      let redirectPath = '/dashboard'; // Default
-      if (isPosMode) {
-        // Mantieni i parametri POS nell'URL dopo login
-        const urlParams = new URLSearchParams(window.location.search);
-        const posParam = urlParams.get('posomnily') ? 'posomnily=true' : 'pos=true';
-        redirectPath = `/pos?${posParam}`;
-      }
-      const from = (location.state as any)?.from?.pathname || redirectPath;
+      // CORREZIONE: In modalità POS va sempre al Dashboard aziendale, non alla pagina Z108
+      const redirectPath = '/dashboard'; // Sia desktop che POS vanno al dashboard
+      
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
     }
   }, [user, navigate, location, isPosMode]);
