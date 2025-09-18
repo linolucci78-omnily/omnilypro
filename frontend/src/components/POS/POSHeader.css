@@ -133,8 +133,9 @@
   }
 
   .pos-hamburger-btn {
-    width: 45px;
-    height: 45px;
+    width: 56px; /* AUMENTATO per touch */
+    height: 56px;
+    z-index: 99999 !important; /* FORZA sopra tutto */
   }
 
   .pos-header-logo img {
@@ -154,9 +155,15 @@
 
 /* Touch improvements */
 @media (hover: none) and (pointer: coarse) {
-  .pos-hamburger-btn,
+  .pos-hamburger-btn {
+    min-height: 56px !important; /* Apple guideline per touch targets */
+    min-width: 56px !important;
+    padding: 12px !important;
+    z-index: 99999 !important;
+  }
+
   .pos-quick-logout {
-    min-height: 48px; /* Apple guideline per touch targets */
+    min-height: 48px;
     min-width: 48px;
   }
 }

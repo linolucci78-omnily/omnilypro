@@ -26,33 +26,45 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   const menuItems = [
     {
       id: 'dashboard',
-      icon: '🏠',
+      icon: '■',
       label: 'Dashboard',
       color: '#ef4444'
     },
     {
-      id: 'customers',
-      icon: '👥',
-      label: 'Clienti',
+      id: 'stamps',
+      icon: '●',
+      label: 'Tessere Punti',
       color: '#10b981'
     },
     {
-      id: 'analytics',
-      icon: '📊',
-      label: 'Analytics',
-      color: '#8b5cf6'
+      id: 'members',
+      icon: '▲',
+      label: 'Clienti',
+      color: '#3b82f6'
     },
     {
-      id: 'pos',
-      icon: '💳',
-      label: 'POS Simulator',
+      id: 'communications',
+      icon: '♦',
+      label: 'Comunicazioni',
       color: '#f59e0b'
     },
     {
+      id: 'campaigns',
+      icon: '↗',
+      label: 'Campagne',
+      color: '#8b5cf6'
+    },
+    {
       id: 'settings',
-      icon: '⚙️',
+      icon: '⚡',
       label: 'Impostazioni',
       color: '#6b7280'
+    },
+    {
+      id: 'support',
+      icon: '?',
+      label: 'Aiuto & Supporto',
+      color: '#ef4444'
     }
   ];
 
@@ -107,7 +119,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
             onClick={handleSignOut}
             className="pos-logout-btn"
           >
-            <span className="pos-menu-icon">🚪</span>
+            <span className="pos-menu-icon">←</span>
             <span className="pos-menu-label">Logout</span>
           </button>
         </div>

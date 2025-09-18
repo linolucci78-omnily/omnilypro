@@ -30,7 +30,9 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
       <button
         className="pos-hamburger-btn"
         onClick={handleMenuToggle}
+        onTouchEnd={handleMenuToggle}
         aria-label="Apri menu"
+        style={{ touchAction: 'manipulation' }}
       >
         <div className="hamburger-line"></div>
         <div className="hamburger-line"></div>
@@ -56,7 +58,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
           onClick={handleQuickLogout}
           title="Logout rapido"
         >
-          🚪
+←
         </button>
       </div>
     </header>
