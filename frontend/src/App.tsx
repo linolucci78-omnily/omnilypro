@@ -17,6 +17,7 @@ import AuthCallback from './pages/AuthCallback'
 import POSSimulator from './components/POS/POSSimulator'
 import Z108POSInterface from './components/POS/Z108POSInterface'
 import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
+import CustomerDisplay from './components/POS/CustomerDisplay'
 
 function App() {
   // Detect if running in POS mode (only posomnily=true)
@@ -63,6 +64,10 @@ function App() {
                     <Z108POSInterface />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/customer-display"
+                element={<CustomerDisplay />}
               />
             </Routes>
           </div>
