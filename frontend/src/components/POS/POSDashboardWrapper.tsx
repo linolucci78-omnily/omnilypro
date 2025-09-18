@@ -47,15 +47,15 @@ const POSDashboardWrapper: React.FC = () => {
       }
     };
 
-    // AUTO-POPUP DISABILITATO per POS fisico con dual monitor
-    // const timer = setTimeout(openCustomerDisplay, 2000);
+    // Apri automaticamente il customer display sul secondo schermo
+    const timer = setTimeout(openCustomerDisplay, 2000);
 
     // Esponi la funzione updateCustomerDisplay globalmente per i test
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
 
     // Cleanup: chiudi il customer display quando il componente viene smontato
     return () => {
-      // clearTimeout(timer); // Disabilitato con auto-popup
+      clearTimeout(timer);
       if (customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
         customerDisplayWindow.current.close();
       }
