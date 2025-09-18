@@ -79,7 +79,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               {customer.tier}</div>
           </div>
           <button className="panel-close-btn" onClick={onClose}>
-            <X size={24} />
+            <X size={16} />
           </button>
         </div>
 
