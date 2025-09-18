@@ -24,10 +24,16 @@ function App() {
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
 
+  // Check if this should be customer display
+  const isCustomerDisplay = typeof window !== 'undefined' &&
+    window.location.hash === '#customer-display' && isPOSMode
+
   console.log('🔍 DEBUG App.tsx:', {
     isPOSMode,
+    isCustomerDisplay,
     search: typeof window !== 'undefined' ? window.location.search : 'undefined',
-    pathname: typeof window !== 'undefined' ? window.location.pathname : 'undefined'
+    pathname: typeof window !== 'undefined' ? window.location.pathname : 'undefined',
+    hash: typeof window !== 'undefined' ? window.location.hash : 'undefined'
   })
 
   // Check if we should redirect to /pos from hash
@@ -38,6 +44,15 @@ function App() {
   if (shouldRedirectToPOS && window.location.pathname !== '/pos') {
     const posParam = window.location.search.includes('posomnily=true') ? 'posomnily=true' : 'pos=true'
     window.history.replaceState(null, '', `/pos?${posParam}`)
+  }
+
+  // Customer Display Mode - Direct render
+  if (isCustomerDisplay) {
+    document.body.style.margin = '0'
+    document.body.style.padding = '0'
+    document.body.style.overflow = 'hidden'
+
+    return <CustomerDisplay />
   }
 
   // POS Mode - Handle both login and POS interface routes

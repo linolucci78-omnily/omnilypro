@@ -20,7 +20,8 @@ const POSDashboardWrapper: React.FC = () => {
   useEffect(() => {
     const openCustomerDisplay = () => {
       if (!customerDisplayWindow.current || customerDisplayWindow.current.closed) {
-        const customerDisplayUrl = `${window.location.origin}/customer-display?posomnily=true`;
+        // Usa una route che sicuramente funziona e poi naviga internamente
+        const customerDisplayUrl = `${window.location.origin}/?posomnily=true#customer-display`;
 
         customerDisplayWindow.current = window.open(
           customerDisplayUrl,
