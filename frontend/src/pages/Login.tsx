@@ -95,7 +95,6 @@ const Login: React.FC = () => {
         <div className={styles.posCard}>
           <div className={styles.logoContainer}>
             <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" />
-            <span>OMNILY PRO</span>
           </div>
           <h2 className={styles.title}>Accesso POS</h2>
           <form onSubmit={handleAuth} className={styles.form}>
@@ -129,8 +128,7 @@ const Login: React.FC = () => {
        <div className="login-container">
         <div className="login-header">
           <Link to="/" className="login-logo">
-            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '40px', marginRight: '10px' }} />
-            <span>OMNILY PRO</span>
+            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '40px' }} />
           </Link>
           <h1>{getTitle()}</h1>
           <p>Benvenuto nella piattaforma SaaS multi-tenant</p>
