@@ -1846,6 +1846,13 @@
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px;
     padding: 16px;
+    border: 3px solid red !important; /* DEBUG */
+    background: yellow !important; /* DEBUG */
+  }
+
+  .customer-stat-card {
+    border: 2px solid blue !important; /* DEBUG */
+    background: lightgreen !important; /* DEBUG */
   }
 }
 
