@@ -19,6 +19,8 @@ const CustomerDisplay: React.FC = () => {
     total: 0
   });
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [organizationName, setOrganizationName] = useState('OMNILY PRO');
+  const [welcomeMessage, setWelcomeMessage] = useState('Il tuo ordine apparirà qui automaticamente');
 
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
@@ -33,6 +35,14 @@ const CustomerDisplay: React.FC = () => {
       if (event.data.type === 'TRANSACTION_UPDATE') {
         console.log('✅ Aggiornamento transazione ricevuto:', event.data.transaction);
         setTransaction(event.data.transaction);
+      } else if (event.data.type === 'WELCOME') {
+        console.log('👋 Messaggio di benvenuto ricevuto:', event.data);
+        if (event.data.organizationName) {
+          setOrganizationName(event.data.organizationName);
+        }
+        if (event.data.welcomeMessage) {
+          setWelcomeMessage(event.data.welcomeMessage);
+        }
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -65,7 +75,7 @@ const CustomerDisplay: React.FC = () => {
       }}>
         <img
           src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
-          alt="OMNILY PRO"
+          alt={organizationName}
           style={{ height: '40px', marginBottom: '0.5rem' }}
         />
         <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
@@ -156,10 +166,10 @@ const CustomerDisplay: React.FC = () => {
             textAlign: 'center'
           }}>
             <h2 style={{ color: '#1f2937', marginBottom: '1rem', fontSize: '1.5rem' }}>
-              Benvenuto da OMNILY PRO! 👋
+              Benvenuto da {organizationName}! 👋
             </h2>
             <p style={{ color: '#6b7280', fontSize: '1.1rem', margin: 0 }}>
-              Il tuo ordine apparirà qui automaticamente
+              {welcomeMessage}
             </p>
           </div>
         )}

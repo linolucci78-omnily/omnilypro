@@ -32,23 +32,14 @@ const POSDashboardWrapper: React.FC = () => {
         if (customerDisplayWindow.current) {
           console.log('✅ Customer Display aperto automaticamente');
 
-          // Test di comunicazione ogni 3 secondi
-          const testCommunication = () => {
-            console.log('🔄 Invio messaggio di test al customer display...');
+          // Invia benvenuto personalizzato dell'azienda
+          setTimeout(() => {
             updateCustomerDisplay({
-              items: [
-                { name: 'TEST COMUNICAZIONE', price: 1.00, quantity: 1 }
-              ],
-              total: 1.00,
-              testMessage: 'Comunicazione attiva ✅'
+              type: 'WELCOME',
+              organizationName: 'OMNILY PRO', // Questo sarà dinamico
+              welcomeMessage: 'Benvenuto nel nostro negozio!'
             });
-          };
-
-          // Test immediato dopo 3 secondi
-          setTimeout(testCommunication, 3000);
-
-          // Test ogni 10 secondi per debug
-          setInterval(testCommunication, 10000);
+          }, 2000);
         } else {
           console.warn('⚠️ Popup bloccato - abilita i popup per il customer display');
         }
