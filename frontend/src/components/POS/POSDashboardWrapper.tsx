@@ -47,8 +47,13 @@ const POSDashboardWrapper: React.FC = () => {
       }
     };
 
-    // Apri automaticamente il customer display sul secondo schermo
-    const timer = setTimeout(openCustomerDisplay, 2000);
+    // Popup automatico solo se non siamo nell'app Android (che ha già dual screen nativo)
+    const isAndroidApp = typeof window !== 'undefined' &&
+      (window.navigator.userAgent.includes('Android') || window.OmnilyPOS);
+
+    if (!isAndroidApp) {
+      const timer = setTimeout(openCustomerDisplay, 2000);
+    }
 
     // Esponi la funzione updateCustomerDisplay globalmente per i test
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
