@@ -92,11 +92,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/update-password" element={<UpdatePassword />} />
-            <Route path="/customer-display" element={
-              <ProtectedRoute>
-                <CustomerDisplay />
-              </ProtectedRoute>
-            } />
+            <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
+            <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
             <Route 
               path="/onboarding" 
               element={
