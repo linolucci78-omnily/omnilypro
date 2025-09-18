@@ -25,9 +25,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     switch (tier) {
       case 'Platinum': return '#8B5CF6';
       case 'Gold': return '#F59E0B';
-      case 'Silver': return '#6B7280';
-      case 'Bronze': return '#92400E';
-      default: return '#6B7280';
+      case 'Silver': return '#94A3B8';
+      case 'Bronze': return '#A16207';
+      case 'Argento': return '#94A3B8';
+      case 'Bronzo': return '#A16207';
+      default: return '#F59E0B';
     }
   };
 
