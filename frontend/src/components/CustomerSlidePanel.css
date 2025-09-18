@@ -1,0 +1,258 @@
+/* Overlay */
+.slide-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  transition: opacity 0.3s ease;
+}
+
+/* Slide Panel Base */
+.customer-slide-panel {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  height: 100vh;
+  background: white;
+  z-index: 999;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-slide-panel.open {
+  right: 0;
+}
+
+/* Responsive Widths - UN SOLO CSS! */
+/* Desktop: Pannello stretto come modal */
+.customer-slide-panel {
+  width: 400px;
+}
+
+/* POS/Tablet: Più largo per touch */
+@media (max-width: 1024px) {
+  .customer-slide-panel {
+    width: 50vw;
+    min-width: 500px;
+  }
+}
+
+/* Mobile: Full width */
+@media (max-width: 768px) {
+  .customer-slide-panel {
+    width: 100vw;
+  }
+}
+
+/* Header */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.customer-header-info h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #1f2937;
+}
+
+.customer-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.panel-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.panel-close-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+/* Quick Stats */
+.customer-quick-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Actions - Responsive Button Sizes */
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+/* POS: Pulsanti più grandi per touch */
+@media (max-width: 1024px) {
+  .action-btn {
+    padding: 1.25rem;
+    font-size: 1.1rem;
+  }
+}
+
+.action-btn.primary {
+  background: #ef4444;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #dc2626;
+}
+
+.action-btn.secondary {
+  background: #10b981;
+  color: white;
+}
+
+.action-btn.secondary:hover {
+  background: #059669;
+}
+
+.action-btn.tertiary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.action-btn.tertiary:hover {
+  background: #e5e7eb;
+}
+
+/* Contact Info */
+.customer-contact {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-contact h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: #4b5563;
+}
+
+.contact-item svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+/* Activity */
+.customer-activity {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.customer-activity h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.activity-text {
+  color: #4b5563;
+  flex: 1;
+  margin-left: 1rem;
+}
+
+/* Scrollbar Styling */
+.customer-slide-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.customer-slide-panel::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.customer-slide-panel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.customer-slide-panel::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

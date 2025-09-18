@@ -2221,3 +2221,12 @@
     padding-right: 1rem;
   }
 }
+/* Customer Row Clickable */
+.customer-row-clickable:hover {
+  background-color: #f8fafc !important;
+  transition: background-color 0.2s ease;
+}
+
+.customer-row-clickable:active {
+  background-color: #e2e8f0 !important;
+}

@@ -3,6 +3,7 @@ import { organizationsApi, customersApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
 import { BarChart3, Users, Gift, Target, TrendingUp,  Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
+import CustomerSlidePanel from './CustomerSlidePanel'
 import './OrganizationsDashboard.css'
 
 interface OrganizationsDashboardProps {
@@ -47,6 +48,29 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false)
+
+  // Funzioni per gestire il slide panel
+  const handleCustomerClick = (customer: Customer) => {
+    setSelectedCustomer(customer)
+    setIsSlidePanelOpen(true)
+  }
+
+  const handleCloseSlidePanel = () => {
+    setIsSlidePanelOpen(false)
+    setSelectedCustomer(null)
+  }
+
+  const handleAddPoints = (customerId: string, points: number) => {
+    console.log(`Aggiungi ${points} punti al cliente ${customerId}`)
+    // Implementare logica aggiunta punti
+  }
+
+  const handleNewTransaction = (customerId: string) => {
+    console.log(`Nuova transazione per cliente ${customerId}`)
+    // Implementare logica nuova transazione
+  }
 
   // Mock data for demo - replace with real data
   const metrics = {
@@ -345,7 +369,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         </td>
                       </tr>
                     ) : filteredCustomers.map((customer, _index) => (
-                      <tr key={customer.id}>
+                      <tr
+                        key={customer.id}
+                        onClick={() => handleCustomerClick(customer)}
+                        style={{ cursor: 'pointer' }}
+                        className="customer-row-clickable"
+                      >
                         <td>
                           <div className="customer-cell">
                             <div className={`customer-avatar-new ${customer.gender || 'male'}`}>
@@ -705,6 +734,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
         {renderContent()}
       </div>
+
+      {/* Customer Slide Panel */}
+      <CustomerSlidePanel
+        customer={selectedCustomer}
+        isOpen={isSlidePanelOpen}
+        onClose={handleCloseSlidePanel}
+        onAddPoints={handleAddPoints}
+        onNewTransaction={handleNewTransaction}
+      />
     </div>
   )
 }
