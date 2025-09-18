@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { MdLogout } from 'react-icons/md';
 import './POSHeader.css';
 
@@ -10,7 +9,6 @@ interface POSHeaderProps {
 
 const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
 
   const handleMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -60,23 +58,6 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
         />
       </div>
 
-      {/* Customer Display Button */}
-      <button
-        onClick={() => navigate('/customer-display?posomnily=true')}
-        style={{
-          padding: '8px 12px',
-          background: '#10b981',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          fontSize: '12px',
-          fontWeight: '600',
-          cursor: 'pointer'
-        }}
-        title="Apri Customer Display"
-      >
-        📺 Display
-      </button>
 
       {/* User Info + Quick Logout */}
       <div className="pos-header-user">
