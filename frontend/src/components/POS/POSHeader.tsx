@@ -22,11 +22,11 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
     console.log('🚪 LOGOUT HEADER CLICKED!');
     if (confirm('Sei sicuro di voler uscire?')) {
       try {
+        console.log('🚪 Setting POS mode flag...');
+        localStorage.setItem('pos-mode', 'true');
         console.log('🚪 Calling signOut...');
         await signOut();
-        console.log('🚪 SignOut success, navigating...');
-        navigate('/?posomnily=true');
-        console.log('🚪 Navigate called');
+        console.log('🚪 SignOut success');
       } catch (error) {
         console.error('❌ Errore logout:', error);
       }

@@ -20,10 +20,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    // Mantieni parametro POS se presente
-    const isPOSMode = window.location.search.includes('posomnily=true')
-    const loginPath = isPOSMode ? '/login?posomnily=true' : '/login'
-    return <Navigate to={loginPath} state={{ from: location }} replace />
+    // Controlla se era in modalità POS (da URL o localStorage)
+    const isPOSMode = window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true'
+    if (isPOSMode) {
+      console.log('🔐 Redirecting to POS login');
+      localStorage.removeItem('pos-mode'); // Clean up
+      return <Navigate to="/login?posomnily=true" state={{ from: location }} replace />
+    }
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   return <>{children}</>

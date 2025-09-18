@@ -40,11 +40,11 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   const handleSignOut = async () => {
     console.log('🚪 LOGOUT SIDEBAR CLICKED!');
     try {
+      console.log('🚪 Setting POS mode flag from sidebar...');
+      localStorage.setItem('pos-mode', 'true');
       console.log('🚪 Calling signOut from sidebar...');
       await signOut();
-      console.log('🚪 SignOut success from sidebar, navigating...');
-      navigate('/?posomnily=true');
-      console.log('🚪 Navigate called from sidebar');
+      console.log('🚪 SignOut success from sidebar');
     } catch (error) {
       console.error('❌ Errore logout sidebar:', error);
     }
