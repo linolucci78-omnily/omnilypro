@@ -28,9 +28,13 @@ const CustomerDisplay: React.FC = () => {
 
     // Ascolta messaggi dal POS
     const handleMessage = (event: MessageEvent) => {
+      console.log('📨 Customer Display ricevuto messaggio:', event.data);
+
       if (event.data.type === 'TRANSACTION_UPDATE') {
+        console.log('✅ Aggiornamento transazione ricevuto:', event.data.transaction);
         setTransaction(event.data.transaction);
-        console.log('🔄 Customer Display aggiornato:', event.data.transaction);
+      } else {
+        console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
     };
 

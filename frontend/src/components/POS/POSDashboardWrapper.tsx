@@ -32,21 +32,23 @@ const POSDashboardWrapper: React.FC = () => {
         if (customerDisplayWindow.current) {
           console.log('✅ Customer Display aperto automaticamente');
 
-          // Invia transazione demo dopo 8 secondi
-          setTimeout(() => {
+          // Test di comunicazione ogni 3 secondi
+          const testCommunication = () => {
+            console.log('🔄 Invio messaggio di test al customer display...');
             updateCustomerDisplay({
               items: [
-                { name: 'Caffè Espresso', price: 1.50, quantity: 2 },
-                { name: 'Cornetto alla Crema', price: 1.80, quantity: 1 },
-                { name: 'Cappuccino', price: 2.00, quantity: 1 }
+                { name: 'TEST COMUNICAZIONE', price: 1.00, quantity: 1 }
               ],
-              total: 6.80,
-              customer: {
-                name: 'Mario',
-                points: 150
-              }
+              total: 1.00,
+              testMessage: 'Comunicazione attiva ✅'
             });
-          }, 8000);
+          };
+
+          // Test immediato dopo 3 secondi
+          setTimeout(testCommunication, 3000);
+
+          // Test ogni 10 secondi per debug
+          setInterval(testCommunication, 10000);
         } else {
           console.warn('⚠️ Popup bloccato - abilita i popup per il customer display');
         }
