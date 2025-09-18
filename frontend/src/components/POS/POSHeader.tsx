@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './POSHeader.css';
 
 interface POSHeaderProps {
@@ -7,17 +8,19 @@ interface POSHeaderProps {
 }
 
 const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleMenuToggle = () => {
     console.log('🍔 Hamburger clicked!'); // Debug
     onMenuToggle();
   };
-  const { user, signOut } = useAuth();
 
   const handleQuickLogout = async () => {
     if (confirm('Sei sicuro di voler uscire?')) {
       try {
         await signOut();
+        navigate('/?posomnily=true');
       } catch (error) {
         console.error('Errore logout:', error);
       }

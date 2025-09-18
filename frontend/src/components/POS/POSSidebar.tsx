@@ -17,7 +17,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/');
+      navigate('/?posomnily=true');
     } catch (error) {
       console.error('Errore logout:', error);
     }
