@@ -47,21 +47,15 @@ const POSDashboardWrapper: React.FC = () => {
       }
     };
 
-    // Popup automatico solo se non siamo nell'app Android (che ha già dual screen nativo)
-    const isAndroidApp = typeof window !== 'undefined' &&
-      (window.navigator.userAgent.includes('Android') || (window as any).OmnilyPOS);
-
-    let timer: NodeJS.Timeout | null = null;
-    if (!isAndroidApp) {
-      timer = setTimeout(openCustomerDisplay, 2000);
-    }
+    // AUTO-POPUP DISABILITATO - Usiamo solo dual screen nativo dell'app Z108
+    // const timer = setTimeout(openCustomerDisplay, 2000);
 
     // Esponi la funzione updateCustomerDisplay globalmente per i test
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
 
-    // Cleanup: chiudi il customer display quando il componente viene smontato
+    // Cleanup function
     return () => {
-      if (timer) clearTimeout(timer);
+      // clearTimeout(timer); // Disabilitato
       if (customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
         customerDisplayWindow.current.close();
       }
