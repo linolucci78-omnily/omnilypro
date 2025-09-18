@@ -28,7 +28,8 @@
 }
 
 .pos-sidebar-open {
-  left: 0; /* Scorri dentro */
+  left: 0 !important; /* Scorri dentro - FORZA */
+  border: 5px solid #00ff00 !important; /* DEBUG: bordo verde quando aperta */
 }
 
 /* Header Sidebar */
@@ -166,6 +167,11 @@
   .pos-sidebar {
     width: 280px;
     left: -280px;
+    z-index: 99999 !important; /* FORZA sopra tutto su mobile */
+  }
+
+  .pos-sidebar-open {
+    left: 0 !important; /* FORZA apertura su mobile */
   }
 
   .pos-menu-item {
