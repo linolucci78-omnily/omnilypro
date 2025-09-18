@@ -25,8 +25,10 @@ function App() {
     window.location.search.includes('posomnily=true')
 
   // Check if this should be customer display
-  const isCustomerDisplay = typeof window !== 'undefined' &&
-    window.location.hash === '#customer-display' && isPOSMode
+  const isCustomerDisplay = typeof window !== 'undefined' && (
+    (window.location.hash === '#customer-display' && isPOSMode) ||
+    (window.location.search.includes('customer=true') && isPOSMode)
+  )
 
   console.log('🔍 DEBUG App.tsx:', {
     isPOSMode,
