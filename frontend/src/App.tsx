@@ -49,8 +49,17 @@ function App() {
     window.history.replaceState(null, '', `/pos?${posParam}`)
   }
 
-  // Customer Display Mode - Direct render (ONLY for popup windows)
-  if (isCustomerDisplay && window.opener !== null) {
+  // Customer Display Mode - Direct render
+  if (isCustomerDisplay) {
+    document.body.style.margin = '0'
+    document.body.style.padding = '0'
+    document.body.style.overflow = 'hidden'
+
+    return <CustomerDisplay />
+  }
+
+  // Direct customer display route access
+  if (isPOSMode && window.location.pathname === '/customer-display') {
     document.body.style.margin = '0'
     document.body.style.padding = '0'
     document.body.style.overflow = 'hidden'
