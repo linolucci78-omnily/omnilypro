@@ -16,7 +16,7 @@ import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
 import POSSimulator from './components/POS/POSSimulator'
 import Z108POSInterface from './components/POS/Z108POSInterface'
-import POSLayout from './components/POS/POSLayout'
+import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
 
 function App() {
   // Detect if running in POS mode (only posomnily=true)
@@ -52,9 +52,7 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <POSLayout>
-                      <Dashboard />
-                    </POSLayout>
+                    <POSDashboardWrapper />
                   </ProtectedRoute>
                 }
               />
@@ -62,9 +60,7 @@ function App() {
                 path="/pos"
                 element={
                   <ProtectedRoute>
-                    <POSLayout>
-                      <Z108POSInterface />
-                    </POSLayout>
+                    <Z108POSInterface />
                   </ProtectedRoute>
                 }
               />

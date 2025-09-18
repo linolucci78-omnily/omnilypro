@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './POSSidebar.css';
 
 interface POSSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
 }
 
-const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose }) => {
+const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user, signOut } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -24,39 +25,39 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     {
-      path: '/dashboard',
+      id: 'dashboard',
       icon: '🏠',
       label: 'Dashboard',
       color: '#ef4444'
     },
     {
-      path: '/pos',
-      icon: '💳',
-      label: 'POS',
-      color: '#f59e0b'
-    },
-    {
-      path: '/customers',
+      id: 'customers',
       icon: '👥',
       label: 'Clienti',
       color: '#10b981'
     },
     {
-      path: '/analytics',
+      id: 'analytics',
       icon: '📊',
       label: 'Analytics',
       color: '#8b5cf6'
     },
     {
-      path: '/settings',
+      id: 'pos',
+      icon: '💳',
+      label: 'POS Simulator',
+      color: '#f59e0b'
+    },
+    {
+      id: 'settings',
       icon: '⚙️',
       label: 'Impostazioni',
       color: '#6b7280'
     }
   ];
 
-  const handleMenuClick = (path: string) => {
-    navigate(path);
+  const handleMenuClick = (sectionId: string) => {
+    onSectionChange(sectionId);
     onClose(); // Chiudi menu dopo click
   };
 
@@ -89,9 +90,9 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose }) => {
         <nav className="pos-sidebar-nav">
           {menuItems.map((item) => (
             <button
-              key={item.path}
-              onClick={() => handleMenuClick(item.path)}
-              className={`pos-menu-item ${location.pathname === item.path ? 'pos-menu-item-active' : ''}`}
+              key={item.id}
+              onClick={() => handleMenuClick(item.id)}
+              className={`pos-menu-item ${activeSection === item.id ? 'pos-menu-item-active' : ''}`}
               style={{ '--item-color': item.color } as React.CSSProperties}
             >
               <span className="pos-menu-icon">{item.icon}</span>

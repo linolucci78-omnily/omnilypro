@@ -5,9 +5,11 @@ import './POSLayout.css';
 
 interface POSLayoutProps {
   children: React.ReactNode;
+  activeSection?: string;
+  onSectionChange?: (section: string) => void;
 }
 
-const POSLayout: React.FC<POSLayoutProps> = ({ children }) => {
+const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {} }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -24,7 +26,12 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children }) => {
       <POSHeader onMenuToggle={toggleSidebar} />
 
       {/* Sidebar a scomparsa */}
-      <POSSidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+      <POSSidebar
+        isOpen={sidebarOpen}
+        onClose={closeSidebar}
+        activeSection={activeSection}
+        onSectionChange={onSectionChange}
+      />
 
       {/* Contenuto principale */}
       <main className="pos-main-content">

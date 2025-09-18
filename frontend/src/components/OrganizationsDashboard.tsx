@@ -5,7 +5,15 @@ import { BarChart3, Users, Gift, Target, TrendingUp,  Settings, HelpCircle, LogO
 import RegistrationWizard from './RegistrationWizard'
 import './OrganizationsDashboard.css'
 
-const OrganizationsDashboard: React.FC = () => {
+interface OrganizationsDashboardProps {
+  onSectionChange?: (section: string) => void;
+  activeSection?: string;
+}
+
+const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
+  onSectionChange,
+  activeSection: externalActiveSection
+}) => {
   // Detect POS mode
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
@@ -20,7 +28,22 @@ const OrganizationsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [customersLoading, setCustomersLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState('dashboard')
+  const [activeSection, setActiveSection] = useState(externalActiveSection || 'dashboard')
+
+  // Sync with external activeSection changes (from POS menu)
+  useEffect(() => {
+    if (externalActiveSection) {
+      setActiveSection(externalActiveSection)
+    }
+  }, [externalActiveSection])
+
+  // Handle section change and notify parent (POS layout)
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section)
+    if (onSectionChange) {
+      onSectionChange(section)
+    }
+  }
   const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
@@ -649,7 +672,7 @@ const OrganizationsDashboard: React.FC = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => handleSectionChange(item.id)}
                 className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
               >
                 <IconComponent size={20} />
