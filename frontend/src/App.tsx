@@ -24,9 +24,10 @@ function App() {
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
 
-  // Check if this should be customer display
+  // Check if this should be customer display (only for popup windows)
   const isCustomerDisplay = typeof window !== 'undefined' &&
-    window.location.hash === '#customer-display' && isPOSMode
+    window.location.hash === '#customer-display' && isPOSMode &&
+    window.opener !== null // Solo se è una finestra popup
 
   console.log('🔍 DEBUG App.tsx:', {
     isPOSMode,

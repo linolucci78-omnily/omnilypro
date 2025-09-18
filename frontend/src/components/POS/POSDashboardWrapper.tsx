@@ -32,7 +32,7 @@ const POSDashboardWrapper: React.FC = () => {
         if (customerDisplayWindow.current) {
           console.log('✅ Customer Display aperto automaticamente');
 
-          // Invia transazione demo dopo 5 secondi
+          // Invia transazione demo dopo 8 secondi
           setTimeout(() => {
             updateCustomerDisplay({
               items: [
@@ -46,7 +46,7 @@ const POSDashboardWrapper: React.FC = () => {
                 points: 150
               }
             });
-          }, 5000);
+          }, 8000);
         } else {
           console.warn('⚠️ Popup bloccato - abilita i popup per il customer display');
         }
