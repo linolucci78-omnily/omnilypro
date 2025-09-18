@@ -28,8 +28,13 @@ const Login: React.FC = () => {
     }
 
     if (user) {
-      // CORREZIONE: In modalità POS va sempre al Dashboard aziendale, non alla pagina Z108
-      const redirectPath = '/dashboard'; // Sia desktop che POS vanno al dashboard
+      // CORREZIONE: Desktop va al dashboard normale, POS va al dashboard aziendale
+      let redirectPath = '/dashboard'; // Default per desktop
+      
+      // Se è modalità POS, vai al dashboard (non alla pagina viola Z108)
+      if (isPosMode) {
+        redirectPath = '/dashboard'; // Dashboard aziendale per POS
+      }
       
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
