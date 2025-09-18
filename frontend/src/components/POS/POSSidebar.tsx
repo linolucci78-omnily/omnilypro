@@ -38,11 +38,15 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   }, [isOpen]);
 
   const handleSignOut = async () => {
+    console.log('🚪 LOGOUT SIDEBAR CLICKED!');
     try {
+      console.log('🚪 Calling signOut from sidebar...');
       await signOut();
+      console.log('🚪 SignOut success from sidebar, navigating...');
       navigate('/?posomnily=true');
+      console.log('🚪 Navigate called from sidebar');
     } catch (error) {
-      console.error('Errore logout:', error);
+      console.error('❌ Errore logout sidebar:', error);
     }
   };
 

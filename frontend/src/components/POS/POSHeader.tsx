@@ -19,12 +19,16 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   };
 
   const handleQuickLogout = async () => {
+    console.log('🚪 LOGOUT HEADER CLICKED!');
     if (confirm('Sei sicuro di voler uscire?')) {
       try {
+        console.log('🚪 Calling signOut...');
         await signOut();
+        console.log('🚪 SignOut success, navigating...');
         navigate('/?posomnily=true');
+        console.log('🚪 Navigate called');
       } catch (error) {
-        console.error('Errore logout:', error);
+        console.error('❌ Errore logout:', error);
       }
     }
   };
