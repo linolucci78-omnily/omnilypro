@@ -6,14 +6,15 @@
   left: 0;
   right: 0;
   height: 70px;
-  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+  background: #ffffff;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 900;
+  z-index: 999;
 }
 
 /* Hamburger Menu Button */
@@ -24,8 +25,8 @@
   align-items: center;
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -33,7 +34,7 @@
 }
 
 .pos-hamburger-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #e5e7eb;
   transform: scale(1.05);
 }
 
@@ -44,7 +45,7 @@
 .hamburger-line {
   width: 24px;
   height: 3px;
-  background: white;
+  background: #374151;
   margin: 2px 0;
   border-radius: 2px;
   transition: all 0.3s ease;
@@ -81,26 +82,27 @@
 .pos-user-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: #374151;
   text-transform: capitalize;
 }
 
 .pos-user-status {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #10b981;
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  font-weight: 600;
 }
 
 /* Quick Logout */
 .pos-quick-logout {
   width: 45px;
   height: 45px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: #f3f4f6;
+  border: 2px solid #d1d5db;
   border-radius: 50%;
-  color: white;
+  color: #374151;
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -110,8 +112,8 @@
 }
 
 .pos-quick-logout:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #e5e7eb;
+  border-color: #9ca3af;
   transform: scale(1.1);
 }
 

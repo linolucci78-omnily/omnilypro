@@ -16,6 +16,14 @@
   width: 100% !important;
 }
 
+/* FORZA nascondimento sidebar in POS - override position fixed */
+.dashboard-layout.pos-mode .sidebar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  left: -500px !important;
+}
+
 /* ========== SIDEBAR ========== */
 .sidebar {
   width: 280px;
