@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './POSSidebar.css';
@@ -13,6 +13,19 @@ interface POSSidebarProps {
 const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [backdropActive, setBackdropActive] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Delay backdrop attivation per evitare click immediato
+      const timer = setTimeout(() => {
+        setBackdropActive(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setBackdropActive(false);
+    }
+  }, [isOpen]);
 
   const handleSignOut = async () => {
     try {
@@ -80,8 +93,12 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
         <div
           className="pos-sidebar-backdrop"
           onClick={() => {
-            console.log('🎭 BACKDROP CLICKED!');
-            onClose();
+            if (backdropActive) {
+              console.log('🎭 BACKDROP CLICKED!');
+              onClose();
+            } else {
+              console.log('🎭 BACKDROP IGNORED (too early)');
+            }
           }}
         />
       )}

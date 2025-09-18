@@ -11,8 +11,10 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const handleMenuToggle = () => {
+  const handleMenuToggle = (e: React.MouseEvent) => {
     console.log('🍔 HAMBURGER CLICKED!', window.innerWidth);
+    e.stopPropagation();
+    e.preventDefault();
     onMenuToggle();
   };
 
@@ -36,7 +38,8 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
         onTouchStart={(e) => {
           console.log('👆 TOUCH START!');
           e.preventDefault();
-          handleMenuToggle();
+          e.stopPropagation();
+          handleMenuToggle(e as any);
         }}
         aria-label="Apri menu"
         style={{ touchAction: 'manipulation' }}
