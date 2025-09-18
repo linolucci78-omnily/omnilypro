@@ -47,8 +47,8 @@ const POSDashboardWrapper: React.FC = () => {
       }
     };
 
-    // Apri il customer display dopo 2 secondi dall'avvio del POS
-    const timer = setTimeout(openCustomerDisplay, 2000);
+    // AUTO-POPUP DISABILITATO per POS fisico con dual monitor
+    // const timer = setTimeout(openCustomerDisplay, 2000);
 
     // Esponi la funzione updateCustomerDisplay globalmente per i test
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
