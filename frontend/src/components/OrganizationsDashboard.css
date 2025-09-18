@@ -1840,6 +1840,15 @@
 }
 
 /* Responsive */
+/* Tablet POS - da 769px a 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .customer-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .customer-list-container {
     margin: 1rem;
