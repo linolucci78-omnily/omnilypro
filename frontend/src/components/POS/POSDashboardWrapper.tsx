@@ -49,10 +49,11 @@ const POSDashboardWrapper: React.FC = () => {
 
     // Popup automatico solo se non siamo nell'app Android (che ha già dual screen nativo)
     const isAndroidApp = typeof window !== 'undefined' &&
-      (window.navigator.userAgent.includes('Android') || window.OmnilyPOS);
+      (window.navigator.userAgent.includes('Android') || (window as any).OmnilyPOS);
 
+    let timer: NodeJS.Timeout | null = null;
     if (!isAndroidApp) {
-      const timer = setTimeout(openCustomerDisplay, 2000);
+      timer = setTimeout(openCustomerDisplay, 2000);
     }
 
     // Esponi la funzione updateCustomerDisplay globalmente per i test
@@ -60,7 +61,7 @@ const POSDashboardWrapper: React.FC = () => {
 
     // Cleanup: chiudi il customer display quando il componente viene smontato
     return () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       if (customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
         customerDisplayWindow.current.close();
       }
