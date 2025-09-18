@@ -216,17 +216,7 @@ const POSSimulator: React.FC<POSSimulatorProps> = ({
               <div className="screen-resolution">3.95" QUADRATO (480×480px IPS)</div>
             </div>
             <div className="screen-content">
-              <CustomerDisplay
-                merchantData={{
-                  businessName: currentOrganization?.name || 'OMNILY PRO',
-                  logo: currentOrganization?.logo_url || undefined,
-                  primaryColor: currentOrganization?.primary_color || '#ef4444',
-                  secondaryColor: currentOrganization?.secondary_color || '#dc2626'
-                }}
-                currentTransaction={currentTransaction}
-                displayState={displayState}
-                onStateChange={handleDisplayStateChange}
-              />
+              <CustomerDisplay />
             </div>
           </div>
         )}
