@@ -37,7 +37,8 @@ const POSDashboardWrapper: React.FC = () => {
             updateCustomerDisplay({
               type: 'WELCOME',
               organizationName: 'OMNILY PRO', // Questo sarà dinamico
-              welcomeMessage: 'Benvenuto nel nostro negozio!'
+              welcomeMessage: 'Benvenuto nel nostro negozio!',
+              transaction: { items: [], total: 0 } // Assicura che transaction esista
             });
           }, 2000);
         } else {

@@ -91,7 +91,7 @@ const CustomerDisplay: React.FC = () => {
         flexDirection: 'column',
         justifyContent: 'center'
       }}>
-        {transaction.items.length > 0 ? (
+        {transaction.items && transaction.items.length > 0 ? (
           <>
             {/* Items List */}
             <div style={{
