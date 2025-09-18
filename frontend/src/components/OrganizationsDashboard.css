@@ -1844,8 +1844,22 @@
 @media (max-width: 1200px) {
   .customer-stats-row {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px;
-    padding: 16px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .customer-stat-card {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .stat-number {
+    font-size: 1.8rem !important;
+  }
+
+  .stat-label {
+    font-size: 0.7rem !important;
+    line-height: 1 !important;
   }
 }
 
