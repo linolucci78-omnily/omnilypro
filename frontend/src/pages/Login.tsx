@@ -17,8 +17,13 @@ const Login: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Controlla lo User-Agent per attivare la modalità POS
-    if (navigator.userAgent.includes('OMNILY-POS-APP')) {
+    // CORREZIONE: Rileva modalità POS dai parametri URL come in App.tsx
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('pos') || urlParams.has('posomnily')) {
+      setIsPosMode(true);
+    }
+    // Fallback: controlla anche User-Agent per compatibilità
+    else if (navigator.userAgent.includes('OMNILY-POS-APP')) {
       setIsPosMode(true);
     }
 
