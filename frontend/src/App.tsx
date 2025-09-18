@@ -24,6 +24,12 @@ function App() {
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
 
+  console.log('🔍 DEBUG App.tsx:', {
+    isPOSMode,
+    search: typeof window !== 'undefined' ? window.location.search : 'undefined',
+    pathname: typeof window !== 'undefined' ? window.location.pathname : 'undefined'
+  })
+
   // Check if we should redirect to /pos from hash
   const shouldRedirectToPOS = typeof window !== 'undefined' && 
     window.location.hash === '#/pos' && isPOSMode
