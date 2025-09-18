@@ -28,7 +28,15 @@ const Login: React.FC = () => {
     }
 
     if (user) {
-      const from = (location.state as any)?.from?.pathname || (isPosMode ? '/pos' : '/dashboard');
+      // CORREZIONE: Conserva parametri POS nel redirect
+      let redirectPath = '/dashboard'; // Default
+      if (isPosMode) {
+        // Mantieni i parametri POS nell'URL dopo login
+        const urlParams = new URLSearchParams(window.location.search);
+        const posParam = urlParams.get('posomnily') ? 'posomnily=true' : 'pos=true';
+        redirectPath = `/pos?${posParam}`;
+      }
+      const from = (location.state as any)?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
     }
   }, [user, navigate, location, isPosMode]);
