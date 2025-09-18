@@ -2,20 +2,7 @@ import React from 'react';
 import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar } from 'lucide-react';
 import './CustomerSlidePanel.css';
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  joinDate: string;
-  lastVisit?: string;
-  points: number;
-  totalSpent: number;
-  visits: number;
-  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
-  isActive: boolean;
-}
+import type { Customer } from '../lib/supabase';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
@@ -101,7 +88,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <div className="stat-label">Punti</div>
           </div>
           <div className="stat-item">
-            <div className="stat-number">€{customer.totalSpent.toFixed(2)}</div>
+            <div className="stat-number">€{customer.total_spent.toFixed(2)}</div>
             <div className="stat-label">Speso</div>
           </div>
           <div className="stat-item">
@@ -153,7 +140,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           )}
           <div className="contact-item">
             <Calendar size={18} />
-            <span>Iscritto: {new Date(customer.joinDate).toLocaleDateString('it-IT')}</span>
+            <span>Iscritto: {new Date(customer.created_at).toLocaleDateString('it-IT')}</span>
           </div>
         </div>
 
