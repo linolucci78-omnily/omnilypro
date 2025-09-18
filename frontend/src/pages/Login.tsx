@@ -94,7 +94,7 @@ const Login: React.FC = () => {
       <div className={styles.posWrapper}>
         <div className={styles.posCard}>
           <div className={styles.logoContainer}>
-            <img src="/OMNILYPRO.png" alt="OMNILY PRO" />
+            <img src="/omnilogo.png" alt="OMNILY PRO" />
             <span>OMNILY PRO</span>
           </div>
           <h2 className={styles.title}>Accesso POS</h2>
@@ -129,7 +129,7 @@ const Login: React.FC = () => {
        <div className="login-container">
         <div className="login-header">
           <Link to="/" className="login-logo">
-            <img src="/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '40px', marginRight: '10px' }} />
+            <img src="/omnilogo.png" alt="OMNILY PRO" style={{ height: '40px', marginRight: '10px' }} />
             <span>OMNILY PRO</span>
           </Link>
           <h1>{getTitle()}</h1>

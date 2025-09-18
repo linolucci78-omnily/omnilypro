@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          <img src="/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '32px', marginRight: '8px' }} />
+          <img src="/omnilogo.png" alt="OMNILY PRO" style={{ height: '32px', marginRight: '8px' }} />
           <span>OMNILY PRO</span>
         </Link>
         <div className="navbar-menu">
