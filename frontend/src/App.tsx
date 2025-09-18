@@ -92,6 +92,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/customer-display" element={<CustomerDisplay />} />
             <Route 
               path="/onboarding" 
               element={
