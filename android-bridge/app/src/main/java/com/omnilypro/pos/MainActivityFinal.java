@@ -334,6 +334,49 @@ public class MainActivityFinal extends AppCompatActivity {
                 Toast.makeText(MainActivityFinal.this, message, Toast.LENGTH_SHORT).show();
             });
         }
+        
+        @JavascriptInterface
+        public void readNFCCard(String callbackName) {
+            Log.d(TAG, "NFC Card reading requested");
+            runOnUiThread(() -> {
+                try {
+                    if (mDriverManager != null) {
+                        com.zcs.sdk.RFManager rfManager = mDriverManager.getRFManager();
+                        if (rfManager != null) {
+                            // Simulated NFC reading - replace with actual ZCS SDK implementation
+                            new Thread(() -> {
+                                try {
+                                    // TODO: Use actual ZCS SDK to read NFC
+                                    // For now, simulate a successful read
+                                    String simulatedUID = "04:A3:12:F2:8B:91:80"; // Example UID
+                                    
+                                    runOnUiThread(() -> {
+                                        String jsCallback = callbackName + "({success: true, uid: '" + simulatedUID + "'});";
+                                        webView.evaluateJavascript(jsCallback, null);
+                                    });
+                                } catch (Exception e) {
+                                    Log.e(TAG, "NFC read error", e);
+                                    runOnUiThread(() -> {
+                                        String jsCallback = callbackName + "({success: false, error: 'NFC read failed: " + e.getMessage() + "'});";
+                                        webView.evaluateJavascript(jsCallback, null);
+                                    });
+                                }
+                            }).start();
+                        } else {
+                            String jsCallback = callbackName + "({success: false, error: 'RF Manager not available'});";
+                            webView.evaluateJavascript(jsCallback, null);
+                        }
+                    } else {
+                        String jsCallback = callbackName + "({success: false, error: 'Driver Manager not initialized'});";
+                        webView.evaluateJavascript(jsCallback, null);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "NFC setup error", e);
+                    String jsCallback = callbackName + "({success: false, error: 'NFC setup failed: " + e.getMessage() + "'});";
+                    webView.evaluateJavascript(jsCallback, null);
+                }
+            });
+        }
     }
     
     @RequiresApi(api = 31)
