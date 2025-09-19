@@ -336,24 +336,59 @@ public class MainActivityFinal extends AppCompatActivity {
         }
         
         @JavascriptInterface
+        public String getBridgeVersion() {
+            return "v2.0-nfc-enabled";
+        }
+        
+        @JavascriptInterface
+        public String getAvailableMethods() {
+            return "beep,showToast,readNFCCard,getBridgeVersion,getAvailableMethods";
+        }
+        
+        @JavascriptInterface
         public void readNFCCard(String callbackName) {
             Log.d(TAG, "NFC Card reading requested");
             runOnUiThread(() -> {
                 try {
                     if (mDriverManager != null) {
-                        com.zcs.sdk.RFManager rfManager = mDriverManager.getRFManager();
-                        if (rfManager != null) {
-                            // Simulated NFC reading - replace with actual ZCS SDK implementation
+                        // Usa l'API corretta dall'SDK ufficiale ZCS
+                        com.zcs.sdk.card.RfCard rfCard = mDriverManager.getCardReadManager().getRFCard();
+                        if (rfCard != null) {
                             new Thread(() -> {
                                 try {
-                                    // TODO: Use actual ZCS SDK to read NFC
-                                    // For now, simulate a successful read
-                                    String simulatedUID = "04:A3:12:F2:8B:91:80"; // Example UID
-                                    
-                                    runOnUiThread(() -> {
-                                        String jsCallback = callbackName + "({success: true, uid: '" + simulatedUID + "'});";
-                                        webView.evaluateJavascript(jsCallback, null);
-                                    });
+                                    // Attiva la ricerca di carte NFC usando l'API corretta dell'SDK
+                                    byte[] outType = new byte[1];
+                                    byte[] uid = new byte[300];
+                                    int result = rfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
+                                    if (result == com.zcs.sdk.SdkResult.SDK_OK) {
+                                        // Converte l'UID in stringa esadecimale (primi 16 bytes)
+                                        StringBuilder uidHex = new StringBuilder();
+                                        boolean hasData = false;
+                                        for (int i = 0; i < 16; i++) { 
+                                            if (uid[i] != 0) {
+                                                hasData = true;
+                                            }
+                                            uidHex.append(String.format("%02X", uid[i]));
+                                            if (i < 15) uidHex.append(":");
+                                        }
+                                        
+                                        if (hasData) {
+                                            runOnUiThread(() -> {
+                                                String jsCallback = callbackName + "({success: true, uid: '" + uidHex.toString() + "'});";
+                                                webView.evaluateJavascript(jsCallback, null);
+                                            });
+                                        } else {
+                                            runOnUiThread(() -> {
+                                                String jsCallback = callbackName + "({success: false, error: 'Could not read UID'});";
+                                                webView.evaluateJavascript(jsCallback, null);
+                                            });
+                                        }
+                                    } else {
+                                        runOnUiThread(() -> {
+                                            String jsCallback = callbackName + "({success: false, error: 'No NFC card found. Result: " + result + "'});";
+                                            webView.evaluateJavascript(jsCallback, null);
+                                        });
+                                    }
                                 } catch (Exception e) {
                                     Log.e(TAG, "NFC read error", e);
                                     runOnUiThread(() -> {
@@ -363,7 +398,7 @@ public class MainActivityFinal extends AppCompatActivity {
                                 }
                             }).start();
                         } else {
-                            String jsCallback = callbackName + "({success: false, error: 'RF Manager not available'});";
+                            String jsCallback = callbackName + "({success: false, error: 'RF Card manager not available'});";
                             webView.evaluateJavascript(jsCallback, null);
                         }
                     } else {
