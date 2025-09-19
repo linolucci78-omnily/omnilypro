@@ -1,5 +1,27 @@
 import React, { useState, useEffect } from 'react'
-import { organizationsApi, customersApi } from '../lib/supabase'
+i  const handleNFCTest = () => {
+    console.log('🔧 NFC Test - Checking bridge availability...');
+    
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+      const methods = Object.getOwnPropertyNames(bridge);
+      
+      console.log('✅ OmnilyPOS bridge available!');
+      console.log('📋 Available methods:', methods);
+      
+      // Mostra info dettagliate nell'interfaccia
+      const methodsList = methods.join('\n• ');
+      const message = `✅ BRIDGE NFC DISPONIBILE!\n\n🔧 Metodi disponibili:\n• ${methodsList}\n\n📱 Terminale: ${navigator.userAgent.includes('Android') ? 'Android POS' : 'Desktop'}`;
+      
+      alert(message);
+    } else {
+      console.log('❌ OmnilyPOS bridge not available');
+      
+      const message = `❌ BRIDGE NFC NON DISPONIBILE\n\n📱 Ambiente: ${navigator.userAgent.includes('Android') ? 'Android (bridge non caricato)' : 'Browser Desktop'}\n\n💡 Normale su browser desktop\n🎯 Testare su terminale POS Z108`;
+      
+      alert(message);
+    }
+  };nizationsApi, customersApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
 import { BarChart3, Users, Gift, Target, TrendingUp,  Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
@@ -49,19 +71,51 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
   
-  // Simple NFC test function
-  const handleNFCTest = () => {
-    console.log('🔧 NFC Test - Checking bridge availability...')
+  // NFC Card Reading function
+  const handleNFCRead = () => {
+    console.log('� Avvio lettura carta NFC...');
     
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-      console.log('✅ OmnilyPOS bridge found!')
-      console.log('📱 Available methods:', Object.getOwnPropertyNames((window as any).OmnilyPOS))
+      const bridge = (window as any).OmnilyPOS;
+      
+      // Feedback visivo immediato
+      bridge.showToast('📱 Avvicina la tessera al lettore NFC...', 3000);
+      bridge.beep(1, 200); // 1 beep di 200ms
+      
+      console.log('� Chiamata readNFCCard...');
+      
+      try {
+        // Chiamata al bridge per lettura NFC
+        bridge.readNFCCard((result: any) => {
+          console.log('📱 Risultato lettura NFC:', result);
+          
+          if (result && result.success) {
+            console.log('✅ Carta NFC letta:', result.uid);
+            bridge.beep(2, 100); // 2 beep di successo
+            bridge.showToast('✅ Tessera letta: ' + result.uid, 3000);
+            
+            // TODO: Cercare cliente nel database
+            alert('✅ TESSERA LETTA!\n\nUID: ' + result.uid + '\n\n⏳ Ricerca cliente...');
+            
+          } else {
+            console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
+            bridge.beep(3, 50); // 3 beep di errore
+            bridge.showToast('❌ Errore lettura tessera', 2000);
+            alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
+          }
+        });
+        
+      } catch (error) {
+        console.log('💥 Errore chiamata NFC:', error);
+        bridge.showToast('💥 Errore sistema NFC', 2000);
+        alert('💥 Errore sistema NFC\n\n' + error);
+      }
+      
     } else {
-      console.log('❌ OmnilyPOS bridge not available')
+      console.log('❌ Bridge non disponibile');
+      alert('❌ Bridge NFC non disponibile\n\nTestare su terminale POS Z108');
     }
-    
-    alert('Check browser console for NFC bridge info')
-  }
+  };
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false)
 
@@ -253,8 +307,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Configura Tessere</h3>
                 <p>Crea e personalizza le tessere punti per i tuoi clienti</p>
-                <button className="btn-primary" onClick={handleNFCTest}>
-                  📱 Test NFC
+                <button className="btn-primary" onClick={handleNFCRead}>
+                  📱 Leggi Tessera
                 </button>
               </div>
               <div className="feature-card">
