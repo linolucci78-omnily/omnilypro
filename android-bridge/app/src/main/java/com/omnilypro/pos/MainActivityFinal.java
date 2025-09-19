@@ -387,129 +387,99 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public String readNFCCardSync() {
-            Log.d(TAG, "🔥🔥🔥 ZCS NFC READ - Following Official ZCS Documentation!");
-            
-            // Esegui nell'executor dedicato come da documentazione ZCS
-            if (mExecutor != null && mRfCard != null) {
+        public void readNFCCardAsync(String callbackName) {
+            Log.d(TAG, "🔥🔥🔥 ASYNC NFC READ - Using ZCS SDK - Callback: " + callbackName);
+
+            if (mExecutor == null || mRfCard == null) {
+                Log.e(TAG, "❌ ZCS SDK not properly initialized for NFC.");
                 try {
-                    // Esecuzione sincrona usando il thread executor ZCS
-                    Future<String> future = mExecutor.submit(() -> {
-                        try {
-                            Log.d(TAG, "✅ Using ZCS ExecutorService thread for NFC read");
+                    String errorResult = new JSONObject()
+                        .put("success", false)
+                        .put("error", "ZCS SDK not initialized")
+                        .toString();
+                    
+                    runOnUiThread(() -> webView.evaluateJavascript(callbackName + "(" + errorResult + ");", null));
+                } catch (Exception e) { /* ignore */ }
+                return;
+            }
 
-                            byte[] outType = new byte[1];
-                            byte[] uid = new byte[300];
-                            int ret = -1;
+            mExecutor.submit(() -> {
+                String resultJson;
+                try {
+                    Log.d(TAG, "✅ ASYNC: Using ZCS ExecutorService thread for NFC read");
 
-                            // Delay iniziale per dare tempo al lettore di prepararsi
-                            Log.d(TAG, "⏳ Preparazione lettore NFC...");
-                            Thread.sleep(500);
-                            
-                            // Prova RF_TYPE_A (più comune)
-                            ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
-                            Log.d(TAG, "🔍 ZCS RF_TYPE_A result: " + ret);
-                            
-                            // Se TYPE_A fallisce, prova TYPE_B
-                            if (ret != com.zcs.sdk.SdkResult.SDK_OK) {
-                                Log.d(TAG, "🔍 Trying RF_TYPE_B...");
-                                ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_B, outType, uid);
-                                Log.d(TAG, "🔍 ZCS RF_TYPE_B result: " + ret);
-                            }
-                            
-                            // Se ancora fallisce, prova più retry con delay crescenti
-                            if (ret != com.zcs.sdk.SdkResult.SDK_OK) {
-                                for (int retry = 1; retry <= 3; retry++) {
-                                    Log.d(TAG, "🔍 Retry " + retry + "/3 RF_TYPE_A after delay...");
-                                    try { Thread.sleep(300 * retry); } catch (InterruptedException e) {}
-                                    ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
-                                    Log.d(TAG, "🔍 ZCS RF_TYPE_A retry " + retry + " result: " + ret);
-                                    if (ret == com.zcs.sdk.SdkResult.SDK_OK) break;
-                                }
-                            }
-                            
-                            if (ret == com.zcs.sdk.SdkResult.SDK_OK) {
-                                StringBuilder uidHex = new StringBuilder();
-                                int uidLength = 0;
-                                
-                                // Trova la lunghezza effettiva dell'UID
-                                for (int i = 0; i < uid.length && i < 16; i++) {
-                                    if (uid[i] != 0 || uidLength > 0) {
-                                        uidLength = i + 1;
-                                    }
-                                }
-                                
-                                // Costruisci l'UID formattato
-                                for (int i = 0; i < uidLength; i++) {
-                                    uidHex.append(String.format("%02X", uid[i]));
-                                    if (i < uidLength - 1) uidHex.append(":");
-                                }
-                                
-                                if (uidLength > 0) {
-                                    Log.d(TAG, "🎉 ZCS NFC SUCCESS! UID: " + uidHex.toString());
-                                    return new JSONObject()
-                                        .put("success", true)
-                                        .put("cardNo", uidHex.toString())
-                                        .put("rfUid", uidHex.toString())
-                                        .put("cardType", "ZCS_NFC")
-                                        .put("rfType", outType[0])
-                                        .put("uidLength", uidLength)
-                                        .put("timestamp", System.currentTimeMillis())
-                                        .toString();
-                                }
-                            }
-                            
-                            Log.w(TAG, "⚠️ ZCS No card detected. Return code: " + ret);
-                            return new JSONObject()
-                                .put("success", false)
-                                .put("error", "ZCS: No card detected. Code: " + ret)
-                                .toString();
+                    byte[] outType = new byte[1];
+                    byte[] uid = new byte[300];
+                    int ret = -1;
 
-                        } catch (Exception e) {
-                            Log.e(TAG, "❌ ZCS Executor error: " + e.getMessage(), e);
-                            try {
-                                return new JSONObject()
-                                    .put("success", false)
-                                    .put("error", "ZCS execution error: " + e.getMessage())
-                                    .toString();
-                            } catch (Exception ex) {
-                                return "{\"success\":false,\"error\":\"ZCS unknown error\"}";
+                    Log.d(TAG, "⏳ ASYNC: Preparazione lettore NFC...");
+                    Thread.sleep(250); // Small delay for stability
+
+                    // Try RF_TYPE_A (most common)
+                    ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
+                    Log.d(TAG, "🔍 ASYNC: ZCS RF_TYPE_A result: " + ret);
+
+                    if (ret != com.zcs.sdk.SdkResult.SDK_OK) {
+                        Log.d(TAG, "🔍 ASYNC: Trying RF_TYPE_B...");
+                        ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_B, outType, uid);
+                        Log.d(TAG, "🔍 ASYNC: ZCS RF_TYPE_B result: " + ret);
+                    }
+
+                    if (ret == com.zcs.sdk.SdkResult.SDK_OK) {
+                        StringBuilder uidHex = new StringBuilder();
+                        int uidLength = 0;
+                        for (int i = 0; i < uid.length && i < 16; i++) {
+                            if (uid[i] != 0 || uidLength > 0) { // Calculate actual length
+                                uidLength = i + 1;
                             }
                         }
-                    });
-                    
-                    // Attendi il risultato con timeout
-                    return future.get(5, TimeUnit.SECONDS);
-                    
-                } catch (TimeoutException e) {
-                    Log.e(TAG, "❌ ZCS NFC timeout after 5 seconds");
-                    return "{\"success\":false,\"error\":\"ZCS timeout\"}";
+                        for (int i = 0; i < uidLength; i++) {
+                            uidHex.append(String.format("%02X", uid[i]));
+                            if (i < uidLength - 1) uidHex.append(":");
+                        }
+
+                        if (uidLength > 0) {
+                            Log.d(TAG, "🎉 ASYNC: ZCS NFC SUCCESS! UID: " + uidHex.toString());
+                            resultJson = new JSONObject()
+                                .put("success", true)
+                                .put("cardNo", uidHex.toString())
+                                .put("rfUid", uidHex.toString())
+                                .put("cardType", "ZCS_NFC_ASYNC")
+                                .put("rfType", outType[0])
+                                .put("uidLength", uidLength)
+                                .put("timestamp", System.currentTimeMillis())
+                                .toString();
+                        } else {
+                             resultJson = new JSONObject()
+                                .put("success", false)
+                                .put("error", "ZCS: Card found but UID is empty")
+                                .toString();
+                        }
+                    } else {
+                        Log.w(TAG, "⚠️ ASYNC: ZCS No card detected. Return code: " + ret);
+                        resultJson = new JSONObject()
+                            .put("success", false)
+                            .put("error", "ZCS: No card detected. Code: " + ret)
+                            .toString();
+                    }
                 } catch (Exception e) {
-                    Log.e(TAG, "❌ ZCS Future error: " + e.getMessage(), e);
-                    return "{\"success\":false,\"error\":\"ZCS future error\"}";
+                    Log.e(TAG, "❌ ASYNC: ZCS Executor error: " + e.getMessage(), e);
+                    try {
+                        resultJson = new JSONObject()
+                            .put("success", false)
+                            .put("error", "ZCS execution error: " + e.getMessage())
+                            .toString();
+                    } catch (Exception ex) {
+                        resultJson = "{\"success\":false,\"error\":\"ZCS unknown error\"}";
+                    }
                 }
-            } else {
-                Log.e(TAG, "❌ ZCS SDK not properly initialized - Executor: " + (mExecutor != null) + ", RfCard: " + (mRfCard != null));
-                return "{\"success\":false,\"error\":\"ZCS SDK not initialized\"}";
-            }
-        }
 
-        // Versione alternativa con parametro per compatibilità
-        @JavascriptInterface
-        public void readNFCCardAsync(String callback) {
-            Log.d(TAG, "🔥🔥🔥 NFC READ WITH CALLBACK - Using ZCS SDK - METHOD CALLED!");
-            Log.d(TAG, "📞 Callback: " + callback);
-
-            String result = readNFCCardSync(); // Chiama la versione senza parametri
-
-            // Esegui il callback JavaScript
-            runOnUiThread(() -> {
-                try {
-                    String jsCode = callback + "(" + result + ");";
+                // Execute the JavaScript callback on the UI thread
+                final String finalResultJson = resultJson;
+                runOnUiThread(() -> {
+                    String jsCode = "try { " + callbackName + "(" + finalResultJson + "); } catch (e) { console.error('JS callback error:', e); }";
                     webView.evaluateJavascript(jsCode, null);
-                } catch (Exception e) {
-                    Log.e(TAG, "Callback error: " + e.getMessage());
-                }
+                });
             });
         }
     }
