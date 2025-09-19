@@ -90,12 +90,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           console.log('📱 Risultato lettura NFC:', result);
           
           if (result && result.success) {
-            console.log('✅ Carta NFC letta:', result.uid);
-            bridge.beep(2, 100); // 2 beep di successo
-            bridge.showToast('✅ Tessera letta: ' + result.uid, 3000);
-            
+            console.log('✅ Carta NFC letta:', result.cardNo);
+            bridge.beep(2, 300); // 2 beep di successo
+            bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
+
             // TODO: Cercare cliente nel database
-            alert('✅ TESSERA LETTA!\n\nUID: ' + result.uid + '\n\n⏳ Ricerca cliente...');
+            alert('✅ TESSERA LETTA!\n\nCard No: ' + result.cardNo + '\nUID: ' + result.rfUid + '\n\n⏳ Ricerca cliente...');
             
           } else {
             console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
@@ -108,8 +108,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           delete (window as any)[callbackName];
         };
         
-        // Chiamata al bridge passando il nome della callback
-        bridge.readNFCCard(callbackName);
+        // METODO SINCRONO: Chiamata diretta senza callback
+        console.log('🔄 Chiamando bridge.readNFCCard() direttamente...');
+        const rawResult = bridge.readNFCCard();
+        console.log('📡 Raw result ricevuto:', rawResult);
+
+        // Parsa il risultato JSON e chiama la callback
+        const result = JSON.parse(rawResult);
+        console.log('📱 Risultato parsed:', result);
+        (window as any)[callbackName](result);
         
       } catch (error) {
         console.log('💥 Errore chiamata NFC:', error);
