@@ -63,8 +63,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       console.log('� Chiamata readNFCCard...');
       
       try {
-        // Chiamata al bridge per lettura NFC
-        bridge.readNFCCard((result: any) => {
+        // Creiamo una callback globale per ricevere il risultato
+        const callbackName = 'nfcReadCallback' + Date.now();
+        (window as any)[callbackName] = (result: any) => {
           console.log('📱 Risultato lettura NFC:', result);
           
           if (result && result.success) {
@@ -81,7 +82,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             bridge.showToast('❌ Errore lettura tessera', 2000);
             alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
           }
-        });
+          
+          // Pulizia callback
+          delete (window as any)[callbackName];
+        };
+        
+        // Chiamata al bridge passando il nome della callback
+        bridge.readNFCCard(callbackName);
         
       } catch (error) {
         console.log('💥 Errore chiamata NFC:', error);
