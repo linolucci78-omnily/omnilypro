@@ -51,16 +51,35 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   
   // NFC Card Reading function
   const handleNFCRead = () => {
-    console.log('� Avvio lettura carta NFC...');
+    console.log('🔍 Avvio lettura carta NFC...');
     
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
+      
+      // Debug: verifichiamo i metodi disponibili
+      console.log('🔧 Bridge disponibile:', bridge);
+      console.log('🔧 Metodi bridge:', Object.keys(bridge));
+      
+      // Verifichiamo se i nuovi metodi sono disponibili
+      if (bridge.getBridgeVersion) {
+        console.log('🔧 Versione bridge:', bridge.getBridgeVersion());
+      }
+      if (bridge.getAvailableMethods) {
+        console.log('🔧 Metodi disponibili:', bridge.getAvailableMethods());
+      }
+      
+      // Verifichiamo che readNFCCard esista prima di chiamarlo
+      if (!bridge.readNFCCard) {
+        console.error('❌ Metodo readNFCCard non trovato!');
+        bridge.showToast && bridge.showToast('❌ Metodo NFC non disponibile');
+        return;
+      }
       
       // Feedback visivo immediato
       bridge.showToast('📱 Avvicina la tessera al lettore NFC...', 3000);
       bridge.beep(1, 200); // 1 beep di 200ms
       
-      console.log('� Chiamata readNFCCard...');
+      console.log('📞 Chiamata readNFCCard...');
       
       try {
         // Creiamo una callback globale per ricevere il risultato
