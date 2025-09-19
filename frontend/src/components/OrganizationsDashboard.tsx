@@ -48,6 +48,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
+  
+  // Simple NFC test function
+  const handleNFCTest = () => {
+    console.log('🔧 NFC Test - Checking bridge availability...')
+    
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      console.log('✅ OmnilyPOS bridge found!')
+      console.log('📱 Available methods:', Object.getOwnPropertyNames((window as any).OmnilyPOS))
+    } else {
+      console.log('❌ OmnilyPOS bridge not available')
+    }
+    
+    alert('Check browser console for NFC bridge info')
+  }
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false)
 
@@ -239,7 +253,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Configura Tessere</h3>
                 <p>Crea e personalizza le tessere punti per i tuoi clienti</p>
-                <button className="btn-primary">Configura</button>
+                <button className="btn-primary" onClick={handleNFCTest}>
+                  📱 Test NFC
+                </button>
               </div>
               <div className="feature-card">
                 <h3>Statistiche Punti</h3>
