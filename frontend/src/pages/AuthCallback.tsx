@@ -21,9 +21,10 @@ const AuthCallback: React.FC = () => {
           setStatus('success')
           setMessage('Account confermato con successo!')
 
-          // Reindirizza dopo 2 secondi
+          // Reindirizza dopo 2 secondi mantenendo i parametri POS
           setTimeout(() => {
-            navigate('/dashboard')
+            const searchParams = window.location.search
+            navigate(`/dashboard${searchParams}`)
           }, 2000)
         } else {
           // Prova a gestire il callback URL
@@ -45,7 +46,8 @@ const AuthCallback: React.FC = () => {
             setMessage('Account confermato con successo!')
 
             setTimeout(() => {
-              navigate('/dashboard')
+              const searchParams = window.location.search
+              navigate(`/dashboard${searchParams}`)
             }, 2000)
           } else {
             throw new Error('Token di conferma non valido')
