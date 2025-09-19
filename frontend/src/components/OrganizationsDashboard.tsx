@@ -68,9 +68,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         console.log('🔧 Metodi disponibili:', bridge.getAvailableMethods());
       }
       
-      // Verifichiamo che readNFCCard esista prima di chiamarlo
-      if (!bridge.readNFCCard) {
-        console.error('❌ Metodo readNFCCard non trovato!');
+      // Verifichiamo che readNFCCardSync esista prima di chiamarlo
+      if (!bridge.readNFCCardSync) {
+        console.error('❌ Metodo readNFCCardSync non trovato!');
         bridge.showToast && bridge.showToast('❌ Metodo NFC non disponibile');
         return;
       }
@@ -79,9 +79,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       bridge.showToast('📱 Avvicina la tessera al lettore NFC...', 3000);
       bridge.beep(1, 200); // 1 beep di 200ms
       
-      console.log('📞 Chiamata readNFCCard...');
-      console.log('🔍 Type of readNFCCard:', typeof bridge.readNFCCard);
-      console.log('🔍 readNFCCard function:', bridge.readNFCCard);
+      console.log('📞 Chiamata readNFCCardSync...');
+      console.log('🔍 Type of readNFCCardSync:', typeof bridge.readNFCCardSync);
+      console.log('🔍 readNFCCardSync function:', bridge.readNFCCardSync);
       
       try {
         // Creiamo una callback globale per ricevere il risultato
@@ -109,8 +109,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         };
         
         // METODO SINCRONO: Chiamata diretta senza callback
-        console.log('🔄 Chiamando bridge.readNFCCard() direttamente...');
-        const rawResult = bridge.readNFCCard();
+        console.log('🔄 Chiamando bridge.readNFCCardSync() direttamente...');
+        const rawResult = bridge.readNFCCardSync();
         console.log('📡 Raw result ricevuto:', rawResult);
 
         // Parsa il risultato JSON e chiama la callback
