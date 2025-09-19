@@ -68,63 +68,33 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         console.log('🔧 Metodi disponibili:', bridge.getAvailableMethods());
       }
       
-      // NUOVO DEPLOYMENT: Verifichiamo che readNFCCardSync esista prima di chiamarlo
-      if (!bridge.readNFCCardSync) {
-        console.error('❌ NUOVO DEPLOYMENT: Metodo readNFCCardSync non trovato!');
-        bridge.showToast && bridge.showToast('❌ Metodo NFC non disponibile');
-        return;
-      }
-
-      console.log('✅ NUOVO DEPLOYMENT: readNFCCardSync trovato!');
+      // NUOVO DEPLOYMENT: Chiamando bridge.readNFCCardAsync()...
       
-      // Feedback visivo immediato
-      bridge.showToast('📱 Avvicina la tessera al lettore NFC...', 3000);
-      bridge.beep(1, 200); // 1 beep di 200ms
-      
-      console.log('📞 Chiamata readNFCCardSync...');
-      console.log('🔍 Type of readNFCCardSync:', typeof bridge.readNFCCardSync);
-      console.log('🔍 readNFCCardSync function:', bridge.readNFCCardSync);
-      
-      try {
-        // Creiamo una callback globale per ricevere il risultato
-        const callbackName = 'nfcReadCallback' + Date.now();
-        (window as any)[callbackName] = (result: any) => {
-          console.log('📱 Risultato lettura NFC:', result);
-          
-          if (result && result.success) {
-            console.log('✅ Carta NFC letta:', result.cardNo);
-            bridge.beep(2, 300); // 2 beep di successo
-            bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
-
-            // TODO: Cercare cliente nel database
-            alert('✅ TESSERA LETTA!\n\nCard No: ' + result.cardNo + '\nUID: ' + result.rfUid + '\n\n⏳ Ricerca cliente...');
-            
-          } else {
-            console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
-            bridge.beep(3, 50); // 3 beep di errore
-            bridge.showToast('❌ Errore lettura tessera', 2000);
-            alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
-          }
-          
-          // Pulizia callback
-          delete (window as any)[callbackName];
-        };
+      // Creiamo una callback globale per ricevere il risultato
+      const callbackName = 'nfcReadCallback' + Date.now();
+      (window as any)[callbackName] = (result: any) => {
+        console.log('📱 Risultato lettura NFC:', result);
         
-        // METODO SINCRONO: Chiamata diretta senza callback
-        console.log('🔄 Chiamando bridge.readNFCCardSync() direttamente...');
-        const rawResult = bridge.readNFCCardSync();
-        console.log('📡 Raw result ricevuto:', rawResult);
+        if (result && result.success) {
+          console.log('✅ Carta NFC letta:', result.cardNo);
+          bridge.beep(2, 300); // 2 beep di successo
+          bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
 
-        // Parsa il risultato JSON e chiama la callback
-        const result = JSON.parse(rawResult);
-        console.log('📱 Risultato parsed:', result);
-        (window as any)[callbackName](result);
+          // TODO: Cercare cliente nel database
+          alert('✅ TESSERA LETTA!\n\nCard No: ' + result.cardNo + '\nUID: ' + result.rfUid + '\n\n⏳ Ricerca cliente...');
+          
+        } else {
+          console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
+          bridge.beep(3, 50); // 3 beep di errore
+          bridge.showToast('❌ Errore lettura tessera', 2000);
+          alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
+        }
         
-      } catch (error) {
-        console.log('💥 Errore chiamata NFC:', error);
-        bridge.showToast('💥 Errore sistema NFC', 2000);
-        alert('💥 Errore sistema NFC\n\n' + error);
-      }
+        // Pulizia callback
+        delete (window as any)[callbackName];
+      };
+
+      bridge.readNFCCardAsync(callbackName);
       
     } else {
       console.log('❌ Bridge non disponibile');
