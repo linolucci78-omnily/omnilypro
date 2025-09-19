@@ -1,27 +1,5 @@
 import React, { useState, useEffect } from 'react'
-i  const handleNFCTest = () => {
-    console.log('🔧 NFC Test - Checking bridge availability...');
-    
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-      const bridge = (window as any).OmnilyPOS;
-      const methods = Object.getOwnPropertyNames(bridge);
-      
-      console.log('✅ OmnilyPOS bridge available!');
-      console.log('📋 Available methods:', methods);
-      
-      // Mostra info dettagliate nell'interfaccia
-      const methodsList = methods.join('\n• ');
-      const message = `✅ BRIDGE NFC DISPONIBILE!\n\n🔧 Metodi disponibili:\n• ${methodsList}\n\n📱 Terminale: ${navigator.userAgent.includes('Android') ? 'Android POS' : 'Desktop'}`;
-      
-      alert(message);
-    } else {
-      console.log('❌ OmnilyPOS bridge not available');
-      
-      const message = `❌ BRIDGE NFC NON DISPONIBILE\n\n📱 Ambiente: ${navigator.userAgent.includes('Android') ? 'Android (bridge non caricato)' : 'Browser Desktop'}\n\n💡 Normale su browser desktop\n🎯 Testare su terminale POS Z108`;
-      
-      alert(message);
-    }
-  };nizationsApi, customersApi } from '../lib/supabase'
+import { supabase, organizationsApi, customersApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
 import { BarChart3, Users, Gift, Target, TrendingUp,  Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
