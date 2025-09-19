@@ -28,6 +28,11 @@ import com.zcs.sdk.Printer;
 import com.zcs.sdk.SdkResult;
 import com.zcs.sdk.Sys;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.json.JSONObject;
 
 public class MainActivityFinal extends AppCompatActivity {
@@ -37,6 +42,8 @@ public class MainActivityFinal extends AppCompatActivity {
     private DriverManager mDriverManager;
     private Sys mSys;
     private Printer mPrinter;
+    private com.zcs.sdk.card.RfCard mRfCard;
+    private ExecutorService mExecutor;
     private WebView webView;
     private Presentation customerPresentation;
     
@@ -209,6 +216,8 @@ public class MainActivityFinal extends AppCompatActivity {
         try {
             mDriverManager = DriverManager.getInstance();
             mSys = mDriverManager.getBaseSysDevice();
+            mRfCard = mDriverManager.getCardReadManager().getRFCard();
+            mExecutor = mDriverManager.getSingleThreadExecutor();
             
             if (mSys != null) {
                 int status = mSys.sdkInit();
@@ -225,7 +234,7 @@ public class MainActivityFinal extends AppCompatActivity {
                 if (status == SdkResult.SDK_OK) {
                     mSys.showDetailLog(true);
                     mPrinter = mDriverManager.getPrinter();
-                    Log.d(TAG, "ZCS SDK initialized successfully");
+                    Log.d(TAG, "ZCS SDK initialized successfully with RfCard and Executor");
                 } else {
                     Log.e(TAG, "ZCS SDK init failed: " + status);
                 }
@@ -374,90 +383,124 @@ public class MainActivityFinal extends AppCompatActivity {
         
         @JavascriptInterface
         public String getAvailableMethods() {
-            return "beep,showToast,readNFCCard,getBridgeVersion,getAvailableMethods";
+            return "beep,showToast,readNFCCardSync,readNFCCardAsync,getBridgeVersion,getAvailableMethods";
         }
 
         @JavascriptInterface
-        public String readNFCCard() {
-            Log.d(TAG, "🔥🔥🔥 NFC READ DIRECT - Using ZCS SDK - METHOD CALLED!");
-            Log.d(TAG, "🧵 Thread: " + Thread.currentThread().getName());
-            Log.d(TAG, "⏰ Timestamp: " + System.currentTimeMillis());
-            try {
-                if (mDriverManager != null) {
-                    com.zcs.sdk.card.RfCard rfCard = mDriverManager.getCardReadManager().getRFCard();
-                    if (rfCard != null) {
-                        Log.d(TAG, "✅ RfCard initialized, searching for card...");
-                        byte[] outType = new byte[1];
-                        byte[] uid = new byte[300];
-                        int result = rfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
-                        if (result == com.zcs.sdk.SdkResult.SDK_OK) {
-                            StringBuilder uidHex = new StringBuilder();
-                            boolean hasData = false;
-                            for (int i = 0; i < 16; i++) {
-                                if (uid[i] != 0) {
-                                    hasData = true;
-                                }
-                                uidHex.append(String.format("%02X", uid[i]));
-                                if (i < 15) uidHex.append(":");
-                            }
+        public String readNFCCardSync() {
+            Log.d(TAG, "🔥🔥🔥 ZCS NFC READ - Following Official ZCS Documentation!");
+            
+            // Esegui nell'executor dedicato come da documentazione ZCS
+            if (mExecutor != null && mRfCard != null) {
+                try {
+                    // Esecuzione sincrona usando il thread executor ZCS
+                    Future<String> future = mExecutor.submit(() -> {
+                        try {
+                            Log.d(TAG, "✅ Using ZCS ExecutorService thread for NFC read");
 
-                            if (hasData) {
-                                Log.d(TAG, "🎉 NFC CARD FOUND! UID: " + uidHex.toString());
-                                return new JSONObject()
-                                    .put("success", true)
-                                    .put("cardNo", uidHex.toString())
-                                    .put("rfUid", uidHex.toString())
-                                    .put("cardType", "NFC_CARD")
-                                    .put("timestamp", System.currentTimeMillis())
-                                    .toString();
-                            } else {
-                                Log.w(TAG, "⚠️ No valid UID data found");
-                                return new JSONObject()
-                                    .put("success", false)
-                                    .put("error", "Could not read UID")
-                                    .toString();
+                            byte[] outType = new byte[1];
+                            byte[] uid = new byte[300];
+                            int ret = -1;
+
+                            // Delay iniziale per dare tempo al lettore di prepararsi
+                            Log.d(TAG, "⏳ Preparazione lettore NFC...");
+                            Thread.sleep(500);
+                            
+                            // Prova RF_TYPE_A (più comune)
+                            ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
+                            Log.d(TAG, "🔍 ZCS RF_TYPE_A result: " + ret);
+                            
+                            // Se TYPE_A fallisce, prova TYPE_B
+                            if (ret != com.zcs.sdk.SdkResult.SDK_OK) {
+                                Log.d(TAG, "🔍 Trying RF_TYPE_B...");
+                                ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_B, outType, uid);
+                                Log.d(TAG, "🔍 ZCS RF_TYPE_B result: " + ret);
                             }
-                        } else {
-                            Log.w(TAG, "⚠️ No NFC card detected. Result: " + result);
+                            
+                            // Se ancora fallisce, prova più retry con delay crescenti
+                            if (ret != com.zcs.sdk.SdkResult.SDK_OK) {
+                                for (int retry = 1; retry <= 3; retry++) {
+                                    Log.d(TAG, "🔍 Retry " + retry + "/3 RF_TYPE_A after delay...");
+                                    try { Thread.sleep(300 * retry); } catch (InterruptedException e) {}
+                                    ret = mRfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
+                                    Log.d(TAG, "🔍 ZCS RF_TYPE_A retry " + retry + " result: " + ret);
+                                    if (ret == com.zcs.sdk.SdkResult.SDK_OK) break;
+                                }
+                            }
+                            
+                            if (ret == com.zcs.sdk.SdkResult.SDK_OK) {
+                                StringBuilder uidHex = new StringBuilder();
+                                int uidLength = 0;
+                                
+                                // Trova la lunghezza effettiva dell'UID
+                                for (int i = 0; i < uid.length && i < 16; i++) {
+                                    if (uid[i] != 0 || uidLength > 0) {
+                                        uidLength = i + 1;
+                                    }
+                                }
+                                
+                                // Costruisci l'UID formattato
+                                for (int i = 0; i < uidLength; i++) {
+                                    uidHex.append(String.format("%02X", uid[i]));
+                                    if (i < uidLength - 1) uidHex.append(":");
+                                }
+                                
+                                if (uidLength > 0) {
+                                    Log.d(TAG, "🎉 ZCS NFC SUCCESS! UID: " + uidHex.toString());
+                                    return new JSONObject()
+                                        .put("success", true)
+                                        .put("cardNo", uidHex.toString())
+                                        .put("rfUid", uidHex.toString())
+                                        .put("cardType", "ZCS_NFC")
+                                        .put("rfType", outType[0])
+                                        .put("uidLength", uidLength)
+                                        .put("timestamp", System.currentTimeMillis())
+                                        .toString();
+                                }
+                            }
+                            
+                            Log.w(TAG, "⚠️ ZCS No card detected. Return code: " + ret);
                             return new JSONObject()
                                 .put("success", false)
-                                .put("error", "No NFC card found. Result: " + result)
+                                .put("error", "ZCS: No card detected. Code: " + ret)
                                 .toString();
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "❌ ZCS Executor error: " + e.getMessage(), e);
+                            try {
+                                return new JSONObject()
+                                    .put("success", false)
+                                    .put("error", "ZCS execution error: " + e.getMessage())
+                                    .toString();
+                            } catch (Exception ex) {
+                                return "{\"success\":false,\"error\":\"ZCS unknown error\"}";
+                            }
                         }
-                    } else {
-                        Log.e(TAG, "❌ RF Card manager not available");
-                        return new JSONObject()
-                            .put("success", false)
-                            .put("error", "RF Card manager not available")
-                            .toString();
-                    }
-                } else {
-                    Log.e(TAG, "❌ Driver Manager not initialized");
-                    return new JSONObject()
-                        .put("success", false)
-                        .put("error", "Driver Manager not initialized")
-                        .toString();
+                    });
+                    
+                    // Attendi il risultato con timeout
+                    return future.get(5, TimeUnit.SECONDS);
+                    
+                } catch (TimeoutException e) {
+                    Log.e(TAG, "❌ ZCS NFC timeout after 5 seconds");
+                    return "{\"success\":false,\"error\":\"ZCS timeout\"}";
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ ZCS Future error: " + e.getMessage(), e);
+                    return "{\"success\":false,\"error\":\"ZCS future error\"}";
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "❌ NFC error: " + e.getMessage(), e);
-                try {
-                    return new JSONObject()
-                        .put("success", false)
-                        .put("error", e.getMessage())
-                        .toString();
-                } catch (Exception ex) {
-                    return "{\"success\":false,\"error\":\"Unknown error\"}";
-                }
+            } else {
+                Log.e(TAG, "❌ ZCS SDK not properly initialized - Executor: " + (mExecutor != null) + ", RfCard: " + (mRfCard != null));
+                return "{\"success\":false,\"error\":\"ZCS SDK not initialized\"}";
             }
         }
 
         // Versione alternativa con parametro per compatibilità
         @JavascriptInterface
-        public void readNFCCard(String callback) {
+        public void readNFCCardAsync(String callback) {
             Log.d(TAG, "🔥🔥🔥 NFC READ WITH CALLBACK - Using ZCS SDK - METHOD CALLED!");
             Log.d(TAG, "📞 Callback: " + callback);
 
-            String result = readNFCCard(); // Chiama la versione senza parametri
+            String result = readNFCCardSync(); // Chiama la versione senza parametri
 
             // Esegui il callback JavaScript
             runOnUiThread(() -> {

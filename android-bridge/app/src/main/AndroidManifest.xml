@@ -16,15 +16,6 @@
     <uses-feature 
         android:name="android.hardware.nfc" 
         android:required="false" />
-        
-    <!-- Screen support declarations for POS devices -->
-    <supports-screens 
-        android:smallScreens="true"
-        android:normalScreens="true"
-        android:largeScreens="true"
-        android:xlargeScreens="true"
-        android:anyDensity="true"
-        android:resizeable="true" />
 
     <application
         android:allowBackup="true"
