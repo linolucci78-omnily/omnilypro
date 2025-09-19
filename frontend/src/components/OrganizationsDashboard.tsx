@@ -85,49 +85,46 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       console.log('🔍 Type of readNFCCardSync:', typeof bridge.readNFCCardSync);
       console.log('🔍 readNFCCardSync function:', bridge.readNFCCardSync);
       
-      // Aggiungiamo un piccolo timeout per dare tempo al bridge di inizializzarsi completamente
-      setTimeout(() => {
-        try {
-          // Creiamo una callback globale per ricevere il risultato
-          const callbackName = 'nfcReadCallback' + Date.now();
-          (window as any)[callbackName] = (result: any) => {
-            console.log('📱 Risultato lettura NFC:', result);
-            
-            if (result && result.success) {
-              console.log('✅ Carta NFC letta:', result.cardNo);
-              bridge.beep(2, 300); // 2 beep di successo
-              bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
-
-              // TODO: Cercare cliente nel database
-              alert('✅ TESSERA LETTA!\n\nCard No: ' + result.cardNo + '\nUID: ' + result.rfUid + '\n\n⏳ Ricerca cliente...');
-              
-            } else {
-              console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
-              bridge.beep(3, 50); // 3 beep di errore
-              bridge.showToast('❌ Errore lettura tessera', 2000);
-              alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
-            }
-            
-            // Pulizia callback
-            delete (window as any)[callbackName];
-          };
+      try {
+        // Creiamo una callback globale per ricevere il risultato
+        const callbackName = 'nfcReadCallback' + Date.now();
+        (window as any)[callbackName] = (result: any) => {
+          console.log('📱 Risultato lettura NFC:', result);
           
-          // METODO SINCRONO: Chiamata diretta senza callback
-          console.log('🔄 Chiamando bridge.readNFCCardSync() direttamente...');
-          const rawResult = bridge.readNFCCardSync();
-          console.log('📡 Raw result ricevuto:', rawResult);
+          if (result && result.success) {
+            console.log('✅ Carta NFC letta:', result.cardNo);
+            bridge.beep(2, 300); // 2 beep di successo
+            bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
 
-          // Parsa il risultato JSON e chiama la callback
-          const result = JSON.parse(rawResult);
-          console.log('📱 Risultato parsed:', result);
-          (window as any)[callbackName](result);
+            // TODO: Cercare cliente nel database
+            alert('✅ TESSERA LETTA!\n\nCard No: ' + result.cardNo + '\nUID: ' + result.rfUid + '\n\n⏳ Ricerca cliente...');
+            
+          } else {
+            console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
+            bridge.beep(3, 50); // 3 beep di errore
+            bridge.showToast('❌ Errore lettura tessera', 2000);
+            alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
+          }
           
-        } catch (error) {
-          console.log('💥 Errore chiamata NFC:', error);
-          bridge.showToast('💥 Errore sistema NFC', 2000);
-          alert('💥 Errore sistema NFC\n\n' + error);
-        }
-      }, 100); // 100ms di ritardo
+          // Pulizia callback
+          delete (window as any)[callbackName];
+        };
+        
+        // METODO SINCRONO: Chiamata diretta senza callback
+        console.log('🔄 Chiamando bridge.readNFCCardSync() direttamente...');
+        const rawResult = bridge.readNFCCardSync();
+        console.log('📡 Raw result ricevuto:', rawResult);
+
+        // Parsa il risultato JSON e chiama la callback
+        const result = JSON.parse(rawResult);
+        console.log('📱 Risultato parsed:', result);
+        (window as any)[callbackName](result);
+        
+      } catch (error) {
+        console.log('💥 Errore chiamata NFC:', error);
+        bridge.showToast('💥 Errore sistema NFC', 2000);
+        alert('💥 Errore sistema NFC\n\n' + error);
+      }
       
     } else {
       console.log('❌ Bridge non disponibile');
