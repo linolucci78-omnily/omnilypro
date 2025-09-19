@@ -80,6 +80,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       bridge.beep(1, 200); // 1 beep di 200ms
       
       console.log('📞 Chiamata readNFCCard...');
+      console.log('🔍 Type of readNFCCard:', typeof bridge.readNFCCard);
+      console.log('🔍 readNFCCard function:', bridge.readNFCCard);
       
       try {
         // Creiamo una callback globale per ricevere il risultato
