@@ -71,8 +71,9 @@ public class MainActivityFinal extends AppCompatActivity {
         setupWebView();
         setupCustomerDisplay();
         
-        // SCHERMO PRINCIPALE (GRANDE): Login per operatore
-        webView.loadUrl("https://omnilypro.vercel.app/?posomnily=true");
+        // SCHERMO PRINCIPALE (GRANDE): Login per operatore con cache bust
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        webView.loadUrl("https://omnilypro.vercel.app/?posomnily=true&v=" + timestamp);
         Log.d(TAG, "MAIN DISPLAY: Loading homepage for operator login");
     }
     
@@ -88,6 +89,14 @@ public class MainActivityFinal extends AppCompatActivity {
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
+        
+        // DISABILITA COMPLETAMENTE LA CACHE PER FORZARE RELOAD
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        webSettings.setDatabaseEnabled(false);
+
+        // CLEAR CACHE ESISTENTE
+        webView.clearCache(true);
+        webView.clearHistory();
         
         webView.addJavascriptInterface(new OmnilyPOSBridge(), "OmnilyPOS");
         
@@ -329,6 +338,28 @@ public class MainActivityFinal extends AppCompatActivity {
         }
         
         @JavascriptInterface
+        public void beep(int count, int duration) {
+            Log.d(TAG, "Beep called with count: " + count + ", duration: " + duration);
+            try {
+                if (mDriverManager != null) {
+                    com.zcs.sdk.Beeper beeper = mDriverManager.getBeeper();
+                    if (beeper != null) {
+                        new Thread(() -> {
+                            for (int i = 0; i < count; i++) {
+                                beeper.beep(4000, duration);
+                                if (i < count - 1) { // Pausa tra i beep
+                                    try { Thread.sleep(100); } catch (InterruptedException e) {}
+                                }
+                            }
+                        }).start();
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Beep error", e);
+            }
+        }
+        
+        @JavascriptInterface
         public void showToast(String message) {
             runOnUiThread(() -> {
                 Toast.makeText(MainActivityFinal.this, message, Toast.LENGTH_SHORT).show();
@@ -337,6 +368,7 @@ public class MainActivityFinal extends AppCompatActivity {
         
         @JavascriptInterface
         public String getBridgeVersion() {
+            Log.d(TAG, "✅ getBridgeVersion() called successfully!");
             return "v2.0-nfc-enabled";
         }
         
@@ -344,71 +376,96 @@ public class MainActivityFinal extends AppCompatActivity {
         public String getAvailableMethods() {
             return "beep,showToast,readNFCCard,getBridgeVersion,getAvailableMethods";
         }
-        
+
         @JavascriptInterface
-        public void readNFCCard(String callbackName) {
-            Log.d(TAG, "NFC Card reading requested");
-            runOnUiThread(() -> {
-                try {
-                    if (mDriverManager != null) {
-                        // Usa l'API corretta dall'SDK ufficiale ZCS
-                        com.zcs.sdk.card.RfCard rfCard = mDriverManager.getCardReadManager().getRFCard();
-                        if (rfCard != null) {
-                            new Thread(() -> {
-                                try {
-                                    // Attiva la ricerca di carte NFC usando l'API corretta dell'SDK
-                                    byte[] outType = new byte[1];
-                                    byte[] uid = new byte[300];
-                                    int result = rfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
-                                    if (result == com.zcs.sdk.SdkResult.SDK_OK) {
-                                        // Converte l'UID in stringa esadecimale (primi 16 bytes)
-                                        StringBuilder uidHex = new StringBuilder();
-                                        boolean hasData = false;
-                                        for (int i = 0; i < 16; i++) { 
-                                            if (uid[i] != 0) {
-                                                hasData = true;
-                                            }
-                                            uidHex.append(String.format("%02X", uid[i]));
-                                            if (i < 15) uidHex.append(":");
-                                        }
-                                        
-                                        if (hasData) {
-                                            runOnUiThread(() -> {
-                                                String jsCallback = callbackName + "({success: true, uid: '" + uidHex.toString() + "'});";
-                                                webView.evaluateJavascript(jsCallback, null);
-                                            });
-                                        } else {
-                                            runOnUiThread(() -> {
-                                                String jsCallback = callbackName + "({success: false, error: 'Could not read UID'});";
-                                                webView.evaluateJavascript(jsCallback, null);
-                                            });
-                                        }
-                                    } else {
-                                        runOnUiThread(() -> {
-                                            String jsCallback = callbackName + "({success: false, error: 'No NFC card found. Result: " + result + "'});";
-                                            webView.evaluateJavascript(jsCallback, null);
-                                        });
-                                    }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "NFC read error", e);
-                                    runOnUiThread(() -> {
-                                        String jsCallback = callbackName + "({success: false, error: 'NFC read failed: " + e.getMessage() + "'});";
-                                        webView.evaluateJavascript(jsCallback, null);
-                                    });
+        public String readNFCCard() {
+            Log.d(TAG, "🔥🔥🔥 NFC READ DIRECT - Using ZCS SDK - METHOD CALLED!");
+            Log.d(TAG, "🧵 Thread: " + Thread.currentThread().getName());
+            Log.d(TAG, "⏰ Timestamp: " + System.currentTimeMillis());
+            try {
+                if (mDriverManager != null) {
+                    com.zcs.sdk.card.RfCard rfCard = mDriverManager.getCardReadManager().getRFCard();
+                    if (rfCard != null) {
+                        Log.d(TAG, "✅ RfCard initialized, searching for card...");
+                        byte[] outType = new byte[1];
+                        byte[] uid = new byte[300];
+                        int result = rfCard.rfSearchCard(com.zcs.sdk.SdkData.RF_TYPE_A, outType, uid);
+                        if (result == com.zcs.sdk.SdkResult.SDK_OK) {
+                            StringBuilder uidHex = new StringBuilder();
+                            boolean hasData = false;
+                            for (int i = 0; i < 16; i++) {
+                                if (uid[i] != 0) {
+                                    hasData = true;
                                 }
-                            }).start();
+                                uidHex.append(String.format("%02X", uid[i]));
+                                if (i < 15) uidHex.append(":");
+                            }
+
+                            if (hasData) {
+                                Log.d(TAG, "🎉 NFC CARD FOUND! UID: " + uidHex.toString());
+                                return new JSONObject()
+                                    .put("success", true)
+                                    .put("cardNo", uidHex.toString())
+                                    .put("rfUid", uidHex.toString())
+                                    .put("cardType", "NFC_CARD")
+                                    .put("timestamp", System.currentTimeMillis())
+                                    .toString();
+                            } else {
+                                Log.w(TAG, "⚠️ No valid UID data found");
+                                return new JSONObject()
+                                    .put("success", false)
+                                    .put("error", "Could not read UID")
+                                    .toString();
+                            }
                         } else {
-                            String jsCallback = callbackName + "({success: false, error: 'RF Card manager not available'});";
-                            webView.evaluateJavascript(jsCallback, null);
+                            Log.w(TAG, "⚠️ No NFC card detected. Result: " + result);
+                            return new JSONObject()
+                                .put("success", false)
+                                .put("error", "No NFC card found. Result: " + result)
+                                .toString();
                         }
                     } else {
-                        String jsCallback = callbackName + "({success: false, error: 'Driver Manager not initialized'});";
-                        webView.evaluateJavascript(jsCallback, null);
+                        Log.e(TAG, "❌ RF Card manager not available");
+                        return new JSONObject()
+                            .put("success", false)
+                            .put("error", "RF Card manager not available")
+                            .toString();
                     }
+                } else {
+                    Log.e(TAG, "❌ Driver Manager not initialized");
+                    return new JSONObject()
+                        .put("success", false)
+                        .put("error", "Driver Manager not initialized")
+                        .toString();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "❌ NFC error: " + e.getMessage(), e);
+                try {
+                    return new JSONObject()
+                        .put("success", false)
+                        .put("error", e.getMessage())
+                        .toString();
+                } catch (Exception ex) {
+                    return "{\"success\":false,\"error\":\"Unknown error\"}";
+                }
+            }
+        }
+
+        // Versione alternativa con parametro per compatibilità
+        @JavascriptInterface
+        public void readNFCCard(String callback) {
+            Log.d(TAG, "🔥🔥🔥 NFC READ WITH CALLBACK - Using ZCS SDK - METHOD CALLED!");
+            Log.d(TAG, "📞 Callback: " + callback);
+
+            String result = readNFCCard(); // Chiama la versione senza parametri
+
+            // Esegui il callback JavaScript
+            runOnUiThread(() -> {
+                try {
+                    String jsCode = callback + "(" + result + ");";
+                    webView.evaluateJavascript(jsCode, null);
                 } catch (Exception e) {
-                    Log.e(TAG, "NFC setup error", e);
-                    String jsCallback = callbackName + "({success: false, error: 'NFC setup failed: " + e.getMessage() + "'});";
-                    webView.evaluateJavascript(jsCallback, null);
+                    Log.e(TAG, "Callback error: " + e.getMessage());
                 }
             });
         }
@@ -505,7 +562,10 @@ public class MainActivityFinal extends AppCompatActivity {
             webSettings.setDatabaseEnabled(true);
             webSettings.setUseWideViewPort(true);
             webSettings.setLoadWithOverviewMode(true);
-            
+
+            // Aggiungi il bridge JavaScript anche al Customer WebView
+            customerWebView.addJavascriptInterface(new OmnilyPOSBridge(), "OmnilyPOS");
+
             customerWebView.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String url) {
