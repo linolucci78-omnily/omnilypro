@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test NFC - Omnily POS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+        button { 
+            padding: 20px 40px; 
+            font-size: 18px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 8px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        #result { 
+            margin-top: 20px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test NFC - Omnily POS</h1>
+    
+    <button onclick="testNFC()">📱 Leggi Tessera NFC</button>
+    <button onclick="testBridge()">🔧 Test Bridge</button>
+    <button onclick="testBeep()">🔊 Test Beep</button>
+    
+    <div id="result">Clicca un pulsante per testare...</div>
+
+    <script>
+        function testNFC() {
+            document.getElementById('result').textContent = 'Leggendo tessera NFC...';
+            
+            if (window.OmnilyPOS) {
+                try {
+                    // Appoggia ora la tessera NFC sul lettore!
+                    const result = window.OmnilyPOS.readNFCCard();
+                    document.getElementById('result').textContent = 'Risultato NFC:\n' + JSON.stringify(result, null, 2);
+                } catch (e) {
+                    document.getElementById('result').textContent = 'Errore NFC: ' + e.message;
+                }
+            } else {
+                document.getElementById('result').textContent = 'Errore: OmnilyPOS bridge non disponibile';
+            }
+        }
+        
+        function testBridge() {
+            if (window.OmnilyPOS) {
+                const version = window.OmnilyPOS.getBridgeVersion();
+                const methods = window.OmnilyPOS.getAvailableMethods();
+                document.getElementById('result').textContent = 
+                    'Bridge disponibile!\nVersione: ' + version + 
+                    '\nMetodi: ' + methods;
+            } else {
+                document.getElementById('result').textContent = 'Bridge NON disponibile';
+            }
+        }
+        
+        function testBeep() {
+            if (window.OmnilyPOS) {
+                try {
+                    window.OmnilyPOS.beep();
+                    document.getElementById('result').textContent = 'Beep inviato!';
+                } catch (e) {
+                    document.getElementById('result').textContent = 'Errore beep: ' + e.message;
+                }
+            } else {
+                document.getElementById('result').textContent = 'Bridge non disponibile per beep';
+            }
+        }
+    </script>
+</body>
+</html>

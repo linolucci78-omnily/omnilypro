@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import com.zcs.sdk.DriverManager;
 import com.zcs.sdk.Printer;
 import com.zcs.sdk.print.PrnStrFormat;
+import com.zcs.sdk.card.RfCard;
 
 public class OmnilyBridge {
     
@@ -69,18 +70,63 @@ public class OmnilyBridge {
     
     @JavascriptInterface
     public String readNFCCard() {
-        Log.d(TAG, "📱 Reading NFC card...");
+        Log.d(TAG, "🔥 NFC READ - Using ZCS SDK diretto");
+
         try {
-            return new JSONObject()
-                .put("success", true)
-                .put("cardNo", "1234567890123456")
-                .put("rfUid", "A1B2C3D4")
-                .put("cardType", "MIFARE_1K")
-                .put("timestamp", System.currentTimeMillis())
-                .toString();
+            DriverManager driverManager = DriverManager.getInstance();
+            RfCard rfCard = driverManager.getRfCard();
+
+            if (rfCard == null) {
+                Log.e(TAG, "❌ RfCard è null!");
+                return new JSONObject()
+                    .put("success", false)
+                    .put("error", "NFC hardware non disponibile")
+                    .toString();
+            }
+
+            Log.d(TAG, "✅ RfCard inizializzato, cerco carta...");
+
+            // Provo direttamente senza timeout o con timeout lungo
+            byte[] cardData = rfCard.searchCard();
+
+            if (cardData != null && cardData.length > 0) {
+                String cardUid = bytesToHex(cardData);
+                Log.d(TAG, "🎉 CARTA NFC TROVATA! UID: " + cardUid);
+
+                return new JSONObject()
+                    .put("success", true)
+                    .put("cardNo", cardUid)
+                    .put("rfUid", cardUid)
+                    .put("cardType", "NFC_CARD")
+                    .put("timestamp", System.currentTimeMillis())
+                    .toString();
+            } else {
+                Log.w(TAG, "⚠️ Nessuna carta NFC rilevata");
+                return new JSONObject()
+                    .put("success", false)
+                    .put("error", "No NFC card detected")
+                    .toString();
+            }
+
         } catch (Exception e) {
-            return "{\"success\":false,\"error\":\"NFC error\"}";
+            Log.e(TAG, "❌ Errore NFC: " + e.getMessage(), e);
+            try {
+                return new JSONObject()
+                    .put("success", false)
+                    .put("error", e.getMessage())
+                    .toString();
+            } catch (Exception ex) {
+                return "{\"success\":false,\"error\":\"Unknown error\"}";
+            }
         }
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02X", b));
+        }
+        return result.toString();
     }
     
     @JavascriptInterface
