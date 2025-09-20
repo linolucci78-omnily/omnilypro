@@ -62,7 +62,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           
           if (result && result.success) {
             console.log('✅ Carta NFC letta:', result.cardNo);
-            bridge.beep(2, 300); // 2 beep di successo
+            bridge.beep("2", "300"); // 2 beep di successo
             bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
 
             // TODO: Cercare cliente nel database
@@ -70,8 +70,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             
           } else {
             console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
-            bridge.beep(3, 50); // 3 beep di errore
-            bridge.showToast('❌ Errore lettura tessera', 2000);
+            bridge.beep("3", "50"); // 3 beep di errore
+            bridge.showToast('❌ Errore lettura tessera');
             alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
           }
         };
@@ -103,8 +103,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       }
       
       // Feedback visivo immediato
-      bridge.showToast('📱 Avvicina la tessera al lettore NFC...', 3000);
-      bridge.beep(1, 200); // 1 beep di 200ms
+      bridge.showToast('📱 Avvicina la tessera al lettore NFC...');
+      bridge.beep("1", "200"); // 1 beep di 200ms
       
       console.log('📞 Chiamata readNFCCardAsync...');
       
