@@ -5,7 +5,7 @@ import { getMockUser } from '../../services/mockAuth'
 import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer } from 'lucide-react'
 import styles from './EnterpriseWizard.module.css'
 import './icon-styles.css'
-import POSTestPanel from '../POS/POSTestPanel'
+// import POSTestPanel from '../POS/POSTestPanel'
 
 const EnterpriseWizard: React.FC = () => {
   // const { user } = useAuth() // TODO: Enable when auth is ready
@@ -1750,7 +1750,7 @@ const EnterpriseWizard: React.FC = () => {
                   </div>
                 </div>
                 
-                <POSTestPanel
+                {/* <POSTestPanel
                   posModel={formData.posModel}
                   posConnection={formData.posConnection}
                   onTestComplete={(results) => {
@@ -1758,7 +1758,7 @@ const EnterpriseWizard: React.FC = () => {
                     // Salva risultati test in formData se necessario
                     handleInputChange('posTestResults', results)
                   }}
-                />
+                /> */}
               </div>
             </div>
           </div>

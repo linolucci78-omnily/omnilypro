@@ -14,7 +14,7 @@ import BusinessCustomers from './pages/BusinessCustomers'
 import BusinessOwners from './pages/BusinessOwners'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
-import POSSimulator from './components/POS/POSSimulator'
+
 import Z108POSInterface from './components/POS/Z108POSInterface'
 import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
 import CustomerDisplay from './components/POS/CustomerDisplay'
@@ -160,10 +160,6 @@ function App() {
               <Route path="organizations" element={<Admin />} />
               <Route path="business-owners" element={<BusinessOwners />} />
             </Route>
-            <Route
-              path="/pos-simulator"
-              element={<POSSimulator />}
-            />
             <Route
               path="/customer-display"
               element={<CustomerDisplay />}

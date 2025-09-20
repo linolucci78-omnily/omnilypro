@@ -78,10 +78,12 @@ public class MainActivityFinal extends AppCompatActivity {
         setupWebView();
         setupCustomerDisplay();
         
-        // SCHERMO PRINCIPALE (GRANDE): Login per operatore con cache bust
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        webView.loadUrl("https://omnilypro.vercel.app/?posomnily=true&v=" + timestamp);
-        Log.d(TAG, "MAIN DISPLAY: Loading homepage for operator login");
+        // Avvia caricamento WebView subito, ma non mostrarlo finché non è pronto
+        new android.os.Handler().postDelayed(() -> {
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            webView.loadUrl("https://omnilypro.vercel.app/?posomnily=true&v=" + timestamp);
+            Log.d(TAG, "MAIN DISPLAY: Loading homepage for operator login");
+        }, 3000);
     }
     
     private void setupWebView() {
@@ -97,13 +99,12 @@ public class MainActivityFinal extends AppCompatActivity {
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         
-        // DISABILITA COMPLETAMENTE LA CACHE PER FORZARE RELOAD
-        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webSettings.setDatabaseEnabled(false);
+        // CACHE POLICY MIGLIORATA - evita blocchi ma forza reload del JS
+        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        webSettings.setDatabaseEnabled(true);
 
-        // CLEAR CACHE ESISTENTE
-        webView.clearCache(true);
-        webView.clearHistory();
+        // CLEAR CACHE SOLO SE NECESSARIO
+        webView.clearCache(false);
         
         webView.addJavascriptInterface(new OmnilyPOSBridge(), "OmnilyPOS");
         
@@ -134,7 +135,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     new android.os.Handler().postDelayed(() -> {
                         setContentView(webView);
                         Log.d(TAG, "POS login page ready - showing WebView!");
-                    }, 2000);
+                    }, 500);
                 } else {
                     // Per tutte le altre pagine, mostra subito
                     setContentView(webView);
@@ -699,205 +700,63 @@ public class MainActivityFinal extends AppCompatActivity {
     }
     
     private void showSplashScreen() {
-        // SPLASH SCREEN PROFESSIONALE OMNILY - ROSSO CON BARRA CARICAMENTO
-        android.widget.RelativeLayout splashLayout = new android.widget.RelativeLayout(this);
-        
-        // SFONDO ROSSO OMNILY (gradiente simulato)
-        splashLayout.setBackgroundColor(android.graphics.Color.parseColor("#B71C1C")); // Rosso scuro
-        
-        // CONTAINER CENTRALE
-        android.widget.LinearLayout centerContainer = new android.widget.LinearLayout(this);
-        centerContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
-        centerContainer.setGravity(android.view.Gravity.CENTER);
-        centerContainer.setBackgroundColor(android.graphics.Color.parseColor("#D32F2F")); // Rosso medio
-        centerContainer.setPadding(60, 80, 60, 80);
-        
-        // LOGO OMNILY (molto grande)
+        // SPLASH SCREEN LEGGERA OMNILY - DESIGN PULITO E VELOCE
+        android.widget.LinearLayout splashLayout = new android.widget.LinearLayout(this);
+        splashLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        splashLayout.setGravity(android.view.Gravity.CENTER);
+        splashLayout.setBackgroundColor(android.graphics.Color.parseColor("#D32F2F")); // Rosso OMNILY
+        splashLayout.setPadding(40, 40, 40, 40);
+
+        // LOGO OMNILY SEMPLICE
         android.widget.TextView logoText = new android.widget.TextView(this);
-        logoText.setText("OMNILY");
-        logoText.setTextSize(64);
+        logoText.setText("OMNILY PRO");
+        logoText.setTextSize(48);
         logoText.setTextColor(android.graphics.Color.WHITE);
         logoText.setTypeface(null, android.graphics.Typeface.BOLD);
         logoText.setGravity(android.view.Gravity.CENTER);
-        logoText.setShadowLayer(5, 2, 2, android.graphics.Color.parseColor("#000000"));
-        
-        // PRO TEXT (stilizzato)
-        android.widget.TextView proText = new android.widget.TextView(this);
-        proText.setText("P R O");
-        proText.setTextSize(32);
-        proText.setTextColor(android.graphics.Color.parseColor("#FFCDD2")); // Rosa chiaro
-        proText.setTypeface(null, android.graphics.Typeface.BOLD);
-        proText.setGravity(android.view.Gravity.CENTER);
-        proText.setShadowLayer(3, 1, 1, android.graphics.Color.parseColor("#000000"));
-        
-        // SOTTOTITOLO
-        android.widget.TextView subtitleText = new android.widget.TextView(this);
-        subtitleText.setText("Sistema POS Avanzato");
-        subtitleText.setTextSize(20);
-        subtitleText.setTextColor(android.graphics.Color.parseColor("#FFEBEE")); // Rosa molto chiaro
-        subtitleText.setGravity(android.view.Gravity.CENTER);
-        subtitleText.setAlpha(0.9f);
-        subtitleText.setPadding(0, 20, 0, 40);
-        
-        // VERSIONE
-        android.widget.TextView versionText = new android.widget.TextView(this);
-        versionText.setText("v2.1.0 - ZCS Integration");
-        versionText.setTextSize(14);
-        versionText.setTextColor(android.graphics.Color.parseColor("#FFCDD2"));
-        versionText.setGravity(android.view.Gravity.CENTER);
-        versionText.setPadding(0, 10, 0, 30);
-        
-        // Aggiungi tutto al container centrale
-        centerContainer.addView(logoText);
-        centerContainer.addView(proText);
-        centerContainer.addView(subtitleText);
-        centerContainer.addView(versionText);
-        
-        // SEZIONE INFERIORE
-        android.widget.LinearLayout bottomContainer = new android.widget.LinearLayout(this);
-        bottomContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
-        bottomContainer.setGravity(android.view.Gravity.CENTER);
-        bottomContainer.setPadding(40, 20, 40, 60);
-        
-        // TESTO CONNESSIONE
-        android.widget.TextView loadingText = new android.widget.TextView(this);
-        loadingText.setText("Connessione in corso...");
-        loadingText.setTextSize(22);
-        loadingText.setTextColor(android.graphics.Color.WHITE);
-        loadingText.setGravity(android.view.Gravity.CENTER);
-        loadingText.setTypeface(null, android.graphics.Typeface.NORMAL);
-        loadingText.setPadding(0, 0, 0, 25);
-        
-        // STATUS TEXT CON ANIMAZIONE
+        logoText.setPadding(0, 0, 0, 20);
+
+        // STATUS SEMPLICE
         android.widget.TextView statusText = new android.widget.TextView(this);
-        statusText.setText("Inizializzazione sistema POS...");
-        statusText.setTextSize(16);
+        statusText.setText("Inizializzazione...");
+        statusText.setTextSize(18);
         statusText.setTextColor(android.graphics.Color.parseColor("#FFCDD2"));
         statusText.setGravity(android.view.Gravity.CENTER);
-        statusText.setAlpha(0.8f);
-        statusText.setPadding(0, 0, 0, 30);
-        
-        // ANIMAZIONE TESTO STATUS (sincronizzato con progress bar)
-        android.os.Handler statusHandler = new android.os.Handler();
-        statusHandler.postDelayed(() -> statusText.setText("Connessione al server..."), 1200);
-        statusHandler.postDelayed(() -> statusText.setText("Autenticazione in corso..."), 2500);
-        statusHandler.postDelayed(() -> statusText.setText("Configurazione interfaccia..."), 3800);
-        statusHandler.postDelayed(() -> statusText.setText("Finalizzazione..."), 5200);
-        statusHandler.postDelayed(() -> statusText.setText("Caricamento completato!"), 5800);
-        
-        // BARRA DI CARICAMENTO PERSONALIZZATA (più visibile)
-        android.widget.LinearLayout progressContainer = new android.widget.LinearLayout(this);
-        progressContainer.setOrientation(android.widget.LinearLayout.HORIZONTAL);
-        progressContainer.setGravity(android.view.Gravity.LEFT);
-        progressContainer.setBackgroundColor(android.graphics.Color.parseColor("#666666")); // Sfondo grigio scuro
-        progressContainer.setPadding(6, 6, 6, 6);
-        
-        // BARRA INTERNA COLORATA che si espande
-        android.view.View progressFill = new android.view.View(this);
-        progressFill.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50")); // Verde
-        
-        // PARAMETRI INIZIALI (larghezza 0)
-        android.widget.LinearLayout.LayoutParams fillParams = new android.widget.LinearLayout.LayoutParams(
-            0, 20); // Altezza 20px, larghezza iniziale 0
-        progressFill.setLayoutParams(fillParams);
-        
-        progressContainer.addView(progressFill);
-        
-        // ANIMAZIONE REALISTICA DELLA BARRA
-        android.os.Handler progressHandler = new android.os.Handler();
-        int maxWidth = 700; // Larghezza massima della barra
-        
-        // Animazione step-by-step più visibile
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.15); // 15%
-            progressFill.setLayoutParams(fillParams);
-        }, 300);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.25); // 25%
-            progressFill.setLayoutParams(fillParams);
-        }, 800);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.30); // 30%
-            progressFill.setLayoutParams(fillParams);
-        }, 1200);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.45); // 45%
-            progressFill.setLayoutParams(fillParams);
-        }, 1800);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.55); // 55%
-            progressFill.setLayoutParams(fillParams);
-        }, 2500);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.60); // 60%
-            progressFill.setLayoutParams(fillParams);
-        }, 3200);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.75); // 75%
-            progressFill.setLayoutParams(fillParams);
-        }, 3800);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.85); // 85%
-            progressFill.setLayoutParams(fillParams);
-        }, 4500);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = (int)(maxWidth * 0.92); // 92%
-            progressFill.setLayoutParams(fillParams);
-        }, 5200);
-        
-        progressHandler.postDelayed(() -> {
-            fillParams.width = maxWidth; // 100%
-            progressFill.setLayoutParams(fillParams);
-            progressFill.setBackgroundColor(android.graphics.Color.parseColor("#2196F3")); // Cambia in blu quando completo
-        }, 5800);
-        
-        // FOOTER
-        android.widget.TextView footerText = new android.widget.TextView(this);
-        footerText.setText("© 2024 OMNILY - Tutti i diritti riservati");
-        footerText.setTextSize(12);
-        footerText.setTextColor(android.graphics.Color.parseColor("#FFCDD2"));
-        footerText.setGravity(android.view.Gravity.CENTER);
-        footerText.setAlpha(0.7f);
-        
-        // Aggiungi al bottom container
-        bottomContainer.addView(loadingText);
-        bottomContainer.addView(statusText);
-        bottomContainer.addView(progressContainer); // Container con bordo
-        bottomContainer.addView(footerText);
-        
-        // LAYOUT PARAMETERS - CENTRO
-        android.widget.RelativeLayout.LayoutParams centerParams = new android.widget.RelativeLayout.LayoutParams(
-            android.widget.RelativeLayout.LayoutParams.MATCH_PARENT,
-            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
-        centerParams.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT);
-        centerParams.setMargins(80, 0, 80, 0);
-        
-        // LAYOUT PARAMETERS - BOTTOM
-        android.widget.RelativeLayout.LayoutParams bottomParams = new android.widget.RelativeLayout.LayoutParams(
-            android.widget.RelativeLayout.LayoutParams.MATCH_PARENT,
-            android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
-        bottomParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_BOTTOM);
-        
-        // PROGRESS CONTAINER PARAMETERS (grande e visibile)
-        android.widget.LinearLayout.LayoutParams containerParams = new android.widget.LinearLayout.LayoutParams(
-            720, 32); // Larga e alta
-        containerParams.gravity = android.view.Gravity.CENTER;
-        containerParams.setMargins(0, 15, 0, 25);
-        progressContainer.setLayoutParams(containerParams);
-        
-        // Aggiungi tutto al layout principale
-        splashLayout.addView(centerContainer, centerParams);
-        splashLayout.addView(bottomContainer, bottomParams);
-        
-        setContentView(splashLayout); // MOSTRA SPLASH SUBITO
-        Log.d(TAG, "Splash screen displayed - masking navigation");
+        statusText.setPadding(0, 20, 0, 30);
+
+        // BARRA FINE E LEGGERA (solo 4px!)
+        android.view.View progressBar = new android.view.View(this);
+        progressBar.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50"));
+
+        // PARAMETRI ULTRA-LEGGERI: 300px largo, 4px alto
+        android.widget.LinearLayout.LayoutParams progressParams = new android.widget.LinearLayout.LayoutParams(
+            0, 4); // Inizia da 0px di larghezza, 4px di altezza
+        progressBar.setLayoutParams(progressParams);
+
+        // AGGIUNGI ELEMENTI AL LAYOUT
+        splashLayout.addView(logoText);
+        splashLayout.addView(statusText);
+        splashLayout.addView(progressBar);
+
+        // ANIMAZIONE MINIMAL - SOLO 2 STEP TOTALI
+        android.os.Handler handler = new android.os.Handler();
+
+        // Step 1: 50% a 1.5 secondi
+        handler.postDelayed(() -> {
+            progressParams.width = 150; // 50% di 300px
+            progressBar.setLayoutParams(progressParams);
+            statusText.setText("Connessione...");
+        }, 1500);
+
+        // Step 2: 100% a 3 secondi + chiudi
+        handler.postDelayed(() -> {
+            progressParams.width = 300; // 100%
+            progressBar.setLayoutParams(progressParams);
+            statusText.setText("Pronto!");
+        }, 3000);
+
+        // MOSTRA LA SPLASH SCREEN LEGGERA
+        setContentView(splashLayout);
+        Log.d(TAG, "Splash screen leggera mostrata - barra 4px");
     }
 }
