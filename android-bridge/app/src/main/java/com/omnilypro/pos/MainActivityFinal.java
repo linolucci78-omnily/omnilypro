@@ -386,9 +386,22 @@ public class MainActivityFinal extends AppCompatActivity {
             return "beep,showToast,readNFCCardSync,readNFCCardAsync,getBridgeVersion,getAvailableMethods";
         }
 
+        private String nfcResultCallbackName = null;
+
         @JavascriptInterface
-        public void readNFCCardAsync(String callbackName) {
-            Log.d(TAG, "🔥🔥🔥 ASYNC NFC READ - Using ZCS SDK - Callback: " + callbackName);
+        public void registerNFCResultCallback(String callbackName) {
+            this.nfcResultCallbackName = callbackName;
+            Log.d(TAG, "✅ NFC Result Callback registered: " + callbackName);
+        }
+
+        @JavascriptInterface
+        public void readNFCCardAsync() {
+            Log.d(TAG, "🔥🔥🔥 ASYNC NFC READ - Using ZCS SDK - Callback: " + nfcResultCallbackName);
+
+            if (nfcResultCallbackName == null) {
+                Log.e(TAG, "❌ NFC Result Callback not registered. Cannot proceed.");
+                return;
+            }
 
             if (mExecutor == null || mRfCard == null) {
                 Log.e(TAG, "❌ ZCS SDK not properly initialized for NFC.");
@@ -398,7 +411,11 @@ public class MainActivityFinal extends AppCompatActivity {
                         .put("error", "ZCS SDK not initialized")
                         .toString();
                     
-                    runOnUiThread(() -> webView.evaluateJavascript(callbackName + "(" + errorResult + ");", null));
+                    final String finalErrorResult = errorResult;
+                    runOnUiThread(() -> {
+                        String jsCode = "try { " + nfcResultCallbackName + "(" + finalErrorResult + "); } catch (e) { console.error('JS callback error:', e); }";
+                        webView.evaluateJavascript(jsCode, null);
+                    });
                 } catch (Exception e) { /* ignore */ }
                 return;
             }
@@ -477,7 +494,7 @@ public class MainActivityFinal extends AppCompatActivity {
                 // Execute the JavaScript callback on the UI thread
                 final String finalResultJson = resultJson;
                 runOnUiThread(() -> {
-                    String jsCode = "try { " + callbackName + "(" + finalResultJson + "); } catch (e) { console.error('JS callback error:', e); }";
+                    String jsCode = "try { " + nfcResultCallbackName + "(" + finalResultJson + "); } catch (e) { console.error('JS callback error:', e); }";
                     webView.evaluateJavascript(jsCode, null);
                 });
             });
