@@ -371,27 +371,48 @@ public class MainActivityFinal extends AppCompatActivity {
         
         @JavascriptInterface
         public void showToast(String message) {
+            Log.d(TAG, "Received toast request: " + message);
+            final String finalMessage = message;
             runOnUiThread(() -> {
-                Toast.makeText(MainActivityFinal.this, message, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivityFinal.this, finalMessage, Toast.LENGTH_LONG).show();
             });
         }
-        
+
         @JavascriptInterface
         public String getBridgeVersion() {
             Log.d(TAG, "✅ getBridgeVersion() called successfully!");
-            return "v2.0-nfc-enabled";
+            return "v2.1-hotfix";
         }
-        
+
         @JavascriptInterface
         public String getAvailableMethods() {
             return "beep,showToast,readNFCCardSync,readNFCCardAsync,getBridgeVersion,getAvailableMethods";
         }
 
-        // Alias per compatibilità con JS
+        // Metodo beep robusto che accetta stringhe da JS
         @JavascriptInterface
-        public String readNFCCardSync() {
-            Log.d(TAG, "🔄 readNFCCardSync called - redirecting to readNFCCardAsync");
-            return readNFCCardAsync();
+        public void beep(String countStr, String durationStr) {
+            Log.d(TAG, "Beep called with count: " + countStr + ", duration: " + durationStr);
+            try {
+                int count = Integer.parseInt(countStr);
+                int duration = Integer.parseInt(durationStr);
+
+                if (mDriverManager != null) {
+                    com.zcs.sdk.Beeper beeper = mDriverManager.getBeeper();
+                    if (beeper != null) {
+                        new Thread(() -> {
+                            for (int i = 0; i < count; i++) {
+                                beeper.beep(4000, duration);
+                                if (i < count - 1) { // Pausa tra i beep
+                                    try { Thread.sleep(100); } catch (InterruptedException e) {}
+                                }
+                            }
+                        }).start();
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Beep error", e);
+            }
         }
 
         private String nfcResultCallbackName = null;
