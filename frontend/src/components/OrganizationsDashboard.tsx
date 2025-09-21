@@ -109,8 +109,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       console.log('📞 Chiamata readNFCCardAsync...');
       
       try {
-        // Chiamata al metodo asincrono senza parametri
-        bridge.readNFCCardAsync();
+        // Chiamata al metodo corretto passando il nome della callback globale
+        bridge.readNFCCard('omnilyNFCResultHandler');
         console.log('✅ Chiamata asincrona inviata. In attesa del risultato...');
         
       } catch (error) {
