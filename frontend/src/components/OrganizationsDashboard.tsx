@@ -109,10 +109,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       console.log('📞 Chiamata readNFCCardAsync...');
       
       try {
-        // Chiamata al metodo corretto passando il nome della callback globale
-        bridge.readNFCCard('omnilyNFCResultHandler');
-        console.log('✅ Chiamata asincrona inviata. In attesa del risultato...');
-        
+        // Prova prima i nuovi metodi, poi fallback al vecchio
+        if (bridge.readNFCCardAsync) {
+          console.log('📞 Usando readNFCCardAsync...');
+          bridge.readNFCCardAsync();
+        } else if (bridge.readNFCCardSync) {
+          console.log('📞 Usando readNFCCardSync...');
+          bridge.readNFCCardSync();
+        } else if (bridge.readNFCCard) {
+          console.log('📞 Usando readNFCCard (fallback)...');
+          bridge.readNFCCard('omnilyNFCResultHandler');
+        } else {
+          throw new Error('Nessun metodo NFC disponibile');
+        }
+        console.log('✅ Chiamata NFC inviata. In attesa del risultato...');
+
       } catch (error) {
         console.log('💥 Errore chiamata NFC:', error);
         bridge.showToast('💥 Errore sistema NFC', 2000);
