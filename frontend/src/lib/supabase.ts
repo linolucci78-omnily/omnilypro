@@ -46,9 +46,15 @@ export interface Customer {
   visits: number
   is_active: boolean
   notifications_enabled: boolean
+  referral_code?: string
+  referred_by?: string
+  marketing_consent?: boolean
+  privacy_consent?: boolean
+  signature_data?: string
+  privacy_signed_at?: string
+  last_visit?: string
   created_at: string
   updated_at: string
-  last_visit?: string
 }
 
 export interface NFCCard {

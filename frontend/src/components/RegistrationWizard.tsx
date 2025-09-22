@@ -866,9 +866,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       const customerData = {
         organization_id: organizationId,
         name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address ? `${formData.address}, ${formData.city} ${formData.zipCode}` : '',
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        address: formData.address ? `${formData.address}, ${formData.city} ${formData.zipCode}` : undefined,
         gender: formData.gender as 'male' | 'female',
         birth_date: formData.birthDate || undefined,
         points: 50,
@@ -877,6 +877,10 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         visits: 0,
         is_active: true,
         notifications_enabled: formData.marketingConsent,
+        marketing_consent: formData.marketingConsent,
+        privacy_consent: true, // Required to reach this point
+        signature_data: formData.signature,
+        privacy_signed_at: new Date().toISOString(),
         last_visit: undefined
       };
 
