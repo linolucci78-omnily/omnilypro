@@ -46,8 +46,12 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       checkBridgeVersion();
       // Caricamento automatico delle tessere all'apertura del pannello
       loadAssignedCards();
+      // Debug: log dei clienti ricevuti
+      console.log('🔍 CUSTOMERS DEBUG - Total customers:', customers.length);
+      console.log('🔍 CUSTOMERS DEBUG - Customers:', customers);
+      console.log('🔍 CUSTOMERS DEBUG - OrganizationId:', organizationId);
     }
-  }, [isOpen, organizationId]);
+  }, [isOpen, organizationId, customers]);
 
   const checkBridgeVersion = () => {
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
@@ -91,13 +95,16 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     // Definisce la funzione di callback sul window object per essere raggiungibile dal bridge Java
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS && isOpen) {
       (window as any).cardManagementNFCHandler = async (rawResult: string) => {
+        console.log('🔵 NFC CALLBACK TRIGGERED - Raw result:', rawResult);
+
         const result = JSON.parse(rawResult);
-        console.log('Card Management NFC Result:', result);
+        console.log('🔵 NFC CALLBACK - Parsed result:', result);
         setIsReading(false); // Ferma l'indicatore di caricamento
 
         // Il bridge Java disattiva automaticamente il lettore NFC dopo la lettura.
 
         if (result && result.success) {
+          console.log('✅ NFC SUCCESS - Card UID:', result.cardNo || result.rfUid);
           if ((window as any).OmnilyPOS.beep) {
             (window as any).OmnilyPOS.beep("1", "150");
           }
@@ -123,6 +130,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
               setShowReassignDialog(true);
             } else {
               setScannedCard({ id: '', uid: cardUID });
+              console.log('🔍 SWITCHING TO ASSIGN MODE - Customers available:', customers.length);
               setMode('assign');
             }
           } catch (error: any) {
@@ -134,6 +142,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
 
           onCardRead?.(result);
         } else {
+          console.log('❌ NFC FAILED - Error:', result?.error || 'Unknown error');
           if ((window as any).OmnilyPOS.beep) {
             (window as any).OmnilyPOS.beep("3", "50");
           }
@@ -142,6 +151,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
           }
         }
       };
+      console.log('📡 NFC Handler registered: cardManagementNFCHandler');
     }
 
     // Funzione di pulizia eseguita quando il componente viene smontato o il pannello si chiude
@@ -160,8 +170,11 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   }, [isOpen, organizationId, onCardRead]);
 
   const handleReadCard = () => {
+    console.log('🎯 handleReadCard called - isReading:', isReading);
+
     // Previene doppi click veloci
     if (busyRef.current) {
+      console.log('⚠️ Busy - ignoring click');
       return;
     }
     busyRef.current = true;
@@ -178,18 +191,21 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
 
     if (isReading) {
       // Se la lettura è già in corso, il secondo click la annulla
+      console.log('🛑 Stopping NFC reading...');
       bridge.stopNFCReading();
       setIsReading(false);
       if (bridge.showToast) {
         bridge.showToast('Lettura tessera annullata.');
       }
     } else {
+      console.log('🟢 Starting NFC reading...');
       setIsReading(true);
       setScannedCard(null);
       if (bridge.showToast) {
         bridge.showToast('Avvicina la tessera NFC...');
       }
       // Chiama il metodo del bridge per iniziare la lettura, passando il nome del callback globale
+      console.log('📡 Calling bridge.readNFCCard with callback: cardManagementNFCHandler');
       bridge.readNFCCard('cardManagementNFCHandler');
     }
 

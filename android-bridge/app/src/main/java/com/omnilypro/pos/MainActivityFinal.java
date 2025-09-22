@@ -281,12 +281,6 @@ public class MainActivityFinal extends AppCompatActivity {
 
             Log.d(TAG, "Processing NFC tag with ID: " + tagId);
 
-            // Reset reading state e DISATTIVA il NFC
-            if (bridge != null) {
-                bridge.setNFCReading(false);
-                bridge.disableNFCReading(); // DISATTIVA il NFC dopo lettura
-            }
-
             // Usa il callback salvato o fallback su omnilyNFCResultHandler
             final String callbackToUse = bridge.currentNFCCallback != null ? bridge.currentNFCCallback : "omnilyNFCResultHandler";
 
@@ -295,7 +289,20 @@ public class MainActivityFinal extends AppCompatActivity {
                 result.put("success", true);
                 result.put("cardNo", tagId);
                 result.put("rfUid", tagId);
+
+                // Prima invia il risultato al JavaScript
                 bridge.runJsCallback(callbackToUse, result.toString());
+
+                // Poi disabilita NFC con un piccolo delay per permettere al callback di completarsi
+                // Questo evita che onResume venga chiamato prima che il callback sia processato
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (bridge != null) {
+                        bridge.setNFCReading(false);
+                        bridge.disableNFCReading();
+                        Log.d(TAG, "NFC disabled after successful callback delivery");
+                    }
+                }, 100); // 100ms delay per permettere al JavaScript di processare il risultato
+
             } catch (Exception e) {
                 Log.e(TAG, "Error creating JSON success response", e);
             }
@@ -319,12 +326,6 @@ public class MainActivityFinal extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error processing NFC tag", e);
 
-            // Reset reading state on error e DISATTIVA il NFC
-            if (bridge != null) {
-                bridge.setNFCReading(false);
-                bridge.disableNFCReading(); // DISATTIVA il NFC anche in caso di errore
-            }
-
             // Usa il callback salvato o fallback su omnilyNFCResultHandler
             final String callbackToUse = bridge.currentNFCCallback != null ? bridge.currentNFCCallback : "omnilyNFCResultHandler";
 
@@ -333,8 +334,22 @@ public class MainActivityFinal extends AppCompatActivity {
                 result.put("success", false);
                 result.put("error", e.getMessage());
                 bridge.runJsCallback(callbackToUse, result.toString());
+
+                // Disabilita NFC anche in caso di errore, ma con delay
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (bridge != null) {
+                        bridge.setNFCReading(false);
+                        bridge.disableNFCReading();
+                        Log.d(TAG, "NFC disabled after error callback delivery");
+                    }
+                }, 100);
             } catch (Exception jsonError) {
                 Log.e(TAG, "Error creating JSON error response", jsonError);
+                // In caso di errore critico, disabilita comunque il NFC
+                if (bridge != null) {
+                    bridge.setNFCReading(false);
+                    bridge.disableNFCReading();
+                }
             }
 
             // Reset callback
@@ -400,7 +415,7 @@ public class MainActivityFinal extends AppCompatActivity {
         });
     }
 
-    public class OmnilyPOSBridge {
+    public class      OmnilyPOSBridge {
         private volatile boolean isNFCReading = false;
         public volatile boolean isNFCEnabled = false;
         private volatile String currentNFCCallback = null;
@@ -617,8 +632,22 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         private void runJsCallback(final String callbackName, final String result) {
+            Log.d(TAG, "🔴 runJsCallback called - callback: " + callbackName + ", result: " + result);
             if (callbackName != null && !callbackName.isEmpty()) {
-                runOnUiThread(() -> webView.evaluateJavascript(String.format("window.%s(%s)", callbackName, result), null));
+                runOnUiThread(() -> {
+                    Log.d(TAG, "🔴 About to call JavaScript callback: window." + callbackName);
+                    if (webView != null) {
+                        // Usa evaluateJavascript con una stringa JSON correttamente escapata
+                        String jsCode = String.format("window.%s('%s')", callbackName, result.replace("'", "\\'"));
+                        Log.d(TAG, "🔴 Executing JS code: " + jsCode);
+                        webView.evaluateJavascript(jsCode, null);
+                        Log.d(TAG, "🔴 JavaScript callback executed successfully");
+                    } else {
+                        Log.e(TAG, "🔴 WebView is null - cannot execute callback!");
+                    }
+                });
+            } else {
+                Log.e(TAG, "🔴 Callback name is null or empty!");
             }
         }
 
