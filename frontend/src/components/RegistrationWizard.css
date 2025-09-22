@@ -754,6 +754,38 @@
     transform: scale(1.05) !important;
   }
 
+  /* DEBUG PANEL - For POS troubleshooting */
+  .debug-panel {
+    background: #fef3c7 !important;
+    border: 2px solid #f59e0b !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    margin: 2rem 0 !important;
+  }
+
+  .debug-panel h4 {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 1rem !important;
+    color: #92400e !important;
+  }
+
+  .debug-messages {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+  }
+
+  .debug-message {
+    font-size: 1rem !important;
+    font-family: monospace !important;
+    padding: 8px 12px !important;
+    margin: 4px 0 !important;
+    background: white !important;
+    border-radius: 6px !important;
+    border: 1px solid #f3f4f6 !important;
+    color: #374151 !important;
+  }
+
   .checkbox-custom {
     width: 32px !important;
     height: 32px !important;

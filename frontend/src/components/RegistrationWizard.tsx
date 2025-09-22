@@ -39,7 +39,15 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [duplicateWarning, setDuplicateWarning] = useState('');
-  
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+
+  const addDebugInfo = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const debugMessage = `${timestamp}: ${message}`;
+    setDebugInfo(prev => [...prev.slice(-4), debugMessage]); // Keep last 5 messages
+    console.log(debugMessage);
+  };
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
@@ -262,12 +270,10 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     const canvas = canvasRef.current;
     if (canvas) {
       const signatureData = canvas.toDataURL();
-      console.log('✍️ Firma touch salvata:', signatureData ? 'presente' : 'vuota');
-      console.log('✍️ Signature data length:', signatureData?.length || 0);
-      console.log('✍️ Signature preview:', signatureData?.substring(0, 100) + '...');
+      const signatureLength = signatureData?.length || 0;
+      addDebugInfo(`✍️ FIRMA TOUCH: ${signatureLength} caratteri salvati`);
       setFormData(prev => {
         const newData = { ...prev, signature: signatureData };
-        console.log('✍️ FormData aggiornato con signature:', newData.signature?.length || 0);
         return newData;
       });
     }
@@ -800,12 +806,12 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                                   formData.signature.startsWith('data:image/');
 
         if (!hasValidSignature) {
-          console.log('❌ Signature mancante o vuota');
-          console.log('❌ Signature length:', formData.signature?.length || 0);
-          console.log('❌ Signature starts with data:', formData.signature?.startsWith('data:image/') || false);
+          const length = formData.signature?.length || 0;
+          const isValidFormat = formData.signature?.startsWith('data:image/') || false;
+          addDebugInfo(`❌ FIRMA INVALIDA: ${length} caratteri, formato OK: ${isValidFormat}`);
           newErrors.signature = 'Firma digitale richiesta - firmare nel riquadro bianco';
         } else {
-          console.log('✅ Signature valida, length:', formData.signature.length);
+          addDebugInfo(`✅ FIRMA VALIDA: ${formData.signature.length} caratteri`);
         }
         break;
     }
@@ -843,15 +849,12 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   };
 
   const handleSubmit = async () => {
-    console.log('🚀 Inizio registrazione cliente...');
-    console.log('📋 FormData completo prima validazione:', formData);
-    console.log('📋 Privacy consent:', formData.privacyConsent);
-    console.log('📋 Signature length:', formData.signature?.length || 0);
-    console.log('📋 Validazione step 4...');
+    addDebugInfo('🚀 INIZIO REGISTRAZIONE CLIENTE');
+    addDebugInfo(`📋 Privacy: ${formData.privacyConsent ? 'OK' : 'MANCANTE'}`);
+    addDebugInfo(`📋 Firma: ${formData.signature?.length || 0} caratteri`);
 
     if (!validateStep(4)) {
-      console.log('❌ Validazione fallita - controllare errori sopra');
-      console.log('❌ Errori attuali:', errors);
+      addDebugInfo('❌ VALIDAZIONE FALLITA - vedi errori sopra');
       return;
     }
 
@@ -1092,6 +1095,20 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               </div>
               {errors.signature && <span className="error-text">{errors.signature}</span>}
             </div>
+
+            {/* Debug Panel for POS - only show on step 4 */}
+            {window.innerWidth <= 1024 && debugInfo.length > 0 && (
+              <div className="debug-panel">
+                <h4>🔧 Debug Info (POS)</h4>
+                <div className="debug-messages">
+                  {debugInfo.map((info, index) => (
+                    <div key={index} className="debug-message">
+                      {info}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {formData.signature && formData.privacyConsent && (
               <div className="document-actions">
