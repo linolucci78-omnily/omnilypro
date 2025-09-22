@@ -527,56 +527,177 @@
   transform: translateY(-1px);
 }
 
-/* Responsive Design */
+/* POS Mode (Tablets and Touch Terminals) - PRIORITY RESPONSIVE */
+@media (max-width: 1024px) {
+  .wizard-modal {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .wizard-header {
+    padding: 2rem 3rem;
+    min-height: 100px;
+  }
+
+  .wizard-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .close-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  .wizard-progress {
+    padding: 2rem 3rem;
+    min-height: 120px;
+  }
+
+  .step-circle {
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    border-width: 4px;
+  }
+
+  .step-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .wizard-content {
+    padding: 3rem;
+    min-height: 500px;
+    font-size: 1.1rem;
+  }
+
+  .wizard-step-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-group label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 18px 24px;
+    font-size: 1.1rem;
+    min-height: 60px;
+    border-width: 3px;
+    border-radius: 12px;
+  }
+
+  .wizard-actions {
+    padding: 2rem 3rem;
+    min-height: 120px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    padding: 24px 40px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    min-height: 70px;
+    min-width: 200px;
+    border-radius: 12px;
+  }
+
+  .signature-canvas {
+    height: 250px;
+    border-width: 3px;
+  }
+
+  .clear-signature {
+    padding: 12px 20px;
+    font-size: 1rem;
+    min-height: 50px;
+    border-radius: 8px;
+  }
+
+  .checkbox-custom {
+    width: 28px;
+    height: 28px;
+    border-width: 3px;
+  }
+
+  .checkbox-label {
+    font-size: 1.1rem;
+    gap: 16px;
+  }
+
+  .error-text {
+    font-size: 1rem;
+  }
+
+  .duplicate-warning {
+    padding: 18px 24px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Mobile Phones */
 @media (max-width: 768px) {
   .wizard-modal {
-    width: 95%;
-    max-height: 95vh;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
   }
-  
+
   .wizard-header {
-    padding: 20px 24px;
+    padding: 1.5rem 2rem;
   }
-  
+
   .wizard-header h2 {
-    font-size: 20px;
+    font-size: 1.5rem;
   }
-  
+
   .wizard-progress {
-    padding: 24px 20px;
+    padding: 1.5rem 2rem;
   }
-  
+
   .step-circle {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
   }
-  
+
   .step-title {
-    font-size: 12px;
+    font-size: 0.9rem;
   }
-  
+
   .wizard-content {
-    padding: 24px 20px;
-    min-height: 300px;
+    padding: 2rem;
+    min-height: 400px;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .wizard-actions {
-    padding: 20px 24px;
+    padding: 1.5rem 2rem;
     flex-direction: column-reverse;
   }
-  
+
   .btn-primary,
   .btn-secondary,
   .btn-success {
     width: 100%;
+    min-height: 60px;
   }
-  
+
   .flex-spacer {
     display: none;
   }
