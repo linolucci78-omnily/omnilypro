@@ -51,6 +51,19 @@ export interface Customer {
   last_visit?: string
 }
 
+export interface NFCCard {
+  id: string
+  organization_id: string
+  uid: string
+  customer_id?: string
+  assigned_at?: string
+  created_at: string
+  updated_at: string
+  is_active: boolean
+  // Relazioni
+  customer?: Customer
+}
+
 // API functions
 export const organizationsApi = {
   // Get all organizations
@@ -284,6 +297,142 @@ export const customersApi = {
       female: all.filter(c => c.gender === 'female').length,
       active: all.filter(c => c.is_active).length,
       withNotifications: all.filter(c => c.notifications_enabled).length
+    }
+  }
+}
+
+// NFC Cards API
+export const nfcCardsApi = {
+  // Get all NFC cards for an organization
+  async getAll(organizationId: string): Promise<NFCCard[]> {
+    const { data, error } = await supabase
+      .from('nfc_cards')
+      .select(`
+        *,
+        customer:customers(*)
+      `)
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get NFC card by UID
+  async getByUID(organizationId: string, uid: string): Promise<NFCCard | null> {
+    const { data, error } = await supabase
+      .from('nfc_cards')
+      .select(`
+        *,
+        customer:customers(*)
+      `)
+      .eq('organization_id', organizationId)
+      .eq('uid', uid)
+      .eq('is_active', true)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows found
+    return data
+  },
+
+  // Create new NFC card
+  async create(cardData: {
+    organization_id: string
+    uid: string
+    customer_id?: string
+  }): Promise<NFCCard> {
+    const { data, error } = await supabase
+      .from('nfc_cards')
+      .insert([{
+        ...cardData,
+        assigned_at: cardData.customer_id ? new Date().toISOString() : null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_active: true
+      }])
+      .select(`
+        *,
+        customer:customers(*)
+      `)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Assign card to customer
+  async assignToCustomer(cardId: string, customerId: string): Promise<NFCCard> {
+    const { data, error } = await supabase
+      .from('nfc_cards')
+      .update({
+        customer_id: customerId,
+        assigned_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', cardId)
+      .select(`
+        *,
+        customer:customers(*)
+      `)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Reassign card to different customer
+  async reassignToCustomer(cardId: string, customerId: string): Promise<NFCCard> {
+    return this.assignToCustomer(cardId, customerId)
+  },
+
+  // Unassign card from customer
+  async unassign(cardId: string): Promise<NFCCard> {
+    const { data, error } = await supabase
+      .from('nfc_cards')
+      .update({
+        customer_id: null,
+        assigned_at: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', cardId)
+      .select(`
+        *,
+        customer:customers(*)
+      `)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Deactivate card (soft delete)
+  async deactivate(cardId: string): Promise<void> {
+    const { error } = await supabase
+      .from('nfc_cards')
+      .update({
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', cardId)
+
+    if (error) throw error
+  },
+
+  // Get card statistics
+  async getStats(organizationId: string) {
+    const { data: all, error } = await supabase
+      .from('nfc_cards')
+      .select('id, customer_id, created_at')
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+
+    if (error) throw error
+
+    return {
+      total: all.length,
+      assigned: all.filter(c => c.customer_id).length,
+      unassigned: all.filter(c => !c.customer_id).length
     }
   }
 }
