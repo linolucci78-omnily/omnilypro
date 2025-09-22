@@ -69,7 +69,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   // Setup NFC callback
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-      (window as any).cardManagementNFCHandler = (result: any) => {
+      (window as any).cardManagementNFCHandler = async (result: any) => {
         console.log('Card Management NFC Result:', result);
         setIsReading(false);
 
