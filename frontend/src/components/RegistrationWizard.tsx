@@ -181,8 +181,13 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     const canvas = canvasRef.current;
     if (canvas) {
       const signatureData = canvas.toDataURL();
-      console.log('✍️ Firma salvata:', signatureData ? 'presente' : 'vuota');
-      setFormData(prev => ({ ...prev, signature: signatureData }));
+      console.log('✍️ Firma mouse salvata:', signatureData ? 'presente' : 'vuota');
+      console.log('✍️ Mouse signature data length:', signatureData?.length || 0);
+      setFormData(prev => {
+        const newData = { ...prev, signature: signatureData };
+        console.log('✍️ FormData aggiornato con mouse signature:', newData.signature?.length || 0);
+        return newData;
+      });
     }
   };
 
@@ -258,7 +263,13 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     if (canvas) {
       const signatureData = canvas.toDataURL();
       console.log('✍️ Firma touch salvata:', signatureData ? 'presente' : 'vuota');
-      setFormData(prev => ({ ...prev, signature: signatureData }));
+      console.log('✍️ Signature data length:', signatureData?.length || 0);
+      console.log('✍️ Signature preview:', signatureData?.substring(0, 100) + '...');
+      setFormData(prev => {
+        const newData = { ...prev, signature: signatureData };
+        console.log('✍️ FormData aggiornato con signature:', newData.signature?.length || 0);
+        return newData;
+      });
     }
   };
 
@@ -783,9 +794,18 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           console.log('❌ Privacy consent mancante');
           newErrors.privacyConsent = 'Consenso privacy obbligatorio';
         }
-        if (!formData.signature || !formData.signature.trim()) {
+        // Controllo firma più intelligente - un canvas vuoto ha circa 2000-3000 caratteri
+        const hasValidSignature = formData.signature &&
+                                  formData.signature.length > 5000 &&
+                                  formData.signature.startsWith('data:image/');
+
+        if (!hasValidSignature) {
           console.log('❌ Signature mancante o vuota');
-          newErrors.signature = 'Firma digitale richiesta';
+          console.log('❌ Signature length:', formData.signature?.length || 0);
+          console.log('❌ Signature starts with data:', formData.signature?.startsWith('data:image/') || false);
+          newErrors.signature = 'Firma digitale richiesta - firmare nel riquadro bianco';
+        } else {
+          console.log('✅ Signature valida, length:', formData.signature.length);
         }
         break;
     }
@@ -824,10 +844,14 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
   const handleSubmit = async () => {
     console.log('🚀 Inizio registrazione cliente...');
+    console.log('📋 FormData completo prima validazione:', formData);
+    console.log('📋 Privacy consent:', formData.privacyConsent);
+    console.log('📋 Signature length:', formData.signature?.length || 0);
     console.log('📋 Validazione step 4...');
-    
+
     if (!validateStep(4)) {
-      console.log('❌ Validazione fallita');
+      console.log('❌ Validazione fallita - controllare errori sopra');
+      console.log('❌ Errori attuali:', errors);
       return;
     }
 
