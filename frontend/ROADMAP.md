@@ -40,6 +40,183 @@
 
 ---
 
+## 🎨 **STANDARD GRAFICI E UI/UX (CRITICI)**
+
+### **📐 Sistema di Visualizzazione Doppia (OBBLIGATORIO)**
+
+**⚠️ REGOLA FONDAMENTALE**: Ogni componente DEVE supportare due modalità di visualizzazione senza duplicazione del codice:
+
+#### **🖥️ Modalità Web (Desktop)**
+- **Larghezza**: Componenti dimensionati per schermi desktop
+- **Sidebar**: 400px per slide panel
+- **Font Size**: Standard (1rem base)
+- **Padding**: Dimensioni desktop-friendly
+- **Interazione**: Mouse e keyboard
+
+#### **📱 Modalità POS (Terminale Touch)**
+- **Larghezza**: 100vw per massima visibilità
+- **Sidebar**: Full screen per terminali POS
+- **Font Size**: Aumentato per leggibilità (1.1-2.25rem)
+- **Padding**: Dimensioni touch-friendly (min 60px height)
+- **Interazione**: Touch ottimizzato
+
+### **🔧 Implementazione Standard**
+
+#### **CSS Media Queries Obbligatorie:**
+```css
+/* Desktop: Componente normale */
+.component-name {
+  width: 400px;
+  font-size: 1rem;
+  padding: 1rem;
+}
+
+/* POS/Tablet: Full width e touch-friendly */
+@media (max-width: 1024px) {
+  .component-name {
+    width: 100vw;
+    font-size: 1.1rem;
+    padding: 1.5rem;
+    min-height: 60px;
+  }
+}
+
+/* Mobile: Ottimizzazioni aggiuntive */
+@media (max-width: 768px) {
+  .component-name {
+    width: 100vw;
+  }
+}
+```
+
+#### **React Props Pattern Obbligatorio:**
+```jsx
+// ❌ SBAGLIATO - Due componenti separati
+const WebComponent = () => { /* ... */ };
+const POSComponent = () => { /* ... */ };
+
+// ✅ CORRETTO - Un componente responsive
+const UniversalComponent = () => {
+  return (
+    <div className={`component ${isPOSMode ? 'pos-mode' : ''}`}>
+      {/* Content responsive */}
+    </div>
+  );
+};
+```
+
+### **🎯 Riferimenti Standard (CustomerSlidePanel)**
+
+**TUTTI i nuovi componenti slide panel devono copiare ESATTAMENTE:**
+
+#### **Dimensioni Base:**
+```css
+/* IDENTICO per tutti i slide panel */
+.slide-panel {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  height: 100vh;
+  width: 400px; /* Desktop */
+}
+
+@media (max-width: 1024px) {
+  .slide-panel {
+    width: 100vw; /* POS */
+    right: -100vw;
+  }
+}
+```
+
+#### **Animazioni e Transizioni:**
+```css
+/* IDENTICO per coerenza */
+.slide-panel {
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(20px);
+}
+
+.slide-panel.open {
+  right: 0;
+}
+```
+
+#### **Header Layout:**
+```css
+/* IDENTICO - rosso Omnily con gradiente */
+.panel-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  padding: 2.5rem 2rem;
+  min-height: 120px; /* POS */
+}
+```
+
+### **🚫 Errori Comuni da Evitare**
+
+#### **❌ VIETATO - Duplicazione Codice:**
+```jsx
+// Mai fare componenti separati
+if (isPOSMode) {
+  return <POSVersion />;
+} else {
+  return <WebVersion />;
+}
+```
+
+#### **❌ VIETATO - Hard-coded Dimensioni:**
+```css
+/* Mai dimensioni fisse */
+.component {
+  width: 500px; /* ❌ Non responsive */
+}
+```
+
+#### **❌ VIETATO - Emoji nel Codice Produzione:**
+```jsx
+// Solo icone Lucide professionali
+<CreditCard size={18} /> // ✅ Corretto
+<span>📱</span> // ❌ Vietato
+```
+
+### **✅ Checklist Validazione Componente**
+
+Prima di committare OGNI nuovo componente UI:
+
+- [ ] **Responsive**: Funziona su desktop E POS
+- [ ] **Dimensioni**: Identiche al CustomerSlidePanel se slide panel
+- [ ] **Media Queries**: @media (max-width: 1024px) implementata
+- [ ] **Touch-friendly**: Pulsanti min 60px height su POS
+- [ ] **Font Scaling**: Testi leggibili su terminali POS
+- [ ] **Icone**: Solo Lucide React, zero emoji
+- [ ] **Brand Colors**: Rosso Omnily (#ef4444) per coerenza
+- [ ] **Animazioni**: Transizioni fluide e professionali
+
+### **🔄 Workflow di Review**
+
+1. **Sviluppo**: Testa su entrambe le modalità
+2. **Desktop Check**: Verifica dimensioni 400px sidebar
+3. **POS Check**: Verifica full-width e touch usability
+4. **Consistency Check**: Confronta con CustomerSlidePanel
+5. **Performance Check**: Nessun re-render inutile
+6. **Commit**: Solo se passa tutti i check
+
+### **📚 Pattern di Riferimento Approvati**
+
+#### **CustomerSlidePanel.tsx + .css**
+- ✅ **Dimensioni**: Desktop 400px, POS 100vw
+- ✅ **Responsive**: Media queries perfette
+- ✅ **Animazioni**: Cubic-bezier smooth
+- ✅ **Touch-friendly**: Pulsanti grandi per POS
+
+#### **CardManagementPanel.tsx + .css**
+- ✅ **Implementazione**: Copia esatta CustomerSlidePanel
+- ✅ **Validato**: Standard di visualizzazione doppia
+- ✅ **Approvato**: Riferimento per nuovi componenti
+
+**🎯 OBIETTIVO**: Zero duplicazione codice, massima coerenza UI, esperienza ottimale su web E POS.
+
+---
+
 ## 🚀 **FASE 0: SETUP INIZIALE ACCOUNT PULITI (Settimana 0)**
 
 ### ✅ **COMPLETATO 30 Agosto 2024 - Repository GitHub Setup**

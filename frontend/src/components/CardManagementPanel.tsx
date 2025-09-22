@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings } from 'lucide-react';
-import type { Customer } from '../lib/supabase';
+import type { Customer, NFCCard } from '../lib/supabase';
+import { nfcCardsApi } from '../lib/supabase';
 import './CardManagementPanel.css';
 
 interface CardData {
@@ -14,6 +15,7 @@ interface CardManagementPanelProps {
   isOpen: boolean;
   onClose: () => void;
   customers: Customer[];
+  organizationId: string;
   onAssignCard?: (cardId: string, customerId: string) => void;
   onReassignCard?: (cardId: string, customerId: string) => void;
   onCardRead?: (cardData: any) => void;
@@ -23,6 +25,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   isOpen,
   onClose,
   customers,
+  organizationId,
   onAssignCard,
   onReassignCard,
   onCardRead
@@ -33,20 +36,30 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
-  const [assignedCards, setAssignedCards] = useState<CardData[]>([
-    {
-      id: '1',
-      uid: 'A1B2C3D4E5F6',
-      assignedTo: customers[0],
-      assignedAt: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: '2',
-      uid: 'F6E5D4C3B2A1',
-      assignedTo: customers[1],
-      assignedAt: '2024-01-20T14:20:00Z'
+  const [assignedCards, setAssignedCards] = useState<NFCCard[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Carica tessere esistenti quando il pannello si apre
+  useEffect(() => {
+    if (isOpen && organizationId) {
+      loadAssignedCards();
     }
-  ]);
+  }, [isOpen, organizationId]);
+
+  const loadAssignedCards = async () => {
+    try {
+      setLoading(true);
+      const cards = await nfcCardsApi.getAll(organizationId);
+      setAssignedCards(cards);
+    } catch (error) {
+      console.error('Errore caricamento tessere:', error);
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        (window as any).OmnilyPOS.showToast('Errore caricamento tessere');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,19 +74,36 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
         setIsReading(false);
 
         if (result && result.success) {
-          const cardData: CardData = {
-            id: Date.now().toString(),
-            uid: result.cardNo || result.rfUid,
-          };
+          const cardUID = result.cardNo || result.rfUid;
 
-          // Check if card is already assigned
-          const existingCard = assignedCards.find(card => card.uid === cardData.uid);
+          try {
+            // Controlla se la tessera esiste già in Supabase per questa organizzazione
+            const existingCard = await nfcCardsApi.getByUID(organizationId, cardUID);
 
-          if (existingCard) {
-            setScannedCard({ ...cardData, assignedTo: existingCard.assignedTo });
-            setShowReassignDialog(true);
-          } else {
-            setScannedCard(cardData);
+            if (existingCard) {
+              // Tessera già assegnata
+              setScannedCard({
+                id: existingCard.id,
+                uid: existingCard.uid,
+                assignedTo: existingCard.customer,
+                assignedAt: existingCard.assigned_at
+              });
+              setShowReassignDialog(true);
+            } else {
+              // Tessera nuova, non ancora nel database
+              setScannedCard({
+                id: '', // Sarà generato da Supabase
+                uid: cardUID
+              });
+              setMode('assign');
+            }
+          } catch (error) {
+            console.error('Errore controllo tessera esistente:', error);
+            // Fallback: tratta come tessera nuova
+            setScannedCard({
+              id: '',
+              uid: cardUID
+            });
             setMode('assign');
           }
 
@@ -116,36 +146,62 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     }
   };
 
-  const handleAssignCard = (customer: Customer) => {
-    if (scannedCard) {
-      const newCard: CardData = {
-        ...scannedCard,
-        assignedTo: customer,
-        assignedAt: new Date().toISOString()
-      };
+  const handleAssignCard = async (customer: Customer) => {
+    if (!scannedCard) return;
 
-      setAssignedCards(prev => [...prev, newCard]);
-      onAssignCard?.(scannedCard.id, customer.id);
+    try {
+      setLoading(true);
+
+      let cardResult: NFCCard;
+
+      if (scannedCard.id) {
+        // Tessera esistente - solo assegna al nuovo cliente
+        cardResult = await nfcCardsApi.assignToCustomer(scannedCard.id, customer.id);
+      } else {
+        // Tessera nuova - crea e assegna
+        cardResult = await nfcCardsApi.create({
+          organization_id: organizationId,
+          uid: scannedCard.uid,
+          customer_id: customer.id
+        });
+      }
+
+      // Ricarica la lista delle tessere
+      await loadAssignedCards();
+
+      // Notifica il parent component
+      onAssignCard?.(cardResult.id, customer.id);
 
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
         (window as any).OmnilyPOS.showToast(`Tessera assegnata a ${customer.name}`);
       }
 
       setScannedCard(null);
-      setMode('read');
+      setMode('list'); // Mostra la lista delle tessere dopo l'assegnazione
+
+    } catch (error) {
+      console.error('Errore assegnazione tessera:', error);
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        (window as any).OmnilyPOS.showToast('Errore assegnazione tessera');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReassignCard = (customer: Customer) => {
-    if (scannedCard) {
-      setAssignedCards(prev =>
-        prev.map(card =>
-          card.uid === scannedCard.uid
-            ? { ...card, assignedTo: customer, assignedAt: new Date().toISOString() }
-            : card
-        )
-      );
+  const handleReassignCard = async (customer: Customer) => {
+    if (!scannedCard?.id) return;
 
+    try {
+      setLoading(true);
+
+      // Riassegna tessera al nuovo cliente
+      await nfcCardsApi.reassignToCustomer(scannedCard.id, customer.id);
+
+      // Ricarica la lista delle tessere
+      await loadAssignedCards();
+
+      // Notifica il parent component
       onReassignCard?.(scannedCard.id, customer.id);
 
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
@@ -154,7 +210,15 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
 
       setShowReassignDialog(false);
       setScannedCard(null);
-      setMode('read');
+      setMode('list'); // Mostra la lista delle tessere dopo la riassegnazione
+
+    } catch (error) {
+      console.error('Errore riassegnazione tessera:', error);
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        (window as any).OmnilyPOS.showToast('Errore riassegnazione tessera');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -248,22 +312,34 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
                   </div>
                 ) : (
                   <div className="cards-list">
-                    {assignedCards.map((card, index) => (
+                    {loading ? (
+                      <div className="loading-state">
+                        <Settings size={32} className="spinning" />
+                        <p>Caricamento tessere...</p>
+                      </div>
+                    ) : assignedCards.map((card, index) => (
                       <div key={index} className="assigned-card-item">
                         <div className="card-info">
                           <div className="card-uid">
                             <CreditCard size={20} />
                             <span>UID: {card.uid}</span>
                           </div>
-                          {card.assignedTo && (
+                          {card.customer && (
                             <div className="assigned-customer">
                               <Users size={16} />
-                              <span>{card.assignedTo.name}</span>
+                              <span>{card.customer.name}</span>
+                              <span className="customer-email">({card.customer.email})</span>
                             </div>
                           )}
-                          {card.assignedAt && (
+                          {card.assigned_at && (
                             <div className="assigned-date">
-                              Assegnata: {new Date(card.assignedAt).toLocaleDateString('it-IT')}
+                              Assegnata: {new Date(card.assigned_at).toLocaleDateString('it-IT')}
+                            </div>
+                          )}
+                          {!card.customer && (
+                            <div className="unassigned-status">
+                              <AlertTriangle size={16} />
+                              <span>Non assegnata</span>
                             </div>
                           )}
                         </div>

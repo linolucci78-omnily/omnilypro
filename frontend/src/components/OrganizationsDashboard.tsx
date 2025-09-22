@@ -53,18 +53,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [nfcResult, setNfcResult] = useState<any>(null);
 
-  // NFC Card Reading function
+  // NFC Card Reading function - SOLO PER DASHBOARD (non CardManagementPanel)
   // Define the global callback function
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
-      
-      // Register the callback with Java
+
+      // Register the callback with Java SOLO per il dashboard normale
       if (bridge.registerNFCResultCallback) {
         (window as any).omnilyNFCResultHandler = (result: any) => {
-          console.log('📱 Risultato lettura NFC (da callback persistente):', result);
+          console.log('📱 Risultato lettura NFC (da dashboard):', result);
           setNfcResult(result);
-          
+
           if (result && result.success) {
             console.log('✅ Carta NFC letta:', result.cardNo);
             setNfcStatus('success');
@@ -77,8 +77,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             bridge.showToast('❌ Errore lettura tessera');
           }
         };
-        bridge.registerNFCResultCallback('omnilyNFCResultHandler');
-        console.log("✅ NFC Result Callback 'omnilyNFCResultHandler' registered with Java.");
+        // NON registriamo automaticamente il callback - solo quando richiesto
+        console.log("✅ NFC callback defined but not auto-registered");
       } else {
         console.warn('⚠️ registerNFCResultCallback not found on bridge. Using fallback.');
       }
@@ -136,10 +136,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Card Management Panel states
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
-  const [cardManagementMode, setCardManagementMode] = useState<'read' | 'assign' | 'reassign'>('read')
-  const [scannedCard, setScannedCard] = useState<any>(null)
-  const [assignedCards, setAssignedCards] = useState<any[]>([])
-  const [showReassignDialog, setShowReassignDialog] = useState(false)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -859,17 +855,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         isOpen={showCardManagementPanel}
         onClose={() => setShowCardManagementPanel(false)}
         customers={customers}
+        organizationId={organizations.length > 0 ? organizations[0].id : "00000000-0000-0000-0000-000000000000"}
         onAssignCard={(cardId, customerId) => {
-          console.log(`Assegna tessera ${cardId} al cliente ${customerId}`);
-          // Implementare logica di assegnazione
+          console.log(`Tessera ${cardId} assegnata al cliente ${customerId}`);
+          // Le tessere sono ora gestite direttamente in Supabase
         }}
         onReassignCard={(cardId, customerId) => {
-          console.log(`Riassegna tessera ${cardId} al cliente ${customerId}`);
-          // Implementare logica di riassegnazione
+          console.log(`Tessera ${cardId} riassegnata al cliente ${customerId}`);
+          // Le tessere sono ora gestite direttamente in Supabase
         }}
         onCardRead={(cardData) => {
           console.log('Tessera letta:', cardData);
-          // Gestire evento lettura tessera
+          // Le tessere sono ora gestite direttamente in Supabase
         }}
       />
     </div>
