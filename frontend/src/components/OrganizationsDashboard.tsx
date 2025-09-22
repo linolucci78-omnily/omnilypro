@@ -261,33 +261,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     try {
       setLoading(true)
 
-      // TEMPORANEO: Dati mock per testare il POS
-      const mockData = [
-        {
-          id: '1',
-          name: 'OMNILY Demo Store',
-          slug: 'demo-store',
-          domain: 'demo.omnily.it',
-          plan_type: 'pro',
-          plan_status: 'active',
-          max_customers: 1000,
-          max_workflows: 10,
-          logo_url: null,
-          primary_color: '#ef4444',
-          secondary_color: '#dc2626',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          pos_enabled: true,
-          pos_model: 'ZCS-Z108'
-        }
-      ]
+      // Carica organizzazioni reali dal database
+      const realOrganizations = await organizationsApi.getAll()
 
-      // Usa dati mock invece di chiamare l'API
-      setOrganizations(mockData)
+      setOrganizations(realOrganizations)
       setError(null)
+
+      console.log(`✅ Caricate ${realOrganizations.length} organizzazioni reali dal database`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nel caricamento')
+      console.error('❌ Errore nel caricamento organizzazioni:', err)
+      setError(err instanceof Error ? err.message : 'Errore nel caricamento organizzazioni')
     } finally {
       setLoading(false)
     }
@@ -297,54 +280,30 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     try {
       setCustomersLoading(true)
 
-      // TEMPORANEO: Dati mock per clienti
-      const mockCustomers = [
-        {
-          id: '1',
-          organization_id: '1',
-          name: 'Mario Rossi',
-          email: 'mario.rossi@email.it',
-          phone: '+39 333 1234567',
-          gender: 'male' as const,
-          points: 120,
-          tier: 'Bronzo' as const,
-          total_spent: 450.50,
-          visits: 8,
-          is_active: true,
-          notifications_enabled: true,
-          created_at: '2024-01-15T10:30:00Z',
-          updated_at: '2024-01-20T15:45:00Z'
-        },
-        {
-          id: '2',
-          organization_id: '1',
-          name: 'Giulia Bianchi',
-          email: 'giulia.bianchi@email.it',
-          phone: '+39 349 7654321',
-          gender: 'female' as const,
-          points: 280,
-          tier: 'Argento' as const,
-          total_spent: 750.25,
-          visits: 15,
-          is_active: true,
-          notifications_enabled: false,
-          created_at: '2024-01-10T09:15:00Z',
-          updated_at: '2024-01-22T11:20:00Z'
-        }
-      ]
+      // Usa l'organization ID dalla prima organization (in un app reale, dovresti gestire l'organization attiva)
+      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
 
-      const mockStats = {
-        total: 145,
-        male: 78,
-        female: 67,
-        withNotifications: 98
+      // Carica clienti reali dal database
+      const realCustomers = await customersApi.getAll(organizationId)
+      const realStats = await customersApi.getStats(organizationId)
+
+      setCustomers(realCustomers)
+      setCustomerStats(realStats)
+
+      console.log(`✅ Caricati ${realCustomers.length} clienti reali per organization ${organizationId}`)
+    } catch (err) {
+      console.error('❌ Errore nel caricamento clienti dal database:', err)
+
+      // In caso di errore, mostra un messaggio più utile
+      if (err instanceof Error) {
+        setError(`Errore caricamento clienti: ${err.message}`)
+      } else {
+        setError('Errore sconosciuto nel caricamento clienti')
       }
 
-      setCustomers(mockCustomers)
-      setCustomerStats(mockStats)
-    } catch (err) {
-      console.error('Errore nel caricamento clienti:', err)
-      // In caso di errore, non impostiamo errore generale ma solo log
+      // Fallback con dati vuoti invece che mock
+      setCustomers([])
+      setCustomerStats({ total: 0, male: 0, female: 0, withNotifications: 0 })
     } finally {
       setCustomersLoading(false)
     }
@@ -352,10 +311,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   const handleQRScan = () => {
     alert('Simulazione: Scansione QR code avviata...');
-  };
-
-  const handleNFCScan = () => {
-    alert('Simulazione: Lettura tessera NFC avviata...');
   };
 
   const sidebarItems = [
@@ -599,7 +554,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             <RegistrationWizard
               isOpen={showRegistrationWizard}
               onClose={() => setShowRegistrationWizard(false)}
-              organizationId="c06a8dcf-b209-40b1-92a5-c80facf2eb29"
+              organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
               onCustomerCreated={fetchCustomers}
             />
           </div>
@@ -908,7 +863,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         isOpen={showCardManagementPanel}
         onClose={() => setShowCardManagementPanel(false)}
         customers={customers}
-        organizationId="c06a8dcf-b209-40b1-92a5-c80facf2eb29"
+        organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
         onAssignCard={(cardId, customerId) => {
           console.log(`Tessera ${cardId} assegnata al cliente ${customerId}`);
           // Le tessere sono ora gestite direttamente in Supabase
