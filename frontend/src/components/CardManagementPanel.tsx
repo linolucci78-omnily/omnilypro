@@ -86,22 +86,33 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Setup NFC callback SOLO quando il pannello è aperto
   useEffect(() => {
+    // Definisce la funzione di callback sul window object per essere raggiungibile dal bridge Java
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS && isOpen) {
-      (window as any).cardManagementNFCHandler = async (result: any) => {
+      (window as any).cardManagementNFCHandler = async (rawResult: string) => {
+        const result = JSON.parse(rawResult);
         console.log('Card Management NFC Result:', result);
-        setIsReading(false);
+        setIsReading(false); // Ferma l'indicatore di caricamento
+
+        // Il bridge Java disattiva automaticamente il lettore NFC dopo la lettura.
 
         if (result && result.success) {
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("1", "150");
+          }
+
           const cardUID = result.cardNo || result.rfUid;
+          if (!cardUID) {
+            console.error("UID della tessera non trovato nel risultato.");
+            if ((window as any).OmnilyPOS.showToast) {
+              (window as any).OmnilyPOS.showToast('Errore: UID non letto.');
+            }
+            return;
+          }
 
           try {
-            // Controlla se la tessera esiste già in Supabase per questa organizzazione
             const existingCard = await nfcCardsApi.getByUID(organizationId, cardUID);
-
             if (existingCard) {
-              // Tessera già assegnata
               setScannedCard({
                 id: existingCard.id,
                 uid: existingCard.uid,
@@ -110,122 +121,70 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
               });
               setShowReassignDialog(true);
             } else {
-              // Tessera nuova, non ancora nel database
-              setScannedCard({
-                id: '', // Sarà generato da Supabase
-                uid: cardUID
-              });
+              setScannedCard({ id: '', uid: cardUID });
               setMode('assign');
             }
           } catch (error) {
             console.error('Errore controllo tessera esistente:', error);
-            // Fallback: tratta come tessera nuova
-            setScannedCard({
-              id: '',
-              uid: cardUID
-            });
+            setScannedCard({ id: '', uid: cardUID });
             setMode('assign');
           }
 
           onCardRead?.(result);
-
-          if ((window as any).OmnilyPOS.beep) {
-            (window as any).OmnilyPOS.beep("1", "150");
-          }
         } else {
           if ((window as any).OmnilyPOS.beep) {
             (window as any).OmnilyPOS.beep("3", "50");
           }
           if ((window as any).OmnilyPOS.showToast) {
-            (window as any).OmnilyPOS.showToast('Errore lettura tessera');
+            (window as any).OmnilyPOS.showToast(result?.error || 'Lettura fallita o annullata');
           }
         }
       };
     }
 
-    // CLEANUP quando il pannello si chiude
+    // Funzione di pulizia eseguita quando il componente viene smontato o il pannello si chiude
     return () => {
-      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      if (typeof window !== 'undefined') {
         const bridge = (window as any).OmnilyPOS;
-
-        // Disregistra SEMPRE il callback quando il componente si smonta
-        if (bridge.unregisterNFCResultCallback) {
-          bridge.unregisterNFCResultCallback('cardManagementNFCHandler');
-          console.log("🧹 CLEANUP: NFC callback DISREGISTRATO per CardManagement");
-        }
-
-        // Ferma la lettura se in corso
-        if (bridge.stopNFCReading) {
+        if (bridge && bridge.stopNFCReading) {
+          // Ferma esplicitamente la lettura se era in corso
           bridge.stopNFCReading();
-          console.log("🧹 CLEANUP: Lettura NFC fermata");
+          console.log("🧹 CLEANUP: Lettura NFC fermata e callback rimosso.");
         }
-
-        // Rimuovi la funzione globale
+        // Rimuove la funzione globale per evitare memory leak
         delete (window as any).cardManagementNFCHandler;
-        console.log("🧹 CLEANUP: Callback function rimossa");
       }
     };
-  }, [isOpen, assignedCards, onCardRead]);
+  }, [isOpen, organizationId, onCardRead]);
 
   const handleReadCard = () => {
+    const bridge = (window as any).OmnilyPOS;
+    if (!bridge || !bridge.readNFCCard) {
+      console.error("Metodo 'readNFCCard' non trovato sul bridge. L'app Android è aggiornata?");
+      if (bridge?.showToast) {
+        bridge.showToast("Errore: Funzione NFC non trovata. Aggiornare l'app.");
+      }
+      return;
+    }
+
     if (isReading) {
-      // Annulla lettura
+      // Se la lettura è già in corso, il secondo click la annulla
+      bridge.stopNFCReading();
       setIsReading(false);
-      setScannedCard(null);
-
-      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        const bridge = (window as any).OmnilyPOS;
-
-        // Disregistra il callback per fermare il bridge
-        if (bridge.unregisterNFCResultCallback) {
-          bridge.unregisterNFCResultCallback('cardManagementNFCHandler');
-          console.log("❌ NFC callback DISREGISTRATO per CardManagement");
-        }
-
-        // Ferma il lettore se possibile
-        if (bridge.stopNFCReading) {
-          bridge.stopNFCReading();
-          console.log("🛑 Lettura NFC fermata");
-        }
-
-        if (bridge.showToast) {
-          bridge.showToast('Lettura tessera annullata');
-        }
+      if (bridge.showToast) {
+        bridge.showToast('Lettura tessera annullata.');
       }
       return;
     }
 
     setIsReading(true);
     setScannedCard(null);
-
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-      const bridge = (window as any).OmnilyPOS;
-
-      try {
-        // Registra il callback SOLO ora
-        if (bridge.registerNFCResultCallback) {
-          bridge.registerNFCResultCallback('cardManagementNFCHandler');
-          console.log("✅ NFC callback registrato per CardManagement");
-        }
-
-        // Usa readNFCCardAsync per consistency
-        if (bridge.readNFCCardAsync) {
-          bridge.readNFCCardAsync();
-        } else {
-          bridge.readNFCCard('cardManagementNFCHandler');
-        }
-
-        if (bridge.showToast) {
-          bridge.showToast('Avvicina la tessera NFC - Premi di nuovo per annullare');
-        }
-      } catch (error) {
-        console.error('NFC Error:', error);
-        setIsReading(false);
-        if (bridge.showToast) {
-          bridge.showToast('Errore sistema NFC');
-        }
-      }
+    if (bridge.showToast) {
+      bridge.showToast('Avvicina la tessera NFC...');
     }
+
+    // Chiama il metodo del bridge per iniziare la lettura, passando il nome del callback globale
+    bridge.readNFCCard('cardManagementNFCHandler');
   };
 
   const handleAssignCard = async (customer: Customer) => {
