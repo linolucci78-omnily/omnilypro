@@ -105,18 +105,27 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Dimensioni fisse più grandi
-    canvas.width = 600;
-    canvas.height = 200;
-    
-    canvas.style.width = '100%';
-    canvas.style.height = '200px';
-    
+    // Detect POS mode for larger canvas
+    const isPOSMode = window.innerWidth <= 1024;
+
+    // Dimensioni dinamiche basate sulla modalità
+    if (isPOSMode) {
+      canvas.width = 800;
+      canvas.height = 400;
+      canvas.style.width = '100%';
+      canvas.style.height = '400px';
+    } else {
+      canvas.width = 600;
+      canvas.height = 200;
+      canvas.style.width = '100%';
+      canvas.style.height = '200px';
+    }
+
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 3;
-    
+    ctx.lineWidth = isPOSMode ? 5 : 3; // Linea più spessa per POS
+
     // Sfondo bianco
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -190,31 +199,67 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     }
   };
 
-  // Supporto touch per mobile
+  // Supporto touch ottimizzato per POS
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+
     const touch = e.touches[0];
-    const mouseEvent = new MouseEvent('mousedown', {
-      clientX: touch.clientX,
-      clientY: touch.clientY
-    });
-    canvasRef.current?.dispatchEvent(mouseEvent);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    setIsDrawing(true);
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    if (!isDrawing) return;
+
     const touch = e.touches[0];
-    const mouseEvent = new MouseEvent('mousemove', {
-      clientX: touch.clientX,
-      clientY: touch.clientY
-    });
-    canvasRef.current?.dispatchEvent(mouseEvent);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    const mouseEvent = new MouseEvent('mouseup', {});
-    canvasRef.current?.dispatchEvent(mouseEvent);
+    e.stopPropagation();
+
+    if (!isDrawing) return;
+    setIsDrawing(false);
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const signatureData = canvas.toDataURL();
+      console.log('✍️ Firma touch salvata:', signatureData ? 'presente' : 'vuota');
+      setFormData(prev => ({ ...prev, signature: signatureData }));
+    }
   };
 
   const generateConsentDocument = () => {
