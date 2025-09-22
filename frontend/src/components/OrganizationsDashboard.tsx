@@ -49,6 +49,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
   
+  const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
+  const [nfcResult, setNfcResult] = useState<any>(null);
+
   // NFC Card Reading function
   // Define the global callback function
   useEffect(() => {
@@ -59,20 +62,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       if (bridge.registerNFCResultCallback) {
         (window as any).omnilyNFCResultHandler = (result: any) => {
           console.log('📱 Risultato lettura NFC (da callback persistente):', result);
+          setNfcResult(result);
           
           if (result && result.success) {
             console.log('✅ Carta NFC letta:', result.cardNo);
-            bridge.beep("2", "300"); // 2 beep di successo
+            setNfcStatus('success');
+            bridge.beep("1", "150"); // 1 beep di successo
             bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
-
-            // TODO: Cercare cliente nel database
-            alert('✅ TESSERA LETTA!\n\nCard No: ' + result.cardNo + '\nUID: ' + result.rfUid + '\n\n⏳ Ricerca cliente...');
-            
           } else {
             console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
+            setNfcStatus('error');
             bridge.beep("3", "50"); // 3 beep di errore
             bridge.showToast('❌ Errore lettura tessera');
-            alert('❌ Errore lettura tessera\n\n' + (result?.error || 'Riprova'));
           }
         };
         bridge.registerNFCResultCallback('omnilyNFCResultHandler');
@@ -85,54 +86,44 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // NFC Card Reading function
   const handleNFCRead = () => {
-    console.log('🔍 NUOVO DEPLOYMENT lettura carta NFC...', new Date().toLocaleTimeString());
+    if (nfcStatus === 'reading') {
+      // Cancel reading
+      setNfcStatus('idle');
+      setNfcResult(null);
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        (window as any).OmnilyPOS.showToast('Lettura NFC annullata');
+      }
+      return;
+    }
+
+    setNfcStatus('reading');
+    setNfcResult(null);
+    console.log('🔍 Avvio lettura carta NFC...', new Date().toLocaleTimeString());
     
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
       
-      // Debug: verifichiamo i metodi disponibili
-      console.log('🔧 Bridge disponibile:', bridge);
-      console.log('🔧 Metodi bridge:', Object.keys(bridge));
-      
-      // Verifichiamo se i nuovi metodi sono disponibili
-      if (bridge.getBridgeVersion) {
-        console.log('🔧 Versione bridge:', bridge.getBridgeVersion());
-      }
-      if (bridge.getAvailableMethods) {
-        console.log('🔧 Metodi disponibili:', bridge.getAvailableMethods());
-      }
-      
-      // Feedback visivo immediato
-      bridge.showToast('🔧 VERSIONE AGGIORNATA - Avvicina la tessera NFC');
-      // Non fare beep al click, solo quando rileva la scheda
-      
-      console.log('📞 Chiamata readNFCCardAsync...');
+      bridge.showToast('Avvicina la tessera NFC');
       
       try {
-        // Prova prima i nuovi metodi, poi fallback al vecchio
         if (bridge.readNFCCardAsync) {
-          console.log('📞 Usando readNFCCardAsync...');
           bridge.readNFCCardAsync();
-        } else if (bridge.readNFCCardSync) {
-          console.log('📞 Usando readNFCCardSync...');
-          bridge.readNFCCardSync();
-        } else if (bridge.readNFCCard) {
-          console.log('📞 Usando readNFCCard (fallback)...');
-          bridge.readNFCCard('omnilyNFCResultHandler');
         } else {
-          throw new Error('Nessun metodo NFC disponibile');
+          throw new Error('Metodo NFC non disponibile');
         }
         console.log('✅ Chiamata NFC inviata. In attesa del risultato...');
 
       } catch (error) {
         console.log('💥 Errore chiamata NFC:', error);
+        setNfcStatus('error');
+        setNfcResult({ error: error.message });
         bridge.showToast('💥 Errore sistema NFC', 2000);
-        alert('💥 Errore sistema NFC\n\n' + error);
       }
       
     } else {
       console.log('❌ Bridge non disponibile');
-      alert('❌ Bridge NFC non disponibile\n\nTestare su terminale POS Z108');
+      setNfcStatus('error');
+      setNfcResult({ error: 'Bridge non disponibile' });
     }
   };
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
@@ -416,10 +407,27 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <QrCode size={16} />
                     <span>Scansiona QR</span>
                   </button>
-                  <button className="btn-secondary" onClick={handleNFCScan}>
+                  <button 
+                    className={`btn-secondary nfc-button ${nfcStatus}`}
+                    onClick={handleNFCRead}
+                  >
                     <CreditCard size={16} />
-                    <span>Leggi Tessera</span>
+                    <span>
+                      {nfcStatus === 'reading' && 'Annulla Lettura'}
+                      {nfcStatus === 'idle' && 'Leggi Tessera'}
+                      {nfcStatus === 'success' && 'Leggi di Nuovo'}
+                      {nfcStatus === 'error' && 'Riprova Lettura'}
+                    </span>
                   </button>
+                  {nfcResult && (
+                    <div className="nfc-result">
+                      {nfcResult.success ? (
+                        `Tessera Letta: ${nfcResult.cardNo}`
+                      ) : (
+                        `Errore: ${nfcResult.error}`
+                      )}
+                    </div>
+                  )}
                   <button 
                     className="btn-primary"
                     onClick={() => setShowRegistrationWizard(true)}
