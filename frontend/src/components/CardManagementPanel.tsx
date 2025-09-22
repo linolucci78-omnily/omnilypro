@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings } from 'lucide-react';
 import type { Customer, NFCCard } from '../lib/supabase';
 import { nfcCardsApi } from '../lib/supabase';
@@ -38,6 +38,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [assignedCards, setAssignedCards] = useState<NFCCard[]>([]);
   const [loading, setLoading] = useState(false);
+  const busyRef = useRef(false); // Ref per prevenire doppi click
 
   // Carica tessere esistenti quando il pannello si apre
   useEffect(() => {
@@ -158,12 +159,19 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   }, [isOpen, organizationId, onCardRead]);
 
   const handleReadCard = () => {
+    // Previene doppi click veloci
+    if (busyRef.current) {
+      return;
+    }
+    busyRef.current = true;
+
     const bridge = (window as any).OmnilyPOS;
     if (!bridge || !bridge.readNFCCard) {
       console.error("Metodo 'readNFCCard' non trovato sul bridge. L'app Android è aggiornata?");
       if (bridge?.showToast) {
         bridge.showToast("Errore: Funzione NFC non trovata. Aggiornare l'app.");
       }
+      busyRef.current = false;
       return;
     }
 
@@ -174,17 +182,20 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       if (bridge.showToast) {
         bridge.showToast('Lettura tessera annullata.');
       }
-      return;
+    } else {
+      setIsReading(true);
+      setScannedCard(null);
+      if (bridge.showToast) {
+        bridge.showToast('Avvicina la tessera NFC...');
+      }
+      // Chiama il metodo del bridge per iniziare la lettura, passando il nome del callback globale
+      bridge.readNFCCard('cardManagementNFCHandler');
     }
 
-    setIsReading(true);
-    setScannedCard(null);
-    if (bridge.showToast) {
-      bridge.showToast('Avvicina la tessera NFC...');
-    }
-
-    // Chiama il metodo del bridge per iniziare la lettura, passando il nome del callback globale
-    bridge.readNFCCard('cardManagementNFCHandler');
+    // Rilascia il lock dopo un breve periodo per permettere una nuova azione
+    setTimeout(() => {
+      busyRef.current = false;
+    }, 500);
   };
 
   const handleAssignCard = async (customer: Customer) => {
