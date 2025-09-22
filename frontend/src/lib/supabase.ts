@@ -305,18 +305,60 @@ export const customersApi = {
 export const nfcCardsApi = {
   // Get all NFC cards for an organization
   async getAll(organizationId: string): Promise<NFCCard[]> {
-    const { data, error } = await supabase
-      .from('nfc_cards')
-      .select(`
-        *,
-        customer:customers(*)
-      `)
-      .eq('organization_id', organizationId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
+    try {
+      // Query base senza join per evitare errori di foreign key
+      const { data, error } = await supabase
+        .from('nfc_cards')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error
-    return data || []
+      if (error) {
+        console.error('Error loading NFC cards:', error);
+
+        // Se la tabella non esiste, restituisci array vuoto invece di errore
+        if (error.code === 'PGRST106' || error.message.includes('relation') || error.message.includes('does not exist')) {
+          console.warn('NFC cards table does not exist, returning empty array');
+          return [];
+        }
+
+        throw error;
+      }
+
+      // Se non ci sono dati, restituisci array vuoto
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Carica i customer se necessario
+      const cardsWithCustomers = await Promise.all(
+        data.map(async (card) => {
+          if (card.customer_id) {
+            try {
+              const { data: customer, error: customerError } = await supabase
+                .from('customers')
+                .select('*')
+                .eq('id', card.customer_id)
+                .single();
+
+              if (!customerError && customer) {
+                return { ...card, customer };
+              }
+            } catch (err) {
+              console.warn('Error loading customer for card:', card.id);
+            }
+          }
+          return card;
+        })
+      );
+
+      return cardsWithCustomers;
+
+    } catch (error) {
+      console.error('Error in nfcCardsApi.getAll:', error);
+      throw error;
+    }
   },
 
   // Get NFC card by UID
