@@ -235,8 +235,9 @@ public class MainActivityFinal extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Disattiva sempre il NFC quando l'app va in background
-        if (bridge != null) {
+        // Disattiva il NFC solo se non c'è una lettura attiva in corso
+        // Questo previene la disattivazione prematura durante una lettura in corso
+        if (bridge != null && bridge.isNFCEnabled && !bridge.isNFCReading) {
             bridge.disableNFCReading();
         }
     }
