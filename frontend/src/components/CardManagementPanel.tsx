@@ -42,19 +42,39 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   // Carica tessere esistenti quando il pannello si apre
   useEffect(() => {
     if (isOpen && organizationId) {
-      loadAssignedCards();
+      checkBridgeVersion();
+      // Non caricare automaticamente le tessere per evitare errori
+      // loadAssignedCards();
     }
   }, [isOpen, organizationId]);
+
+  const checkBridgeVersion = () => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+
+      if (bridge.getBridgeVersion) {
+        const version = bridge.getBridgeVersion();
+        console.log('Bridge version:', version);
+
+        if (!version.includes('nfc-on-demand')) {
+          console.warn('Bridge may need update for proper NFC control');
+        }
+      }
+    }
+  };
 
   const loadAssignedCards = async () => {
     try {
       setLoading(true);
       const cards = await nfcCardsApi.getAll(organizationId);
       setAssignedCards(cards);
-    } catch (error) {
-      console.error('Errore caricamento tessere:', error);
+
+    } catch (error: any) {
+      console.error('Error loading cards:', error);
+      setAssignedCards([]);
+
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        (window as any).OmnilyPOS.showToast('Errore caricamento tessere');
+        (window as any).OmnilyPOS.showToast(`Error: ${error?.message || 'Database connection'}`);
       }
     } finally {
       setLoading(false);
@@ -66,9 +86,9 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Setup NFC callback
+  // Setup NFC callback SOLO quando il pannello è aperto
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS && isOpen) {
       (window as any).cardManagementNFCHandler = async (result: any) => {
         console.log('Card Management NFC Result:', result);
         setIsReading(false);
@@ -122,9 +142,59 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
         }
       };
     }
-  }, [assignedCards, onCardRead]);
+
+    // CLEANUP quando il pannello si chiude
+    return () => {
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        const bridge = (window as any).OmnilyPOS;
+
+        // Disregistra SEMPRE il callback quando il componente si smonta
+        if (bridge.unregisterNFCResultCallback) {
+          bridge.unregisterNFCResultCallback('cardManagementNFCHandler');
+          console.log("🧹 CLEANUP: NFC callback DISREGISTRATO per CardManagement");
+        }
+
+        // Ferma la lettura se in corso
+        if (bridge.stopNFCReading) {
+          bridge.stopNFCReading();
+          console.log("🧹 CLEANUP: Lettura NFC fermata");
+        }
+
+        // Rimuovi la funzione globale
+        delete (window as any).cardManagementNFCHandler;
+        console.log("🧹 CLEANUP: Callback function rimossa");
+      }
+    };
+  }, [isOpen, assignedCards, onCardRead]);
 
   const handleReadCard = () => {
+    if (isReading) {
+      // Annulla lettura
+      setIsReading(false);
+      setScannedCard(null);
+
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        const bridge = (window as any).OmnilyPOS;
+
+        // Disregistra il callback per fermare il bridge
+        if (bridge.unregisterNFCResultCallback) {
+          bridge.unregisterNFCResultCallback('cardManagementNFCHandler');
+          console.log("❌ NFC callback DISREGISTRATO per CardManagement");
+        }
+
+        // Ferma il lettore se possibile
+        if (bridge.stopNFCReading) {
+          bridge.stopNFCReading();
+          console.log("🛑 Lettura NFC fermata");
+        }
+
+        if (bridge.showToast) {
+          bridge.showToast('Lettura tessera annullata');
+        }
+      }
+      return;
+    }
+
     setIsReading(true);
     setScannedCard(null);
 
@@ -132,9 +202,21 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       const bridge = (window as any).OmnilyPOS;
 
       try {
-        bridge.readNFCCard('cardManagementNFCHandler');
+        // Registra il callback SOLO ora
+        if (bridge.registerNFCResultCallback) {
+          bridge.registerNFCResultCallback('cardManagementNFCHandler');
+          console.log("✅ NFC callback registrato per CardManagement");
+        }
+
+        // Usa readNFCCardAsync per consistency
+        if (bridge.readNFCCardAsync) {
+          bridge.readNFCCardAsync();
+        } else {
+          bridge.readNFCCard('cardManagementNFCHandler');
+        }
+
         if (bridge.showToast) {
-          bridge.showToast('Avvicina la tessera NFC');
+          bridge.showToast('Avvicina la tessera NFC - Premi di nuovo per annullare');
         }
       } catch (error) {
         console.error('NFC Error:', error);
@@ -303,7 +385,17 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
           {mode === 'list' && (
             <div className="list-mode">
               <div className="assigned-cards-list">
-                <h3>Tessere Assegnate ({assignedCards.length})</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3>Tessere Assegnate ({assignedCards.length})</h3>
+                  <button
+                    className="btn-primary"
+                    onClick={loadAssignedCards}
+                    disabled={loading}
+                    style={{ padding: '8px 16px', fontSize: '14px' }}
+                  >
+                    {loading ? 'Caricamento...' : 'Carica Tessere'}
+                  </button>
+                </div>
 
                 {assignedCards.length === 0 ? (
                   <div className="empty-state">

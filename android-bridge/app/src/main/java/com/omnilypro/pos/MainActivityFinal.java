@@ -220,21 +220,31 @@ public class MainActivityFinal extends AppCompatActivity {
             new String[] { Ndef.class.getName() },
             new String[] { NdefFormatable.class.getName() }
         };
+
+        // NFC will be enabled only on demand
+        Log.d(TAG, "NFC configured - will be enabled on demand only");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (nfcAdapter != null) {
-            nfcAdapter.enableForegroundDispatch(this, nfcPendingIntent, nfcIntentFilters, nfcTechLists);
-        }
+        Log.d(TAG, "onResume() - NFC not auto-enabled");
+        // NFC not auto-enabled - only when requested by JavaScript
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (nfcAdapter != null) {
-            nfcAdapter.disableForegroundDispatch(this);
+        // Disattiva sempre il NFC quando l'app va in background
+        if (bridge != null) {
+            bridge.disableNFCReading();
+        }
+    }
+
+    // Metodo pubblico per disattivare NFC dall'esterno
+    public void disableNFCReading() {
+        if (bridge != null) {
+            bridge.disableNFCReading();
         }
     }
 
@@ -261,17 +271,36 @@ public class MainActivityFinal extends AppCompatActivity {
     private void processNfcTag(Tag tag) {
         try {
             String tagId = bridge.bytesToHex(tag.getId());
-            Log.d(TAG, "Processing NFC tag with ID: " + tagId);
 
-            // Reset reading state
-            if (bridge != null) {
-                bridge.setNFCReading(false);
+            // CONTROLLO CRITICO: Se il NFC non dovrebbe essere attivo, ignora completamente
+            if (bridge == null || !bridge.isNFCEnabled) {
+                Log.w(TAG, "🚫 NFC tag ignored - NFC not enabled by app (tag: " + tagId + ")");
+                return;
             }
 
-            runOnUiThread(() -> {
-                String javascript = String.format("if (window.omnilyNFCResultHandler) { window.omnilyNFCResultHandler({success: true, cardNo: '%s', rfUid: '%s'}); }", tagId, tagId);
-                webView.evaluateJavascript(javascript, null);
-            });
+            Log.d(TAG, "Processing NFC tag with ID: " + tagId);
+
+            // Reset reading state e DISATTIVA il NFC
+            if (bridge != null) {
+                bridge.setNFCReading(false);
+                bridge.disableNFCReading(); // DISATTIVA il NFC dopo lettura
+            }
+
+            // Usa il callback salvato o fallback su omnilyNFCResultHandler
+            final String callbackToUse = bridge.currentNFCCallback != null ? bridge.currentNFCCallback : "omnilyNFCResultHandler";
+
+            try {
+                JSONObject result = new JSONObject();
+                result.put("success", true);
+                result.put("cardNo", tagId);
+                result.put("rfUid", tagId);
+                bridge.runJsCallback(callbackToUse, result.toString());
+            } catch (Exception e) {
+                Log.e(TAG, "Error creating JSON success response", e);
+            }
+
+            // Reset callback
+            bridge.currentNFCCallback = null;
 
             // Play success beep
             runOnUiThread(() -> {
@@ -284,18 +313,31 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             });
 
+            Log.d(TAG, "NFC card read successfully, NFC disabled");
+
         } catch (Exception e) {
             Log.e(TAG, "Error processing NFC tag", e);
 
-            // Reset reading state on error
+            // Reset reading state on error e DISATTIVA il NFC
             if (bridge != null) {
                 bridge.setNFCReading(false);
+                bridge.disableNFCReading(); // DISATTIVA il NFC anche in caso di errore
             }
 
-            runOnUiThread(() -> {
-                String javascript = String.format("if (window.omnilyNFCResultHandler) { window.omnilyNFCResultHandler({success: false, error: '%s'}); }", e.getMessage());
-                webView.evaluateJavascript(javascript, null);
-            });
+            // Usa il callback salvato o fallback su omnilyNFCResultHandler
+            final String callbackToUse = bridge.currentNFCCallback != null ? bridge.currentNFCCallback : "omnilyNFCResultHandler";
+
+            try {
+                JSONObject result = new JSONObject();
+                result.put("success", false);
+                result.put("error", e.getMessage());
+                bridge.runJsCallback(callbackToUse, result.toString());
+            } catch (Exception jsonError) {
+                Log.e(TAG, "Error creating JSON error response", jsonError);
+            }
+
+            // Reset callback
+            bridge.currentNFCCallback = null;
         }
     }
 
@@ -359,9 +401,32 @@ public class MainActivityFinal extends AppCompatActivity {
 
     public class OmnilyPOSBridge {
         private volatile boolean isNFCReading = false;
+        public volatile boolean isNFCEnabled = false;
+        private volatile String currentNFCCallback = null;
 
         public void setNFCReading(boolean reading) {
             this.isNFCReading = reading;
+        }
+
+        private void enableNFCReading() {
+            if (nfcAdapter != null && !isNFCEnabled) {
+                runOnUiThread(() -> {
+                    nfcAdapter.enableForegroundDispatch(MainActivityFinal.this, nfcPendingIntent, nfcIntentFilters, nfcTechLists);
+                    isNFCEnabled = true;
+                    Log.d(TAG, "NFC enabled for reading");
+                });
+            }
+        }
+
+        public void disableNFCReading() {
+            if (nfcAdapter != null && isNFCEnabled) {
+                runOnUiThread(() -> {
+                    nfcAdapter.disableForegroundDispatch(MainActivityFinal.this);
+                    isNFCEnabled = false;
+                    isNFCReading = false;
+                    Log.d(TAG, "NFC disabled");
+                });
+            }
         }
 
         @JavascriptInterface
@@ -395,23 +460,41 @@ public class MainActivityFinal extends AppCompatActivity {
             }
 
             if (isNFCReading) {
-                Log.w(TAG, "NFC reading already in progress.");
+                // Se già in lettura, fermalo (toggle)
+                Log.d(TAG, "NFC reading in progress - stopping");
+                isNFCReading = false;
+                disableNFCReading();
+
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "NFC reading cancelled by user");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON cancel response", e);
+                }
                 return;
             }
 
-            isNFCReading = true;
-            Log.d(TAG, "🔍 NFC ready - waiting for tag to be presented...");
+            // Salva il callback per quando il tag viene rilevato
+            currentNFCCallback = callbackName;
 
-            // Store the callback name for when NFC tag is detected
-            // The actual NFC reading will be handled by onNewIntent/handleNfcIntent
-            showToast("Present NFC card to reader...");
+            // Enable NFC only when needed
+            enableNFCReading();
+
+            isNFCReading = true;
+            Log.d(TAG, "NFC enabled and ready for card reading");
+
+            showToast("Present NFC card to reader... Press again to cancel");
 
             // Set a timeout to reset the reading state
             runOnUiThread(() -> {
                 webView.postDelayed(() -> {
                     if (isNFCReading) {
                         isNFCReading = false;
-                        Log.d(TAG, "NFC reading timeout");
+                        disableNFCReading();
+                        currentNFCCallback = null;
+                        Log.d(TAG, "NFC reading timeout - NFC disabled");
                         try {
                             JSONObject result = new JSONObject();
                             result.put("success", false);
@@ -507,15 +590,27 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void stopNFCReading() {
+            Log.d(TAG, "stopNFCReading called - disattivando NFC");
+            disableNFCReading();
+        }
+
+        @JavascriptInterface
+        public void unregisterNFCResultCallback(String callbackName) {
+            Log.d(TAG, "unregisterNFCResultCallback called with: " + callbackName + " - disattivando NFC");
+            disableNFCReading();
+        }
+
+        @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,showToast,beep,registerNFCResultCallback,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
 
         @JavascriptInterface
         public String getBridgeVersion() {
-            String version = "4.0.1-fixed-nfc";
+            String version = "4.1.0-nfc-on-demand-" + System.currentTimeMillis();
             Log.d(TAG, "getBridgeVersion called - returning: " + version);
             return version;
         }

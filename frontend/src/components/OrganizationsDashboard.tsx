@@ -54,36 +54,62 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [nfcResult, setNfcResult] = useState<any>(null);
 
   // NFC Card Reading function - SOLO PER DASHBOARD (non CardManagementPanel)
-  // Define the global callback function
+  // Define the global callback function WITHOUT auto-registration
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-      const bridge = (window as any).OmnilyPOS;
+      // Definiamo il callback ma NON lo registriamo automaticamente
+      (window as any).omnilyNFCResultHandler = (result: any) => {
+        console.log('📱 Risultato lettura NFC (da dashboard):', result);
+        setNfcResult(result);
+        setNfcStatus('idle'); // Reset status after reading
 
-      // Register the callback with Java SOLO per il dashboard normale
-      if (bridge.registerNFCResultCallback) {
-        (window as any).omnilyNFCResultHandler = (result: any) => {
-          console.log('📱 Risultato lettura NFC (da dashboard):', result);
-          setNfcResult(result);
-
-          if (result && result.success) {
-            console.log('✅ Carta NFC letta:', result.cardNo);
-            setNfcStatus('success');
-            bridge.beep("1", "150"); // 1 beep di successo
-            bridge.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
-          } else {
-            console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
-            setNfcStatus('error');
-            bridge.beep("3", "50"); // 3 beep di errore
-            bridge.showToast('❌ Errore lettura tessera');
+        if (result && result.success) {
+          console.log('✅ Carta NFC letta:', result.cardNo);
+          setNfcStatus('success');
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("1", "150");
           }
-        };
-        // NON registriamo automaticamente il callback - solo quando richiesto
-        console.log("✅ NFC callback defined but not auto-registered");
-      } else {
-        console.warn('⚠️ registerNFCResultCallback not found on bridge. Using fallback.');
-      }
+          if ((window as any).OmnilyPOS.showToast) {
+            (window as any).OmnilyPOS.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
+          }
+        } else {
+          console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
+          setNfcStatus('error');
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("3", "50");
+          }
+          if ((window as any).OmnilyPOS.showToast) {
+            (window as any).OmnilyPOS.showToast('❌ Errore lettura tessera');
+          }
+        }
+      };
+      console.log("✅ NFC callback SOLO definito - NON registrato automaticamente");
     }
-  }, []); // Run once on mount
+
+    // CLEANUP quando il componente si smonta
+    return () => {
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        const bridge = (window as any).OmnilyPOS;
+
+        // Disregistra SEMPRE tutti i callback NFC
+        if (bridge.unregisterNFCResultCallback) {
+          bridge.unregisterNFCResultCallback('omnilyNFCResultHandler');
+          console.log("🧹 CLEANUP: NFC callback DISREGISTRATO per dashboard");
+        }
+
+        // Ferma qualsiasi lettura in corso
+        if (bridge.stopNFCReading) {
+          bridge.stopNFCReading();
+          console.log("🧹 CLEANUP: Tutte le letture NFC fermate");
+        }
+
+        // Rimuovi tutte le funzioni globali NFC
+        delete (window as any).omnilyNFCResultHandler;
+        delete (window as any).cardManagementNFCHandler;
+        console.log("🧹 CLEANUP: Tutte le funzioni NFC rimosse");
+      }
+    };
+  }, []);
 
   // NFC Card Reading function
   const handleNFCRead = () => {
@@ -91,8 +117,25 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Cancel reading
       setNfcStatus('idle');
       setNfcResult(null);
+
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        (window as any).OmnilyPOS.showToast('Lettura NFC annullata');
+        const bridge = (window as any).OmnilyPOS;
+
+        // Disregistra il callback per fermare il bridge
+        if (bridge.unregisterNFCResultCallback) {
+          bridge.unregisterNFCResultCallback('omnilyNFCResultHandler');
+          console.log("❌ NFC callback DISREGISTRATO per dashboard");
+        }
+
+        // Ferma il lettore se possibile
+        if (bridge.stopNFCReading) {
+          bridge.stopNFCReading();
+          console.log("🛑 Lettura NFC fermata");
+        }
+
+        if (bridge.showToast) {
+          bridge.showToast('Lettura NFC annullata');
+        }
       }
       return;
     }
@@ -100,13 +143,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     setNfcStatus('reading');
     setNfcResult(null);
     console.log('🔍 Avvio lettura carta NFC...', new Date().toLocaleTimeString());
-    
+
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
-      
-      bridge.showToast('Avvicina la tessera NFC');
-      
+
       try {
+        // REGISTRA il callback SOLO quando richiesto
+        if (bridge.registerNFCResultCallback) {
+          bridge.registerNFCResultCallback('omnilyNFCResultHandler');
+          console.log("✅ NFC callback registrato per dashboard");
+        }
+
+        if (bridge.showToast) {
+          bridge.showToast('Avvicina la tessera NFC - Premi di nuovo per annullare');
+        }
+
         if (bridge.readNFCCardAsync) {
           bridge.readNFCCardAsync();
         } else {
@@ -122,9 +173,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         } else {
           setNfcResult({ error: 'Unknown error' });
         }
-        bridge.showToast('💥 Errore sistema NFC', 2000);
+        if (bridge.showToast) {
+          bridge.showToast('💥 Errore sistema NFC');
+        }
       }
-      
+
     } else {
       console.log('❌ Bridge non disponibile');
       setNfcStatus('error');
@@ -546,7 +599,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             <RegistrationWizard
               isOpen={showRegistrationWizard}
               onClose={() => setShowRegistrationWizard(false)}
-              organizationId={organizations.length > 0 ? organizations[0].id : "00000000-0000-0000-0000-000000000000"}
+              organizationId="c06a8dcf-b209-40b1-92a5-c80facf2eb29"
               onCustomerCreated={fetchCustomers}
             />
           </div>
@@ -855,7 +908,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         isOpen={showCardManagementPanel}
         onClose={() => setShowCardManagementPanel(false)}
         customers={customers}
-        organizationId={organizations.length > 0 ? organizations[0].id : "00000000-0000-0000-0000-000000000000"}
+        organizationId="c06a8dcf-b209-40b1-92a5-c80facf2eb29"
         onAssignCard={(cardId, customerId) => {
           console.log(`Tessera ${cardId} assegnata al cliente ${customerId}`);
           // Le tessere sono ora gestite direttamente in Supabase
