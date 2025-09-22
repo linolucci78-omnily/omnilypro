@@ -104,7 +104,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       
       // Feedback visivo immediato
       bridge.showToast('📱 Avvicina la tessera al lettore NFC...');
-      bridge.beep("1", "200"); // 1 beep di 200ms
+      // Non fare beep al click, solo quando rileva la scheda
       
       console.log('📞 Chiamata readNFCCardAsync...');
       
