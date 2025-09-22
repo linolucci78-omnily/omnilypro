@@ -682,17 +682,76 @@
     color: white !important;
   }
 
+  /* SIGNATURE SECTION - Touch optimized for POS */
+  .signature-section {
+    margin-top: 2rem !important;
+    padding: 2rem !important;
+    background: #f8fafc !important;
+    border-radius: 12px !important;
+    border: 2px solid #e2e8f0 !important;
+  }
+
+  .signature-section label {
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 16px !important;
+    display: block !important;
+    color: #0f172a !important;
+  }
+
+  .signature-help {
+    font-size: 1.1rem !important;
+    color: #64748b !important;
+    margin-bottom: 20px !important;
+    font-weight: 500 !important;
+  }
+
+  .signature-container {
+    position: relative !important;
+    border: 3px solid #ef4444 !important;
+    border-radius: 12px !important;
+    background: white !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+  }
+
   .signature-canvas {
-    height: 300px !important;
-    border-width: 3px !important;
+    width: 100% !important;
+    height: 400px !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    background: white !important;
+    cursor: crosshair !important;
+    display: block !important;
     touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
   }
 
   .clear-signature {
+    position: absolute !important;
+    top: 24px !important;
+    right: 24px !important;
+    background: #ef4444 !important;
+    color: white !important;
+    border: none !important;
     padding: 16px 24px !important;
-    font-size: 1.1rem !important;
-    min-height: 60px !important;
     border-radius: 8px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    min-height: 60px !important;
+    min-width: 120px !important;
+    cursor: pointer !important;
+    z-index: 5 !important;
+  }
+
+  .clear-signature:hover {
+    background: #dc2626 !important;
+    transform: scale(1.05) !important;
   }
 
   .checkbox-custom {
