@@ -881,9 +881,14 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       };
 
       console.log('📊 Dati da inviare:', customerData);
+      addDebugInfo(`📊 DATI CLIENTE: ${customerData.name}`);
+      addDebugInfo(`📧 Email: ${customerData.email}`);
+      addDebugInfo(`🏢 Org ID: ${customerData.organization_id}`);
       console.log('🌐 Chiamata API create...');
-      
+      addDebugInfo('🌐 CHIAMATA API IN CORSO...');
+
       const createdCustomer = await customersApi.create(customerData);
+      addDebugInfo('✅ CLIENTE CREATO CON SUCCESSO!');
       
       console.log('✅ Cliente creato con successo:', createdCustomer);
       console.log('🔄 Ricarico lista clienti...');
@@ -895,11 +900,22 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       
     } catch (error: any) {
       console.error('❌ Errore durante la registrazione:', error);
-      console.error('📋 Dettagli errore:', {
+      addDebugInfo(`❌ ERRORE API: ${error?.message || 'Unknown'}`);
+      addDebugInfo(`📋 Code: ${error?.code || 'N/A'}`);
+      addDebugInfo(`📋 Details: ${error?.details || 'N/A'}`);
+      addDebugInfo(`📋 Hint: ${error?.hint || 'N/A'}`);
+
+      console.error('📋 Dettagli errore completi:', {
         message: error?.message,
         code: error?.code,
         details: error?.details,
-        hint: error?.hint
+        hint: error?.hint,
+        stack: error?.stack,
+        response: error?.response,
+        status: error?.status,
+        statusText: error?.statusText,
+        name: error?.name,
+        cause: error?.cause
       });
       
       // Controllo specifico per tabella mancante
