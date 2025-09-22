@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, organizationsApi, customersApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
-import { BarChart3, Users, Gift, Target, TrendingUp,  Settings, HelpCircle, LogOut, Search, QrCode, CreditCard } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
+import CardManagementPanel from './CardManagementPanel'
 import './OrganizationsDashboard.css'
 
 interface OrganizationsDashboardProps {
@@ -116,7 +117,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       } catch (error) {
         console.log('💥 Errore chiamata NFC:', error);
         setNfcStatus('error');
-        setNfcResult({ error: error.message });
+        if (error instanceof Error) {
+          setNfcResult({ error: error.message });
+        } else {
+          setNfcResult({ error: 'Unknown error' });
+        }
         bridge.showToast('💥 Errore sistema NFC', 2000);
       }
       
@@ -128,6 +133,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   };
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false)
+
+  // Card Management Panel states
+  const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
+  const [cardManagementMode, setCardManagementMode] = useState<'read' | 'assign' | 'reassign'>('read')
+  const [scannedCard, setScannedCard] = useState<any>(null)
+  const [assignedCards, setAssignedCards] = useState<any[]>([])
+  const [showReassignDialog, setShowReassignDialog] = useState(false)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -317,8 +329,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Configura Tessere</h3>
                 <p>Crea e personalizza le tessere punti per i tuoi clienti</p>
-                <button className="btn-primary" onClick={handleNFCRead}>
-                  📱 Leggi Tessera
+                <button className="btn-primary" onClick={() => setShowCardManagementPanel(true)}>
+                  <CreditCard size={18} />
+                  Gestione Tessere
                 </button>
               </div>
               <div className="feature-card">
@@ -839,6 +852,25 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={handleCloseSlidePanel}
         onAddPoints={handleAddPoints}
         onNewTransaction={handleNewTransaction}
+      />
+
+      {/* Card Management Panel */}
+      <CardManagementPanel
+        isOpen={showCardManagementPanel}
+        onClose={() => setShowCardManagementPanel(false)}
+        customers={customers}
+        onAssignCard={(cardId, customerId) => {
+          console.log(`Assegna tessera ${cardId} al cliente ${customerId}`);
+          // Implementare logica di assegnazione
+        }}
+        onReassignCard={(cardId, customerId) => {
+          console.log(`Riassegna tessera ${cardId} al cliente ${customerId}`);
+          // Implementare logica di riassegnazione
+        }}
+        onCardRead={(cardData) => {
+          console.log('Tessera letta:', cardData);
+          // Gestire evento lettura tessera
+        }}
       />
     </div>
   )
