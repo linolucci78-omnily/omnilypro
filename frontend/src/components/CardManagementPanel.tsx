@@ -44,8 +44,8 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   useEffect(() => {
     if (isOpen && organizationId) {
       checkBridgeVersion();
-      // Non caricare automaticamente le tessere per evitare errori
-      // loadAssignedCards();
+      // Caricamento automatico delle tessere all'apertura del pannello
+      loadAssignedCards();
     }
   }, [isOpen, organizationId]);
 
