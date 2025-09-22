@@ -75,7 +75,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       setAssignedCards([]);
 
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        (window as any).OmnilyPOS.showToast(`Error: ${error?.message || 'Database connection'}`);
+        (window as any).OmnilyPOS.showToast(`Errore DB (tessere): ${error?.message}`);
       }
     } finally {
       setLoading(false);
@@ -125,10 +125,11 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
               setScannedCard({ id: '', uid: cardUID });
               setMode('assign');
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('Errore controllo tessera esistente:', error);
-            setScannedCard({ id: '', uid: cardUID });
-            setMode('assign');
+            if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+              (window as any).OmnilyPOS.showToast(`Errore DB (UID): ${error?.message}`);
+            }
           }
 
           onCardRead?.(result);
@@ -231,10 +232,10 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       setScannedCard(null);
       setMode('list'); // Mostra la lista delle tessere dopo l'assegnazione
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Errore assegnazione tessera:', error);
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        (window as any).OmnilyPOS.showToast('Errore assegnazione tessera');
+        (window as any).OmnilyPOS.showToast(`Errore Assegnazione: ${error.message}`);
       }
     } finally {
       setLoading(false);
@@ -264,10 +265,10 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       setScannedCard(null);
       setMode('list'); // Mostra la lista delle tessere dopo la riassegnazione
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Errore riassegnazione tessera:', error);
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        (window as any).OmnilyPOS.showToast('Errore riassegnazione tessera');
+        (window as any).OmnilyPOS.showToast(`Errore Riassegnazione: ${error.message}`);
       }
     } finally {
       setLoading(false);
