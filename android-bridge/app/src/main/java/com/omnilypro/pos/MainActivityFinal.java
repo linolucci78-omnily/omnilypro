@@ -618,8 +618,34 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void readQRCode(String callbackName) {
+            Log.d(TAG, "readQRCode called with callback: " + callbackName);
+
+            // Per ora simuliamo la lettura QR (in futuro si può integrare con scanner hardware)
+            runOnUiThread(() -> {
+                // Mostra toast per simulare scanner QR
+                Toast.makeText(MainActivityFinal.this, "Scanner QR non ancora implementato. Usa NFC per ora.", Toast.LENGTH_LONG).show();
+
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "QR scanner not implemented yet. Use NFC instead.");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating QR response", e);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void readQRCodeAsync() {
+            Log.d(TAG, "readQRCodeAsync called - using default callback");
+            readQRCode("omnilyQRResultHandler");
+        }
+
+        @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }

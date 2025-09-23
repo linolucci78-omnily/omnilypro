@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode } from 'lucide-react';
 import './CustomerSlidePanel.css';
+import QRCodeGenerator from './QRCodeGenerator';
 
 import type { Customer } from '../lib/supabase';
 
@@ -160,6 +161,22 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           <div className="customer-slide-panel-contact-item">
             <Calendar size={18} />
             <span>Iscritto: {new Date(customer.created_at).toLocaleDateString('it-IT')}</span>
+          </div>
+        </div>
+
+        {/* QR Code Section */}
+        <div className="customer-slide-panel-qr">
+          <h3><QrCode size={18} /> Codice QR Cliente</h3>
+          <div className="customer-slide-panel-qr-container">
+            <QRCodeGenerator
+              value={`OMNILY_CUSTOMER:${customer.id}`}
+              size={150}
+              level="M"
+              className="customer-qr-code"
+            />
+            <p className="customer-slide-panel-qr-text">
+              Mostra questo QR code al POS per l'accesso rapido
+            </p>
           </div>
         </div>
 

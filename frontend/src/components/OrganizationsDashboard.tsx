@@ -52,12 +52,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   
   const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [nfcResult, setNfcResult] = useState<any>(null);
+  const [qrStatus, setQrStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
+  const [qrResult, setQrResult] = useState<any>(null);
 
   // NFC Card Reading function - SOLO PER DASHBOARD (non CardManagementPanel)
   // Define the global callback function WITHOUT auto-registration
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-      // Definiamo il callback ma NON lo registriamo automaticamente
+      // Definiamo i callback ma NON li registriamo automaticamente
       (window as any).omnilyNFCResultHandler = (result: any) => {
         console.log('🚀 NEW VERSION 16:26 - Risultato lettura NFC (da dashboard):', result);
         console.log('🚀 NEW VERSION 16:26 - Tipo result:', typeof result);
@@ -149,7 +151,72 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }
         }
       };
-      console.log("✅ NFC callback SOLO definito - NON registrato automaticamente");
+
+      // Definiamo il callback QR per gestire la lettura QR code
+      (window as any).omnilyQRResultHandler = (result: any) => {
+        console.log('📱 QR callback ricevuto:', result);
+
+        let parsedResult = result;
+        if (typeof result === 'string') {
+          try {
+            parsedResult = JSON.parse(result);
+          } catch (e) {
+            parsedResult = { success: false, error: 'Parse failed' };
+          }
+        }
+
+        setQrResult(parsedResult);
+        setQrStatus('idle');
+
+        if (parsedResult && parsedResult.success === true) {
+          console.log('✅ QR Code letto:', parsedResult.data);
+          setQrStatus('success');
+
+          // Verifica se è un QR code cliente OMNILY
+          if (parsedResult.data && parsedResult.data.startsWith('OMNILY_CUSTOMER:')) {
+            const customerId = parsedResult.data.replace('OMNILY_CUSTOMER:', '');
+
+            const findAndOpenCustomer = async () => {
+              try {
+                const customer = await customersApi.getById(customerId);
+                if (customer) {
+                  setSelectedCustomer(customer);
+                  setIsSlidePanelOpen(true);
+                  console.log('✅ Cliente trovato e pannello aperto:', customer.name);
+                  if ((window as any).OmnilyPOS.beep) {
+                    (window as any).OmnilyPOS.beep("1", "150");
+                  }
+                } else {
+                  console.log('❌ Cliente non trovato per ID:', customerId);
+                  if ((window as any).OmnilyPOS.showToast) {
+                    (window as any).OmnilyPOS.showToast('❌ Cliente non trovato');
+                  }
+                }
+              } catch (error) {
+                console.error('❌ Errore ricerca cliente:', error);
+                if ((window as any).OmnilyPOS.showToast) {
+                  (window as any).OmnilyPOS.showToast('❌ Errore ricerca cliente');
+                }
+              }
+            };
+
+            findAndOpenCustomer();
+          } else {
+            console.log('❌ QR code non valido per OMNILY');
+            if ((window as any).OmnilyPOS.showToast) {
+              (window as any).OmnilyPOS.showToast('❌ QR code non riconosciuto');
+            }
+          }
+        } else {
+          console.log('❌ Errore lettura QR:', parsedResult?.error || 'Lettura fallita');
+          setQrStatus('error');
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("3", "50");
+          }
+        }
+      };
+
+      console.log("✅ NFC e QR callback definiti - NON registrati automaticamente");
     }
 
     // CLEANUP quando il componente si smonta
@@ -169,10 +236,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           console.log("🧹 CLEANUP: Tutte le letture NFC fermate");
         }
 
-        // Rimuovi tutte le funzioni globali NFC
+        // Rimuovi tutte le funzioni globali NFC e QR
         delete (window as any).omnilyNFCResultHandler;
+        delete (window as any).omnilyQRResultHandler;
         delete (window as any).cardManagementNFCHandler;
-        console.log("🧹 CLEANUP: Tutte le funzioni NFC rimosse");
+        console.log("🧹 CLEANUP: Tutte le funzioni NFC e QR rimosse");
       }
     };
   }, []);
@@ -376,7 +444,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }
 
   const handleQRScan = () => {
-    alert('Simulazione: Scansione QR code avviata...');
+    console.log('📱 handleQRScan chiamato');
+
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+
+      if (bridge.readQRCode) {
+        setQrStatus('reading');
+        console.log('📱 Chiamando bridge.readQRCode');
+        bridge.readQRCode('omnilyQRResultHandler');
+      } else {
+        console.log('❌ readQRCode non disponibile nel bridge');
+        alert('Scanner QR non disponibile. Funzionalità non ancora implementata nel dispositivo.');
+      }
+    } else {
+      console.log('❌ Bridge Android non disponibile');
+      alert('Bridge Android non disponibile. Usa solo da dispositivo POS.');
+    }
   };
 
   const sidebarItems = [
@@ -491,10 +575,27 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   />
                 </div>
                 <div className="table-actions">
-                  <button className="btn-secondary" onClick={handleQRScan}>
+                  <button
+                    className={`btn-secondary qr-button ${qrStatus}`}
+                    onClick={handleQRScan}
+                  >
                     <QrCode size={16} />
-                    <span>Scansiona QR</span>
+                    <span>
+                      {qrStatus === 'reading' && 'Annulla QR'}
+                      {qrStatus === 'idle' && 'Scansiona QR'}
+                      {qrStatus === 'success' && 'Scansiona di Nuovo'}
+                      {qrStatus === 'error' && 'Riprova QR'}
+                    </span>
                   </button>
+                  {qrResult && (
+                    <div className="qr-result">
+                      {qrResult.success ? (
+                        `QR Letto: ${qrResult.data || 'OK'}`
+                      ) : (
+                        `Errore QR: ${qrResult.error}`
+                      )}
+                    </div>
+                  )}
                   <button 
                     className={`btn-secondary nfc-button ${nfcStatus}`}
                     onClick={handleNFCRead}
