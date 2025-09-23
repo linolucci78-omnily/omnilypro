@@ -417,10 +417,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     placeholder="Cerca cliente per nome, email, o ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    autoComplete="search-query"
-                    name="customer-search"
+                    autoComplete="off"
+                    name="customer-search-query"
                     form="customer-search-form"
                     data-form="customer-search"
+                    spellCheck="false"
                   />
                 </div>
                 <div className="table-actions">
