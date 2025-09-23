@@ -48,8 +48,18 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     console.log(debugMessage);
   };
 
+  // Smoothing helpers for better signature quality
+  const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+  };
+
+  const getMidPoint = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+    return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  };
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
   
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -159,6 +169,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
     setIsDrawing(true);
     const { x, y } = getCanvasCoordinates(e);
+    setLastPoint({ x, y });
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
@@ -168,24 +179,39 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawing || !lastPoint) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const { x, y } = getCanvasCoordinates(e);
-
+    const currentPoint = getCanvasCoordinates(e);
     const ctx = canvas.getContext('2d');
+
     if (ctx) {
-      ctx.lineTo(x, y);
-      ctx.stroke();
+      // Use quadratic curves for smoother lines
+      const distance = getDistance(lastPoint, currentPoint);
+
+      // Only draw if the distance is significant (reduces noise)
+      if (distance > 2) {
+        const midPoint = getMidPoint(lastPoint, currentPoint);
+
+        ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midPoint.x, midPoint.y);
+        ctx.stroke();
+
+        // Start new path from current position for continuous drawing
+        ctx.beginPath();
+        ctx.moveTo(midPoint.x, midPoint.y);
+
+        setLastPoint(currentPoint);
+      }
     }
   };
 
   const stopDrawing = () => {
     if (!isDrawing) return;
     setIsDrawing(false);
-    
+    setLastPoint(null); // Reset for next stroke
+
     const canvas = canvasRef.current;
     if (canvas) {
       const signatureData = canvas.toDataURL();
@@ -212,7 +238,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     }
   };
 
-  // Supporto touch ottimizzato per POS
+  // Supporto touch ottimizzato per POS con smoothing
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -228,6 +254,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
     const x = (touch.clientX - rect.left) * scaleX;
     const y = (touch.clientY - rect.top) * scaleY;
+    setLastPoint({ x, y });
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
@@ -240,7 +267,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isDrawing) return;
+    if (!isDrawing || !lastPoint) return;
 
     const touch = e.touches[0];
     const canvas = canvasRef.current;
@@ -250,13 +277,28 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    const x = (touch.clientX - rect.left) * scaleX;
-    const y = (touch.clientY - rect.top) * scaleY;
+    const currentPoint = {
+      x: (touch.clientX - rect.left) * scaleX,
+      y: (touch.clientY - rect.top) * scaleY
+    };
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.lineTo(x, y);
-      ctx.stroke();
+      // Use same smoothing as mouse events
+      const distance = getDistance(lastPoint, currentPoint);
+
+      // Only draw if distance is significant (reduces jitter on touch)
+      if (distance > 3) { // Slightly higher threshold for touch
+        const midPoint = getMidPoint(lastPoint, currentPoint);
+
+        ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midPoint.x, midPoint.y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(midPoint.x, midPoint.y);
+
+        setLastPoint(currentPoint);
+      }
     }
   };
 
@@ -266,6 +308,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
     if (!isDrawing) return;
     setIsDrawing(false);
+    setLastPoint(null); // Reset for next stroke
 
     const canvas = canvasRef.current;
     if (canvas) {
@@ -802,7 +845,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         }
         // Controllo firma più intelligente - un canvas vuoto ha circa 2000-3000 caratteri
         const hasValidSignature = formData.signature &&
-                                  formData.signature.length > 5000 &&
+                                  formData.signature.length > 3000 &&
                                   formData.signature.startsWith('data:image/');
 
         if (!hasValidSignature) {
@@ -1004,10 +1047,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className={errors.email ? 'error' : ''}
-                autoComplete="new-email"
-                name="customer-email"
+                autoComplete="off"
+                name="customer-email-registration"
                 form="customer-registration-form"
                 data-form="customer-wizard"
+                spellCheck="false"
               />
               {errors.email && <span className="error-text">{errors.email}</span>}
             </div>
