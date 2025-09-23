@@ -40,8 +40,12 @@ dependencies {
     
     // WebView support
     implementation 'androidx.webkit:webkit:1.4.0'
-    
-    
+
+    // ZXing QR Code Scanner - use embedded version to avoid conflicts with ZCS SDK
+    implementation('com.journeyapps:zxing-android-embedded:4.3.0') {
+        exclude group: 'com.google.zxing', module: 'core'
+    }
+
     // ZCS SDK dependencies - SmartPos 1.9.8 (same as demo)
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     

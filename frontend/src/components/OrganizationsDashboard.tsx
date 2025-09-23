@@ -194,12 +194,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         setQrStatus('idle');
 
         if (parsedResult && parsedResult.success === true) {
-          console.log('✅ QR Code letto:', parsedResult.data);
+          // Il contenuto QR può essere in diversi campi: content, qrCode, o data
+          const qrContent = parsedResult.content || parsedResult.qrCode || parsedResult.data;
+          console.log('✅ QR Code letto:', qrContent);
           setQrStatus('success');
 
           // Verifica se è un QR code cliente OMNILY
-          if (parsedResult.data && parsedResult.data.startsWith('OMNILY_CUSTOMER:')) {
-            const customerId = parsedResult.data.replace('OMNILY_CUSTOMER:', '');
+          if (qrContent && qrContent.startsWith('OMNILY_CUSTOMER:')) {
+            const customerId = qrContent.replace('OMNILY_CUSTOMER:', '');
 
             const findAndOpenCustomer = async () => {
               try {
