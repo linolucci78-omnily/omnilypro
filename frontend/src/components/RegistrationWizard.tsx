@@ -1004,6 +1004,10 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className={errors.email ? 'error' : ''}
+                autoComplete="new-email"
+                name="customer-email"
+                form="customer-registration-form"
+                data-form="customer-wizard"
               />
               {errors.email && <span className="error-text">{errors.email}</span>}
             </div>
