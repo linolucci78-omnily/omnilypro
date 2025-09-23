@@ -126,6 +126,11 @@ const POSDashboardWrapper: React.FC = () => {
     // Esponi la funzione updateCustomerDisplay globalmente per i test
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
 
+    // Apri automaticamente il customer display all'avvio
+    setTimeout(() => {
+      openCustomerDisplay();
+    }, 1000); // Aspetta 1 secondo che l'app si carichi
+
     // Event listener per standby/recovery
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
