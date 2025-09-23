@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { hasAccess, getUpgradePlan, PlanType } from '../../utils/planPermissions';
 import {
   MdDashboard,
   MdLoyalty,
@@ -18,7 +19,14 @@ import {
   MdNotifications,
   MdAnalytics,
   MdBrush,
-  MdChannel
+  MdChannel,
+  MdEmail,
+  MdPersonAdd,
+  MdFlashOn,
+  MdBell,
+  MdPublic,
+  MdPalette,
+  MdLock
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -33,6 +41,9 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [backdropActive, setBackdropActive] = useState(false);
+
+  // Get user plan for feature access
+  const userPlan: PlanType = 'FREE'; // This should come from user context/props
 
   useEffect(() => {
     if (isOpen) {
@@ -59,110 +70,55 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     }
   };
 
-  const menuItems = [
-    {
-      id: 'dashboard',
-      icon: MdDashboard,
-      label: 'Dashboard',
-      color: '#ef4444'
-    },
-    {
-      id: 'stamps',
-      icon: MdLoyalty,
-      label: 'Tessere Punti',
-      color: '#10b981'
-    },
-    {
-      id: 'loyalty-tiers',
-      icon: MdStar,
-      label: 'Livelli Fedeltà',
-      color: '#f59e0b'
-    },
-    {
-      id: 'rewards',
-      icon: MdCardGiftcard,
-      label: 'Premi',
-      color: '#10b981'
-    },
-    {
-      id: 'members',
-      icon: MdPeople,
-      label: 'Clienti',
-      color: '#3b82f6'
-    },
-    {
-      id: 'categories',
-      icon: MdCategory,
-      label: 'Categorie',
-      color: '#8b5cf6'
-    },
-    {
-      id: 'marketing-campaigns',
-      icon: MdCampaign,
-      label: 'Marketing',
-      color: '#f59e0b'
-    },
-    {
-      id: 'communications',
-      icon: MdChannel,
-      label: 'Comunicazioni',
-      color: '#f59e0b'
-    },
-    {
-      id: 'campaigns',
-      icon: MdTrendingUp,
-      label: 'Campagne',
-      color: '#8b5cf6'
-    },
-    {
-      id: 'team-management',
-      icon: MdGroup,
-      label: 'Team',
-      color: '#3b82f6'
-    },
-    {
-      id: 'pos-integration',
-      icon: MdIntegrationInstructions,
-      label: 'Integrazione POS',
-      color: '#10b981'
-    },
-    {
-      id: 'notifications',
-      icon: MdNotifications,
-      label: 'Notifiche',
-      color: '#f59e0b'
-    },
-    {
-      id: 'analytics-reports',
-      icon: MdAnalytics,
-      label: 'Analytics',
-      color: '#8b5cf6'
-    },
-    {
-      id: 'branding-social',
-      icon: MdBrush,
-      label: 'Branding',
-      color: '#ef4444'
-    },
-    {
-      id: 'channels',
-      icon: MdChannel,
-      label: 'Canali',
-      color: '#6b7280'
-    },
-    {
-      id: 'settings',
-      icon: MdSettings,
-      label: 'Impostazioni',
-      color: '#6b7280'
-    },
-    {
-      id: 'support',
-      icon: MdHelp,
-      label: 'Aiuto & Supporto',
-      color: '#ef4444'
-    }
+  // Menu items identical to desktop OrganizationsDashboard
+  const baseMenuItems = [
+    { id: 'dashboard', icon: MdDashboard, label: 'Dashboard', feature: null },
+    { id: 'stamps', icon: MdLoyalty, label: 'Tessere Punti', feature: null },
+    { id: 'members', icon: MdPeople, label: 'Clienti', feature: null },
+    { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
+    { id: 'rewards', icon: MdCardGiftcard, label: 'Premi', feature: 'rewards' },
+    { id: 'categories', icon: MdCategory, label: 'Categorie', feature: 'categories' },
+    { id: 'marketing-campaigns', icon: MdEmail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
+    { id: 'team-management', icon: MdPersonAdd, label: 'Gestione Team', feature: 'teamManagement' },
+    { id: 'pos-integration', icon: MdFlashOn, label: 'Integrazione POS', feature: 'posIntegration' },
+    { id: 'notifications', icon: MdBell, label: 'Notifiche', feature: 'notifications' },
+    { id: 'analytics-reports', icon: MdAnalytics, label: 'Analytics & Report', feature: 'analyticsReports' },
+    { id: 'branding-social', icon: MdPalette, label: 'Branding & Social', feature: 'brandingSocial' },
+    { id: 'channels', icon: MdPublic, label: 'Canali Integrazione', feature: 'channelsIntegration' },
+    { id: 'communications', icon: MdCampaign, label: 'Comunicazioni', feature: null },
+    { id: 'settings', icon: MdSettings, label: 'Impostazioni', feature: null },
+    { id: 'support', icon: MdHelp, label: 'Aiuto & Supporto', feature: null }
   ];
+
+  // Add locked status based on user plan (like desktop)
+  const menuItems = baseMenuItems.map(item => ({
+    ...item,
+    locked: item.feature ? !hasAccess(userPlan, item.feature as any) : false,
+    color: item.locked ? '#6b7280' : getItemColor(item.id)
+  }));
+
+  // Color mapping function
+  function getItemColor(id: string): string {
+    const colorMap: { [key: string]: string } = {
+      'dashboard': '#ef4444',
+      'stamps': '#10b981',
+      'members': '#3b82f6',
+      'loyalty-tiers': '#f59e0b',
+      'rewards': '#10b981',
+      'categories': '#8b5cf6',
+      'marketing-campaigns': '#f59e0b',
+      'team-management': '#3b82f6',
+      'pos-integration': '#10b981',
+      'notifications': '#f59e0b',
+      'analytics-reports': '#8b5cf6',
+      'branding-social': '#ef4444',
+      'channels': '#6b7280',
+      'communications': '#f59e0b',
+      'settings': '#6b7280',
+      'support': '#ef4444'
+    };
+    return colorMap[id] || '#6b7280';
+  }
 
   const handleMenuClick = (sectionId: string) => {
     onSectionChange(sectionId);
@@ -207,13 +163,19 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
             <button
               key={item.id}
               onClick={() => handleMenuClick(item.id)}
-              className={`pos-menu-item ${activeSection === item.id ? 'pos-menu-item-active' : ''}`}
+              className={`pos-menu-item ${activeSection === item.id ? 'pos-menu-item-active' : ''} ${item.locked ? 'pos-menu-item-locked' : ''}`}
               style={{ '--item-color': item.color } as React.CSSProperties}
+              disabled={item.locked && activeSection === item.id}
             >
               <span className="pos-menu-icon">
                 <item.icon size={24} />
               </span>
               <span className="pos-menu-label">{item.label}</span>
+              {item.locked && (
+                <span className="pos-lock-icon">
+                  <MdLock size={16} />
+                </span>
+              )}
             </button>
           ))}
         </nav>
