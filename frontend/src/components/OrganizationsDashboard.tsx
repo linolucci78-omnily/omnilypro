@@ -84,7 +84,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         setNfcResult(parsedResult);
         setNfcStatus('idle'); // Reset status after reading
 
-        if (parsedResult && parsedResult.success) {
+        // FORCE string parsing - Android always sends JSON as string
+        if (typeof result === 'string') {
+          try {
+            parsedResult = JSON.parse(result);
+          } catch (e) {
+            parsedResult = { success: false, error: 'Parse failed' };
+          }
+        }
+
+        if (parsedResult && parsedResult.success === true) {
           console.log('✅ Carta NFC letta:', parsedResult.cardNo);
           setNfcStatus('success');
           if ((window as any).OmnilyPOS.beep) {
