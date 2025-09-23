@@ -265,3 +265,62 @@
     flex: 1;
   }
 }
+
+/* Animazioni Monete per Celebrazione Vendita */
+@keyframes coinFall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes coinSparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 5px #ffd700;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    box-shadow: 0 0 15px #ffd700, 0 0 25px #ffa500;
+  }
+}
+
+.coin {
+  position: fixed;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+  border-radius: 50%;
+  border: 2px solid #ffa500;
+  z-index: 10001;
+  animation: coinFall 3s linear infinite, coinSparkle 0.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.coin::before {
+  content: '€';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  color: #ff8c00;
+  font-size: 14px;
+}
+
+/* Animazione pulse per celebrazione */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

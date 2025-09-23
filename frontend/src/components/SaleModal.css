@@ -23,7 +23,7 @@
   border-radius: 16px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   z-index: 2001;
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* Header */
@@ -209,6 +209,71 @@
   color: #ef4444;
 }
 
+/* Keypad Numerico */
+.sale-keypad {
+  margin: 1.5rem 0;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.sale-keypad-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sale-keypad-row:last-child {
+  margin-bottom: 0;
+}
+
+.sale-keypad-btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sale-keypad-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+.sale-keypad-btn:active {
+  transform: translateY(0);
+}
+
+.sale-keypad-btn-delete {
+  background: #f97316;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sale-keypad-btn-delete:hover {
+  background: #ea580c;
+}
+
+.sale-keypad-btn-clear {
+  background: #64748b;
+  color: white;
+  colspan: 3;
+}
+
+.sale-keypad-btn-clear:hover {
+  background: #475569;
+}
+
 /* Congratulations */
 .congratulations {
   text-align: center;
@@ -278,7 +343,7 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translate(-50%, -30%);
+    transform: translate(-50%, 100%);
   }
   to {
     opacity: 1;

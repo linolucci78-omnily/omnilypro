@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './CustomerDisplay.css';
 
 interface TransactionData {
   items: Array<{
@@ -21,6 +22,8 @@ const CustomerDisplay: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [organizationName, setOrganizationName] = useState('OMNILY PRO');
   const [welcomeMessage, setWelcomeMessage] = useState('Il tuo ordine apparirà qui automaticamente');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<any>(null);
 
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
@@ -43,6 +46,16 @@ const CustomerDisplay: React.FC = () => {
         if (event.data.welcomeMessage) {
           setWelcomeMessage(event.data.welcomeMessage);
         }
+      } else if (event.data.type === 'SALE_CELEBRATION') {
+        console.log('🎉 Celebrazione vendita ricevuta:', event.data.celebration);
+        setCelebrationData(event.data.celebration);
+        setShowCelebration(true);
+
+        // Termina celebrazione dopo il tempo specificato
+        setTimeout(() => {
+          setShowCelebration(false);
+          setCelebrationData(null);
+        }, event.data.celebration.duration || 4000);
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -55,6 +68,35 @@ const CustomerDisplay: React.FC = () => {
       window.removeEventListener('message', handleMessage);
     };
   }, []);
+
+  // Funzione per creare pioggia di monete
+  const createCoinsRain = () => {
+    const coinsContainer = document.getElementById('coins-container');
+    if (!coinsContainer) return;
+
+    for (let i = 0; i < 15; i++) {
+      setTimeout(() => {
+        const coin = document.createElement('div');
+        coin.className = 'coin';
+        coin.style.left = Math.random() * 100 + '%';
+        coin.style.animationDelay = Math.random() * 2 + 's';
+        coin.style.animationDuration = (3 + Math.random() * 2) + 's';
+        coinsContainer.appendChild(coin);
+
+        // Rimuovi la moneta dopo l'animazione
+        setTimeout(() => {
+          coin.remove();
+        }, 5000);
+      }, i * 200);
+    }
+  };
+
+  // Attiva pioggia di monete quando inizia la celebrazione
+  React.useEffect(() => {
+    if (showCelebration && celebrationData?.showCoinsRain) {
+      createCoinsRain();
+    }
+  }, [showCelebration, celebrationData]);
 
   return (
     <div style={{
@@ -174,6 +216,68 @@ const CustomerDisplay: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Celebration Overlay */}
+      {showCelebration && celebrationData && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          color: 'white',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            padding: '2rem',
+            borderRadius: '16px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+            animation: 'pulse 2s infinite'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '2rem' }}>
+              Vendita Completata!
+            </h2>
+            <p style={{ margin: '0 0 1rem 0', fontSize: '1.2rem' }}>
+              Grazie {celebrationData.customerName}!
+            </p>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem'
+            }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                €{celebrationData.amount.toFixed(2)}
+              </div>
+              <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+                +{celebrationData.pointsEarned} punti guadagnati!
+              </div>
+              <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+                Totale punti: {celebrationData.newTotalPoints}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Container per le monete animate */}
+      <div id="coins-container" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 10000
+      }} />
     </div>
   );
 };

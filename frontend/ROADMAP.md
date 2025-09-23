@@ -341,7 +341,7 @@ const rawResult = bridge.readNFCCardSync();
 
 ---
 
-### ✅ **COMPLETATO 23 Settembre 2024 - QR Scanner ZXing & Menu POS Completo**
+### ✅ **COMPLETATO 23 Settembre 2025 - QR Scanner ZXing & Menu POS Completo**
 
 **🎊 MILESTONE RAGGIUNTI:**
 
@@ -441,7 +441,7 @@ const menuItems = baseMenuItems.map(item => ({
 - Menu Completion: Commit 12dae6e - Tutte le sezioni desktop aggiunte al POS
 - TypeScript Fixes: Commit 1cd2cd2 - Risolti errori compilazione e icons
 
-**📅 Prossimo Step (24 Settembre):** Test integrato QR Scanner + Menu completo su Z108 hardware e inizio progettazione sistema multi-tenant database
+**📅 Prossimo Step (24 Settembre 2025):** Test integrato QR Scanner + Menu completo su Z108 hardware e inizio progettazione sistema multi-tenant database
 
 ---
 

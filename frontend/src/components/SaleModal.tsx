@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShoppingBag, Target, Award } from 'lucide-react';
+import { X, ShoppingBag, Target, Award, Delete } from 'lucide-react';
 import './SaleModal.css';
 
 interface SaleModalProps {
@@ -25,13 +25,22 @@ const SaleModal: React.FC<SaleModalProps> = ({
     setPointsEarned(points);
   }, [amount]);
 
+  // Funzione per suono "ka-ching" celebrativo
+  const playCelebrationSound = () => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+      // Sequenza di beep per creare effetto "ka-ching"
+      setTimeout(() => (window as any).OmnilyPOS.beep("1", "100"), 0);
+      setTimeout(() => (window as any).OmnilyPOS.beep("2", "100"), 100);
+      setTimeout(() => (window as any).OmnilyPOS.beep("3", "150"), 200);
+      setTimeout(() => (window as any).OmnilyPOS.beep("2", "200"), 350);
+    }
+  };
+
   const handleConfirm = () => {
     if (!amount || parseFloat(amount) <= 0) return;
 
-    // Suono "ka-ching" quando confermi la vendita
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("2", "150"); // Beep di conferma
-    }
+    // Suono celebrativo "ka-ching"
+    playCelebrationSound();
 
     const numAmount = parseFloat(amount);
     onConfirm(customer.id, numAmount, pointsEarned);
@@ -45,6 +54,37 @@ const SaleModal: React.FC<SaleModalProps> = ({
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setAmount(value);
     }
+  };
+
+  // Funzioni per il keypad numerico
+  const addDigit = (digit: string) => {
+    if (digit === '.' && amount.includes('.')) return;
+
+    // Suono click per feedback keypad
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+      (window as any).OmnilyPOS.beep("1", "50");
+    }
+
+    setAmount(prev => prev + digit);
+  };
+
+  const removeLastDigit = () => {
+    // Suono diverso per cancellazione
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+      (window as any).OmnilyPOS.beep("0", "80");
+    }
+
+    setAmount(prev => prev.slice(0, -1));
+  };
+
+  const clearAmount = () => {
+    // Suono per clear completo
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+      setTimeout(() => (window as any).OmnilyPOS.beep("0", "100"), 0);
+      setTimeout(() => (window as any).OmnilyPOS.beep("0", "100"), 100);
+    }
+
+    setAmount('');
   };
 
   if (!isOpen || !customer) return null;
@@ -112,6 +152,37 @@ const SaleModal: React.FC<SaleModalProps> = ({
               </div>
               <span className="points-label">Ora Hai</span>
               <span className="points-value">{newTotalPoints} punti</span>
+            </div>
+          </div>
+
+          {/* Keypad Numerico */}
+          <div className="sale-keypad">
+            <div className="sale-keypad-row">
+              <button className="sale-keypad-btn" onClick={() => addDigit('1')}>1</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('2')}>2</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('3')}>3</button>
+            </div>
+            <div className="sale-keypad-row">
+              <button className="sale-keypad-btn" onClick={() => addDigit('4')}>4</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('5')}>5</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('6')}>6</button>
+            </div>
+            <div className="sale-keypad-row">
+              <button className="sale-keypad-btn" onClick={() => addDigit('7')}>7</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('8')}>8</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('9')}>9</button>
+            </div>
+            <div className="sale-keypad-row">
+              <button className="sale-keypad-btn" onClick={() => addDigit('.')}>.</button>
+              <button className="sale-keypad-btn" onClick={() => addDigit('0')}>0</button>
+              <button className="sale-keypad-btn sale-keypad-btn-delete" onClick={removeLastDigit}>
+                <Delete size={20} />
+              </button>
+            </div>
+            <div className="sale-keypad-row">
+              <button className="sale-keypad-btn sale-keypad-btn-clear" onClick={clearAmount}>
+                Clear
+              </button>
             </div>
           </div>
 
