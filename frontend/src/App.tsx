@@ -53,6 +53,15 @@ function App() {
 
   // Customer Display Mode - Direct render
   if (isCustomerDisplay) {
+    // VERIFICA: Se non è un popup, non caricare customer display qui!
+    if (typeof window !== 'undefined' && window.opener === null) {
+      console.warn('🚫 Customer display rilevato in finestra principale - redirect al POS');
+      // Rimuovi l'hash per tornare al POS normale
+      window.location.hash = '';
+      window.location.reload();
+      return <div>Redirecting...</div>;
+    }
+
     document.body.style.margin = '0'
     document.body.style.padding = '0'
     document.body.style.overflow = 'hidden'

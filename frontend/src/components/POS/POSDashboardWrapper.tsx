@@ -34,7 +34,9 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
       'width=480,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
     );
 
-      if (customerDisplayWindow.current) {
+    console.log('🔍 Risultato window.open:', customerDisplayWindow.current);
+
+    if (customerDisplayWindow.current) {
         console.log('✅ Customer Display aperto automaticamente');
         setIsDisplayConnected(true);
 
