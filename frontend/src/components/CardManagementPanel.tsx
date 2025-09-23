@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings } from 'lucide-react';
+import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings, Trash2 } from 'lucide-react';
 import type { Customer, NFCCard } from '../lib/supabase';
 import { nfcCardsApi } from '../lib/supabase';
 import './CardManagementPanel.css';
@@ -302,6 +302,33 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     }
   };
 
+  const handleDeleteCard = async (cardId: string, cardUid: string) => {
+    // Conferma prima di eliminare
+    const confirmed = window.confirm(`Sei sicuro di voler eliminare la tessera ${cardUid}?`);
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+
+      await nfcCardsApi.deactivate(cardId);
+
+      // Ricarica la lista delle tessere
+      await loadAssignedCards();
+
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        (window as any).OmnilyPOS.showToast(`Tessera ${cardUid} eliminata con successo`);
+      }
+
+    } catch (error: any) {
+      console.error('Error deleting card:', error);
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        (window as any).OmnilyPOS.showToast(`Errore eliminazione: ${error?.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -432,6 +459,16 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
                               <span>Non assegnata</span>
                             </div>
                           )}
+                        </div>
+                        <div className="card-actions">
+                          <button
+                            className="delete-card-btn"
+                            onClick={() => handleDeleteCard(card.id, card.uid)}
+                            disabled={loading}
+                            title="Elimina tessera"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}
