@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
+import SaleModal from './SaleModal';
 
 import type { Customer } from '../lib/supabase';
 
@@ -20,6 +21,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   onAddPoints,
   onNewTransaction
 }) => {
+  const [showSaleModal, setShowSaleModal] = useState(false);
+
   if (!customer) return null;
 
   const getTierColor = (tier: string) => {
@@ -47,6 +50,42 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         }
       });
     }
+  };
+
+  const handleSaleConfirm = (customerId: string, amount: number, pointsEarned: number) => {
+    // Suono di celebrazione dal bridge Android
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+      (window as any).OmnilyPOS.beep("1", "300"); // Beep lungo di successo
+    }
+
+    // Aggiorna customer display con celebrazione vendita e pioggia di monete
+    if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+      (window as any).updateCustomerDisplay({
+        type: 'SALE_CELEBRATION',
+        celebration: {
+          customerName: customer.name,
+          amount: amount,
+          pointsEarned: pointsEarned,
+          oldPoints: customer.points,
+          newTotalPoints: customer.points + pointsEarned,
+          tier: customer.tier,
+          showCoinsRain: true, // Attiva pioggia di monete
+          duration: 4000 // Celebrazione per 4 secondi
+        }
+      });
+    }
+
+    // Chiama callback per aggiornare punti nel database
+    if (onAddPoints) {
+      onAddPoints(customerId, pointsEarned);
+    }
+
+    // Chiama callback transazione se esiste
+    if (onNewTransaction) {
+      onNewTransaction(customerId);
+    }
+
+    console.log(`Vendita completata: €${amount} per ${customer.name}, +${pointsEarned} punti`);
   };
 
   // NON aggiorniamo automaticamente il customer display quando apriamo il pannello
@@ -124,11 +163,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           </button>
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-secondary"
-            onClick={() => {
-              onNewTransaction?.(customer.id);
-              // Aggiorna customer display con info vendita
-              updateCustomerDisplay();
-            }}
+            onClick={() => setShowSaleModal(true)}
           >
             <ShoppingBag size={20} />
             Nuova Vendita
@@ -197,6 +232,14 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Sale Modal */}
+      <SaleModal
+        customer={customer}
+        isOpen={showSaleModal}
+        onClose={() => setShowSaleModal(false)}
+        onConfirm={handleSaleConfirm}
+      />
     </>
   );
 };
