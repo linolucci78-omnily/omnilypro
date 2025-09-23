@@ -154,6 +154,7 @@ const POSDashboardWrapper: React.FC = () => {
     <POSLayout
       activeSection={activeSection}
       onSectionChange={setActiveSection}
+      currentOrganization={null} // TODO: Get from OrganizationsDashboard context
     >
       <OrganizationsDashboard
         activeSection={activeSection}

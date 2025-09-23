@@ -19,11 +19,10 @@ import {
   MdNotifications,
   MdAnalytics,
   MdBrush,
-  MdChannel,
+  MdTv,
   MdEmail,
   MdPersonAdd,
   MdFlashOn,
-  MdBell,
   MdPublic,
   MdPalette,
   MdLock
@@ -35,15 +34,16 @@ interface POSSidebarProps {
   onClose: () => void;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  currentOrganization?: { plan_type?: string } | null;
 }
 
-const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
+const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange, currentOrganization }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [backdropActive, setBackdropActive] = useState(false);
 
-  // Get user plan for feature access
-  const userPlan: PlanType = 'FREE'; // This should come from user context/props
+  // Get user plan from current organization (following roadmap)
+  const userPlan = currentOrganization?.plan_type || 'free';
 
   useEffect(() => {
     if (isOpen) {
@@ -70,8 +70,18 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     }
   };
 
+  // Define menu item type with locked property
+  interface MenuItem {
+    id: string;
+    icon: any;
+    label: string;
+    feature: string | null;
+    locked?: boolean;
+    color?: string;
+  }
+
   // Menu items identical to desktop OrganizationsDashboard
-  const baseMenuItems = [
+  const baseMenuItems: MenuItem[] = [
     { id: 'dashboard', icon: MdDashboard, label: 'Dashboard', feature: null },
     { id: 'stamps', icon: MdLoyalty, label: 'Tessere Punti', feature: null },
     { id: 'members', icon: MdPeople, label: 'Clienti', feature: null },
@@ -81,7 +91,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'marketing-campaigns', icon: MdEmail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
     { id: 'team-management', icon: MdPersonAdd, label: 'Gestione Team', feature: 'teamManagement' },
     { id: 'pos-integration', icon: MdFlashOn, label: 'Integrazione POS', feature: 'posIntegration' },
-    { id: 'notifications', icon: MdBell, label: 'Notifiche', feature: 'notifications' },
+    { id: 'notifications', icon: MdNotifications, label: 'Notifiche', feature: 'notifications' },
     { id: 'analytics-reports', icon: MdAnalytics, label: 'Analytics & Report', feature: 'analyticsReports' },
     { id: 'branding-social', icon: MdPalette, label: 'Branding & Social', feature: 'brandingSocial' },
     { id: 'channels', icon: MdPublic, label: 'Canali Integrazione', feature: 'channelsIntegration' },
