@@ -455,7 +455,7 @@ export const nfcCardsApi = {
   },
 
   // Deactivate card (soft delete)
-  async deactivate(cardId: string): Promise<void> {
+  async deactivate(cardId: string, organizationId: string): Promise<void> {
     const { error } = await supabase
       .from('nfc_cards')
       .update({
@@ -463,6 +463,7 @@ export const nfcCardsApi = {
         updated_at: new Date().toISOString()
       })
       .eq('id', cardId)
+      .eq('organization_id', organizationId)
 
     if (error) throw error
   },

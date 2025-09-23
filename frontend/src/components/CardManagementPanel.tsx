@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings, Trash2 } from 'lucide-react';
+import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings, Trash2, QrCode } from 'lucide-react';
 import type { Customer, NFCCard } from '../lib/supabase';
 import { nfcCardsApi } from '../lib/supabase';
 import './CardManagementPanel.css';
@@ -32,10 +32,13 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
 }) => {
   const [mode, setMode] = useState<'read' | 'list' | 'assign'>('read');
   const [isReading, setIsReading] = useState(false);
+  const [isReadingQR, setIsReadingQR] = useState(false);
   const [scannedCard, setScannedCard] = useState<CardData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<{id: string, uid: string} | null>(null);
   const [assignedCards, setAssignedCards] = useState<NFCCard[]>([]);
   const [loading, setLoading] = useState(false);
   const busyRef = useRef(false); // Ref per prevenire doppi click
@@ -163,6 +166,74 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
         }
       };
       console.log('📡 NFC Handler registered: cardManagementNFCHandler');
+
+      // QR Code callback
+      (window as any).cardManagementQRHandler = async (rawResult: any) => {
+        console.log('🟡 QR CALLBACK TRIGGERED - Raw result:', rawResult);
+        console.log('🟡 Raw result type:', typeof rawResult);
+
+        // Handle both string and object results from Android bridge
+        let result = rawResult;
+        if (typeof rawResult === 'string') {
+          try {
+            result = JSON.parse(rawResult);
+            console.log('🔄 Parsed QR JSON result:', result);
+          } catch (e) {
+            console.error('❌ Failed to parse QR JSON result:', e);
+            result = { success: false, error: 'Parse failed' };
+          }
+        }
+        console.log('🟡 QR CALLBACK - Parsed result:', result);
+        setIsReadingQR(false); // Ferma l'indicatore di caricamento
+
+        if (result && result.success && result.data) {
+          console.log('✅ QR SUCCESS - Data:', result.data);
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("1", "150");
+          }
+
+          // Check if it's an OMNILY customer QR code
+          if (result.data.startsWith('OMNILY_CUSTOMER:')) {
+            const customerId = result.data.replace('OMNILY_CUSTOMER:', '');
+            console.log('🎯 OMNILY Customer QR detected:', customerId);
+
+            // Find customer and show in assignment mode
+            const customer = customers.find(c => c.id === customerId);
+            if (customer) {
+              console.log('✅ Customer found from QR:', customer.name);
+              setSelectedCustomer(customer);
+              // If we have a scanned card, trigger assignment
+              if (scannedCard) {
+                await handleAssignCard(customer);
+              } else {
+                if ((window as any).OmnilyPOS.showToast) {
+                  (window as any).OmnilyPOS.showToast(`Cliente selezionato: ${customer.name}`);
+                }
+              }
+            } else {
+              console.log('❌ Customer not found for QR ID:', customerId);
+              if ((window as any).OmnilyPOS.showToast) {
+                (window as any).OmnilyPOS.showToast('Cliente non trovato');
+              }
+            }
+          } else {
+            console.log('❌ QR code not valid for OMNILY');
+            if ((window as any).OmnilyPOS.showToast) {
+              (window as any).OmnilyPOS.showToast('QR code non riconosciuto');
+            }
+          }
+        } else {
+          console.log('❌ QR read failed:', result?.error || 'Lettura fallita');
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("3", "100");
+          }
+          if ((window as any).OmnilyPOS.showToast) {
+            (window as any).OmnilyPOS.showToast('Errore lettura QR');
+          }
+        }
+      };
+
+      console.log('📡 QR Handler registered: cardManagementQRHandler');
     }
 
     // Funzione di pulizia eseguita quando il componente viene smontato o il pannello si chiude
@@ -302,22 +373,83 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     }
   };
 
-  const handleDeleteCard = async (cardId: string, cardUid: string) => {
-    // Conferma prima di eliminare
-    const confirmed = window.confirm(`Sei sicuro di voler eliminare la tessera ${cardUid}?`);
-    if (!confirmed) return;
+  const handleQRRead = () => {
+    if (busyRef.current) {
+      console.log('⏸️ Ignoring QR read - system busy');
+      return;
+    }
+
+    busyRef.current = true;
+
+    if (typeof window === 'undefined' || !(window as any).OmnilyPOS) {
+      console.log('❌ Bridge Android non disponibile per QR');
+      if ((window as any).OmnilyPOS?.showToast) {
+        (window as any).OmnilyPOS.showToast('Bridge Android non disponibile. Usa solo da dispositivo POS.');
+      }
+      busyRef.current = false;
+      return;
+    }
+
+    const bridge = (window as any).OmnilyPOS;
+
+    if (isReadingQR) {
+      // Se la lettura QR è già in corso, il secondo click la annulla
+      console.log('🛑 Stopping QR reading...');
+      if (bridge.stopQRReading) {
+        bridge.stopQRReading();
+      }
+      setIsReadingQR(false);
+      if (bridge.showToast) {
+        bridge.showToast('Lettura QR annullata.');
+      }
+    } else {
+      console.log('🟡 Starting QR reading...');
+      setIsReadingQR(true);
+      if (bridge.showToast) {
+        bridge.showToast('Inquadra il QR code del cliente...');
+      }
+
+      if (bridge.readQRCode) {
+        console.log('📡 Calling bridge.readQRCode with callback: cardManagementQRHandler');
+        bridge.readQRCode('cardManagementQRHandler');
+      } else {
+        console.log('❌ readQRCode non disponibile nel bridge');
+        setIsReadingQR(false);
+        if (bridge.showToast) {
+          bridge.showToast('Scanner QR non disponibile. Funzionalità non ancora implementata nel dispositivo.');
+        }
+      }
+    }
+
+    // Rilascia il lock dopo un breve periodo
+    setTimeout(() => {
+      busyRef.current = false;
+    }, 500);
+  };
+
+  const handleDeleteCard = (cardId: string, cardUid: string) => {
+    // Mostra il dialog di conferma professionale
+    setCardToDelete({ id: cardId, uid: cardUid });
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteCard = async () => {
+    if (!cardToDelete) return;
 
     try {
       setLoading(true);
 
-      await nfcCardsApi.deactivate(cardId);
+      await nfcCardsApi.deactivate(cardToDelete.id, organizationId);
 
       // Ricarica la lista delle tessere
       await loadAssignedCards();
 
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-        (window as any).OmnilyPOS.showToast(`Tessera ${cardUid} eliminata con successo`);
+        (window as any).OmnilyPOS.showToast(`Tessera ${cardToDelete.uid} eliminata con successo`);
       }
+
+      setShowDeleteDialog(false);
+      setCardToDelete(null);
 
     } catch (error: any) {
       console.error('Error deleting card:', error);
@@ -572,6 +704,45 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
                   }}
                 >
                   Riassegna
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteDialog && cardToDelete && (
+          <div className="reassign-dialog-overlay">
+            <div className="reassign-dialog delete-dialog">
+              <div className="dialog-header">
+                <Trash2 size={24} color="#dc2626" />
+                <h3>Conferma Eliminazione</h3>
+              </div>
+              <div className="dialog-content">
+                <p>
+                  Sei sicuro di voler eliminare la tessera <strong>{cardToDelete.uid}</strong>?
+                </p>
+                <p className="warning-text">
+                  Questa azione non può essere annullata. La tessera verrà disattivata permanentemente.
+                </p>
+              </div>
+              <div className="dialog-actions">
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    setShowDeleteDialog(false);
+                    setCardToDelete(null);
+                  }}
+                  disabled={loading}
+                >
+                  Annulla
+                </button>
+                <button
+                  className="btn-danger"
+                  onClick={confirmDeleteCard}
+                  disabled={loading}
+                >
+                  {loading ? 'Eliminazione...' : 'Elimina Tessera'}
                 </button>
               </div>
             </div>
