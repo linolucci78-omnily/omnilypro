@@ -59,9 +59,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       // Definiamo il callback ma NON lo registriamo automaticamente
       (window as any).omnilyNFCResultHandler = (result: any) => {
-        console.log('📱 Risultato lettura NFC (da dashboard):', result);
-        console.log('📱 Tipo result:', typeof result);
-        console.log('📱 Result è string?', typeof result === 'string');
+        console.log('🚀 NEW VERSION 16:26 - Risultato lettura NFC (da dashboard):', result);
+        console.log('🚀 NEW VERSION 16:26 - Tipo result:', typeof result);
+        console.log('🚀 NEW VERSION 16:26 - Result è string?', typeof result === 'string');
 
         // Parse JSON string if needed
         let parsedResult = result;
