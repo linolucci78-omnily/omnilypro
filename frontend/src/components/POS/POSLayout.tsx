@@ -7,9 +7,10 @@ interface POSLayoutProps {
   children: React.ReactNode;
   activeSection?: string;
   onSectionChange?: (section: string) => void;
+  currentOrganization?: { plan_type?: string } | null;
 }
 
-const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {} }) => {
+const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {}, currentOrganization }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
         onClose={closeSidebar}
         activeSection={activeSection}
         onSectionChange={onSectionChange}
+        currentOrganization={currentOrganization}
       />
 
       {/* Contenuto principale */}
