@@ -60,6 +60,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Definiamo il callback ma NON lo registriamo automaticamente
       (window as any).omnilyNFCResultHandler = (result: any) => {
         console.log('📱 Risultato lettura NFC (da dashboard):', result);
+        console.log('📱 Tipo result:', typeof result);
+        console.log('📱 Result è string?', typeof result === 'string');
 
         // Parse JSON string if needed
         let parsedResult = result;
@@ -67,10 +69,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           try {
             parsedResult = JSON.parse(result);
             console.log('🔄 Parsed JSON result:', parsedResult);
+            console.log('🔄 Parsed success:', parsedResult.success);
+            console.log('🔄 Parsed cardNo:', parsedResult.cardNo);
           } catch (e) {
             console.error('❌ Failed to parse JSON result:', e);
+            parsedResult = { success: false, error: 'Parse failed' };
           }
         }
+
+        console.log('🎯 Final parsedResult:', parsedResult);
+        console.log('🎯 Final parsedResult.success:', parsedResult?.success);
+        console.log('🎯 Condition check:', parsedResult && parsedResult.success);
 
         setNfcResult(parsedResult);
         setNfcStatus('idle'); // Reset status after reading
