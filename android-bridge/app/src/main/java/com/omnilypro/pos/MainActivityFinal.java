@@ -58,6 +58,7 @@ import java.util.concurrent.ExecutorService;
 public class MainActivityFinal extends AppCompatActivity {
 
     private static final String TAG = "OmnilyPOS";
+    private static final int QR_SCAN_REQUEST_CODE = 100;
 
     /*
     private DriverManager mDriverManager;
@@ -75,6 +76,9 @@ public class MainActivityFinal extends AppCompatActivity {
     private IntentFilter[] nfcIntentFilters;
     private String[][] nfcTechLists;
     private OmnilyPOSBridge bridge;
+
+    // QR Code scanning
+    private String currentQRCallback;
 
     private static final int REQUEST_PERMISSIONS_CODE = 101;
     private static final String[] PERMISSIONS = {
@@ -357,6 +361,69 @@ public class MainActivityFinal extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == QR_SCAN_REQUEST_CODE) {
+            Log.d(TAG, "QR scan result received - resultCode: " + resultCode);
+
+            if (currentQRCallback != null) {
+                try {
+                    JSONObject result = new JSONObject();
+
+                    if (resultCode == RESULT_OK && data != null) {
+                        String qrContent = data.getStringExtra("SCAN_RESULT");
+                        String format = data.getStringExtra("SCAN_RESULT_FORMAT");
+
+                        Log.d(TAG, "QR scan successful - content: " + qrContent + ", format: " + format);
+
+                        if (qrContent != null && !qrContent.isEmpty()) {
+                            result.put("success", true);
+                            result.put("data", qrContent);
+                            result.put("format", format != null ? format : "QR_CODE");
+
+                            Toast.makeText(this, "QR code letto con successo", Toast.LENGTH_SHORT).show();
+                        } else {
+                            result.put("success", false);
+                            result.put("error", "QR code vuoto o non valido");
+                            Toast.makeText(this, "QR code non valido", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // User cancelled or scan failed
+                        result.put("success", false);
+                        result.put("error", resultCode == RESULT_CANCELED ? "Scansione annullata dall'utente" : "Errore durante la scansione");
+
+                        if (resultCode == RESULT_CANCELED) {
+                            Toast.makeText(this, "Scansione QR annullata", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Errore scansione QR", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    // Send result to JavaScript callback
+                    bridge.runJsCallback(currentQRCallback, result.toString());
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing QR scan result", e);
+                    try {
+                        JSONObject errorResult = new JSONObject();
+                        errorResult.put("success", false);
+                        errorResult.put("error", "Errore processamento risultato QR: " + e.getMessage());
+                        bridge.runJsCallback(currentQRCallback, errorResult.toString());
+                    } catch (Exception jsonError) {
+                        Log.e(TAG, "Error creating QR error response", jsonError);
+                    }
+                } finally {
+                    // Reset callback
+                    currentQRCallback = null;
+                }
+            } else {
+                Log.w(TAG, "QR scan result received but no callback set");
+            }
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private void setupWebView() {
         webView = new WebView(this);
@@ -621,18 +688,48 @@ public class MainActivityFinal extends AppCompatActivity {
         public void readQRCode(String callbackName) {
             Log.d(TAG, "readQRCode called with callback: " + callbackName);
 
-            // Per ora simuliamo la lettura QR (in futuro si può integrare con scanner hardware)
-            runOnUiThread(() -> {
-                // Mostra toast per simulare scanner QR
-                Toast.makeText(MainActivityFinal.this, "Scanner QR non ancora implementato. Usa NFC per ora.", Toast.LENGTH_LONG).show();
+            // Store the callback for QR result
+            currentQRCallback = callbackName;
 
+            runOnUiThread(() -> {
                 try {
-                    JSONObject result = new JSONObject();
-                    result.put("success", false);
-                    result.put("error", "QR scanner not implemented yet. Use NFC instead.");
-                    runJsCallback(callbackName, result.toString());
+                    // Start QR code scanner using camera
+                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                    intent.putExtra("SCAN_MODE", "QR_CODE_MODE"); // QR codes only
+                    intent.putExtra("SAVE_HISTORY", false); // Don't save to history
+                    intent.putExtra("PROMPT_MESSAGE", "Inquadra il QR code del cliente");
+
+                    // Check if ZXing scanner app is available
+                    if (intent.resolveActivity(getPackageManager()) != null) {
+                        startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
+                        Toast.makeText(MainActivityFinal.this, "Scanner QR avviato - inquadra il codice", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // ZXing not installed, try generic camera intent or show error
+                        Log.w(TAG, "ZXing scanner not available, trying alternative...");
+
+                        // Try with generic barcode scanner intent
+                        Intent genericIntent = new Intent("com.google.zxing.client.android.SCAN");
+                        if (genericIntent.resolveActivity(getPackageManager()) != null) {
+                            startActivityForResult(genericIntent, QR_SCAN_REQUEST_CODE);
+                        } else {
+                            // No scanner available - return error
+                            JSONObject result = new JSONObject();
+                            result.put("success", false);
+                            result.put("error", "Nessun scanner QR disponibile. Installa un'app scanner QR.");
+                            runJsCallback(callbackName, result.toString());
+                            Toast.makeText(MainActivityFinal.this, "Scanner QR non disponibile. Installa ZXing Barcode Scanner.", Toast.LENGTH_LONG).show();
+                        }
+                    }
                 } catch (Exception e) {
-                    Log.e(TAG, "Error creating QR response", e);
+                    Log.e(TAG, "Error starting QR scanner", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Errore avvio scanner QR: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (JSONException jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
                 }
             });
         }

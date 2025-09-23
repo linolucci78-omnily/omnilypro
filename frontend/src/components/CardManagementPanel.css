@@ -761,3 +761,90 @@
     padding: 0.75rem;
   }
 }
+
+/* Professional Dialog Buttons - OMNILY PRO Design */
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #475569;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-danger {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: 2px solid #dc2626;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  border-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Delete Dialog Specific Styles */
+.delete-dialog {
+  border: 3px solid #fecaca;
+  background: linear-gradient(145deg, #ffffff 0%, #fef2f2 100%);
+}
+
+.delete-dialog .dialog-header {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-bottom: 2px solid #fecaca;
+}
+
+.warning-text {
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+}
+
+/* POS: Touch-friendly dialog buttons */
+@media (max-width: 1024px) {
+  .btn-secondary,
+  .btn-danger {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    min-height: 55px;
+  }
+
+  .dialog-actions {
+    gap: 1rem;
+  }
+}
