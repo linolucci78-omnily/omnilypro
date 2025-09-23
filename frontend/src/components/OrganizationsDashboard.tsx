@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { supabase, organizationsApi, customersApi } from '../lib/supabase'
+import { supabase, organizationsApi, customersApi, nfcCardsApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
@@ -69,9 +69,45 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           if ((window as any).OmnilyPOS.beep) {
             (window as any).OmnilyPOS.beep("1", "150");
           }
-          if ((window as any).OmnilyPOS.showToast) {
-            (window as any).OmnilyPOS.showToast('✅ Tessera letta: ' + result.cardNo?.slice(0, 8) + '...');
-          }
+
+          // 🔍 CERCA IL CLIENTE ASSOCIATO ALLA TESSERA
+          const cardUID = result.cardNo;
+          console.log('🔍 Cercando cliente con tessera UID:', cardUID);
+
+          // Cerca la tessera NFC nell'organizzazione corrente
+          const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29';
+
+          // Funzione asincrona per cercare il cliente
+          const findAndOpenCustomer = async () => {
+            try {
+              const matchingCard = await nfcCardsApi.getByUID(organizationId, cardUID);
+
+              if (matchingCard && matchingCard.customer) {
+                // ✅ CLIENTE TROVATO - Apri il panel automaticamente
+                console.log('✅ Cliente trovato:', matchingCard.customer.name);
+                setSelectedCustomer(matchingCard.customer);
+                setIsSlidePanelOpen(true);
+
+                if ((window as any).OmnilyPOS.showToast) {
+                  (window as any).OmnilyPOS.showToast(`✅ Cliente: ${matchingCard.customer.name}`);
+                }
+              } else {
+                // ❌ CLIENTE NON TROVATO - Solo mostra UID
+                console.log('❌ Nessun cliente associato alla tessera:', cardUID);
+                if ((window as any).OmnilyPOS.showToast) {
+                  (window as any).OmnilyPOS.showToast('⚠️ Tessera non assegnata: ' + cardUID?.slice(0, 8) + '...');
+                }
+              }
+            } catch (error) {
+              console.error('❌ Errore ricerca tessera:', error);
+              if ((window as any).OmnilyPOS.showToast) {
+                (window as any).OmnilyPOS.showToast('❌ Errore ricerca tessera');
+              }
+            }
+          };
+
+          // Esegui la ricerca in modo asincrono
+          findAndOpenCustomer();
         } else {
           console.log('❌ Errore lettura NFC:', result?.error || 'Lettura fallita');
           setNfcStatus('error');
