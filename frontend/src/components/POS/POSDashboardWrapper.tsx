@@ -2,7 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import POSLayout from './POSLayout';
 import OrganizationsDashboard from '../OrganizationsDashboard';
 
-const POSDashboardWrapper: React.FC = () => {
+interface POSDashboardWrapperProps {
+  currentOrganization?: any;
+}
+
+const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrganization }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const customerDisplayWindow = useRef<Window | null>(null);
   const displayCheckInterval = useRef<NodeJS.Timeout | null>(null);
@@ -26,10 +30,12 @@ const POSDashboardWrapper: React.FC = () => {
 
         // Invia benvenuto personalizzato dell'azienda
         setTimeout(() => {
+          const organizationName = currentOrganization?.name || 'Il Nostro Negozio';
+
           updateCustomerDisplay({
             type: 'WELCOME',
-            organizationName: 'OMNILY PRO', // Questo sarà dinamico
-            welcomeMessage: 'Benvenuto nel nostro negozio!',
+            organizationName: organizationName,
+            welcomeMessage: `Benvenuto da ${organizationName}!`,
             transaction: { items: [], total: 0 } // Assicura che transaction esista
           });
         }, 2000);
@@ -159,11 +165,22 @@ const POSDashboardWrapper: React.FC = () => {
     <POSLayout
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      currentOrganization={null} // TODO: Get from OrganizationsDashboard context
+      currentOrganization={currentOrganization}
     >
       <OrganizationsDashboard
         activeSection={activeSection}
         onSectionChange={setActiveSection}
+        onOrganizationChange={(org: any) => {
+          // Quando cambia l'organizzazione, aggiorna il customer display
+          if (org && customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
+            updateCustomerDisplay({
+              type: 'WELCOME',
+              organizationName: org.name,
+              welcomeMessage: `Benvenuto da ${org.name}!`,
+              transaction: { items: [], total: 0 }
+            });
+          }
+        }}
       />
     </POSLayout>
   );

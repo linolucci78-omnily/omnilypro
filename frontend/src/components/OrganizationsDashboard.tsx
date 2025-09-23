@@ -12,11 +12,13 @@ import './OrganizationsDashboard.css'
 interface OrganizationsDashboardProps {
   onSectionChange?: (section: string) => void;
   activeSection?: string;
+  onOrganizationChange?: (organization: Organization | null) => void;
 }
 
 const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   onSectionChange,
-  activeSection: externalActiveSection
+  activeSection: externalActiveSection,
+  onOrganizationChange
 }) => {
   // Detect POS mode
   const isPOSMode = typeof window !== 'undefined' &&
@@ -489,6 +491,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       if (realOrganizations.length > 0) {
         const currentOrgDetails = await organizationsApi.getById(realOrganizations[0].id)
         setCurrentOrganization(currentOrgDetails)
+
+        // Notifica il parent component del cambio organizzazione
+        if (onOrganizationChange) {
+          onOrganizationChange(currentOrgDetails)
+        }
+
         console.log('✅ Caricati dettagli organizzazione corrente:', currentOrgDetails?.name)
         console.log('📋 Loyalty tiers configurati:', currentOrgDetails?.loyalty_tiers?.length || 0)
         console.log('🎁 Default rewards configurati:', currentOrgDetails?.default_rewards?.length || 0)
