@@ -60,21 +60,30 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Definiamo il callback ma NON lo registriamo automaticamente
       (window as any).omnilyNFCResultHandler = (result: any) => {
         console.log('📱 Risultato lettura NFC (da dashboard):', result);
-        console.log('🔍 Debug - result type:', typeof result);
-        console.log('🔍 Debug - result.success:', result?.success);
-        console.log('🔍 Debug - result.success type:', typeof result?.success);
-        setNfcResult(result);
+
+        // Parse JSON string if needed
+        let parsedResult = result;
+        if (typeof result === 'string') {
+          try {
+            parsedResult = JSON.parse(result);
+            console.log('🔄 Parsed JSON result:', parsedResult);
+          } catch (e) {
+            console.error('❌ Failed to parse JSON result:', e);
+          }
+        }
+
+        setNfcResult(parsedResult);
         setNfcStatus('idle'); // Reset status after reading
 
-        if (result && result.success) {
-          console.log('✅ Carta NFC letta:', result.cardNo);
+        if (parsedResult && parsedResult.success) {
+          console.log('✅ Carta NFC letta:', parsedResult.cardNo);
           setNfcStatus('success');
           if ((window as any).OmnilyPOS.beep) {
             (window as any).OmnilyPOS.beep("1", "150");
           }
 
           // 🔍 CERCA IL CLIENTE ASSOCIATO ALLA TESSERA
-          const cardUID = result.cardNo;
+          const cardUID = parsedResult.cardNo;
           console.log('🔍 Cercando cliente con tessera UID:', cardUID);
 
           // Cerca la tessera NFC nell'organizzazione corrente
