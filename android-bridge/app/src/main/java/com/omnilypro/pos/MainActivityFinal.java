@@ -450,9 +450,7 @@ public class MainActivityFinal extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         webSettings.setAllowFileAccess(false);
 
-        // CRUCIALE: Abilita supporto finestre multiple per customer display
-        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
-        webSettings.setSupportMultipleWindows(true);
+        // Rimosso supporto window.open per evitare apertura browser esterni
 
         // Force bridge recreation
         webView.removeJavascriptInterface("OmnilyPOS");
@@ -471,51 +469,8 @@ public class MainActivityFinal extends AppCompatActivity {
 
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
-                Log.d(TAG, "🔄 onCreateWindow chiamato - gestione customer display");
-
-                try {
-                    // Crea nuova WebView per customer display
-                    WebView customerDisplayWebView = new WebView(view.getContext());
-
-                    // Configura la WebView del customer display
-                    WebSettings customerSettings = customerDisplayWebView.getSettings();
-                    customerSettings.setJavaScriptEnabled(true);
-                    customerSettings.setDomStorageEnabled(true);
-                    customerSettings.setDatabaseEnabled(true);
-
-                    // Trova il secondo display
-                    DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-                    Display[] displays = displayManager.getDisplays();
-                    Display secondDisplay = (displays.length > 1) ? displays[1] : null;
-
-                    if (secondDisplay != null) {
-                        Log.d(TAG, "✅ Secondo display trovato - creazione customer presentation");
-
-                        // Chiudi presentation esistente se presente
-                        if (customerPresentation != null) {
-                            customerPresentation.dismiss();
-                        }
-
-                        // Crea nuova presentation per customer display
-                        customerPresentation = new CustomerDisplayPresentation(MainActivityFinal.this, secondDisplay, customerDisplayWebView);
-                        customerPresentation.show();
-
-                        Log.d(TAG, "✅ Customer display presentation attivata");
-                    } else {
-                        Log.w(TAG, "⚠️ Secondo display non trovato - window.open gestito normalmente");
-                    }
-
-                    // Comunica la nuova WebView al sistema
-                    WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-                    transport.setWebView(customerDisplayWebView);
-                    resultMsg.sendToTarget();
-
-                    return true; // Indica che abbiamo gestito la richiesta
-
-                } catch (Exception e) {
-                    Log.e(TAG, "❌ Errore in onCreateWindow: " + e.getMessage(), e);
-                    return false; // Fallback al comportamento standard
-                }
+                Log.w(TAG, "🚫 BLOCCATO window.open() - popup non consentito");
+                return false; // Blocca TUTTI i tentativi di aprire nuove finestre
             }
         });
 
@@ -815,8 +770,27 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void updateCustomerDisplay(String messageData) {
+            Log.d(TAG, "updateCustomerDisplay chiamato con dati: " + messageData);
+
+            runOnUiThread(() -> {
+                try {
+                    // Se abbiamo un customer display attivo, invia i dati
+                    if (customerPresentation != null && customerPresentation instanceof CustomerPresentation) {
+                        Log.d(TAG, "📤 Invio dati al customer display: " + messageData);
+                        ((CustomerPresentation) customerPresentation).sendDataToDisplay(messageData);
+                    } else {
+                        Log.w(TAG, "⚠️ Customer display non attivo");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Errore invio dati customer display", e);
+                }
+            });
+        }
+
+        @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -902,6 +876,8 @@ public class MainActivityFinal extends AppCompatActivity {
     }
 
     private class CustomerPresentation extends Presentation {
+        private WebView customerWebView;
+
         public CustomerPresentation(Context outerContext, Display display) {
             super(outerContext, display);
         }
@@ -909,36 +885,52 @@ public class MainActivityFinal extends AppCompatActivity {
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            WebView customerWebView = new WebView(getContext());
+            customerWebView = new WebView(getContext());
+
+            // Configura la WebView del customer display
+            WebSettings settings = customerWebView.getSettings();
+            settings.setJavaScriptEnabled(true);
+            settings.setDomStorageEnabled(true);
+            settings.setDatabaseEnabled(true);
+
+            // Blocca anche nel customer display qualsiasi tentativo di popup
+            customerWebView.setWebChromeClient(new WebChromeClient() {
+                @Override
+                public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
+                    Log.w(TAG, "🚫 BLOCCATO popup nel customer display");
+                    return false; // Blocca tutti i popup anche nel customer display
+                }
+            });
+
             customerWebView.loadUrl("https://omnilypro.vercel.app?posomnily=true&customer=true");
             setContentView(customerWebView);
-        }
-    }
 
-    // Nuova classe per gestire customer display con WebView personalizzata
-    private class CustomerDisplayPresentation extends Presentation {
-        private WebView customerWebView;
-
-        public CustomerDisplayPresentation(Context outerContext, Display display, WebView webView) {
-            super(outerContext, display);
-            this.customerWebView = webView;
+            Log.d(TAG, "✅ CustomerPresentation WebView creata e configurata");
         }
 
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
+        // Metodo per inviare dati alla WebView del customer display
+        public void sendDataToDisplay(String jsonData) {
             if (customerWebView != null) {
-                Log.d(TAG, "✅ CustomerDisplayPresentation creata con WebView esistente");
-                setContentView(customerWebView);
+                runOnUiThread(() -> {
+                    try {
+                        String jsCode = String.format("window.postMessage(%s, '*');", jsonData);
+                        Log.d(TAG, "📤 Invio dati al customer display: " + jsCode);
+                        customerWebView.evaluateJavascript(jsCode, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, "❌ Errore invio dati customer display", e);
+                    }
+                });
             } else {
-                Log.w(TAG, "⚠️ WebView null in CustomerDisplayPresentation - creazione fallback");
-                WebView fallbackWebView = new WebView(getContext());
-                fallbackWebView.loadUrl("https://omnilypro.vercel.app?posomnily=true&customer=true");
-                setContentView(fallbackWebView);
+                Log.w(TAG, "⚠️ CustomerWebView non disponibile");
             }
         }
+
+        // Getter per accedere alla WebView dall'esterno
+        public WebView getWebView() {
+            return customerWebView;
+        }
     }
+
 
     private void showSplashScreen() {
         Log.d(TAG, "Splash screen rossa con OMNILY PRO e barra di caricamento");
