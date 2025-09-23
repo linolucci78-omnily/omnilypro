@@ -193,6 +193,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }
 
         setQrResult(parsedResult);
+
+        // Gestisci annullamento
+        if (parsedResult && parsedResult.cancelled) {
+          console.log('📱 QR scan annullato dall\'utente');
+          setQrStatus('idle');
+          return;
+        }
+
         setQrStatus('idle');
 
         if (parsedResult && parsedResult.success === true) {
@@ -548,11 +556,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }
 
   const handleQRScan = () => {
-    console.log('📱 handleQRScan chiamato');
+    console.log('📱 handleQRScan chiamato, stato attuale:', qrStatus);
 
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
 
+      // Se è già in lettura, annulla lo scanner
+      if (qrStatus === 'reading') {
+        console.log('📱 Annullando scanner QR...');
+        if (bridge.cancelQRScanner) {
+          bridge.cancelQRScanner();
+        }
+        setQrStatus('idle');
+        setQrResult(null);
+        return;
+      }
+
+      // Altrimenti avvia lo scanner
       if (bridge.readQRCode) {
         setQrStatus('reading');
         console.log('📱 Chiamando bridge.readQRCode');

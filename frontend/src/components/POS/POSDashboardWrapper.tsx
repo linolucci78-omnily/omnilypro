@@ -14,36 +14,36 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
 
   // Funzione per aprire il customer display
   const openCustomerDisplay = () => {
-    if (!customerDisplayWindow.current || customerDisplayWindow.current.closed) {
-      // Usa una route che sicuramente funziona e poi naviga internamente
-      const customerDisplayUrl = `${window.location.origin}/?posomnily=true#customer-display`;
+    // Verifica se il customer display è già aperto e funzionante
+    if (customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
+      console.log('✅ Customer Display già aperto - test connessione');
+      if (checkDisplayConnection()) {
+        console.log('✅ Customer Display già funzionante - non riaperto');
+        return;
+      }
+    }
 
-      customerDisplayWindow.current = window.open(
-        customerDisplayUrl,
-        'CustomerDisplay',
-        'width=480,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
-      );
+    console.log('🔄 Apertura nuovo Customer Display...');
+
+    // Usa una route che sicuramente funziona e poi naviga internamente
+    const customerDisplayUrl = `${window.location.origin}/?posomnily=true#customer-display`;
+
+    customerDisplayWindow.current = window.open(
+      customerDisplayUrl,
+      'CustomerDisplay',
+      'width=480,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
+    );
 
       if (customerDisplayWindow.current) {
         console.log('✅ Customer Display aperto automaticamente');
         setIsDisplayConnected(true);
 
-        // Invia benvenuto personalizzato dell'azienda
-        setTimeout(() => {
-          const organizationName = currentOrganization?.name || 'Il Nostro Negozio';
-
-          updateCustomerDisplay({
-            type: 'WELCOME',
-            organizationName: organizationName,
-            welcomeMessage: `Benvenuto da ${organizationName}!`,
-            transaction: { items: [], total: 0 } // Assicura che transaction esista
-          });
-        }, 2000);
+        // Non inviare il benvenuto qui - aspetta che l'organizzazione sia caricata
+        console.log('✅ Customer Display aperto - aspettando caricamento organizzazione per messaggio benvenuto');
       } else {
         console.warn('⚠️ Popup bloccato - abilita i popup per il customer display');
         setIsDisplayConnected(false);
       }
-    }
   };
 
   // Funzione per controllare se il display è ancora connesso
@@ -84,17 +84,29 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
     // Riapri il customer display
     setTimeout(() => {
       openCustomerDisplay();
+
+      // Invia messaggio di benvenuto se l'organizzazione è disponibile
+      setTimeout(() => {
+        const org = (window as any).currentOrganization;
+        if (org && customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
+          console.log('📤 Invio messaggio benvenuto dopo riconnessione:', org.name);
+          updateCustomerDisplay({
+            type: 'WELCOME',
+            organizationName: org.name,
+            welcomeMessage: `Benvenuto da ${org.name}!`,
+            transaction: { items: [], total: 0 }
+          });
+        }
+      }, 2000);
     }, 1000);
   };
 
   // Funzione per aggiornare il customer display
-  const updateCustomerDisplay = (transactionData: any) => {
+  const updateCustomerDisplay = (messageData: any) => {
     if (checkDisplayConnection()) {
-      customerDisplayWindow.current!.postMessage({
-        type: 'TRANSACTION_UPDATE',
-        transaction: transactionData
-      }, '*');
-      console.log('📤 Aggiornamento inviato al customer display:', transactionData);
+      // Invia il messaggio così com'è, senza sovrascrivere il tipo
+      customerDisplayWindow.current!.postMessage(messageData, '*');
+      console.log('📤 Messaggio inviato al customer display:', messageData);
     } else {
       console.warn('⚠️ Customer display non connesso - tentativo riconnessione...');
       reconnectCustomerDisplay();
@@ -129,13 +141,16 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
   };
 
   useEffect(() => {
+    console.log('🔄 POSDashboardWrapper montato/rimontato - inizializzazione customer display');
+
     // Esponi la funzione updateCustomerDisplay globalmente per i test
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
 
-    // Apri automaticamente il customer display all'avvio
+    // Apri automaticamente il customer display all'avvio/navigazione al dashboard
     setTimeout(() => {
+      console.log('🔄 Apertura automatica customer display (app web o Android)');
       openCustomerDisplay();
-    }, 1000); // Aspetta 1 secondo che l'app si carichi
+    }, 1500); // Aspetta che l'app si carichi completamente
 
     // Event listener per standby/recovery
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -171,14 +186,42 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         onOrganizationChange={(org: any) => {
-          // Quando cambia l'organizzazione, aggiorna il customer display
-          if (org && customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
-            updateCustomerDisplay({
-              type: 'WELCOME',
-              organizationName: org.name,
-              welcomeMessage: `Benvenuto da ${org.name}!`,
-              transaction: { items: [], total: 0 }
-            });
+          console.log('🏢 Organizzazione caricata:', org?.name);
+
+          // Quando l'organizzazione è caricata, gestisci il customer display
+          if (org) {
+            console.log('🏢 Organizzazione caricata, gestione customer display');
+
+            // Salva l'organizzazione corrente per uso futuro
+            (window as any).currentOrganization = org;
+
+            // Se il customer display non è ancora aperto, aprilo ora (per app Android)
+            if (!customerDisplayWindow.current || customerDisplayWindow.current.closed) {
+              console.log('📱 Customer display non aperto - apertura per app Android');
+              setTimeout(() => {
+                openCustomerDisplay();
+                // Invia messaggio di benvenuto dopo apertura
+                setTimeout(() => {
+                  updateCustomerDisplay({
+                    type: 'WELCOME',
+                    organizationName: org.name,
+                    welcomeMessage: `Benvenuto da ${org.name}!`,
+                    transaction: { items: [], total: 0 }
+                  });
+                }, 2000);
+              }, 500);
+            } else if (customerDisplayWindow.current && !customerDisplayWindow.current.closed) {
+              console.log('📤 Customer display già aperto - invio messaggio benvenuto:', org.name);
+
+              setTimeout(() => {
+                updateCustomerDisplay({
+                  type: 'WELCOME',
+                  organizationName: org.name,
+                  welcomeMessage: `Benvenuto da ${org.name}!`,
+                  transaction: { items: [], total: 0 }
+                });
+              }, 1000); // Aspetta un secondo che il customer display sia completamente caricato
+            }
           }
         }}
       />
