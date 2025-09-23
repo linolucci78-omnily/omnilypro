@@ -94,10 +94,21 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   useEffect(() => {
     // Definisce la funzione di callback sul window object per essere raggiungibile dal bridge Java
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS && isOpen) {
-      (window as any).cardManagementNFCHandler = async (rawResult: string) => {
+      (window as any).cardManagementNFCHandler = async (rawResult: any) => {
         console.log('🔵 NFC CALLBACK TRIGGERED - Raw result:', rawResult);
+        console.log('🔵 Raw result type:', typeof rawResult);
 
-        const result = JSON.parse(rawResult);
+        // Handle both string and object results from Android bridge
+        let result = rawResult;
+        if (typeof rawResult === 'string') {
+          try {
+            result = JSON.parse(rawResult);
+            console.log('🔄 Parsed JSON result:', result);
+          } catch (e) {
+            console.error('❌ Failed to parse JSON result:', e);
+            result = { success: false, error: 'Parse failed' };
+          }
+        }
         console.log('🔵 NFC CALLBACK - Parsed result:', result);
         setIsReading(false); // Ferma l'indicatore di caricamento
 
