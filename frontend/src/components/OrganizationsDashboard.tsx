@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, organizationsApi, customersApi, nfcCardsApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
@@ -121,19 +121,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 setIsSlidePanelOpen(true);
 
                 if ((window as any).OmnilyPOS.showToast) {
-                  (window as any).OmnilyPOS.showToast(`✅ Cliente: ${matchingCard.customer.name}`);
+                  (window as any).OmnilyPOS.showToast(`Cliente: ${matchingCard.customer.name}`);
                 }
               } else {
                 // ❌ CLIENTE NON TROVATO - Solo mostra UID
                 console.log('❌ Nessun cliente associato alla tessera:', cardUID);
                 if ((window as any).OmnilyPOS.showToast) {
-                  (window as any).OmnilyPOS.showToast('⚠️ Tessera non assegnata: ' + cardUID?.slice(0, 8) + '...');
+                  (window as any).OmnilyPOS.showToast('Tessera non assegnata: ' + cardUID?.slice(0, 8) + '...');
                 }
               }
             } catch (error) {
               console.error('❌ Errore ricerca tessera:', error);
               if ((window as any).OmnilyPOS.showToast) {
-                (window as any).OmnilyPOS.showToast('❌ Errore ricerca tessera');
+                (window as any).OmnilyPOS.showToast('Errore ricerca tessera');
               }
             }
           };
@@ -147,7 +147,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             (window as any).OmnilyPOS.beep("3", "50");
           }
           if ((window as any).OmnilyPOS.showToast) {
-            (window as any).OmnilyPOS.showToast('❌ Errore lettura tessera');
+            (window as any).OmnilyPOS.showToast('Errore lettura tessera');
           }
         }
       };
@@ -189,13 +189,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 } else {
                   console.log('❌ Cliente non trovato per ID:', customerId);
                   if ((window as any).OmnilyPOS.showToast) {
-                    (window as any).OmnilyPOS.showToast('❌ Cliente non trovato');
+                    (window as any).OmnilyPOS.showToast('Cliente non trovato');
                   }
                 }
               } catch (error) {
                 console.error('❌ Errore ricerca cliente:', error);
                 if ((window as any).OmnilyPOS.showToast) {
-                  (window as any).OmnilyPOS.showToast('❌ Errore ricerca cliente');
+                  (window as any).OmnilyPOS.showToast('Errore ricerca cliente');
                 }
               }
             };
@@ -204,7 +204,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           } else {
             console.log('❌ QR code non valido per OMNILY');
             if ((window as any).OmnilyPOS.showToast) {
-              (window as any).OmnilyPOS.showToast('❌ QR code non riconosciuto');
+              (window as any).OmnilyPOS.showToast('QR code non riconosciuto');
             }
           }
         } else {
@@ -274,7 +274,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
           // Feedback immediato all'utente
           if (bridge.showToast) {
-            bridge.showToast('✋ Lettura NFC ANNULLATA');
+            bridge.showToast('Lettura NFC annullata');
           }
 
           // Beep di conferma annullamento
@@ -286,7 +286,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           console.error('⚠️ Errore durante annullamento NFC:', error);
           // Anche in caso di errore, mostra che è annullato
           if (bridge.showToast) {
-            bridge.showToast('⚠️ NFC fermato (possibili errori hardware)');
+            bridge.showToast('NFC fermato (possibili errori hardware)');
           }
         }
       }
@@ -634,12 +634,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     className={`btn-secondary nfc-button ${nfcStatus}`}
                     onClick={handleNFCRead}
                   >
-                    <CreditCard size={16} />
+                    {nfcStatus === 'reading' && <StopCircle size={16} />}
+                    {nfcStatus === 'idle' && <CreditCard size={16} />}
+                    {nfcStatus === 'success' && <CheckCircle2 size={16} />}
+                    {nfcStatus === 'error' && <XCircle size={16} />}
                     <span>
-                      {nfcStatus === 'reading' && '🛑 ANNULLA LETTURA'}
+                      {nfcStatus === 'reading' && 'Annulla Lettura'}
                       {nfcStatus === 'idle' && 'Leggi Tessera'}
-                      {nfcStatus === 'success' && '✅ Leggi di Nuovo'}
-                      {nfcStatus === 'error' && '❌ Riprova Lettura'}
+                      {nfcStatus === 'success' && 'Leggi di Nuovo'}
+                      {nfcStatus === 'error' && 'Riprova Lettura'}
                     </span>
                   </button>
                   {nfcResult && (
@@ -679,7 +682,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     {customersLoading ? (
                       <tr>
                         <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
-                          <div className="loading-spinner">🔄 Caricamento clienti...</div>
+                          <div className="loading-spinner">Caricamento clienti...</div>
                         </td>
                       </tr>
                     ) : filteredCustomers.length === 0 ? (
@@ -735,7 +738,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         </td>
                         <td>
                           <span className={customer.is_active ? "status-active" : "status-inactive"}>
-                            {customer.is_active ? '✅ ATTIVO' : '❌ INATTIVO'}
+                            {customer.is_active ? <><CheckCircle2 size={14} /> ATTIVO</> : <><XCircle size={14} /> INATTIVO</>}
                           </span>
                         </td>
                         <td>{new Date(customer.created_at).toLocaleDateString('it-IT')}</td>
@@ -999,8 +1002,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
-  if (loading) return <div className="loading">🔄 Caricamento...</div>
-  if (error) return <div className="error">❌ Errore: {error}</div>
+  if (loading) return <div className="loading">Caricamento...</div>
+  if (error) return <div className="error">Errore: {error}</div>
 
   return (
     <div className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}>
