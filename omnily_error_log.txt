@@ -1,0 +1,59 @@
+--------- beginning of main
+09-23 00:02:53.732 21313 21313 D OmnilyPOS: Activity Created
+09-23 00:02:53.732 21313 21313 D OmnilyPOS: Splash screen rossa con OMNILY PRO e barra di caricamento
+09-23 00:02:53.874 21313 21313 D OmnilyPOS: Permissions check complete. Initializing SDK and UI.
+09-23 00:02:53.883 21313 21313 D OmnilyPOS: NFC adapter initialized successfully
+09-23 00:02:53.886 21313 21313 D OmnilyPOS: NFC configured - will be enabled on demand only
+09-23 00:02:54.703 21313 21313 D OmnilyPOS: 🔧 Bridge CREATED with BEEP method!
+09-23 00:02:54.942 21313 21313 D OmnilyPOS: Loading initial URL: https://omnilypro.vercel.app?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942
+09-23 00:02:55.026 21313 21313 D OmnilyPOS: onResume() - NFC not auto-enabled
+09-23 00:02:56.395 21313 21313 D OmnilyPOS: Page finished loading: https://omnilypro.vercel.app/?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942
+09-23 00:02:56.443 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔍 DEBUG App.tsx: [object Object] -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:56.467 21313 21313 D OmnilyPOS: Page finished loading: https://omnilypro.vercel.app/?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942
+09-23 00:02:56.555 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔧 BRIDGE DETECTION: Checking window.OmnilyPOS... -- From line 1 of 
+09-23 00:02:56.572 21313 21313 D OmnilyPOS: 🌐 JS Console: ✅ Bridge found: beep,getAvailableMethods,getBridgeVersion,readNFCCard,readNFCCardAsync,readNFCCardSync,registerNFCResultCallback,showToast,stopNFCReading,unregisterNFCResultCallback -- From line 1 of 
+09-23 00:02:56.573 21313 21313 D OmnilyPOS: 🌐 JS Console: ✅ Bridge available and ready -- From line 1 of 
+09-23 00:02:56.574 21313 21313 D OmnilyPOS: 🌐 JS Console: 🌐 Current URL: https://omnilypro.vercel.app/?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942 -- From line 1 of 
+09-23 00:02:56.575 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔍 URL Search: ?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942 -- From line 1 of 
+09-23 00:02:56.590 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔧 BRIDGE DETECTION: Checking window.OmnilyPOS... -- From line 1 of 
+09-23 00:02:56.592 21313 21313 D OmnilyPOS: 🌐 JS Console: ✅ Bridge found: beep,getAvailableMethods,getBridgeVersion,readNFCCard,readNFCCardAsync,readNFCCardSync,registerNFCResultCallback,showToast,stopNFCReading,unregisterNFCResultCallback -- From line 1 of 
+09-23 00:02:56.592 21313 21313 D OmnilyPOS: 🌐 JS Console: ✅ Bridge available and ready -- From line 1 of 
+09-23 00:02:56.594 21313 21313 D OmnilyPOS: 🌐 JS Console: 🌐 Current URL: https://omnilypro.vercel.app/?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942 -- From line 1 of 
+09-23 00:02:56.596 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔍 URL Search: ?posomnily=true&v=1758578574942&cb=1758578574942&_t=1758578574942 -- From line 1 of 
+09-23 00:02:56.709 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔐 Auth state changed: INITIAL_SESSION linolucci78@gmail.com -- From line 96 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:56.967 21313 21313 D OmnilyPOS: 🌐 JS Console: ✅ NFC callback SOLO definito - NON registrato automaticamente -- From line 849 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:56.968 21313 21313 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: false -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.048 21313 21313 D OmnilyPOS: 🌐 JS Console: Unable to preventDefault inside passive event listener invocation. -- From line 48 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.049 21313 21313 D OmnilyPOS: 🌐 JS Console: Unable to preventDefault inside passive event listener invocation. -- From line 48 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.049 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔄 TOGGLE SIDEBAR CALLED, current: false -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.050 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔄 SETTING STATE FROM false TO true -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.050 21313 21313 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: true -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.128 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔄 TOGGLE SIDEBAR CALLED, current: true -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.130 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔄 SETTING STATE FROM true TO false -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:02:59.137 21313 21313 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: false -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:00.352 21313 21313 D OmnilyPOS: 🌐 JS Console: Unable to preventDefault inside passive event listener invocation. -- From line 48 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:00.353 21313 21313 D OmnilyPOS: 🌐 JS Console: Unable to preventDefault inside passive event listener invocation. -- From line 48 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:00.353 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔄 TOGGLE SIDEBAR CALLED, current: false -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:00.354 21313 21313 D OmnilyPOS: 🌐 JS Console: 🔄 SETTING STATE FROM false TO true -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:00.358 21313 21313 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: true -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:01.388 21313 21313 D OmnilyPOS: 🌐 JS Console: ❌ CLOSE SIDEBAR CALLED! -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:01.404 21313 21419 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-23 00:03:01.417 21313 21313 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:01.419 21313 21313 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: false -- From line 852 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:01.489 21313 21419 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-23 00:03:01.492 21313 21313 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:02.442 21313 21419 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-23 00:03:02.444 21313 21313 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:02.444 21313 21419 D OmnilyPOS: getBridgeVersion called - returning: 4.1.0-nfc-on-demand-1758578582444
+09-23 00:03:02.446 21313 21313 D OmnilyPOS: 🌐 JS Console: Bridge version: 4.1.0-nfc-on-demand-1758578582444 -- From line 849 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js
+09-23 00:03:04.732 21313 21419 D OmnilyPOS: readNFCCard called with callback: cardManagementNFCHandler
+09-23 00:03:04.733 21313 21419 D OmnilyPOS: NFC enabled and ready for card reading
+09-23 00:03:04.818 21313 21313 D OmnilyPOS: Toast displayed: Avvicina la tessera NFC...
+09-23 00:03:04.821 21313 21313 D OmnilyPOS: NFC enabled for reading
+09-23 00:03:04.835 21313 21313 D OmnilyPOS: Toast displayed: Present NFC card to reader... Press again to cancel
+09-23 00:03:06.282 21313 21313 D OmnilyPOS: NFC disabled
+09-23 00:03:06.283 21313 21313 D OmnilyPOS: NFC Tag detected: 2B39BC3F
+09-23 00:03:06.284 21313 21313 W OmnilyPOS: 🚫 NFC tag ignored - NFC not enabled by app (tag: 2B39BC3F)
+09-23 00:03:06.284 21313 21313 D OmnilyPOS: onResume() - NFC not auto-enabled
+09-23 00:03:18.347 21313 21419 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-23 00:03:18.355 21313 21313 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-BvEPB13w.js

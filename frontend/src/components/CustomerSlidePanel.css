@@ -549,6 +549,84 @@
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
+/* QR Code Section - Desktop/Web */
+.customer-slide-panel-qr {
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-top: 2px solid rgba(239, 68, 68, 0.1);
+  text-align: center;
+}
+
+.customer-slide-panel-qr h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.customer-slide-panel-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.customer-qr-code {
+  border: 3px solid #ef4444;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+  transition: all 0.3s ease;
+  background: white;
+  padding: 6px;
+}
+
+.customer-qr-code:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+}
+
+.customer-slide-panel-qr-text {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  text-align: center;
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+/* POS/Tablet: QR Section - Touch-friendly */
+@media (max-width: 1024px) {
+  .customer-slide-panel-qr {
+    padding: 2.5rem;
+  }
+
+  .customer-slide-panel-qr h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+  }
+
+  .customer-slide-panel-qr-container {
+    gap: 20px;
+  }
+
+  .customer-qr-code {
+    border-width: 4px;
+    border-radius: 16px;
+    padding: 10px;
+  }
+
+  .customer-slide-panel-qr-text {
+    font-size: 14px;
+    max-width: 300px;
+    line-height: 1.6;
+  }
+}
+
 /* Activity */
 .customer-slide-panel-activity {
   padding: 2.5rem 2rem;

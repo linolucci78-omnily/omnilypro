@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test NFC Native - Omnily POS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+        .button {
+            background: #007bff; color: white; border: none;
+            padding: 15px 25px; margin: 10px; border-radius: 5px;
+            font-size: 16px; cursor: pointer;
+        }
+        .button:hover { background: #0056b3; }
+        .result {
+            margin-top: 20px; padding: 15px; background: white;
+            border-radius: 5px; min-height: 100px; white-space: pre-wrap;
+            border: 1px solid #ddd;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test NFC Native - Omnily POS</h1>
+
+    <button class="button" onclick="testNFCNative()">📱 Leggi Tessera NFC (Nativo)</button>
+    <button class="button" onclick="testBridge()">🔧 Test Bridge</button>
+    <button class="button" onclick="testBeep()">🔊 Test Beep</button>
+
+    <div id="result" class="result">Premi un pulsante per iniziare il test...</div>
+
+    <script>
+        // Global callback for NFC results
+        window.omnilyNFCResultHandler = function(result) {
+            console.log('🎯 NFC Result received:', result);
+            const resultDiv = document.getElementById('result');
+
+            if (result.success) {
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ NFC SUCCESS!\n' +
+                    'Card UID: ' + result.cardNo + '\n' +
+                    'RF UID: ' + result.rfUid + '\n' +
+                    'Timestamp: ' + new Date().toLocaleTimeString();
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ NFC ERROR!\n' +
+                    'Error: ' + (result.error || 'Unknown error') + '\n' +
+                    'Timestamp: ' + new Date().toLocaleTimeString();
+            }
+        };
+
+        function testNFCNative() {
+            document.getElementById('result').textContent = 'Iniziando lettura NFC nativa...\nAvvicina la tessera al lettore NFC del device.';
+            document.getElementById('result').className = 'result';
+
+            if (window.OmnilyPOS) {
+                try {
+                    // Call readNFCCard with the global callback name
+                    window.OmnilyPOS.readNFCCard('omnilyNFCResultHandler');
+                    document.getElementById('result').textContent = 'In attesa di tessera NFC...\nAvvicina la tessera al lettore NFC.';
+                } catch (e) {
+                    document.getElementById('result').className = 'result error';
+                    document.getElementById('result').textContent = 'Errore NFC: ' + e.message;
+                }
+            } else {
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').textContent = 'Errore: OmnilyPOS bridge non disponibile';
+            }
+        }
+
+        function testBridge() {
+            if (window.OmnilyPOS) {
+                const version = window.OmnilyPOS.getBridgeVersion();
+                const methods = window.OmnilyPOS.getAvailableMethods();
+                document.getElementById('result').className = 'result success';
+                document.getElementById('result').textContent =
+                    'Bridge disponibile!\nVersione: ' + version +
+                    '\nMetodi: ' + methods;
+            } else {
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').textContent = 'Bridge non disponibile';
+            }
+        }
+
+        function testBeep() {
+            if (window.OmnilyPOS) {
+                try {
+                    window.OmnilyPOS.beep();
+                    document.getElementById('result').className = 'result success';
+                    document.getElementById('result').textContent = 'Beep inviato!';
+                } catch (e) {
+                    document.getElementById('result').className = 'result error';
+                    document.getElementById('result').textContent = 'Errore beep: ' + e.message;
+                }
+            } else {
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').textContent = 'Bridge non disponibile';
+            }
+        }
+
+        // Log quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌐 Test page loaded');
+            console.log('🔍 Checking for bridge...', window.OmnilyPOS ? 'FOUND' : 'NOT FOUND');
+
+            if (window.OmnilyPOS) {
+                console.log('✅ Bridge methods:', window.OmnilyPOS.getAvailableMethods());
+                console.log('✅ Bridge version:', window.OmnilyPOS.getBridgeVersion());
+            }
+        });
+    </script>
+</body>
+</html>

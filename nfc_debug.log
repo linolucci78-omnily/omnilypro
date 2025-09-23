@@ -1,0 +1,61 @@
+--------- beginning of main
+09-22 23:29:37.442  9136  9136 D OmnilyPOS: onResume() - NFC not auto-enabled
+09-22 23:29:37.526  9136  9136 D OmnilyPOS: 🌐 JS Console: 🔄 App tornata in foreground - controllo display... -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:37.527  9136  9136 D OmnilyPOS: 🌐 JS Console: 🔄 Possibile standby rilevato - riconnetto display... -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:37.528  9136  9136 D OmnilyPOS: 🌐 JS Console: 🔄 Tentativo riconnessione customer display... -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:37.530  9136  9136 D OmnilyPOS: 🌐 JS Console: 🔄 Display disconnesso - riconnetto... -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:37.531  9136  9136 D OmnilyPOS: 🌐 JS Console: 🔄 Tentativo riconnessione customer display... -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:37.532  9136  9136 D OmnilyPOS: 🌐 JS Console: 🔐 Auth state changed: SIGNED_IN linolucci78@gmail.com -- From line 96 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:38.526  9136  9136 D OmnilyPOS: 🌐 JS Console: ⚠️ Popup bloccato - abilita i popup per il customer display -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:29:38.528  9136  9136 D OmnilyPOS: 🌐 JS Console: ⚠️ Popup bloccato - abilita i popup per il customer display -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:39.593  9136  9226 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-22 23:30:39.608  9136  9136 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:42.417  9136  9136 D OmnilyPOS: Activity destroyed and SDK powered off
+09-22 23:30:51.788 10989 10989 D OmnilyPOS: Activity Created
+09-22 23:30:51.788 10989 10989 D OmnilyPOS: Splash screen rossa con OMNILY PRO e barra di caricamento
+09-22 23:30:51.880 10989 10989 D OmnilyPOS: Permissions check complete. Initializing SDK and UI.
+09-22 23:30:51.884 10989 10989 D OmnilyPOS: NFC adapter initialized successfully
+09-22 23:30:51.886 10989 10989 D OmnilyPOS: NFC configured - will be enabled on demand only
+09-22 23:30:52.311 10989 10989 D OmnilyPOS: 🔧 Bridge CREATED with BEEP method!
+09-22 23:30:52.460 10989 10989 D OmnilyPOS: Loading initial URL: https://omnilypro.vercel.app?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459
+09-22 23:30:52.517 10989 10989 D OmnilyPOS: onResume() - NFC not auto-enabled
+09-22 23:30:53.075 10989 10989 D OmnilyPOS: Page finished loading: https://omnilypro.vercel.app/?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459
+09-22 23:30:53.091 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔍 DEBUG App.tsx: [object Object] -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:53.114 10989 10989 D OmnilyPOS: Page finished loading: https://omnilypro.vercel.app/?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459
+09-22 23:30:53.181 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔧 BRIDGE DETECTION: Checking window.OmnilyPOS... -- From line 1 of 
+09-22 23:30:53.189 10989 10989 D OmnilyPOS: 🌐 JS Console: ✅ Bridge found: beep,getAvailableMethods,getBridgeVersion,readNFCCard,readNFCCardAsync,readNFCCardSync,registerNFCResultCallback,showToast,stopNFCReading,unregisterNFCResultCallback -- From line 1 of 
+09-22 23:30:53.189 10989 10989 D OmnilyPOS: 🌐 JS Console: ✅ Bridge available and ready -- From line 1 of 
+09-22 23:30:53.190 10989 10989 D OmnilyPOS: 🌐 JS Console: 🌐 Current URL: https://omnilypro.vercel.app/?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459 -- From line 1 of 
+09-22 23:30:53.190 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔍 URL Search: ?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459 -- From line 1 of 
+09-22 23:30:53.195 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔧 BRIDGE DETECTION: Checking window.OmnilyPOS... -- From line 1 of 
+09-22 23:30:53.196 10989 10989 D OmnilyPOS: 🌐 JS Console: ✅ Bridge found: beep,getAvailableMethods,getBridgeVersion,readNFCCard,readNFCCardAsync,readNFCCardSync,registerNFCResultCallback,showToast,stopNFCReading,unregisterNFCResultCallback -- From line 1 of 
+09-22 23:30:53.197 10989 10989 D OmnilyPOS: 🌐 JS Console: ✅ Bridge available and ready -- From line 1 of 
+09-22 23:30:53.197 10989 10989 D OmnilyPOS: 🌐 JS Console: 🌐 Current URL: https://omnilypro.vercel.app/?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459 -- From line 1 of 
+09-22 23:30:53.197 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔍 URL Search: ?posomnily=true&v=1758576652459&cb=1758576652459&_t=1758576652459 -- From line 1 of 
+09-22 23:30:53.387 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔐 Auth state changed: INITIAL_SESSION linolucci78@gmail.com -- From line 96 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:53.395 10989 10989 D OmnilyPOS: 🌐 JS Console: ✅ NFC callback SOLO definito - NON registrato automaticamente -- From line 849 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:53.396 10989 10989 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: false -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:54.944 10989 10989 D OmnilyPOS: 🌐 JS Console: Unable to preventDefault inside passive event listener invocation. -- From line 48 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:54.945 10989 10989 D OmnilyPOS: 🌐 JS Console: Unable to preventDefault inside passive event listener invocation. -- From line 48 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:54.945 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔄 TOGGLE SIDEBAR CALLED, current: false -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:54.946 10989 10989 D OmnilyPOS: 🌐 JS Console: 🔄 SETTING STATE FROM false TO true -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:54.949 10989 10989 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: true -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:56.444 10989 10989 D OmnilyPOS: 🌐 JS Console: ❌ CLOSE SIDEBAR CALLED! -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:56.451 10989 11094 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-22 23:30:56.459 10989 10989 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:56.459 10989 10989 D OmnilyPOS: 🌐 JS Console: 📱 SIDEBAR STATE CHANGED: false -- From line 852 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:56.499 10989 11094 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-22 23:30:56.509 10989 10989 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:57.529 10989 11094 D OmnilyPOS: stopNFCReading called - disattivando NFC
+09-22 23:30:57.531 10989 10989 D OmnilyPOS: 🌐 JS Console: 🧹 CLEANUP: Lettura NFC fermata e callback rimosso. -- From line 849 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:30:57.531 10989 11094 D OmnilyPOS: getBridgeVersion called - returning: 4.1.0-nfc-on-demand-1758576657531
+09-22 23:30:57.534 10989 10989 D OmnilyPOS: 🌐 JS Console: Bridge version: 4.1.0-nfc-on-demand-1758576657531 -- From line 849 of https://omnilypro.vercel.app/assets/index-8zMum8jq.js
+09-22 23:31:00.480 10989 11094 D OmnilyPOS: readNFCCard called with callback: cardManagementNFCHandler
+09-22 23:31:00.482 10989 11094 D OmnilyPOS: NFC enabled and ready for card reading
+09-22 23:31:00.552 10989 10989 D OmnilyPOS: Toast displayed: Avvicina la tessera NFC...
+09-22 23:31:00.555 10989 10989 D OmnilyPOS: NFC enabled for reading
+09-22 23:31:00.564 10989 10989 D OmnilyPOS: Toast displayed: Present NFC card to reader... Press again to cancel
+09-22 23:31:02.626 10989 10989 D OmnilyPOS: NFC disabled
+09-22 23:31:02.629 10989 10989 D OmnilyPOS: NFC Tag detected: 2B39BC3F
+09-22 23:31:02.629 10989 10989 W OmnilyPOS: 🚫 NFC tag ignored - NFC not enabled by app (tag: 2B39BC3F)
+09-22 23:31:02.630 10989 10989 D OmnilyPOS: onResume() - NFC not auto-enabled
