@@ -54,6 +54,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [nfcResult, setNfcResult] = useState<any>(null);
   const [qrStatus, setQrStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [qrResult, setQrResult] = useState<any>(null);
+  const [nfcTimeoutId, setNfcTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  // FORCE RESET NFC STATE on component mount to prevent stuck states
+  useEffect(() => {
+    // Force reset any stuck NFC/QR states from previous sessions
+    setNfcStatus('idle');
+    setNfcResult(null);
+    setQrStatus('idle');
+    setQrResult(null);
+    console.log('🔄 FORCE RESET: NFC/QR states cleared on component mount');
+  }, []);
 
   // NFC Card Reading function - SOLO PER DASHBOARD (non CardManagementPanel)
   // Define the global callback function WITHOUT auto-registration
@@ -85,6 +96,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
         setNfcResult(parsedResult);
         setNfcStatus('idle'); // Reset status after reading
+
+        // Clear any active timeout
+        if (nfcTimeoutId) {
+          clearTimeout(nfcTimeoutId);
+          setNfcTimeoutId(null);
+        }
 
         // FORCE string parsing - Android always sends JSON as string
         if (typeof result === 'string') {
@@ -255,6 +272,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       setNfcStatus('idle');
       setNfcResult(null);
 
+      // Clear any active timeout
+      if (nfcTimeoutId) {
+        clearTimeout(nfcTimeoutId);
+        setNfcTimeoutId(null);
+      }
+
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
         const bridge = (window as any).OmnilyPOS;
 
@@ -319,6 +342,24 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           throw new Error('Metodo NFC non disponibile');
         }
         console.log('✅ Chiamata NFC inviata. In attesa del risultato...');
+
+        // Set timeout to automatically cancel NFC reading after 30 seconds
+        const timeoutId = setTimeout(() => {
+          console.log('⏰ TIMEOUT: Lettura NFC automaticamente annullata dopo 30 secondi');
+          setNfcStatus('idle');
+          setNfcResult(null);
+          if (bridge.stopNFCReading) {
+            bridge.stopNFCReading();
+          }
+          if (bridge.unregisterNFCResultCallback) {
+            bridge.unregisterNFCResultCallback('omnilyNFCResultHandler');
+          }
+          if (bridge.showToast) {
+            bridge.showToast('Lettura NFC timeout - riprova');
+          }
+        }, 30000);
+
+        setNfcTimeoutId(timeoutId);
 
       } catch (error) {
         console.log('💥 Errore chiamata NFC:', error);
