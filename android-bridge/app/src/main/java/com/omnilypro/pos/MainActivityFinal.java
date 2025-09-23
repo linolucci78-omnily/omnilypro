@@ -637,8 +637,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 runOnUiThread(() -> {
                     Log.d(TAG, "🔴 About to call JavaScript callback: window." + callbackName);
                     if (webView != null) {
-                        // Usa evaluateJavascript con una stringa JSON correttamente escapata
-                        String jsCode = String.format("window.%s('%s')", callbackName, result.replace("'", "\\'"));
+                        // Passa il JSON come oggetto, non come stringa
+                        String jsCode = String.format("window.%s(%s)", callbackName, result);
                         Log.d(TAG, "🔴 Executing JS code: " + jsCode);
                         webView.evaluateJavascript(jsCode, null);
                         Log.d(TAG, "🔴 JavaScript callback executed successfully");
