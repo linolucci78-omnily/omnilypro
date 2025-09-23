@@ -9,7 +9,16 @@ import {
   MdTrendingUp,
   MdSettings,
   MdHelp,
-  MdLogout
+  MdLogout,
+  MdStar,
+  MdCardGiftcard,
+  MdCategory,
+  MdGroup,
+  MdIntegrationInstructions,
+  MdNotifications,
+  MdAnalytics,
+  MdBrush,
+  MdChannel
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -64,14 +73,38 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       color: '#10b981'
     },
     {
+      id: 'loyalty-tiers',
+      icon: MdStar,
+      label: 'Livelli Fedeltà',
+      color: '#f59e0b'
+    },
+    {
+      id: 'rewards',
+      icon: MdCardGiftcard,
+      label: 'Premi',
+      color: '#10b981'
+    },
+    {
       id: 'members',
       icon: MdPeople,
       label: 'Clienti',
       color: '#3b82f6'
     },
     {
-      id: 'communications',
+      id: 'categories',
+      icon: MdCategory,
+      label: 'Categorie',
+      color: '#8b5cf6'
+    },
+    {
+      id: 'marketing-campaigns',
       icon: MdCampaign,
+      label: 'Marketing',
+      color: '#f59e0b'
+    },
+    {
+      id: 'communications',
+      icon: MdChannel,
       label: 'Comunicazioni',
       color: '#f59e0b'
     },
@@ -80,6 +113,42 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       icon: MdTrendingUp,
       label: 'Campagne',
       color: '#8b5cf6'
+    },
+    {
+      id: 'team-management',
+      icon: MdGroup,
+      label: 'Team',
+      color: '#3b82f6'
+    },
+    {
+      id: 'pos-integration',
+      icon: MdIntegrationInstructions,
+      label: 'Integrazione POS',
+      color: '#10b981'
+    },
+    {
+      id: 'notifications',
+      icon: MdNotifications,
+      label: 'Notifiche',
+      color: '#f59e0b'
+    },
+    {
+      id: 'analytics-reports',
+      icon: MdAnalytics,
+      label: 'Analytics',
+      color: '#8b5cf6'
+    },
+    {
+      id: 'branding-social',
+      icon: MdBrush,
+      label: 'Branding',
+      color: '#ef4444'
+    },
+    {
+      id: 'channels',
+      icon: MdChannel,
+      label: 'Canali',
+      color: '#6b7280'
     },
     {
       id: 'settings',
