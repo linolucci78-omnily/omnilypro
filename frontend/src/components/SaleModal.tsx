@@ -124,7 +124,8 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 onChange={handleAmountChange}
                 placeholder="0.00"
                 className="amount-input"
-                autoFocus
+                readOnly
+                inputMode="none"
               />
             </div>
           </div>

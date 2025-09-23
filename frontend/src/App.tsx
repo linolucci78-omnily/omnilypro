@@ -25,10 +25,9 @@ function App() {
     window.location.search.includes('posomnily=true')
 
   // Check if this should be customer display
-  const isCustomerDisplay = typeof window !== 'undefined' && (
-    (window.location.hash === '#customer-display' && isPOSMode) ||
-    (window.location.search.includes('customer=true') && isPOSMode)
-  )
+  // IMPORTANTE: Solo se ESPLICITAMENTE customer=true nell'URL iniziale
+  const isCustomerDisplay = typeof window !== 'undefined' && isPOSMode &&
+    window.location.search.includes('customer=true')
 
   console.log('🔍 DEBUG App.tsx:', {
     isPOSMode,
@@ -36,9 +35,8 @@ function App() {
     search: typeof window !== 'undefined' ? window.location.search : 'undefined',
     pathname: typeof window !== 'undefined' ? window.location.pathname : 'undefined',
     hash: typeof window !== 'undefined' ? window.location.hash : 'undefined',
-    hasOpener: typeof window !== 'undefined' ? window.opener !== null : 'undefined',
-    isPopup: typeof window !== 'undefined' && window.opener !== null,
-    shouldShowCustomerDisplay: typeof window !== 'undefined' && window.location.hash === '#customer-display' && isPOSMode
+    hasCustomerParam: typeof window !== 'undefined' ? window.location.search.includes('customer=true') : false,
+    hasPosParam: typeof window !== 'undefined' ? window.location.search.includes('posomnily=true') : false
   })
 
   // Check if we should redirect to /pos from hash
@@ -53,15 +51,7 @@ function App() {
 
   // Customer Display Mode - Direct render
   if (isCustomerDisplay) {
-    // VERIFICA: Se non è un popup, non caricare customer display qui!
-    if (typeof window !== 'undefined' && window.opener === null) {
-      console.warn('🚫 Customer display rilevato in finestra principale - redirect al POS');
-      // Rimuovi l'hash per tornare al POS normale
-      window.location.hash = '';
-      window.location.reload();
-      return <div>Redirecting...</div>;
-    }
-
+    console.log('✅ CUSTOMER DISPLAY ATTIVATO - rendering CustomerDisplay component');
     document.body.style.margin = '0'
     document.body.style.padding = '0'
     document.body.style.overflow = 'hidden'
