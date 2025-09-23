@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, organizationsApi, customersApi, nfcCardsApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
+import UpgradePrompt from './UpgradePrompt'
+import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
 
 interface OrganizationsDashboardProps {
@@ -20,6 +22,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [customerStats, setCustomerStats] = useState({
     total: 0,
@@ -48,6 +51,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }
   const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Plan-based access control
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
+  const [upgradeFeature, setUpgradeFeature] = useState('')
+  const [requiredPlan, setRequiredPlan] = useState<PlanType>(PlanType.BASIC)
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
   
   const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
@@ -474,6 +482,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       const realOrganizations = await organizationsApi.getAll()
 
       setOrganizations(realOrganizations)
+
+      // Carica i dettagli specifici della prima organizzazione (quella corrente)
+      if (realOrganizations.length > 0) {
+        const currentOrgDetails = await organizationsApi.getById(realOrganizations[0].id)
+        setCurrentOrganization(currentOrgDetails)
+        console.log('✅ Caricati dettagli organizzazione corrente:', currentOrgDetails?.name)
+        console.log('📋 Loyalty tiers configurati:', currentOrgDetails?.loyalty_tiers?.length || 0)
+        console.log('🎁 Default rewards configurati:', currentOrgDetails?.default_rewards?.length || 0)
+        console.log('📂 Product categories configurate:', currentOrgDetails?.product_categories?.length || 0)
+      }
+
       setError(null)
 
       console.log(`✅ Caricate ${realOrganizations.length} organizzazioni reali dal database`)
@@ -538,15 +557,73 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   };
 
-  const sidebarItems = [
-    { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-    { id: 'stamps', icon: Target, label: 'Tessere Punti' },
-    { id: 'members', icon: Users, label: 'Clienti' },
-    { id: 'communications', icon: Gift, label: 'Comunicazioni' },
-    { id: 'campaigns', icon: TrendingUp, label: 'Campagne' },
-    { id: 'settings', icon: Settings, label: 'Impostazioni' },
-    { id: 'support', icon: HelpCircle, label: 'Aiuto & Supporto' }
-  ]
+  // Function to check if user can access a section
+  const checkSectionAccess = (sectionId: string, featureName: string) => {
+    const userPlan = currentOrganization?.plan_type || 'free'
+    const featureMap: Record<string, keyof typeof import('../utils/planPermissions').PLAN_FEATURES[keyof typeof import('../utils/planPermissions').PLAN_FEATURES]> = {
+      'loyalty-tiers': 'loyaltyTiers',
+      'rewards': 'rewards',
+      'categories': 'categories',
+      'marketing-campaigns': 'marketingCampaigns',
+      'team-management': 'teamManagement',
+      'notifications': 'notifications',
+      'analytics-reports': 'analyticsReports',
+      'branding-social': 'brandingSocial',
+      'channels': 'channelsIntegration'
+    }
+
+    const feature = featureMap[sectionId]
+    if (!feature) return true // Always allow access to core sections
+
+    if (!hasAccess(userPlan, feature)) {
+      const upgradePlan = getUpgradePlan(userPlan, feature)
+      if (upgradePlan) {
+        setUpgradeFeature(featureName)
+        setRequiredPlan(upgradePlan)
+        setShowUpgradePrompt(true)
+      }
+      return false
+    }
+    return true
+  }
+
+  // Handle section change with access control
+  const handleRestrictedSectionChange = (sectionId: string, featureName: string) => {
+    if (checkSectionAccess(sectionId, featureName)) {
+      handleSectionChange(sectionId)
+    }
+  }
+
+  // Get filtered sidebar items based on plan
+  const getFilteredSidebarItems = () => {
+    const userPlan = currentOrganization?.plan_type || 'free'
+
+    const allItems = [
+      { id: 'dashboard', icon: BarChart3, label: 'Dashboard', feature: null },
+      { id: 'stamps', icon: Target, label: 'Tessere Punti', feature: null },
+      { id: 'members', icon: Users, label: 'Clienti', feature: null },
+      { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
+      { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
+      { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
+      { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
+      { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
+      { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: 'posIntegration' },
+      { id: 'notifications', icon: Bell, label: 'Notifiche', feature: 'notifications' },
+      { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
+      { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
+      { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
+      { id: 'communications', icon: Gift, label: 'Comunicazioni', feature: null },
+      { id: 'settings', icon: Settings, label: 'Impostazioni', feature: null },
+      { id: 'support', icon: HelpCircle, label: 'Aiuto & Supporto', feature: null }
+    ]
+
+    return allItems.map(item => ({
+      ...item,
+      locked: item.feature ? !hasAccess(userPlan, item.feature as any) : false
+    }))
+  }
+
+  const sidebarItems = getFilteredSidebarItems()
 
   const renderContent = () => {
     switch (activeSection) {
@@ -809,7 +886,505 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             />
           </div>
         )
-      
+
+      case 'loyalty-tiers':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Star size={24} />
+              <h2>Livelli di Fedeltà</h2>
+              <p>Gestisci i livelli di fedeltà configurati nel wizard</p>
+            </div>
+
+            {currentOrganization?.loyalty_tiers && currentOrganization.loyalty_tiers.length > 0 ? (
+              <div className="cards-grid">
+                {currentOrganization.loyalty_tiers.map((tier, index) => (
+                  <div key={index} className="feature-card tier-card">
+                    <div className="tier-header" style={{ borderColor: tier.color }}>
+                      <Star size={20} style={{ color: tier.color }} />
+                      <h3>{tier.name}</h3>
+                    </div>
+                    <div className="tier-details">
+                      <div className="tier-threshold">
+                        <strong>Soglia:</strong> {tier.threshold} punti
+                      </div>
+                      <div className="tier-multiplier">
+                        <strong>Moltiplicatore:</strong> {tier.multiplier}x
+                      </div>
+                      <div className="tier-benefits">
+                        <strong>Benefici:</strong>
+                        <ul>
+                          {tier.benefits.map((benefit, idx) => (
+                            <li key={idx}>{benefit}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Star size={48} />
+                <h3>Nessun livello di fedeltà configurato</h3>
+                <p>I livelli di fedeltà vengono configurati durante la creazione dell'organizzazione tramite wizard.</p>
+              </div>
+            )}
+          </div>
+        )
+
+      case 'rewards':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Award size={24} />
+              <h2>Premi Predefiniti</h2>
+              <p>Gestisci i premi configurati nel wizard</p>
+            </div>
+
+            {currentOrganization?.default_rewards && currentOrganization.default_rewards.length > 0 ? (
+              <div className="cards-grid">
+                {currentOrganization.default_rewards.map((reward, index) => (
+                  <div key={index} className="feature-card reward-card">
+                    <div className="reward-header">
+                      <Award size={20} />
+                      <h3>{reward.name}</h3>
+                    </div>
+                    <div className="reward-details">
+                      <div className="reward-type">
+                        <strong>Tipo:</strong> {reward.type}
+                      </div>
+                      <div className="reward-value">
+                        <strong>Valore:</strong> {reward.value}
+                      </div>
+                      {reward.description && (
+                        <div className="reward-description">
+                          <strong>Descrizione:</strong> {reward.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Award size={48} />
+                <h3>Nessun premio configurato</h3>
+                <p>I premi predefiniti vengono configurati durante la creazione dell'organizzazione tramite wizard.</p>
+              </div>
+            )}
+          </div>
+        )
+
+      case 'categories':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Package size={24} />
+              <h2>Categorie Prodotti</h2>
+              <p>Gestisci le categorie prodotti configurate nel wizard</p>
+            </div>
+
+            {currentOrganization?.product_categories && currentOrganization.product_categories.length > 0 ? (
+              <div className="cards-grid">
+                {currentOrganization.product_categories.map((category, index) => (
+                  <div key={index} className="feature-card category-card">
+                    <div className="category-header" style={{ borderColor: category.color }}>
+                      <Package size={20} style={{ color: category.color }} />
+                      <h3>{category.name}</h3>
+                    </div>
+                    {category.description && (
+                      <div className="category-description">
+                        {category.description}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Package size={48} />
+                <h3>Nessuna categoria configurata</h3>
+                <p>Le categorie prodotti vengono configurate durante la creazione dell'organizzazione tramite wizard.</p>
+              </div>
+            )}
+          </div>
+        )
+
+      case 'marketing-campaigns':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Mail size={24} />
+              <h2>Campagne Marketing</h2>
+              <p>Gestisci le campagne marketing automatiche configurate nel wizard</p>
+            </div>
+
+            <div className="campaigns-grid">
+              <div className="campaign-card">
+                <div className="campaign-header">
+                  <Gift size={20} />
+                  <h3>Campagna Benvenuto</h3>
+                  <div className={`campaign-status ${currentOrganization?.welcome_campaign ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.welcome_campaign ? 'Attiva' : 'Inattiva'}
+                  </div>
+                </div>
+                <p>Email di benvenuto automatica per nuovi clienti</p>
+              </div>
+
+              <div className="campaign-card">
+                <div className="campaign-header">
+                  <Star size={20} />
+                  <h3>Premi Compleanno</h3>
+                  <div className={`campaign-status ${currentOrganization?.birthday_rewards ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.birthday_rewards ? 'Attiva' : 'Inattiva'}
+                  </div>
+                </div>
+                <p>Premi speciali automatici nel giorno del compleanno</p>
+              </div>
+
+              <div className="campaign-card">
+                <div className="campaign-header">
+                  <AlertTriangle size={20} />
+                  <h3>Campagna Inattivi</h3>
+                  <div className={`campaign-status ${currentOrganization?.inactive_campaign ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.inactive_campaign ? 'Attiva' : 'Inattiva'}
+                  </div>
+                </div>
+                <p>Riattivazione automatica per clienti inattivi</p>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'team-management':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <UserPlus size={24} />
+              <h2>Gestione Team</h2>
+              <p>Amministratori e inviti team configurati nel wizard</p>
+            </div>
+
+            <div className="team-section">
+              <div className="admin-info-card">
+                <h3>Amministratore Principale</h3>
+                <div className="admin-details">
+                  <div><strong>Nome:</strong> {currentOrganization?.admin_name || 'Non configurato'}</div>
+                  <div><strong>Email:</strong> {currentOrganization?.admin_email || 'Non configurata'}</div>
+                </div>
+              </div>
+
+              {currentOrganization?.invite_emails && currentOrganization.invite_emails.length > 0 ? (
+                <div className="invites-card">
+                  <h3>Inviti Team</h3>
+                  <ul className="invites-list">
+                    {currentOrganization.invite_emails.map((email, index) => (
+                      <li key={index} className="invite-item">
+                        <Mail size={16} />
+                        <span>{email}</span>
+                        <span className="invite-status">In attesa</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <UserPlus size={48} />
+                  <h3>Nessun invito configurato</h3>
+                  <p>Gli inviti team vengono configurati durante la creazione dell'organizzazione.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+
+      case 'pos-integration':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Zap size={24} />
+              <h2>Integrazione POS</h2>
+              <p>Configurazione hardware POS dal wizard</p>
+            </div>
+
+            <div className="pos-config-grid">
+              <div className="pos-card">
+                <div className="pos-header">
+                  <Building2 size={20} />
+                  <h3>Stato POS</h3>
+                </div>
+                <div className="pos-status">
+                  {currentOrganization?.pos_enabled ? (
+                    <span className="status-active">✅ POS Abilitato</span>
+                  ) : (
+                    <span className="status-inactive">❌ POS Disabilitato</span>
+                  )}
+                </div>
+                <div className="pos-details">
+                  <div><strong>Modello:</strong> {currentOrganization?.pos_model || 'Non specificato'}</div>
+                  <div><strong>Connessione:</strong> {currentOrganization?.pos_connection || 'Non specificata'}</div>
+                </div>
+              </div>
+
+              <div className="features-card">
+                <h3>Funzionalità Abilitate</h3>
+                <div className="features-list">
+                  <div className={`feature-item ${currentOrganization?.enable_receipt_print ? 'enabled' : 'disabled'}`}>
+                    <span>🖨️ Stampa ricevute</span>
+                    <span>{currentOrganization?.enable_receipt_print ? 'Abilitata' : 'Disabilitata'}</span>
+                  </div>
+                  <div className={`feature-item ${currentOrganization?.enable_nfc ? 'enabled' : 'disabled'}`}>
+                    <span>📱 NFC</span>
+                    <span>{currentOrganization?.enable_nfc ? 'Abilitato' : 'Disabilitato'}</span>
+                  </div>
+                  <div className={`feature-item ${currentOrganization?.enable_emv ? 'enabled' : 'disabled'}`}>
+                    <span>💳 EMV</span>
+                    <span>{currentOrganization?.enable_emv ? 'Abilitato' : 'Disabilitato'}</span>
+                  </div>
+                  <div className={`feature-item ${currentOrganization?.enable_pinpad ? 'enabled' : 'disabled'}`}>
+                    <span>🔢 PinPad</span>
+                    <span>{currentOrganization?.enable_pinpad ? 'Abilitato' : 'Disabilitato'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'notifications':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Bell size={24} />
+              <h2>Notifiche & Comunicazioni</h2>
+              <p>Impostazioni notifiche configurate nel wizard</p>
+            </div>
+
+            <div className="notifications-grid">
+              <div className="notification-card">
+                <div className="notification-header">
+                  <Mail size={20} />
+                  <h3>Email</h3>
+                  <div className={`notification-status ${currentOrganization?.enable_email_notifications ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.enable_email_notifications ? 'Attive' : 'Inattive'}
+                  </div>
+                </div>
+                <p>Notifiche via email per clienti e amministratori</p>
+                <div className="sub-setting">
+                  <span>Email di benvenuto: </span>
+                  <span className={currentOrganization?.welcome_email_enabled ? 'enabled' : 'disabled'}>
+                    {currentOrganization?.welcome_email_enabled ? 'Abilitata' : 'Disabilitata'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="notification-card">
+                <div className="notification-header">
+                  <Bell size={20} />
+                  <h3>Push Notifications</h3>
+                  <div className={`notification-status ${currentOrganization?.enable_push_notifications ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.enable_push_notifications ? 'Attive' : 'Inattive'}
+                  </div>
+                </div>
+                <p>Notifiche push per app mobile</p>
+              </div>
+
+              <div className="notification-card">
+                <div className="notification-header">
+                  <div style={{fontSize: '20px'}}>📱</div>
+                  <h3>SMS</h3>
+                  <div className={`notification-status ${currentOrganization?.enable_sms ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.enable_sms ? 'Attivi' : 'Inattivi'}
+                  </div>
+                </div>
+                <p>Notifiche SMS per promozioni urgenti</p>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'analytics-reports':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <TrendingUp size={24} />
+              <h2>Analytics & Report</h2>
+              <p>Configurazione analytics dal wizard</p>
+            </div>
+
+            <div className="analytics-config">
+              <div className="analytics-card">
+                <h3>Analytics Avanzate</h3>
+                <div className={`status-badge ${currentOrganization?.enable_advanced_analytics ? 'active' : 'inactive'}`}>
+                  {currentOrganization?.enable_advanced_analytics ? 'Abilitate' : 'Disabilitate'}
+                </div>
+                <p>Analisi dettagliate comportamento clienti e performance</p>
+              </div>
+
+              <div className="reports-card">
+                <h3>Frequenza Report</h3>
+                <div className="report-frequency">
+                  {currentOrganization?.report_frequency || 'Non configurata'}
+                </div>
+                <p>Report automatici via email</p>
+              </div>
+
+              {currentOrganization?.kpi_tracking && currentOrganization.kpi_tracking.length > 0 && (
+                <div className="kpi-card">
+                  <h3>KPI Monitorati</h3>
+                  <ul className="kpi-list">
+                    {currentOrganization.kpi_tracking.map((kpi, index) => (
+                      <li key={index} className="kpi-item">
+                        <CheckCircle2 size={16} />
+                        <span>{kpi.replace('_', ' ').toUpperCase()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+
+      case 'branding-social':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Palette size={24} />
+              <h2>Branding & Social Media</h2>
+              <p>Personalizzazione brand e social links dal wizard</p>
+            </div>
+
+            <div className="branding-grid">
+              <div className="brand-card">
+                <h3>Colori Brand</h3>
+                <div className="color-display">
+                  <div className="color-item">
+                    <div
+                      className="color-preview"
+                      style={{ backgroundColor: currentOrganization?.primary_color || '#ef4444' }}
+                    ></div>
+                    <span>Primario: {currentOrganization?.primary_color || '#ef4444'}</span>
+                  </div>
+                  <div className="color-item">
+                    <div
+                      className="color-preview"
+                      style={{ backgroundColor: currentOrganization?.secondary_color || '#dc2626' }}
+                    ></div>
+                    <span>Secondario: {currentOrganization?.secondary_color || '#dc2626'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="logo-card">
+                <h3>Logo Aziendale</h3>
+                {currentOrganization?.logo_url ? (
+                  <div className="logo-display">
+                    <img src={currentOrganization.logo_url} alt="Logo" className="org-logo" />
+                  </div>
+                ) : (
+                  <div className="no-logo">Nessun logo configurato</div>
+                )}
+              </div>
+
+              <div className="social-card">
+                <h3>Social Media</h3>
+                <div className="social-links">
+                  {currentOrganization?.facebook_url && (
+                    <div className="social-item">
+                      <span>📘 Facebook</span>
+                      <a href={currentOrganization.facebook_url} target="_blank" rel="noopener noreferrer">
+                        Apri profilo
+                      </a>
+                    </div>
+                  )}
+                  {currentOrganization?.instagram_url && (
+                    <div className="social-item">
+                      <span>📷 Instagram</span>
+                      <a href={currentOrganization.instagram_url} target="_blank" rel="noopener noreferrer">
+                        Apri profilo
+                      </a>
+                    </div>
+                  )}
+                  {currentOrganization?.linkedin_url && (
+                    <div className="social-item">
+                      <span>💼 LinkedIn</span>
+                      <a href={currentOrganization.linkedin_url} target="_blank" rel="noopener noreferrer">
+                        Apri profilo
+                      </a>
+                    </div>
+                  )}
+                  {currentOrganization?.twitter_url && (
+                    <div className="social-item">
+                      <span>🐦 Twitter</span>
+                      <a href={currentOrganization.twitter_url} target="_blank" rel="noopener noreferrer">
+                        Apri profilo
+                      </a>
+                    </div>
+                  )}
+                  {!currentOrganization?.facebook_url && !currentOrganization?.instagram_url &&
+                   !currentOrganization?.linkedin_url && !currentOrganization?.twitter_url && (
+                    <div className="no-social">Nessun social media configurato</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'channels':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Globe size={24} />
+              <h2>Canali di Integrazione</h2>
+              <p>Canali di vendita configurati nel wizard</p>
+            </div>
+
+            <div className="channels-grid">
+              <div className="channel-card">
+                <div className="channel-header">
+                  <Zap size={20} />
+                  <h3>POS</h3>
+                  <div className={`channel-status ${currentOrganization?.enable_pos ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.enable_pos ? 'Abilitato' : 'Disabilitato'}
+                  </div>
+                </div>
+                <p>Sistema punto vendita fisico</p>
+                {currentOrganization?.pos_type && (
+                  <div className="channel-detail">Tipo: {currentOrganization.pos_type}</div>
+                )}
+              </div>
+
+              <div className="channel-card">
+                <div className="channel-header">
+                  <Globe size={20} />
+                  <h3>E-commerce</h3>
+                  <div className={`channel-status ${currentOrganization?.enable_ecommerce ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.enable_ecommerce ? 'Abilitato' : 'Disabilitato'}
+                  </div>
+                </div>
+                <p>Negozio online integrato</p>
+                {currentOrganization?.ecommerce_platform && (
+                  <div className="channel-detail">Piattaforma: {currentOrganization.ecommerce_platform}</div>
+                )}
+              </div>
+
+              <div className="channel-card">
+                <div className="channel-header">
+                  <div style={{fontSize: '20px'}}>📱</div>
+                  <h3>App Mobile</h3>
+                  <div className={`channel-status ${currentOrganization?.enable_app ? 'active' : 'inactive'}`}>
+                    {currentOrganization?.enable_app ? 'Abilitata' : 'Disabilitata'}
+                  </div>
+                </div>
+                <p>Applicazione mobile per clienti</p>
+              </div>
+            </div>
+          </div>
+        )
+
       case 'communications':
         return (
           <div className="section-content">
@@ -1062,14 +1637,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         <nav className="sidebar-nav">
           {sidebarItems.map(item => {
             const IconComponent = item.icon
+            const isLocked = (item as any).locked
             return (
               <button
                 key={item.id}
-                onClick={() => handleSectionChange(item.id)}
-                className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
+                onClick={() => {
+                  if (isLocked) {
+                    handleRestrictedSectionChange(item.id, item.label)
+                  } else {
+                    handleSectionChange(item.id)
+                  }
+                }}
+                className={`nav-item ${activeSection === item.id ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                disabled={isLocked && activeSection === item.id}
               >
                 <IconComponent size={20} />
                 <span>{item.label}</span>
+                {isLocked && <Lock size={16} className="lock-icon" />}
               </button>
             )
           })}
@@ -1087,6 +1671,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           <div className="header-title">
             <BarChart3 size={24} />
             <span>OMNILY PRO - Dashboard</span>
+            <div className="current-plan-badge">
+              <Crown size={14} />
+              <span>{(currentOrganization?.plan_type || 'free').toUpperCase()}</span>
+            </div>
           </div>
           <div className="header-actions">
             <button className="btn-logout">
@@ -1125,6 +1713,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onCardRead={(cardData) => {
           console.log('Tessera letta:', cardData);
           // Le tessere sono ora gestite direttamente in Supabase
+        }}
+      />
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        feature={upgradeFeature}
+        currentPlan={currentOrganization?.plan_type || 'free'}
+        requiredPlan={requiredPlan}
+        onUpgrade={(plan) => {
+          console.log('Upgrade to:', plan)
+          // TODO: Implement actual upgrade logic
+          alert(`Upgrade a ${plan} non ancora implementato`)
         }}
       />
     </div>

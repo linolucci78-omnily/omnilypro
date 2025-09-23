@@ -29,6 +29,97 @@ export interface Organization {
   is_active: boolean
   pos_enabled: boolean
   pos_model?: string
+
+  // Wizard configuration data
+  partita_iva?: string
+  codice_fiscale?: string
+  industry?: string
+  city?: string
+  postal_code?: string
+  business_email?: string
+  tagline?: string
+
+  // Loyalty system configuration
+  points_name?: string
+  points_per_euro?: number
+  reward_threshold?: number
+  welcome_bonus?: number
+  points_expiry_months?: number
+  enable_tier_system?: boolean
+  loyalty_tiers?: Array<{
+    name: string
+    threshold: number
+    multiplier: number
+    color: string
+    benefits: string[]
+  }>
+
+  // Products & Categories
+  import_products?: boolean
+  product_categories?: Array<{
+    name: string
+    description?: string
+    color?: string
+  }>
+  bonus_categories?: Array<{
+    category: string
+    multiplier: number
+  }>
+
+  // Rewards configuration
+  reward_types?: string[]
+  default_rewards?: Array<{
+    name: string
+    type: string
+    value: number
+    description?: string
+    requirements?: any
+  }>
+
+  // Social Media
+  facebook_url?: string
+  instagram_url?: string
+  linkedin_url?: string
+  twitter_url?: string
+
+  // Channels
+  enable_pos?: boolean
+  enable_ecommerce?: boolean
+  enable_app?: boolean
+  pos_type?: string
+  ecommerce_platform?: string
+
+  // Marketing
+  welcome_campaign?: boolean
+  birthday_rewards?: boolean
+  inactive_campaign?: boolean
+  email_templates?: any
+
+  // Team
+  admin_name?: string
+  admin_email?: string
+  invite_emails?: string[]
+
+  // POS Integration
+  pos_connection?: string
+  enable_receipt_print?: boolean
+  enable_nfc?: boolean
+  enable_emv?: boolean
+  enable_pinpad?: boolean
+
+  // Notifications
+  enable_email_notifications?: boolean
+  enable_sms?: boolean
+  enable_push_notifications?: boolean
+  welcome_email_enabled?: boolean
+
+  // Analytics
+  enable_advanced_analytics?: boolean
+  report_frequency?: string
+  kpi_tracking?: string[]
+
+  // Billing
+  billing_email?: string
 }
 
 export interface Customer {
