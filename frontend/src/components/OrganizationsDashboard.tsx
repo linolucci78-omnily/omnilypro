@@ -60,6 +60,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Definiamo il callback ma NON lo registriamo automaticamente
       (window as any).omnilyNFCResultHandler = (result: any) => {
         console.log('📱 Risultato lettura NFC (da dashboard):', result);
+        console.log('🔍 Debug - result type:', typeof result);
+        console.log('🔍 Debug - result.success:', result?.success);
+        console.log('🔍 Debug - result.success type:', typeof result?.success);
         setNfcResult(result);
         setNfcStatus('idle'); // Reset status after reading
 
