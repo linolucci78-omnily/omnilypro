@@ -247,30 +247,51 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // NFC Card Reading function
   const handleNFCRead = () => {
+    // OTTIMIZZAZIONE: Annullamento immediato e responsive per gestione tessere
     if (nfcStatus === 'reading') {
-      // Cancel reading
+      console.log('🛑 ANNULLAMENTO IMMEDIATO lettura NFC in corso...');
+
+      // 1. Aggiorna subito lo stato UI per feedback immediato
       setNfcStatus('idle');
       setNfcResult(null);
 
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
         const bridge = (window as any).OmnilyPOS;
 
-        // Disregistra il callback per fermare il bridge
-        if (bridge.unregisterNFCResultCallback) {
-          bridge.unregisterNFCResultCallback('omnilyNFCResultHandler');
-          console.log("❌ NFC callback DISREGISTRATO per dashboard");
-        }
+        // 2. Ferma IMMEDIATAMENTE tutte le operazioni NFC
+        try {
+          // Prima ferma il lettore fisico
+          if (bridge.stopNFCReading) {
+            bridge.stopNFCReading();
+            console.log("🔴 Lettore NFC fermato IMMEDIATAMENTE");
+          }
 
-        // Ferma il lettore se possibile
-        if (bridge.stopNFCReading) {
-          bridge.stopNFCReading();
-          console.log("🛑 Lettura NFC fermata");
-        }
+          // Poi disregistra il callback
+          if (bridge.unregisterNFCResultCallback) {
+            bridge.unregisterNFCResultCallback('omnilyNFCResultHandler');
+            console.log("🔴 Callback NFC disregistrato");
+          }
 
-        if (bridge.showToast) {
-          bridge.showToast('Lettura NFC annullata');
+          // Feedback immediato all'utente
+          if (bridge.showToast) {
+            bridge.showToast('✋ Lettura NFC ANNULLATA');
+          }
+
+          // Beep di conferma annullamento
+          if (bridge.beep) {
+            bridge.beep("2", "100"); // 2 beep corti = annullamento
+          }
+
+        } catch (error) {
+          console.error('⚠️ Errore durante annullamento NFC:', error);
+          // Anche in caso di errore, mostra che è annullato
+          if (bridge.showToast) {
+            bridge.showToast('⚠️ NFC fermato (possibili errori hardware)');
+          }
         }
       }
+
+      console.log('✅ Annullamento NFC completato - sistema pronto');
       return;
     }
 
@@ -378,17 +399,30 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }, [activeSection])
 
+  // OTTIMIZZAZIONE: Ricerca debounced per performance migliore nella gestione tessere
   useEffect(() => {
-    const lowercasedFilter = searchTerm.toLowerCase();
-    const filtered = customers.filter(customer => {
-      return (
-        customer.name.toLowerCase().includes(lowercasedFilter) ||
-        (customer.email && customer.email.toLowerCase().includes(lowercasedFilter)) ||
-        (customer.phone && customer.phone.includes(lowercasedFilter)) ||
-        customer.id.slice(0, 8).toLowerCase().includes(lowercasedFilter)
-      );
-    });
-    setFilteredCustomers(filtered);
+    if (searchTerm.trim() === '') {
+      // Se non c'è ricerca, mostra tutti i clienti immediatamente
+      setFilteredCustomers(customers);
+      return;
+    }
+
+    // Debounce la ricerca di 200ms per ricerca fluida ma responsive
+    const debounceTimeout = setTimeout(() => {
+      const lowercasedFilter = searchTerm.toLowerCase().trim();
+      const filtered = customers.filter(customer => {
+        return (
+          customer.name.toLowerCase().includes(lowercasedFilter) ||
+          (customer.email && customer.email.toLowerCase().includes(lowercasedFilter)) ||
+          (customer.phone && customer.phone.includes(searchTerm)) || // Mantieni ricerca telefono case-sensitive
+          customer.id.slice(0, 8).toLowerCase().includes(lowercasedFilter)
+        );
+      });
+      setFilteredCustomers(filtered);
+      console.log(`🔍 RICERCA VELOCE "${searchTerm}": ${filtered.length}/${customers.length} clienti trovati`);
+    }, 200); // 200ms ottimale per POS
+
+    return () => clearTimeout(debounceTimeout);
   }, [searchTerm, customers]);
 
   const fetchOrganizations = async () => {
@@ -602,10 +636,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   >
                     <CreditCard size={16} />
                     <span>
-                      {nfcStatus === 'reading' && 'Annulla Lettura'}
+                      {nfcStatus === 'reading' && '🛑 ANNULLA LETTURA'}
                       {nfcStatus === 'idle' && 'Leggi Tessera'}
-                      {nfcStatus === 'success' && 'Leggi di Nuovo'}
-                      {nfcStatus === 'error' && 'Riprova Lettura'}
+                      {nfcStatus === 'success' && '✅ Leggi di Nuovo'}
+                      {nfcStatus === 'error' && '❌ Riprova Lettura'}
                     </span>
                   </button>
                   {nfcResult && (
