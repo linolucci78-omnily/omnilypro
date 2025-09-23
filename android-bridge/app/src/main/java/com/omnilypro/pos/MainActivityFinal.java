@@ -385,6 +385,7 @@ public class MainActivityFinal extends AppCompatActivity {
                 // User cancelled the scan
                 Log.d(TAG, "QR scan cancelled by user");
                 jsonResult.put("success", false);
+                jsonResult.put("cancelled", true);
                 jsonResult.put("error", "Scansione annullata dall'utente");
             } else {
                 // Successful scan
@@ -449,6 +450,10 @@ public class MainActivityFinal extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         webSettings.setAllowFileAccess(false);
 
+        // CRUCIALE: Abilita supporto finestre multiple per customer display
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+        webSettings.setSupportMultipleWindows(true);
+
         // Force bridge recreation
         webView.removeJavascriptInterface("OmnilyPOS");
         bridge = new OmnilyPOSBridge();
@@ -462,6 +467,55 @@ public class MainActivityFinal extends AppCompatActivity {
                 Log.d(TAG, "🌐 JS Console: " + consoleMessage.message() + " -- From line "
                          + consoleMessage.lineNumber() + " of " + consoleMessage.sourceId());
                 return super.onConsoleMessage(consoleMessage);
+            }
+
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
+                Log.d(TAG, "🔄 onCreateWindow chiamato - gestione customer display");
+
+                try {
+                    // Crea nuova WebView per customer display
+                    WebView customerDisplayWebView = new WebView(view.getContext());
+
+                    // Configura la WebView del customer display
+                    WebSettings customerSettings = customerDisplayWebView.getSettings();
+                    customerSettings.setJavaScriptEnabled(true);
+                    customerSettings.setDomStorageEnabled(true);
+                    customerSettings.setDatabaseEnabled(true);
+
+                    // Trova il secondo display
+                    DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+                    Display[] displays = displayManager.getDisplays();
+                    Display secondDisplay = (displays.length > 1) ? displays[1] : null;
+
+                    if (secondDisplay != null) {
+                        Log.d(TAG, "✅ Secondo display trovato - creazione customer presentation");
+
+                        // Chiudi presentation esistente se presente
+                        if (customerPresentation != null) {
+                            customerPresentation.dismiss();
+                        }
+
+                        // Crea nuova presentation per customer display
+                        customerPresentation = new CustomerDisplayPresentation(MainActivityFinal.this, secondDisplay, customerDisplayWebView);
+                        customerPresentation.show();
+
+                        Log.d(TAG, "✅ Customer display presentation attivata");
+                    } else {
+                        Log.w(TAG, "⚠️ Secondo display non trovato - window.open gestito normalmente");
+                    }
+
+                    // Comunica la nuova WebView al sistema
+                    WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                    transport.setWebView(customerDisplayWebView);
+                    resultMsg.sendToTarget();
+
+                    return true; // Indica che abbiamo gestito la richiesta
+
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Errore in onCreateWindow: " + e.getMessage(), e);
+                    return false; // Fallback al comportamento standard
+                }
             }
         });
 
@@ -704,11 +758,12 @@ public class MainActivityFinal extends AppCompatActivity {
                     // Initialize ZXing QR scanner
                     IntentIntegrator integrator = new IntentIntegrator(MainActivityFinal.this);
                     integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
-                    integrator.setPrompt("Inquadra il codice QR");
+                    integrator.setPrompt("Inquadra il codice QR\n\nPremi INDIETRO per annullare");
                     integrator.setCameraId(0);  // Use back camera
                     integrator.setBeepEnabled(true);
                     integrator.setBarcodeImageEnabled(false);
                     integrator.setOrientationLocked(true);
+                    integrator.setTimeout(30000); // Timeout di 30 secondi
                     integrator.setCaptureActivity(com.journeyapps.barcodescanner.CaptureActivity.class);
 
                     Log.d(TAG, "Starting ZXing QR scanner activity...");
@@ -735,8 +790,33 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void cancelQRScanner() {
+            Log.d(TAG, "cancelQRScanner called - cancelling current QR scan");
+
+            runOnUiThread(() -> {
+                try {
+                    // Se c'è una callback in attesa, invia risultato di cancellazione
+                    if (currentQRCallback != null) {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("cancelled", true);
+                        result.put("message", "Scansione annullata dall'utente");
+                        runJsCallback(currentQRCallback, result.toString());
+                        currentQRCallback = null;
+                    }
+
+                    // Chiudi l'activity dello scanner se è aperta
+                    finishActivity(IntentIntegrator.REQUEST_CODE);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error cancelling QR scanner", e);
+                }
+            });
+        }
+
+        @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -832,6 +912,31 @@ public class MainActivityFinal extends AppCompatActivity {
             WebView customerWebView = new WebView(getContext());
             customerWebView.loadUrl("https://omnilypro.vercel.app?posomnily=true&customer=true");
             setContentView(customerWebView);
+        }
+    }
+
+    // Nuova classe per gestire customer display con WebView personalizzata
+    private class CustomerDisplayPresentation extends Presentation {
+        private WebView customerWebView;
+
+        public CustomerDisplayPresentation(Context outerContext, Display display, WebView webView) {
+            super(outerContext, display);
+            this.customerWebView = webView;
+        }
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+
+            if (customerWebView != null) {
+                Log.d(TAG, "✅ CustomerDisplayPresentation creata con WebView esistente");
+                setContentView(customerWebView);
+            } else {
+                Log.w(TAG, "⚠️ WebView null in CustomerDisplayPresentation - creazione fallback");
+                WebView fallbackWebView = new WebView(getContext());
+                fallbackWebView.loadUrl("https://omnilypro.vercel.app?posomnily=true&customer=true");
+                setContentView(fallbackWebView);
+            }
         }
     }
 
