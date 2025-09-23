@@ -202,6 +202,12 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
                 openCustomerDisplay();
                 // Invia messaggio di benvenuto dopo apertura
                 setTimeout(() => {
+                  console.log('🏢 PRIMO INVIO MESSAGGIO BENVENUTO:', {
+                    type: 'WELCOME',
+                    organizationName: org.name,
+                    welcomeMessage: `Benvenuto da ${org.name}!`
+                  });
+
                   updateCustomerDisplay({
                     type: 'WELCOME',
                     organizationName: org.name,
@@ -214,6 +220,12 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
               console.log('📤 Customer display già aperto - invio messaggio benvenuto:', org.name);
 
               setTimeout(() => {
+                console.log('🏢 INVIO MESSAGGIO BENVENUTO:', {
+                  type: 'WELCOME',
+                  organizationName: org.name,
+                  welcomeMessage: `Benvenuto da ${org.name}!`
+                });
+
                 updateCustomerDisplay({
                   type: 'WELCOME',
                   organizationName: org.name,
