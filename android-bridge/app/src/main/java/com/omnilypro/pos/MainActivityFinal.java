@@ -47,6 +47,8 @@ import com.zcs.sdk.card.CardReaderManager;
 import com.zcs.sdk.card.CardReaderTypeEnum;
 import com.zcs.sdk.card.RfCard;
 import com.zcs.sdk.listener.OnSearchCardListener;
+import com.zcs.sdk.pin.pinpad.PinPadManager;
+import com.zcs.sdk.pin.PinAlgorithmMode;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -67,6 +69,7 @@ public class MainActivityFinal extends AppCompatActivity {
     private Sys mSys;
     private ExecutorService mExecutor;
     private CardReaderManager mCardReadManager;
+    private PinPadManager mPinPadManager;
     private RfCard mRfCard;
     private HQrsanner mHQrsanner;
     private WebView webView;
@@ -174,6 +177,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     mCardReadManager = mDriverManager.getCardReadManager();
                     mRfCard = mCardReadManager.getRFCard(); // Initialize RfCard object
                     mHQrsanner = mDriverManager.getHQrsannerDriver(); // Initialize QR scanner
+                    mPinPadManager = mDriverManager.getPadManager(); // Initialize PinPad
                     Log.d(TAG, "ZCS SDK initialized successfully.");
                 } else {
                     Log.e(TAG, "ZCS SDK init failed, status: " + status);
@@ -790,16 +794,93 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
 
         @JavascriptInterface
         public String getBridgeVersion() {
-            String version = "4.2.0-zxing-qr-scanner-" + System.currentTimeMillis();
+            String version = "4.3.0-pinpad-input-" + System.currentTimeMillis();
             Log.d(TAG, "getBridgeVersion called - returning: " + version);
             return version;
+        }
+
+        @JavascriptInterface
+        public void inputAmount(String callbackName) {
+            Log.d(TAG, "inputAmount called with callback: " + callbackName);
+
+            if (mPinPadManager == null) {
+                Log.e(TAG, "PinPad not initialized");
+                runOnUiThread(() -> {
+                    String script = callbackName + "('ERROR: PinPad not available');";
+                    webView.evaluateJavascript(script, null);
+                });
+                return;
+            }
+
+            runOnUiThread(() -> {
+                try {
+                    // Input amount - customized for amount input instead of PIN
+                    // Parameters: context, min digits, max digits, timeout, sound enabled, account number, key index, algorithm, callback
+                    mPinPadManager.inputOnlinePin(MainActivityFinal.this,
+                        (byte) 1,    // min 1 digit (can be 0.1 euro)
+                        (byte) 10,   // max 10 digits (up to 99,999,999.99)
+                        60,          // 60 second timeout
+                        true,        // sound enabled
+                        "AMOUNT",    // identifier for amount input
+                        (byte) 0,    // key index (not used for amount)
+                        PinAlgorithmMode.ANSI_X_9_8, // algorithm (not used for amount)
+                        new PinPadManager.OnPinPadInputListener() {
+                            @Override
+                            public void onSuccess(byte[] data) {
+                                runOnUiThread(() -> {
+                                    if (data != null) {
+                                        // Convert bytes to amount string
+                                        String amountStr = new String(data).trim();
+                                        // Format as decimal (add decimal point if needed)
+                                        if (amountStr.length() > 2) {
+                                            String euros = amountStr.substring(0, amountStr.length() - 2);
+                                            String cents = amountStr.substring(amountStr.length() - 2);
+                                            amountStr = euros + "." + cents;
+                                        } else if (amountStr.length() == 2) {
+                                            amountStr = "0." + amountStr;
+                                        } else if (amountStr.length() == 1) {
+                                            amountStr = "0.0" + amountStr;
+                                        }
+
+                                        Log.d(TAG, "Amount input success: " + amountStr);
+                                        String script = callbackName + "('" + amountStr + "');";
+                                        webView.evaluateJavascript(script, null);
+                                    } else {
+                                        Log.e(TAG, "Amount input failed - no data");
+                                        String script = callbackName + "('ERROR: No data received');";
+                                        webView.evaluateJavascript(script, null);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError(int errorCode) {
+                                Log.e(TAG, "PinPad error code: " + errorCode);
+                                runOnUiThread(() -> {
+                                    String script = callbackName + "('ERROR: Code " + errorCode + "');";
+                                    webView.evaluateJavascript(script, null);
+                                });
+                            }
+                        });
+                } catch (Exception e) {
+                    Log.e(TAG, "Error starting amount input: " + e.getMessage());
+                    String script = callbackName + "('ERROR: " + e.getMessage() + "');";
+                    webView.evaluateJavascript(script, null);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void inputAmountAsync() {
+            Log.d(TAG, "inputAmountAsync called - using default callback");
+            inputAmount("omnilyAmountInputHandler");
         }
 
         private void runJsCallback(final String callbackName, final String result) {
