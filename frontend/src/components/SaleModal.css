@@ -147,7 +147,8 @@
   font-weight: 600;
   text-align: center;
   transition: all 0.2s ease;
-  background: #f9fafb;
+  background: #ffffff;
+  color: #1f2937;
 }
 
 .amount-input:focus {
@@ -323,6 +324,61 @@
 }
 
 .sale-btn-confirm-small:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* New simplified actions */
+.sale-actions-section {
+  margin-top: 2rem;
+}
+
+.sale-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sale-btn-clear,
+.sale-btn-confirm {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sale-btn-clear {
+  background: #64748b;
+  color: white;
+}
+
+.sale-btn-clear:hover {
+  background: #475569;
+  transform: translateY(-1px);
+}
+
+.sale-btn-confirm {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+.sale-btn-confirm:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+}
+
+.sale-btn-confirm:disabled {
   background: #d1d5db;
   color: #9ca3af;
   cursor: not-allowed;
