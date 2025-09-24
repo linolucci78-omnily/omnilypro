@@ -70,7 +70,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
           onClick={handleQuickLogout}
           title="Logout rapido"
         >
-          <MdLogout size={20} />
+          <MdLogout size={24} />
         </button>
       </div>
     </header>
