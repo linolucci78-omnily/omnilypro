@@ -444,16 +444,16 @@
   }
 
   .customer-info {
-    margin-bottom: 1rem; /* Margin ridotto */
+    margin-bottom: 0.5rem; /* Margin ulteriormente ridotto */
   }
 
   .customer-info h3 {
-    font-size: 1.8rem; /* Font ottimizzato per spazio */
-    margin: 0 0 0.3rem 0; /* Margin ridotto */
+    font-size: 1.6rem; /* Font più compatto */
+    margin: 0 0 0.2rem 0; /* Margin minimo */
   }
 
   .amount-input-section {
-    margin-bottom: 1rem; /* Margin ridotto */
+    margin-bottom: 0.5rem; /* Margin ulteriormente ridotto */
   }
 
   .amount-input {
@@ -468,13 +468,13 @@
   }
 
   .points-summary {
-    padding: 1rem; /* Padding ridotto */
-    margin-bottom: 1rem;
+    padding: 0.8rem; /* Padding ulteriormente ridotto */
+    margin-bottom: 0.5rem; /* Margin minimo */
   }
 
   .points-row {
-    padding: 0.8rem 0; /* Padding ridotto */
-    min-height: 50px; /* Altezza ottimizzata */
+    padding: 0.5rem 0; /* Padding molto ridotto */
+    min-height: 45px; /* Altezza più compatta */
   }
 
   .points-label {
@@ -486,28 +486,28 @@
   }
 
   .sale-keypad {
-    margin: 0.5rem 0; /* Margin più compatto */
-    padding: 0.8rem; /* Padding ridotto */
+    margin: 0.3rem 0; /* Margin minimo */
+    padding: 0.6rem; /* Padding minimo */
   }
 
   .sale-keypad-row {
-    gap: 0.6rem; /* Gap ottimizzato */
-    margin-bottom: 0.6rem; /* Margin ridotto */
+    gap: 0.5rem; /* Gap ridotto */
+    margin-bottom: 0.5rem; /* Margin ridotto */
   }
 
   .sale-keypad-btn {
-    min-height: 55px; /* Touch-friendly compatto */
-    font-size: 1.3rem; /* Font ottimizzato per spazio */
-    padding: 0.8rem; /* Padding compatto */
+    min-height: 50px; /* Altezza più compatta ma touch-friendly */
+    font-size: 1.2rem; /* Font compatto */
+    padding: 0.6rem; /* Padding minimo */
     flex: 1;
   }
 
   .congratulations {
-    margin-bottom: 0.5rem; /* Margin ridotto */
+    margin-bottom: 0.3rem; /* Margin minimo */
   }
 
   .congratulations p {
-    font-size: 1.4rem; /* Font ottimizzato per spazio */
+    font-size: 1.2rem; /* Font più compatto */
     margin: 0; /* No margin extra */
   }
 
