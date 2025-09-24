@@ -417,14 +417,98 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     setSelectedCustomer(null)
   }
 
-  const handleAddPoints = (customerId: string, points: number) => {
+  const handleAddPoints = async (customerId: string, points: number) => {
     console.log(`Aggiungi ${points} punti al cliente ${customerId}`)
-    // Implementare logica aggiunta punti
+
+    try {
+      // Trova il cliente corrente per ottenere i punti attuali
+      const currentCustomer = customers.find(c => c.id === customerId);
+      if (!currentCustomer) {
+        console.error('Cliente non trovato');
+        return;
+      }
+
+      const newPoints = currentCustomer.points + points;
+
+      // Aggiorna i punti nel database
+      const { data, error } = await supabase
+        .from('customers')
+        .update({ points: newPoints })
+        .eq('id', customerId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Errore aggiornamento punti:', error);
+        return;
+      }
+
+      // Aggiorna il state locale immediatamente
+      setCustomers(prevCustomers =>
+        prevCustomers.map(customer =>
+          customer.id === customerId
+            ? { ...customer, points: newPoints }
+            : customer
+        )
+      );
+
+      console.log(`Punti aggiornati: ${currentCustomer.points} -> ${newPoints}`);
+    } catch (error) {
+      console.error('Errore durante aggiornamento punti:', error);
+    }
   }
 
-  const handleNewTransaction = (customerId: string) => {
-    console.log(`Nuova transazione per cliente ${customerId}`)
-    // Implementare logica nuova transazione
+  const handleNewTransaction = async (customerId: string, amount: number, pointsEarned: number) => {
+    console.log(`Nuova transazione per cliente ${customerId}: €${amount}, +${pointsEarned} punti`)
+
+    try {
+      // Prima aggiorna i punti del cliente
+      const currentCustomer = customers.find(c => c.id === customerId);
+      if (!currentCustomer) {
+        console.error('Cliente non trovato');
+        return { success: false, error: 'Cliente non trovato' };
+      }
+
+      const newPoints = currentCustomer.points + pointsEarned;
+
+      // Aggiorna i punti nel database
+      const { data, error } = await supabase
+        .from('customers')
+        .update({ points: newPoints })
+        .eq('id', customerId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Errore aggiornamento punti:', error);
+        return { success: false, error: 'Errore aggiornamento punti' };
+      }
+
+      // Aggiorna il state locale immediatamente
+      setCustomers(prevCustomers =>
+        prevCustomers.map(customer =>
+          customer.id === customerId
+            ? { ...customer, points: newPoints }
+            : customer
+        )
+      );
+
+      console.log(`Transazione completata: ${currentCustomer.points} -> ${newPoints} punti`);
+
+      // Qui potresti anche salvare la transazione in una tabella transactions
+      // TODO: Implementare salvataggio transazione in database
+
+      return {
+        success: true,
+        customer: { ...currentCustomer, points: newPoints },
+        amount,
+        pointsEarned
+      };
+
+    } catch (error) {
+      console.error('Errore durante la transazione:', error);
+      return { success: false, error: 'Errore durante la transazione' };
+    }
   }
 
   // Mock data for demo - replace with real data
