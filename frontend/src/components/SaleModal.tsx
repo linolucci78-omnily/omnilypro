@@ -18,11 +18,12 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
 
-  // Calcola punti guadagnati (1 punto per ogni euro speso)
+  // Calcola punti guadagnati (1 punto per ogni euro speso) - ottimizzato
   useEffect(() => {
     const numAmount = parseFloat(amount) || 0;
     const points = Math.floor(numAmount);
-    setPointsEarned(points);
+    // Aggiorna solo se i punti sono davvero cambiati
+    setPointsEarned(prevPoints => prevPoints !== points ? points : prevPoints);
   }, [amount]);
 
   // Funzione per suono "ka-ching" celebrativo
@@ -56,38 +57,47 @@ const SaleModal: React.FC<SaleModalProps> = ({
     }
   };
 
-  // Funzioni per il keypad numerico
+  // Funzioni per il keypad numerico - ottimizzate per velocità
   const addDigit = (digit: string) => {
     if (digit === '.' && amount.includes('.')) return;
 
-    // Suono click uniforme per feedback keypad
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("2", "80");
-    }
-
+    // Aggiorna immediatamente lo stato
     setAmount(prev => prev + digit);
+
+    // Suono asincrono per non rallentare UI
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+        (window as any).OmnilyPOS.beep("2", "50");
+      }
+    }, 0);
   };
 
   const removeLastDigit = () => {
-    if (amount.length === 0) return; // Non fare nulla se già vuoto
+    if (amount.length === 0) return;
 
-    // Suono per cancellazione singola cifra
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("1", "100");
-    }
-
+    // Aggiorna immediatamente lo stato
     setAmount(prev => prev.slice(0, -1));
+
+    // Suono asincrono
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+        (window as any).OmnilyPOS.beep("1", "50");
+      }
+    }, 0);
   };
 
   const clearAmount = () => {
-    if (amount.length === 0) return; // Non fare nulla se già vuoto
+    if (amount.length === 0) return;
 
-    // Suono per clear completo - tono più basso
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("0", "150");
-    }
-
+    // Aggiorna immediatamente lo stato
     setAmount('');
+
+    // Suono asincrono
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+        (window as any).OmnilyPOS.beep("0", "80");
+      }
+    }, 0);
   };
 
   if (!isOpen || !customer) return null;
@@ -127,8 +137,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 onChange={handleAmountChange}
                 placeholder="0.00"
                 className="amount-input"
-                inputMode="none"
-                readOnly
+                inputMode="decimal"
               />
             </div>
           </div>
