@@ -417,52 +417,64 @@
   animation: successPulse 0.6s ease-out;
 }
 
-/* POS Responsive - CONFORME ROADMAP */
+/* POS Responsive - LAYOUT COMPATTO SENZA SCROLL */
 @media (max-width: 1024px) {
   .sale-modal {
     width: 100vw; /* ROADMAP: Full width per POS */
     max-width: 100vw;
+    height: 100vh; /* Full height per POS */
     max-height: 100vh;
     left: 0;
     top: 0;
     transform: translate(0, 0);
     border-radius: 0; /* POS full screen */
+    overflow: hidden; /* Nessun scroll */
   }
 
   .sale-modal-header {
-    padding: 2.5rem 2rem 1.5rem 2rem;
+    padding: 1rem 1.5rem 0.5rem 1.5rem; /* Header più compatto */
   }
 
   .sale-modal-title h2 {
-    font-size: 2.25rem; /* ROADMAP: Font size aumentato per POS */
+    font-size: 1.6rem; /* Font ottimizzato per spazio */
   }
 
   .sale-modal-content {
-    padding: 2.5rem;
+    padding: 1rem 1.5rem; /* Padding ridotto per recuperare spazio */
+  }
+
+  .customer-info {
+    margin-bottom: 1rem; /* Margin ridotto */
   }
 
   .customer-info h3 {
-    font-size: 2rem; /* ROADMAP: Font size aumentato */
+    font-size: 1.8rem; /* Font ottimizzato per spazio */
+    margin: 0 0 0.3rem 0; /* Margin ridotto */
+  }
+
+  .amount-input-section {
+    margin-bottom: 1rem; /* Margin ridotto */
   }
 
   .amount-input {
-    padding: 1.5rem 1.5rem 1.5rem 3.5rem;
-    font-size: 2.25rem; /* ROADMAP: Font size aumentato */
-    min-height: 80px; /* ROADMAP: Touch-friendly */
+    padding: 1rem 1rem 1rem 3rem; /* Padding ottimizzato */
+    font-size: 2rem; /* Font ottimizzato per spazio */
+    min-height: 70px; /* Touch-friendly ottimizzato */
   }
 
   .currency-symbol {
-    left: 1.5rem;
-    font-size: 2rem; /* ROADMAP: Font size aumentato */
+    left: 1rem;
+    font-size: 1.8rem; /* Font ottimizzato */
   }
 
   .points-summary {
-    padding: 2rem;
+    padding: 1rem; /* Padding ridotto */
+    margin-bottom: 1rem;
   }
 
   .points-row {
-    padding: 1.2rem 0;
-    min-height: 60px; /* ROADMAP: Min 60px height */
+    padding: 0.8rem 0; /* Padding ridotto */
+    min-height: 50px; /* Altezza ottimizzata */
   }
 
   .points-label {
@@ -473,26 +485,42 @@
     font-size: 1.4rem; /* ROADMAP: Font size aumentato */
   }
 
+  .sale-keypad {
+    margin: 0.5rem 0; /* Margin più compatto */
+    padding: 0.8rem; /* Padding ridotto */
+  }
+
+  .sale-keypad-row {
+    gap: 0.6rem; /* Gap ottimizzato */
+    margin-bottom: 0.6rem; /* Margin ridotto */
+  }
+
   .sale-keypad-btn {
-    min-height: 70px; /* ROADMAP: Touch-friendly min 60px */
-    font-size: 1.6rem; /* ROADMAP: Font size aumentato */
-    padding: 1.5rem; /* ROADMAP: Padding touch-friendly */
+    min-height: 55px; /* Touch-friendly compatto */
+    font-size: 1.3rem; /* Font ottimizzato per spazio */
+    padding: 0.8rem; /* Padding compatto */
+    flex: 1;
+  }
+
+  .congratulations {
+    margin-bottom: 0.5rem; /* Margin ridotto */
   }
 
   .congratulations p {
-    font-size: 2rem; /* ROADMAP: Font size aumentato */
+    font-size: 1.4rem; /* Font ottimizzato per spazio */
+    margin: 0; /* No margin extra */
   }
 
   .sale-modal-actions {
-    padding: 2rem;
-    gap: 1.5rem;
+    padding: 1rem 1.5rem; /* Padding compatto */
+    gap: 1rem; /* Gap ridotto */
   }
 
   .sale-btn-cancel,
   .sale-btn-confirm {
-    padding: 1.5rem 2rem;
-    font-size: 1.4rem; /* ROADMAP: Font size aumentato */
-    min-height: 70px; /* ROADMAP: Touch-friendly min 60px */
+    padding: 1rem 1.5rem; /* Padding compatto */
+    font-size: 1.3rem; /* Font ottimizzato */
+    min-height: 55px; /* Touch-friendly compatto */
   }
 
   /* Backdrop specifico POS */
