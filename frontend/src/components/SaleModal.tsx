@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShoppingBag, Target, Award, Delete } from 'lucide-react';
+import { X, ShoppingBag, Target, Award } from 'lucide-react';
 import './SaleModal.css';
 
 interface SaleModalProps {
@@ -17,6 +17,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
 }) => {
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
+  const [isPinPadActive, setIsPinPadActive] = useState(false);
 
   // Calcola punti guadagnati (1 punto per ogni euro speso) - ottimizzato
   useEffect(() => {
@@ -57,33 +58,54 @@ const SaleModal: React.FC<SaleModalProps> = ({
     }
   };
 
-  // Funzioni per il keypad numerico - ottimizzate per velocità
-  const addDigit = (digit: string) => {
-    if (digit === '.' && amount.includes('.')) return;
+  // Callback per il risultato del PinPad nativo
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).omnilyAmountInputHandler = (result: string) => {
+        setIsPinPadActive(false);
+        if (result && !result.startsWith('ERROR:')) {
+          setAmount(result);
+          console.log('PinPad input received:', result);
+        } else {
+          console.error('PinPad error:', result);
+          // Riapri automaticamente il PinPad in caso di errore dopo 1 secondo
+          setTimeout(() => {
+            console.log('Auto-riapertura PinPad dopo errore...');
+            openNativePinPad();
+          }, 1000);
+        }
+      };
+    }
 
-    // Aggiorna immediatamente lo stato
-    setAmount(prev => prev + digit);
-
-    // Suono asincrono per non rallentare UI
-    setTimeout(() => {
-      if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-        (window as any).OmnilyPOS.beep("2", "50");
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).omnilyAmountInputHandler;
       }
-    }, 0);
-  };
+    };
+  }, []);
 
-  const removeLastDigit = () => {
-    if (amount.length === 0) return;
+  // Auto-apri PinPad quando il modale si apre
+  useEffect(() => {
+    if (isOpen && customer) {
+      // Aspetta un momento per permettere al modale di renderizzarsi
+      const timer = setTimeout(() => {
+        openNativePinPad();
+      }, 500); // 500ms delay per smooth UX
 
-    // Aggiorna immediatamente lo stato
-    setAmount(prev => prev.slice(0, -1));
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, customer]);
 
-    // Suono asincrono
-    setTimeout(() => {
-      if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-        (window as any).OmnilyPOS.beep("1", "50");
-      }
-    }, 0);
+  // Funzione per aprire il PinPad nativo
+  const openNativePinPad = () => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.inputAmountAsync) {
+      console.log('Opening native PinPad...');
+      setIsPinPadActive(true);
+      (window as any).OmnilyPOS.inputAmountAsync();
+    } else {
+      console.error('Native PinPad not available');
+      alert('PinPad nativo non disponibile. Usa il tastierino web.');
+    }
   };
 
   const clearAmount = () => {
@@ -168,36 +190,21 @@ const SaleModal: React.FC<SaleModalProps> = ({
             </div>
           </div>
 
-          {/* Keypad Numerico */}
-          <div className="sale-keypad">
-            <div className="sale-keypad-row">
-              <button className="sale-keypad-btn" onClick={() => addDigit('1')}>1</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('2')}>2</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('3')}>3</button>
-            </div>
-            <div className="sale-keypad-row">
-              <button className="sale-keypad-btn" onClick={() => addDigit('4')}>4</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('5')}>5</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('6')}>6</button>
-            </div>
-            <div className="sale-keypad-row">
-              <button className="sale-keypad-btn" onClick={() => addDigit('7')}>7</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('8')}>8</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('9')}>9</button>
-            </div>
-            <div className="sale-keypad-row">
-              <button className="sale-keypad-btn" onClick={() => addDigit('.')}>.</button>
-              <button className="sale-keypad-btn" onClick={() => addDigit('0')}>0</button>
-              <button className="sale-keypad-btn sale-keypad-btn-delete" onClick={removeLastDigit}>
-                <Delete size={20} />
-              </button>
-            </div>
-            <div className="sale-keypad-row">
-              <button className="sale-keypad-btn sale-keypad-btn-clear" onClick={clearAmount}>
-                Clear
+          {/* PinPad Status & Actions */}
+          <div className="sale-pinpad-section">
+            {isPinPadActive && (
+              <div className="pinpad-status">
+                <div className="pinpad-loading"></div>
+                <p>Inserisci l'importo sul PinPad...</p>
+              </div>
+            )}
+
+            <div className="sale-pinpad-actions">
+              <button className="sale-btn-clear-small" onClick={clearAmount}>
+                Cancella
               </button>
               <button
-                className="sale-keypad-btn sale-keypad-btn-confirm"
+                className="sale-btn-confirm-small"
                 onClick={handleConfirm}
                 disabled={!amount || parseFloat(amount) <= 0}
               >

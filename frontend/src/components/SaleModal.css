@@ -209,36 +209,118 @@
   color: #ef4444;
 }
 
-/* Keypad Numerico */
-.sale-keypad {
+/* PinPad Nativo Section */
+.sale-pinpad-section {
   margin: 1.5rem 0;
   background: #f8fafc;
   border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.pinpad-status {
+  text-align: center;
   padding: 1rem;
-}
-
-.sale-keypad-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.sale-keypad-row:last-child {
-  margin-bottom: 0;
-}
-
-.sale-keypad-btn {
-  flex: 1;
-  padding: 1rem;
-  border: none;
+  margin-bottom: 1rem;
+  background: #fef3c7;
   border-radius: 8px;
-  background: white;
-  color: #1e293b;
-  font-size: 1.25rem;
+  border-left: 4px solid #f59e0b;
+}
+
+.pinpad-status p {
+  margin: 0.5rem 0 0 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.pinpad-loading {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fbbf24;
+  border-top: 2px solid #f59e0b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.sale-pinpad-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.sale-btn-clear-small,
+.sale-btn-confirm-small {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sale-btn-clear-small {
+  background: #64748b;
+  color: white;
+}
+
+.sale-btn-clear-small:hover {
+  background: #475569;
+  transform: translateY(-1px);
+}
+
+.sale-btn-confirm-small {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+.sale-btn-confirm-small:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+}
+
+.sale-btn-confirm-small:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.sale-keypad-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1.5 / 1;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 12px;
+    background: white;
+    color: #1e293b;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .sale-keypad-btn:hover {
@@ -267,7 +349,6 @@
 .sale-keypad-btn-clear {
   background: #64748b;
   color: white;
-  flex: 1;
 }
 
 .sale-keypad-btn-clear:hover {
@@ -277,7 +358,7 @@
 .sale-keypad-btn-confirm {
   background: #ef4444;
   color: white;
-  flex: 2;
+  grid-column: span 2;
   font-weight: 700;
 }
 
@@ -502,21 +583,33 @@
     font-size: 1.4rem; /* ROADMAP: Font size aumentato */
   }
 
-  .sale-keypad {
-    margin: 0.3rem 0; /* Margin minimo */
-    padding: 0.6rem; /* Padding minimo */
+  .sale-pinpad-section {
+    margin: 0.5rem 0;
+    padding: 1rem;
   }
 
-  .sale-keypad-row {
-    gap: 0.5rem; /* Gap ridotto */
-    margin-bottom: 0.5rem; /* Margin ridotto */
+  .pinpad-status {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
   }
 
-  .sale-keypad-btn {
-    min-height: 60px; /* ROADMAP: Touch-friendly minimo 60px */
+  .pinpad-status p {
     font-size: 1.4rem; /* ROADMAP: Font size aumentato per POS */
-    padding: 0.8rem; /* Padding touch-friendly */
-    flex: 1;
+    margin: 1rem 0 0 0;
+  }
+
+  .pinpad-loading {
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
+  }
+
+  .sale-btn-clear-small,
+  .sale-btn-confirm-small {
+    min-height: 65px; /* ROADMAP: Touch-friendly per POS */
+    font-size: 1.3rem; /* ROADMAP: Font size aumentato per POS */
+    padding: 1.2rem 1.5rem;
+    border-radius: 14px;
   }
 
   .congratulations {
