@@ -57,13 +57,27 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   // Funzione per riprodurre suono coin.wav
   const playCoinSound = () => {
     try {
+      console.log('🔊 Tentativo riproduzione coin.wav...');
       const audio = new Audio('/sounds/coin.wav');
       audio.volume = 0.7; // Volume al 70%
-      audio.play().catch(error => {
-        console.error('Errore riproduzione suono coin.wav:', error);
+
+      audio.addEventListener('loadeddata', () => {
+        console.log('✅ File coin.wav caricato correttamente');
       });
+
+      audio.addEventListener('error', (e) => {
+        console.error('❌ Errore caricamento coin.wav:', e);
+      });
+
+      audio.play()
+        .then(() => {
+          console.log('✅ Riproduzione coin.wav iniziata');
+        })
+        .catch(error => {
+          console.error('❌ Errore riproduzione suono coin.wav:', error);
+        });
     } catch (error) {
-      console.error('Errore caricamento suono coin.wav:', error);
+      console.error('❌ Errore generale suono coin.wav:', error);
     }
   };
 
@@ -92,6 +106,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
           // CELEBRAZIONE finale con pioggia di monete
           if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            console.log('🎉 Inviando SALE_CELEBRATION al customer display...');
             (window as any).updateCustomerDisplay({
               type: 'SALE_CELEBRATION',
               celebration: {
@@ -105,6 +120,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                 duration: 4000 // Celebrazione per 4 secondi
               }
             });
+            console.log('✅ Messaggio SALE_CELEBRATION inviato');
+          } else {
+            console.error('❌ updateCustomerDisplay non disponibile!');
           }
 
           // Chiudi il modale dopo la vendita completata
