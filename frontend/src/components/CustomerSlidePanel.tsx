@@ -12,6 +12,7 @@ interface CustomerSlidePanelProps {
   onClose: () => void;
   onAddPoints?: (customerId: string, points: number) => void;
   onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string}>;
+  pointsPerEuro?: number; // Configurazione dinamica punti per euro dall'organizzazione
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -19,7 +20,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   isOpen,
   onClose,
   onAddPoints,
-  onNewTransaction
+  onNewTransaction,
+  pointsPerEuro = 1 // Default a 1 punto per euro se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
 
@@ -52,6 +54,19 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
+  // Funzione per riprodurre suono coin.wav
+  const playCoinSound = () => {
+    try {
+      const audio = new Audio('/sounds/coin.wav');
+      audio.volume = 0.7; // Volume al 70%
+      audio.play().catch(error => {
+        console.error('Errore riproduzione suono coin.wav:', error);
+      });
+    } catch (error) {
+      console.error('Errore caricamento suono coin.wav:', error);
+    }
+  };
+
   const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number) => {
     if (!customer) return;
 
@@ -66,7 +81,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           // Transazione COMPLETATA con successo!
           console.log('Transazione completata con successo!');
 
-          // Suono di celebrazione dal bridge Android - DISABILITATO TEMPORANEAMENTE
+          // 🔊 SUONO CELEBRAZIONE - Riprodotto dal POS principale
+          playCoinSound();
+          console.log('🔊 Suono coin.wav riprodotto dal POS durante celebrazione');
+
+          // Suono bridge Android opzionale - DISABILITATO TEMPORANEAMENTE
           // if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
           //   (window as any).OmnilyPOS.beep("1", "300"); // Beep lungo di successo
           // }
@@ -277,6 +296,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         isOpen={showSaleModal}
         onClose={() => setShowSaleModal(false)}
         onConfirm={handleSaleConfirm}
+        pointsPerEuro={pointsPerEuro}
       />
     </>
   );
