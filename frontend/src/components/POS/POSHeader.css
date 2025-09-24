@@ -106,24 +106,26 @@
 
 /* Quick Logout */
 .pos-quick-logout {
-  width: 45px;
-  height: 45px;
-  background: #f3f4f6;
-  border: 2px solid #d1d5db;
+  width: 50px;
+  height: 50px;
+  background: #fef2f2;
+  border: 2px solid #fca5a5;
   border-radius: 50%;
-  color: #374151;
+  color: #dc2626;
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
 }
 
 .pos-quick-logout:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+  background: #fee2e2;
+  border-color: #ef4444;
   transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2);
 }
 
 .pos-quick-logout:active {

@@ -227,6 +227,21 @@
   border-left: 4px solid #f59e0b;
 }
 
+.pinpad-debug {
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+}
+
+.pinpad-debug p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #991b1b;
+}
+
 .pinpad-status p {
   margin: 0.5rem 0 0 0;
   font-size: 1.1rem;
@@ -256,6 +271,7 @@
 }
 
 .sale-btn-clear-small,
+.sale-btn-test-small,
 .sale-btn-confirm-small {
   flex: 1;
   padding: 1rem 1.5rem;
@@ -274,6 +290,16 @@
 
 .sale-btn-clear-small:hover {
   background: #475569;
+  transform: translateY(-1px);
+}
+
+.sale-btn-test-small {
+  background: #f59e0b;
+  color: white;
+}
+
+.sale-btn-test-small:hover {
+  background: #d97706;
   transform: translateY(-1px);
 }
 

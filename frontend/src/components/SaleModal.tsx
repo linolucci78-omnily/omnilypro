@@ -68,11 +68,8 @@ const SaleModal: React.FC<SaleModalProps> = ({
           console.log('PinPad input received:', result);
         } else {
           console.error('PinPad error:', result);
-          // Riapri automaticamente il PinPad in caso di errore dopo 1 secondo
-          setTimeout(() => {
-            console.log('Auto-riapertura PinPad dopo errore...');
-            openNativePinPad();
-          }, 1000);
+          // NON riprova automaticamente - torna all'input manuale
+          alert('PinPad non disponibile. Usa l\'input manuale.');
         }
       };
     }
@@ -84,17 +81,11 @@ const SaleModal: React.FC<SaleModalProps> = ({
     };
   }, []);
 
-  // Auto-apri PinPad quando il modale si apre
-  useEffect(() => {
-    if (isOpen && customer) {
-      // Aspetta un momento per permettere al modale di renderizzarsi
-      const timer = setTimeout(() => {
-        openNativePinPad();
-      }, 500); // 500ms delay per smooth UX
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, customer]);
+  // Gestisci click su input per aprire PinPad
+  const handleInputClick = () => {
+    console.log('Click su input - tentativo apertura PinPad...');
+    openNativePinPad();
+  };
 
   // Funzione per aprire il PinPad nativo
   const openNativePinPad = () => {
@@ -157,9 +148,12 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 type="text"
                 value={amount}
                 onChange={handleAmountChange}
+                onClick={handleInputClick}
+                onFocus={handleInputClick}
                 placeholder="0.00"
                 className="amount-input"
                 inputMode="decimal"
+                autoFocus
               />
             </div>
           </div>
@@ -190,18 +184,19 @@ const SaleModal: React.FC<SaleModalProps> = ({
             </div>
           </div>
 
-          {/* PinPad Status & Actions */}
+          {/* PinPad Status & Actions - MODALITÀ DEBUG */}
           <div className="sale-pinpad-section">
-            {isPinPadActive && (
-              <div className="pinpad-status">
-                <div className="pinpad-loading"></div>
-                <p>Inserisci l'importo sul PinPad...</p>
-              </div>
-            )}
+            <div className="pinpad-debug">
+              <p>💡 Clicca sul campo "Totale Speso" per aprire il PinPad nativo</p>
+              <p>⚠️ Se errore -1517: PinPad non disponibile, usa input manuale</p>
+            </div>
 
             <div className="sale-pinpad-actions">
               <button className="sale-btn-clear-small" onClick={clearAmount}>
                 Cancella
+              </button>
+              <button className="sale-btn-test-small" onClick={openNativePinPad}>
+                Test PinPad
               </button>
               <button
                 className="sale-btn-confirm-small"
