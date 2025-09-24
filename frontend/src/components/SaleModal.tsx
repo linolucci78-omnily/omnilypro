@@ -18,6 +18,8 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
   const [isPinPadActive, setIsPinPadActive] = useState(false);
+  const [pinPadError, setPinPadError] = useState<string | null>(null);
+  const [hasTriedPinPad, setHasTriedPinPad] = useState(false);
 
   // Calcola punti guadagnati (1 punto per ogni euro speso) - ottimizzato
   useEffect(() => {
@@ -65,11 +67,16 @@ const SaleModal: React.FC<SaleModalProps> = ({
         setIsPinPadActive(false);
         if (result && !result.startsWith('ERROR:')) {
           setAmount(result);
+          setPinPadError(null);
           console.log('PinPad input received:', result);
         } else {
           console.error('PinPad error:', result);
-          // NON riprova automaticamente - torna all'input manuale
-          alert('PinPad non disponibile. Usa l\'input manuale.');
+          setPinPadError(result || 'PinPad non disponibile');
+          setHasTriedPinPad(true);
+          // Mostra alert solo al primo errore
+          if (!hasTriedPinPad) {
+            alert('PinPad non disponibile. Usa l\'input manuale.');
+          }
         }
       };
     }
@@ -79,22 +86,36 @@ const SaleModal: React.FC<SaleModalProps> = ({
         delete (window as any).omnilyAmountInputHandler;
       }
     };
-  }, []);
+  }, [hasTriedPinPad]);
 
   // Gestisci click su input per aprire PinPad
   const handleInputClick = () => {
+    // Non aprire PinPad se c'è già un errore o se è già attivo
+    if (pinPadError || isPinPadActive) {
+      console.log('PinPad skipped - error:', pinPadError, 'or active:', isPinPadActive);
+      return;
+    }
     console.log('Click su input - tentativo apertura PinPad...');
     openNativePinPad();
   };
 
   // Funzione per aprire il PinPad nativo
   const openNativePinPad = () => {
+    // Previeni chiamate multiple
+    if (isPinPadActive || pinPadError) {
+      console.log('PinPad already active or in error state');
+      return;
+    }
+
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.inputAmountAsync) {
       console.log('Opening native PinPad...');
       setIsPinPadActive(true);
+      setPinPadError(null);
       (window as any).OmnilyPOS.inputAmountAsync();
     } else {
       console.error('Native PinPad not available');
+      setPinPadError('PinPad bridge non disponibile');
+      setHasTriedPinPad(true);
       alert('PinPad nativo non disponibile. Usa il tastierino web.');
     }
   };
@@ -112,6 +133,16 @@ const SaleModal: React.FC<SaleModalProps> = ({
       }
     }, 0);
   };
+
+  // Reset stati quando il modale si apre/chiude
+  useEffect(() => {
+    if (isOpen) {
+      // Reset errori quando si apre il modale
+      setPinPadError(null);
+      setHasTriedPinPad(false);
+      setIsPinPadActive(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !customer) return null;
 
@@ -186,17 +217,32 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
           {/* PinPad Status & Actions - MODALITÀ DEBUG */}
           <div className="sale-pinpad-section">
-            <div className="pinpad-debug">
-              <p>💡 Clicca sul campo "Totale Speso" per aprire il PinPad nativo</p>
-              <p>⚠️ Se errore -1517: PinPad non disponibile, usa input manuale</p>
-            </div>
+            {pinPadError ? (
+              <div className="pinpad-debug">
+                <p>❌ {pinPadError}</p>
+                <p>💡 Usa l'input manuale per inserire l'importo</p>
+              </div>
+            ) : isPinPadActive ? (
+              <div className="pinpad-debug">
+                <p>⏳ PinPad attivo - inserisci l'importo sul terminale...</p>
+              </div>
+            ) : (
+              <div className="pinpad-debug">
+                <p>💡 Clicca sul campo "Totale Speso" per aprire il PinPad nativo</p>
+                <p>⚠️ In caso di errore, usa l'input manuale</p>
+              </div>
+            )}
 
             <div className="sale-pinpad-actions">
               <button className="sale-btn-clear-small" onClick={clearAmount}>
                 Cancella
               </button>
-              <button className="sale-btn-test-small" onClick={openNativePinPad}>
-                Test PinPad
+              <button
+                className="sale-btn-test-small"
+                onClick={openNativePinPad}
+                disabled={isPinPadActive || !!pinPadError}
+              >
+                {isPinPadActive ? 'PinPad Attivo...' : 'Test PinPad'}
               </button>
               <button
                 className="sale-btn-confirm-small"
