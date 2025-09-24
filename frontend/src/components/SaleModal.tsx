@@ -49,6 +49,24 @@ const SaleModal: React.FC<SaleModalProps> = ({
     // Permetti solo numeri e punto decimale
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setAmount(value);
+
+      // Aggiorna customer display in tempo reale durante la digitazione
+      if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+        const numAmount = parseFloat(value) || 0;
+        const points = Math.floor(numAmount);
+
+        (window as any).updateCustomerDisplay({
+          type: 'SALE_PREVIEW',
+          preview: {
+            customerName: customer.name,
+            amount: numAmount,
+            pointsToEarn: points,
+            currentPoints: customer.points,
+            newTotalPoints: customer.points + points,
+            tier: customer.tier
+          }
+        });
+      }
     }
   };
 
@@ -58,6 +76,21 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
     // Aggiorna immediatamente lo stato
     setAmount('');
+
+    // Reset customer display quando cancelli
+    if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+      (window as any).updateCustomerDisplay({
+        type: 'SALE_PREVIEW',
+        preview: {
+          customerName: customer.name,
+          amount: 0,
+          pointsToEarn: 0,
+          currentPoints: customer.points,
+          newTotalPoints: customer.points,
+          tier: customer.tier
+        }
+      });
+    }
 
     // Suono disabilitato temporaneamente
     console.log('Clear sound disabled to prevent infinite beeps');

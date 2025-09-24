@@ -11,7 +11,7 @@ interface CustomerSlidePanelProps {
   isOpen: boolean;
   onClose: () => void;
   onAddPoints?: (customerId: string, points: number) => void;
-  onNewTransaction?: (customerId: string) => void;
+  onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string}>;
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -52,40 +52,78 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  const handleSaleConfirm = (customerId: string, amount: number, pointsEarned: number) => {
-    // Suono di celebrazione dal bridge Android
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("1", "300"); // Beep lungo di successo
-    }
+  const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number) => {
+    if (!customer) return;
 
-    // Aggiorna customer display con celebrazione vendita e pioggia di monete
-    if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
-      (window as any).updateCustomerDisplay({
-        type: 'SALE_CELEBRATION',
-        celebration: {
-          customerName: customer.name,
-          amount: amount,
-          pointsEarned: pointsEarned,
-          oldPoints: customer.points,
-          newTotalPoints: customer.points + pointsEarned,
-          tier: customer.tier,
-          showCoinsRain: true, // Attiva pioggia di monete
-          duration: 4000 // Celebrazione per 4 secondi
+    console.log(`Iniziando transazione: €${amount} per ${customer.name}, +${pointsEarned} punti`);
+
+    try {
+      // Processare la transazione e aspettare l'esito
+      if (onNewTransaction) {
+        const result = await onNewTransaction(customerId, amount, pointsEarned);
+
+        if (result.success) {
+          // Transazione COMPLETATA con successo!
+          console.log('Transazione completata con successo!');
+
+          // Suono di celebrazione dal bridge Android - DISABILITATO TEMPORANEAMENTE
+          // if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
+          //   (window as any).OmnilyPOS.beep("1", "300"); // Beep lungo di successo
+          // }
+
+          // CELEBRAZIONE finale con pioggia di monete
+          if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            (window as any).updateCustomerDisplay({
+              type: 'SALE_CELEBRATION',
+              celebration: {
+                customerName: customer.name,
+                amount: amount,
+                pointsEarned: pointsEarned,
+                oldPoints: customer.points,
+                newTotalPoints: result.customer?.points || (customer.points + pointsEarned),
+                tier: customer.tier,
+                showCoinsRain: true, // Attiva pioggia di monete
+                duration: 4000 // Celebrazione per 4 secondi
+              }
+            });
+          }
+
+          // Chiudi il modale dopo la vendita completata
+          setShowSaleModal(false);
+
+        } else {
+          // Transazione FALLITA
+          console.error('Transazione fallita:', result.error);
+
+          // Mostra errore al customer display
+          if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            (window as any).updateCustomerDisplay({
+              type: 'SALE_ERROR',
+              error: {
+                message: 'Errore durante la transazione',
+                details: result.error || 'Errore sconosciuto'
+              }
+            });
+          }
+
+          // Non chiudere il modale in caso di errore, così l'utente può riprovare
         }
-      });
-    }
+      }
 
-    // Chiama callback per aggiornare punti nel database
-    if (onAddPoints) {
-      onAddPoints(customerId, pointsEarned);
-    }
+    } catch (error) {
+      console.error('Errore durante handleSaleConfirm:', error);
 
-    // Chiama callback transazione se esiste
-    if (onNewTransaction) {
-      onNewTransaction(customerId);
+      // Mostra errore generico
+      if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+        (window as any).updateCustomerDisplay({
+          type: 'SALE_ERROR',
+          error: {
+            message: 'Errore di sistema',
+            details: 'Si è verificato un errore imprevisto'
+          }
+        });
+      }
     }
-
-    console.log(`Vendita completata: €${amount} per ${customer.name}, +${pointsEarned} punti`);
   };
 
   // NON aggiorniamo automaticamente il customer display quando apriamo il pannello
