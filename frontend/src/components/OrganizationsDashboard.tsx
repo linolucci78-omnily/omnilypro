@@ -1808,6 +1808,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={handleCloseSlidePanel}
         onAddPoints={handleAddPoints}
         onNewTransaction={handleNewTransaction}
+        pointsPerEuro={currentOrganization?.points_per_euro || 1}
       />
 
       {/* Card Management Panel */}

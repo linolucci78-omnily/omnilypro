@@ -7,24 +7,26 @@ interface SaleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (customerId: string, amount: number, pointsEarned: number) => void;
+  pointsPerEuro?: number; // Configurazione dinamica punti per euro
 }
 
 const SaleModal: React.FC<SaleModalProps> = ({
   customer,
   isOpen,
   onClose,
-  onConfirm
+  onConfirm,
+  pointsPerEuro = 1 // Default a 1 punto per euro se non specificato
 }) => {
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
 
-  // Calcola punti guadagnati (1 punto per ogni euro speso) - ottimizzato
+  // Calcola punti guadagnati basato sulla configurazione dell'organizzazione - ottimizzato
   useEffect(() => {
     const numAmount = parseFloat(amount) || 0;
-    const points = Math.floor(numAmount);
+    const points = Math.floor(numAmount * pointsPerEuro);
     // Aggiorna solo se i punti sono davvero cambiati
     setPointsEarned(prevPoints => prevPoints !== points ? points : prevPoints);
-  }, [amount]);
+  }, [amount, pointsPerEuro]);
 
   // Funzione per suono "ka-ching" celebrativo - DISABILITATA TEMPORANEAMENTE
   const playCelebrationSound = () => {
@@ -53,7 +55,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
       // Aggiorna customer display in tempo reale durante la digitazione
       if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
         const numAmount = parseFloat(value) || 0;
-        const points = Math.floor(numAmount);
+        const points = Math.floor(numAmount * pointsPerEuro);
 
         (window as any).updateCustomerDisplay({
           type: 'SALE_PREVIEW',
