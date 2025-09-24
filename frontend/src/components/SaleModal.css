@@ -267,11 +267,28 @@
 .sale-keypad-btn-clear {
   background: #64748b;
   color: white;
-  colspan: 3;
+  flex: 1;
 }
 
 .sale-keypad-btn-clear:hover {
   background: #475569;
+}
+
+.sale-keypad-btn-confirm {
+  background: #ef4444;
+  color: white;
+  flex: 2;
+  font-weight: 700;
+}
+
+.sale-keypad-btn-confirm:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.sale-keypad-btn-confirm:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
 
 /* Congratulations */
@@ -496,9 +513,9 @@
   }
 
   .sale-keypad-btn {
-    min-height: 50px; /* Altezza più compatta ma touch-friendly */
-    font-size: 1.2rem; /* Font compatto */
-    padding: 0.6rem; /* Padding minimo */
+    min-height: 60px; /* ROADMAP: Touch-friendly minimo 60px */
+    font-size: 1.4rem; /* ROADMAP: Font size aumentato per POS */
+    padding: 0.8rem; /* Padding touch-friendly */
     flex: 1;
   }
 
@@ -519,8 +536,8 @@
   .sale-btn-cancel,
   .sale-btn-confirm {
     padding: 1rem 1.5rem; /* Padding compatto */
-    font-size: 1.3rem; /* Font ottimizzato */
-    min-height: 55px; /* Touch-friendly compatto */
+    font-size: 1.4rem; /* ROADMAP: Font size consistente con keypad */
+    min-height: 60px; /* ROADMAP: Touch-friendly minimo 60px */
   }
 
   /* Backdrop specifico POS */

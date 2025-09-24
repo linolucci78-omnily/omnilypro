@@ -60,28 +60,31 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const addDigit = (digit: string) => {
     if (digit === '.' && amount.includes('.')) return;
 
-    // Suono click per feedback keypad
+    // Suono click uniforme per feedback keypad
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("1", "50");
+      (window as any).OmnilyPOS.beep("2", "80");
     }
 
     setAmount(prev => prev + digit);
   };
 
   const removeLastDigit = () => {
-    // Suono diverso per cancellazione
+    if (amount.length === 0) return; // Non fare nulla se già vuoto
+
+    // Suono per cancellazione singola cifra
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      (window as any).OmnilyPOS.beep("0", "80");
+      (window as any).OmnilyPOS.beep("1", "100");
     }
 
     setAmount(prev => prev.slice(0, -1));
   };
 
   const clearAmount = () => {
-    // Suono per clear completo
+    if (amount.length === 0) return; // Non fare nulla se già vuoto
+
+    // Suono per clear completo - tono più basso
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
-      setTimeout(() => (window as any).OmnilyPOS.beep("0", "100"), 0);
-      setTimeout(() => (window as any).OmnilyPOS.beep("0", "100"), 100);
+      (window as any).OmnilyPOS.beep("0", "150");
     }
 
     setAmount('');
@@ -125,6 +128,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 placeholder="0.00"
                 className="amount-input"
                 inputMode="none"
+                readOnly
               />
             </div>
           </div>
@@ -183,6 +187,13 @@ const SaleModal: React.FC<SaleModalProps> = ({
               <button className="sale-keypad-btn sale-keypad-btn-clear" onClick={clearAmount}>
                 Clear
               </button>
+              <button
+                className="sale-keypad-btn sale-keypad-btn-confirm"
+                onClick={handleConfirm}
+                disabled={!amount || parseFloat(amount) <= 0}
+              >
+                Conferma
+              </button>
             </div>
           </div>
 
@@ -194,13 +205,6 @@ const SaleModal: React.FC<SaleModalProps> = ({
         <div className="sale-modal-actions">
           <button className="sale-btn-cancel" onClick={onClose}>
             Annulla
-          </button>
-          <button
-            className="sale-btn-confirm"
-            onClick={handleConfirm}
-            disabled={!amount || parseFloat(amount) <= 0}
-          >
-            Conferma Vendita
           </button>
         </div>
       </div>
