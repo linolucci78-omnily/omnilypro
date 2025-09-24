@@ -24,6 +24,7 @@ const CustomerDisplay: React.FC = () => {
   const [welcomeMessage, setWelcomeMessage] = useState('Il tuo ordine apparirà qui automaticamente');
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState<any>(null);
+  const [salePreview, setSalePreview] = useState<any>(null);
 
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
@@ -50,12 +51,16 @@ const CustomerDisplay: React.FC = () => {
         console.log('🎉 Celebrazione vendita ricevuta:', event.data.celebration);
         setCelebrationData(event.data.celebration);
         setShowCelebration(true);
+        setSalePreview(null); // Nascondi preview durante celebrazione
 
         // Termina celebrazione dopo il tempo specificato
         setTimeout(() => {
           setShowCelebration(false);
           setCelebrationData(null);
         }, event.data.celebration.duration || 4000);
+      } else if (event.data.type === 'SALE_PREVIEW') {
+        console.log('👀 Preview vendita ricevuta:', event.data.preview);
+        setSalePreview(event.data.preview);
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -91,10 +96,29 @@ const CustomerDisplay: React.FC = () => {
     }
   };
 
-  // Attiva pioggia di monete quando inizia la celebrazione
+  // Funzione per riprodurre suono coin.wav
+  const playCoinSound = () => {
+    try {
+      const audio = new Audio('/sounds/coin.wav');
+      audio.volume = 0.7; // Volume al 70%
+      audio.play().catch(error => {
+        console.error('Errore riproduzione suono coin.wav:', error);
+      });
+    } catch (error) {
+      console.error('Errore caricamento suono coin.wav:', error);
+    }
+  };
+
+  // Attiva pioggia di monete e suono quando inizia la celebrazione
   React.useEffect(() => {
     if (showCelebration && celebrationData?.showCoinsRain) {
+      // Riproduce suono delle monete
+      playCoinSound();
+
+      // Attiva pioggia di monete
       createCoinsRain();
+
+      console.log('🔊 Suono coin.wav riprodotto durante celebrazione');
     }
   }, [showCelebration, celebrationData]);
 
@@ -198,6 +222,103 @@ const CustomerDisplay: React.FC = () => {
               </div>
             )}
           </>
+        ) : salePreview ? (
+          // Sale Preview Screen
+          <div style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              background: '#3b82f6',
+              color: 'white',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1.5rem'
+            }}>
+              <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem' }}>
+                👋 Ciao {salePreview.customerName}!
+              </h2>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                {salePreview.tier} Member
+              </div>
+            </div>
+
+            {salePreview.amount > 0 && (
+              <div style={{
+                background: '#f8fafc',
+                border: '2px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '1.5rem',
+                marginBottom: '1rem'
+              }}>
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  color: '#1f2937',
+                  marginBottom: '0.5rem'
+                }}>
+                  €{salePreview.amount.toFixed(2)}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '1rem' }}>
+                  Importo vendita
+                </div>
+              </div>
+            )}
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: '1rem',
+              marginBottom: '1rem'
+            }}>
+              <div style={{
+                background: '#f3f4f6',
+                padding: '1rem',
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#374151' }}>
+                  {salePreview.currentPoints}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Punti attuali</div>
+              </div>
+
+              <div style={{
+                background: '#dcfce7',
+                padding: '1rem',
+                borderRadius: '8px',
+                textAlign: 'center',
+                border: '2px solid #16a34a'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#16a34a' }}>
+                  +{salePreview.pointsToEarn}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#15803d' }}>Punti guadagnati</div>
+              </div>
+
+              <div style={{
+                background: '#fef3c7',
+                padding: '1rem',
+                borderRadius: '8px',
+                textAlign: 'center',
+                border: '2px solid #d97706'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#d97706' }}>
+                  {salePreview.newTotalPoints}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#92400e' }}>Nuovo totale</div>
+              </div>
+            </div>
+
+            {salePreview.amount === 0 && (
+              <p style={{ color: '#6b7280', fontSize: '1rem', fontStyle: 'italic' }}>
+                Inserisci l'importo della vendita...
+              </p>
+            )}
+          </div>
         ) : (
           // Welcome Screen
           <div style={{
