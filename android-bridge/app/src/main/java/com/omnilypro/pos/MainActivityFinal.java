@@ -821,16 +821,17 @@ public class MainActivityFinal extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 try {
-                    // Input amount - customized for amount input instead of PIN
-                    // Parameters: context, min digits, max digits, timeout, sound enabled, account number, key index, algorithm, callback
+                    Log.d(TAG, "Attempting PinPad input for amount...");
+
+                    // Try different approach - use inputOnlinePin with minimal parameters
                     mPinPadManager.inputOnlinePin(MainActivityFinal.this,
-                        (byte) 1,    // min 1 digit (can be 0.1 euro)
-                        (byte) 10,   // max 10 digits (up to 99,999,999.99)
-                        60,          // 60 second timeout
+                        (byte) 1,    // min 1 digit
+                        (byte) 8,    // max 8 digits (99999.99)
+                        30,          // 30 second timeout (reduced)
                         true,        // sound enabled
-                        "AMOUNT",    // identifier for amount input
-                        (byte) 0,    // key index (not used for amount)
-                        PinAlgorithmMode.ANSI_X_9_8, // algorithm (not used for amount)
+                        "",          // empty account number
+                        (byte) 0,    // key index 0
+                        PinAlgorithmMode.ANSI_X_9_8, // standard algorithm
                         new PinPadManager.OnPinPadInputListener() {
                             @Override
                             public void onSuccess(byte[] data) {
