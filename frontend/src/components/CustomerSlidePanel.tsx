@@ -13,6 +13,7 @@ interface CustomerSlidePanelProps {
   onAddPoints?: (customerId: string, points: number) => void;
   onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string}>;
   pointsPerEuro?: number; // Configurazione dinamica punti per euro dall'organizzazione
+  loyaltyTiers?: any[]; // Tiers di fedeltà per calcolo moltiplicatori dinamici
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -21,22 +22,65 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   onClose,
   onAddPoints,
   onNewTransaction,
-  pointsPerEuro = 1 // Default a 1 punto per euro se non specificato
+  pointsPerEuro = 1, // Default a 1 punto per euro se non specificato
+  loyaltyTiers = [] // Default array vuoto se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
 
   if (!customer) return null;
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'Platinum': return '#8B5CF6';
-      case 'Gold': return '#F59E0B';
-      case 'Silver': return '#94A3B8';
-      case 'Bronze': return '#A16207';
-      case 'Argento': return '#94A3B8';
-      case 'Bronzo': return '#A16207';
-      default: return '#F59E0B';
+  // Funzioni utility per gestione tiers dinamici
+  const calculateCustomerTier = (points: number): any => {
+    if (!loyaltyTiers || loyaltyTiers.length === 0) {
+      // Fallback ai tiers fissi se non configurati
+      if (points >= 1000) return { name: 'Platinum', multiplier: 2, color: '#e5e7eb' };
+      if (points >= 500) return { name: 'Gold', multiplier: 1.5, color: '#f59e0b' };
+      if (points >= 200) return { name: 'Silver', multiplier: 1.2, color: '#64748b' };
+      return { name: 'Bronze', multiplier: 1, color: '#a3a3a3' };
     }
+
+    // Ordina tiers per soglia decrescente per trovare il tier corretto
+    const sortedTiers = [...loyaltyTiers].sort((a, b) => parseFloat(b.threshold) - parseFloat(a.threshold));
+
+    for (const tier of sortedTiers) {
+      if (points >= parseFloat(tier.threshold)) {
+        return {
+          name: tier.name,
+          multiplier: parseFloat(tier.multiplier) || 1,
+          color: tier.color || '#64748b',
+          threshold: parseFloat(tier.threshold)
+        };
+      }
+    }
+
+    // Se non trova nessun tier, usa il primo (più basso)
+    const firstTier = loyaltyTiers[0];
+    return {
+      name: firstTier.name,
+      multiplier: parseFloat(firstTier.multiplier) || 1,
+      color: firstTier.color || '#64748b',
+      threshold: parseFloat(firstTier.threshold)
+    };
+  };
+
+  // Calcola tier dinamico del cliente corrente
+  const currentTier = calculateCustomerTier(customer.points);
+
+  const getTierColor = (tierName?: string) => {
+    if (tierName) {
+      // Se viene passato un nome tier specifico, usa i colori fissi (backward compatibility)
+      switch (tierName) {
+        case 'Platinum': return '#8B5CF6';
+        case 'Gold': return '#F59E0B';
+        case 'Silver': return '#94A3B8';
+        case 'Bronze': return '#A16207';
+        case 'Argento': return '#94A3B8';
+        case 'Bronzo': return '#A16207';
+        default: return '#F59E0B';
+      }
+    }
+    // Altrimenti usa il colore dal tier dinamico
+    return currentTier.color || '#F59E0B';
   };
 
   const updateCustomerDisplay = () => {
@@ -54,10 +98,12 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  // Funzione per riprodurre suono coin.wav
+  // Funzione per riprodurre suono coin.wav o suono programmatico
   const playCoinSound = () => {
     try {
-      console.log('🔊 Tentativo riproduzione coin.wav...');
+      console.log('🔊 Tentativo riproduzione suono monete...');
+
+      // Prima prova con il file coin.wav
       const audio = new Audio('/sounds/coin.wav');
       audio.volume = 0.7; // Volume al 70%
 
@@ -66,7 +112,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       });
 
       audio.addEventListener('error', (e) => {
-        console.error('❌ Errore caricamento coin.wav:', e);
+        console.error('❌ File coin.wav non supportato, uso suono programmatico');
+        // Fallback: suono programmatico
+        playProgrammaticCoinSound();
       });
 
       audio.play()
@@ -74,10 +122,45 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           console.log('✅ Riproduzione coin.wav iniziata');
         })
         .catch(error => {
-          console.error('❌ Errore riproduzione suono coin.wav:', error);
+          console.error('❌ Errore riproduzione coin.wav, uso suono programmatico');
+          // Fallback: suono programmatico
+          playProgrammaticCoinSound();
         });
     } catch (error) {
-      console.error('❌ Errore generale suono coin.wav:', error);
+      console.error('❌ Errore generale, uso suono programmatico');
+      playProgrammaticCoinSound();
+    }
+  };
+
+  // Suono programmatico usando Web Audio API
+  const playProgrammaticCoinSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+      // Crea un suono "ding" per le monete
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // Frequenze per effetto moneta
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+
+      // Volume envelope
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+
+      oscillator.type = 'sine';
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      console.log('✅ Suono programmatico monete riprodotto');
+    } catch (error) {
+      console.error('❌ Errore suono programmatico:', error);
     }
   };
 
@@ -315,6 +398,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         onClose={() => setShowSaleModal(false)}
         onConfirm={handleSaleConfirm}
         pointsPerEuro={pointsPerEuro}
+        loyaltyTiers={loyaltyTiers}
+        currentTier={currentTier}
       />
     </>
   );
