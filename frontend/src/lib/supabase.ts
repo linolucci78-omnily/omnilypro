@@ -161,6 +161,19 @@ export interface NFCCard {
   customer?: Customer
 }
 
+export interface CustomerActivity {
+  id: string
+  organization_id: string
+  customer_id: string
+  type: 'transaction' | 'points_added' | 'reward_redeemed' | 'visit' | 'registration'
+  description: string
+  amount?: number
+  points?: number
+  created_at: string
+  // Relazioni
+  customer?: Customer
+}
+
 // API functions
 export const organizationsApi = {
   // Get all organizations
@@ -574,5 +587,59 @@ export const nfcCardsApi = {
       assigned: all.filter(c => c.customer_id).length,
       unassigned: all.filter(c => !c.customer_id).length
     }
+  }
+}
+
+// Customer Activities API
+export const customerActivitiesApi = {
+  // Create new activity
+  async create(activity: {
+    organization_id: string
+    customer_id: string
+    type: 'transaction' | 'points_added' | 'reward_redeemed' | 'visit' | 'registration'
+    description: string
+    amount?: number
+    points?: number
+  }): Promise<CustomerActivity> {
+    const { data, error } = await supabase
+      .from('customer_activities')
+      .insert({
+        ...activity,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Get activities for a customer
+  async getByCustomerId(customerId: string, limit: number = 10): Promise<CustomerActivity[]> {
+    const { data, error } = await supabase
+      .from('customer_activities')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get recent activities for organization
+  async getByOrganizationId(organizationId: string, limit: number = 50): Promise<CustomerActivity[]> {
+    const { data, error } = await supabase
+      .from('customer_activities')
+      .select(`
+        *,
+        customer:customers(name)
+      `)
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
   }
 }
