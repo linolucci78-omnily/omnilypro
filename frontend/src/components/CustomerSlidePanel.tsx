@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
 
-import type { Customer } from '../lib/supabase';
+import type { Customer, CustomerActivity, customerActivitiesApi } from '../lib/supabase';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
@@ -26,6 +26,29 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   loyaltyTiers = [] // Default array vuoto se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [customerActivities, setCustomerActivities] = useState<CustomerActivity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+
+  // Carica attività del cliente quando il pannello si apre o cambia cliente
+  useEffect(() => {
+    const loadCustomerActivities = async () => {
+      if (!customer || !isOpen) return;
+
+      setLoadingActivities(true);
+      try {
+        const activities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
+        setCustomerActivities(activities);
+        console.log(`✅ Caricate ${activities.length} attività per ${customer.name}`);
+      } catch (error) {
+        console.error('❌ Errore caricamento attività:', error);
+        setCustomerActivities([]);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    loadCustomerActivities();
+  }, [customer, isOpen]);
 
   if (!customer) return null;
 
@@ -208,6 +231,15 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             console.error('❌ updateCustomerDisplay non disponibile!');
           }
 
+          // Ricarica le attività per mostrare la nuova transazione
+          try {
+            const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
+            setCustomerActivities(refreshedActivities);
+            console.log('✅ Attività aggiornate dopo transazione completata');
+          } catch (error) {
+            console.error('❌ Errore aggiornamento attività dopo transazione:', error);
+          }
+
           // Chiudi il modale dopo la vendita completata
           setShowSaleModal(false);
 
@@ -310,10 +342,22 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         <div className="customer-panel-actions">
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-primary"
-            onClick={() => {
+            onClick={async () => {
               onAddPoints?.(customer.id, 10);
               // Solo ora aggiorniamo il customer display con i nuovi punti
               updateCustomerDisplay();
+
+              // Ricarica le attività per mostrare l'aggiunta di punti
+              try {
+                // Aspetta un momento per permettere al database di salvare l'attività
+                setTimeout(async () => {
+                  const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
+                  setCustomerActivities(refreshedActivities);
+                  console.log('✅ Attività aggiornate dopo aggiunta punti');
+                }, 1000);
+              } catch (error) {
+                console.error('❌ Errore aggiornamento attività dopo aggiunta punti:', error);
+              }
             }}
           >
             <Plus size={20} />
@@ -376,18 +420,41 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         {/* Recent Activity */}
         <div className="customer-slide-panel-activity">
           <h3>Attività Recente</h3>
-          <div className="customer-slide-panel-activity-item">
-            <div className="customer-slide-panel-activity-date">Oggi</div>
-            <div className="customer-slide-panel-activity-text">Acquisto caffè - +2 punti</div>
-          </div>
-          <div className="customer-slide-panel-activity-item">
-            <div className="customer-slide-panel-activity-date">Ieri</div>
-            <div className="customer-slide-panel-activity-text">Riscatto premio - -50 punti</div>
-          </div>
-          <div className="customer-slide-panel-activity-item">
-            <div className="customer-slide-panel-activity-date">3 giorni fa</div>
-            <div className="customer-slide-panel-activity-text">Acquisto cornetto - +1 punto</div>
-          </div>
+          {loadingActivities ? (
+            <div className="customer-slide-panel-activity-item">
+              <div className="customer-slide-panel-activity-date">-</div>
+              <div className="customer-slide-panel-activity-text">Caricamento attività...</div>
+            </div>
+          ) : customerActivities.length > 0 ? (
+            customerActivities.map((activity) => {
+              const activityDate = new Date(activity.created_at);
+              const now = new Date();
+              const diffInDays = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24));
+
+              let dateLabel = '';
+              if (diffInDays === 0) {
+                dateLabel = 'Oggi';
+              } else if (diffInDays === 1) {
+                dateLabel = 'Ieri';
+              } else if (diffInDays < 7) {
+                dateLabel = `${diffInDays} giorni fa`;
+              } else {
+                dateLabel = activityDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+              }
+
+              return (
+                <div key={activity.id} className="customer-slide-panel-activity-item">
+                  <div className="customer-slide-panel-activity-date">{dateLabel}</div>
+                  <div className="customer-slide-panel-activity-text">{activity.description}</div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="customer-slide-panel-activity-item">
+              <div className="customer-slide-panel-activity-date">-</div>
+              <div className="customer-slide-panel-activity-text">Nessuna attività recente</div>
+            </div>
+          )}
         </div>
       </div>
 

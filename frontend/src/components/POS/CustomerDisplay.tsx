@@ -139,22 +139,24 @@ const CustomerDisplay: React.FC = () => {
       fontFamily: 'Inter, sans-serif',
       overflow: 'hidden'
     }}>
-      {/* Header */}
-      <div style={{
-        background: '#1e293b',
-        color: 'white',
-        padding: '1rem',
-        textAlign: 'center'
-      }}>
-        <img
-          src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
-          alt={organizationName}
-          style={{ height: '40px', marginBottom: '0.5rem' }}
-        />
-        <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-          {currentTime.toLocaleTimeString('it-IT')}
+      {/* Header - nascosto durante celebrazioni */}
+      {!showCelebration && (
+        <div style={{
+          background: '#1e293b',
+          color: 'white',
+          padding: '1rem',
+          textAlign: 'center'
+        }}>
+          <img
+            src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+            alt={organizationName}
+            style={{ height: '40px', marginBottom: '0.5rem' }}
+          />
+          <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+            {currentTime.toLocaleTimeString('it-IT')}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div style={{
@@ -397,12 +399,12 @@ const CustomerDisplay: React.FC = () => {
 
               {/* Earned Points */}
               <div style={{
-                background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
                 padding: '2rem',
                 borderRadius: '16px',
                 textAlign: 'center',
-                boxShadow: '0 8px 25px rgba(34, 197, 94, 0.15)',
-                border: '2px solid #22c55e',
+                boxShadow: '0 8px 25px rgba(239, 68, 68, 0.15)',
+                border: '2px solid #ef4444',
                 position: 'relative',
                 transform: 'scale(1.05)'
               }}>
@@ -411,7 +413,7 @@ const CustomerDisplay: React.FC = () => {
                   top: '-10px',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  background: '#16a34a',
+                  background: '#dc2626',
                   color: 'white',
                   padding: '0.3rem 0.8rem',
                   borderRadius: '15px',
@@ -425,12 +427,12 @@ const CustomerDisplay: React.FC = () => {
                 <div style={{
                   fontSize: '2.8rem',
                   fontWeight: 'bold',
-                  color: '#16a34a',
+                  color: '#dc2626',
                   marginBottom: '0.5rem'
                 }}>
                   +{salePreview.pointsToEarn}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#15803d', fontWeight: '600' }}>nuovi punti!</div>
+                <div style={{ fontSize: '0.9rem', color: '#b91c1c', fontWeight: '600' }}>nuovi punti!</div>
               </div>
 
               {/* Total Points */}

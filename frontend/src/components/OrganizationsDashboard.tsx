@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { supabase, organizationsApi, customersApi, nfcCardsApi } from '../lib/supabase'
+import { supabase, organizationsApi, customersApi, nfcCardsApi, customerActivitiesApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
@@ -147,6 +147,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 setSelectedCustomer(matchingCard.customer);
                 setIsSlidePanelOpen(true);
 
+                // Incrementa visite per accesso tramite NFC
+                incrementCustomerVisits(matchingCard.customer.id);
+
                 if ((window as any).OmnilyPOS.showToast) {
                   (window as any).OmnilyPOS.showToast(`Cliente: ${matchingCard.customer.name}`);
                 }
@@ -220,6 +223,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   setSelectedCustomer(customer);
                   setIsSlidePanelOpen(true);
                   console.log('✅ Cliente trovato e pannello aperto:', customer.name);
+
+                  // Incrementa visite per accesso tramite QR
+                  incrementCustomerVisits(customer.id);
                   if ((window as any).OmnilyPOS.beep) {
                     (window as any).OmnilyPOS.beep("1", "150");
                   }
@@ -410,6 +416,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const handleCustomerClick = (customer: Customer) => {
     setSelectedCustomer(customer)
     setIsSlidePanelOpen(true)
+
+    // Incrementa visite quando cliente viene selezionato
+    incrementCustomerVisits(customer.id)
+
+    // Registra l'attività visita nel database
+    if (selectedOrganization) {
+      customerActivitiesApi.create({
+        organization_id: selectedOrganization.id,
+        customer_id: customer.id,
+        type: 'visit',
+        description: `Visita cliente - ${customer.name} selezionato dal POS`
+      }).then(() => {
+        console.log('✅ Attività visita registrata nel database');
+      }).catch((error) => {
+        console.error('❌ Errore registrazione attività visita:', error);
+      });
+    }
   }
 
   const handleCloseSlidePanel = () => {
@@ -456,6 +479,49 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     return Math.floor(basePoints * tier.multiplier);
   };
 
+  // Funzione per incrementare visite cliente
+  const incrementCustomerVisits = async (customerId: string) => {
+    try {
+      const currentCustomer = customers.find(c => c.id === customerId);
+      if (!currentCustomer) return;
+
+      const newVisits = currentCustomer.visits + 1;
+      const now = new Date().toISOString();
+
+      // Aggiorna visite nel database
+      const { error } = await supabase
+        .from('customers')
+        .update({
+          visits: newVisits,
+          last_visit: now
+        })
+        .eq('id', customerId);
+
+      if (error) {
+        console.error('Errore aggiornamento visite:', error);
+        return;
+      }
+
+      // Aggiorna il state locale
+      setCustomers(prevCustomers =>
+        prevCustomers.map(customer =>
+          customer.id === customerId
+            ? { ...customer, visits: newVisits, last_visit: now }
+            : customer
+        )
+      );
+
+      // Aggiorna anche il cliente selezionato se necessario
+      if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer({ ...selectedCustomer, visits: newVisits, last_visit: now });
+      }
+
+      console.log(`✅ Visite incrementate: ${currentCustomer.visits} -> ${newVisits} per ${currentCustomer.name}`);
+    } catch (error) {
+      console.error('Errore durante incremento visite:', error);
+    }
+  };
+
   const handleAddPoints = async (customerId: string, points: number) => {
     console.log(`Aggiungi ${points} punti al cliente ${customerId}`)
 
@@ -491,7 +557,29 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
       );
 
+      // Aggiorna anche il cliente selezionato se è quello che ha ricevuto i punti
+      if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer({ ...selectedCustomer, points: newPoints });
+        console.log(`✅ Cliente selezionato aggiornato in tempo reale: ${selectedCustomer.points} -> ${newPoints} punti`);
+      }
+
       console.log(`Punti aggiornati: ${currentCustomer.points} -> ${newPoints}`);
+
+      // Registra l'attività nel database
+      if (selectedOrganization) {
+        try {
+          await customerActivitiesApi.create({
+            organization_id: selectedOrganization.id,
+            customer_id: customerId,
+            type: 'points_added',
+            description: `Punti aggiunti manualmente: +${points} punti`,
+            points: points
+          });
+          console.log('✅ Attività punti registrata nel database');
+        } catch (error) {
+          console.error('❌ Errore registrazione attività punti:', error);
+        }
+      }
     } catch (error) {
       console.error('Errore durante aggiornamento punti:', error);
     }
@@ -532,10 +620,33 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
       );
 
+      // Aggiorna anche il cliente selezionato se è quello che ha fatto la transazione
+      if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer({ ...selectedCustomer, points: newPoints });
+        console.log(`✅ Cliente selezionato aggiornato in tempo reale: ${selectedCustomer.points} -> ${newPoints} punti`);
+      }
+
       console.log(`Transazione completata: ${currentCustomer.points} -> ${newPoints} punti`);
 
-      // Qui potresti anche salvare la transazione in una tabella transactions
-      // TODO: Implementare salvataggio transazione in database
+      // Incrementa visite per transazione completata (visita con acquisto)
+      await incrementCustomerVisits(customerId);
+
+      // Registra l'attività della transazione nel database
+      if (selectedOrganization) {
+        try {
+          await customerActivitiesApi.create({
+            organization_id: selectedOrganization.id,
+            customer_id: customerId,
+            type: 'transaction',
+            description: `Transazione completata: €${amount.toFixed(2)} - +${pointsEarned} punti`,
+            amount: amount,
+            points: pointsEarned
+          });
+          console.log('✅ Attività transazione registrata nel database');
+        } catch (error) {
+          console.error('❌ Errore registrazione attività transazione:', error);
+        }
+      }
 
       return {
         success: true,
