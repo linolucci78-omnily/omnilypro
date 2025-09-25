@@ -8,6 +8,8 @@ interface SaleModalProps {
   onClose: () => void;
   onConfirm: (customerId: string, amount: number, pointsEarned: number) => void;
   pointsPerEuro?: number; // Configurazione dinamica punti per euro
+  loyaltyTiers?: any[]; // Tiers di fedeltà per calcoli dinamici
+  currentTier?: any; // Tier corrente del cliente
 }
 
 const SaleModal: React.FC<SaleModalProps> = ({
@@ -15,18 +17,25 @@ const SaleModal: React.FC<SaleModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  pointsPerEuro = 1 // Default a 1 punto per euro se non specificato
+  pointsPerEuro = 1, // Default a 1 punto per euro se non specificato
+  loyaltyTiers = [], // Default array vuoto se non specificato
+  currentTier = { multiplier: 1 } // Default moltiplicatore 1x se non specificato
 }) => {
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
 
-  // Calcola punti guadagnati basato sulla configurazione dell'organizzazione - ottimizzato
+  // Calcola punti guadagnati basato sulla configurazione dell'organizzazione e tier - ottimizzato
   useEffect(() => {
     const numAmount = parseFloat(amount) || 0;
-    const points = Math.floor(numAmount * pointsPerEuro);
+    const basePoints = numAmount * pointsPerEuro; // Punti base
+    const tierMultiplier = currentTier?.multiplier || 1; // Moltiplicatore del tier
+    const finalPoints = Math.floor(basePoints * tierMultiplier); // Punti finali con moltiplicatore
+
+    console.log(`💰 Calcolo punti: €${numAmount} × ${pointsPerEuro} × ${tierMultiplier} (${currentTier?.name || 'Default'}) = ${finalPoints} punti`);
+
     // Aggiorna solo se i punti sono davvero cambiati
-    setPointsEarned(prevPoints => prevPoints !== points ? points : prevPoints);
-  }, [amount, pointsPerEuro]);
+    setPointsEarned(prevPoints => prevPoints !== finalPoints ? finalPoints : prevPoints);
+  }, [amount, pointsPerEuro, currentTier]);
 
   // Funzione per suono "ka-ching" celebrativo - DISABILITATA TEMPORANEAMENTE
   const playCelebrationSound = () => {
@@ -55,17 +64,20 @@ const SaleModal: React.FC<SaleModalProps> = ({
       // Aggiorna customer display in tempo reale durante la digitazione
       if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
         const numAmount = parseFloat(value) || 0;
-        const points = Math.floor(numAmount * pointsPerEuro);
+        const basePoints = numAmount * pointsPerEuro; // Punti base
+        const tierMultiplier = currentTier?.multiplier || 1; // Moltiplicatore del tier
+        const finalPoints = Math.floor(basePoints * tierMultiplier); // Punti finali con moltiplicatore
 
         (window as any).updateCustomerDisplay({
           type: 'SALE_PREVIEW',
           preview: {
             customerName: customer.name,
             amount: numAmount,
-            pointsToEarn: points,
+            pointsToEarn: finalPoints,
             currentPoints: customer.points,
-            newTotalPoints: customer.points + points,
-            tier: customer.tier
+            newTotalPoints: customer.points + finalPoints,
+            tier: currentTier?.name || customer.tier || 'Bronze',
+            tierMultiplier: tierMultiplier // Aggiunto per mostrare il moltiplicatore nel display
           }
         });
       }
@@ -120,8 +132,11 @@ const SaleModal: React.FC<SaleModalProps> = ({
         <div className="sale-modal-content">
           <div className="customer-info">
             <h3>{customer.name}</h3>
-            <span className={`customer-tier ${customer.tier.toLowerCase()}`}>
-              {customer.tier}
+            <span
+              className={`customer-tier ${(currentTier?.name || customer.tier).toLowerCase()}`}
+              style={{ backgroundColor: currentTier?.color || '#F59E0B' }}
+            >
+              {currentTier?.name || customer.tier} {currentTier?.multiplier && currentTier.multiplier > 1 && `(${currentTier.multiplier}x)`}
             </span>
           </div>
 

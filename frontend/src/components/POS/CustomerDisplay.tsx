@@ -76,9 +76,24 @@ const CustomerDisplay: React.FC = () => {
 
   // Funzione per creare pioggia di monete
   const createCoinsRain = () => {
-    const coinsContainer = document.getElementById('coins-container');
-    if (!coinsContainer) return;
+    console.log('🪙 CREAZIONE pioggia monete iniziata...');
 
+    let coinsContainer = document.getElementById('coins-container');
+    if (!coinsContainer) {
+      console.log('📦 Container monete non trovato, lo creo');
+      coinsContainer = document.createElement('div');
+      coinsContainer.id = 'coins-container';
+      coinsContainer.style.position = 'fixed';
+      coinsContainer.style.top = '0';
+      coinsContainer.style.left = '0';
+      coinsContainer.style.width = '100vw';
+      coinsContainer.style.height = '100vh';
+      coinsContainer.style.pointerEvents = 'none';
+      coinsContainer.style.zIndex = '10000';
+      document.body.appendChild(coinsContainer);
+    }
+
+    console.log(`🪙 Creando 15 monete animate...`);
     for (let i = 0; i < 15; i++) {
       setTimeout(() => {
         const coin = document.createElement('div');
@@ -86,7 +101,9 @@ const CustomerDisplay: React.FC = () => {
         coin.style.left = Math.random() * 100 + '%';
         coin.style.animationDelay = Math.random() * 2 + 's';
         coin.style.animationDuration = (3 + Math.random() * 2) + 's';
-        coinsContainer.appendChild(coin);
+        coinsContainer!.appendChild(coin);
+
+        console.log(`🪙 Moneta ${i + 1}/15 creata`);
 
         // Rimuovi la moneta dopo l'animazione
         setTimeout(() => {
@@ -94,6 +111,8 @@ const CustomerDisplay: React.FC = () => {
         }, 5000);
       }, i * 200);
     }
+
+    console.log('✅ Pioggia monete setup completato');
   };
 
   // Attiva pioggia di monete quando inizia la celebrazione

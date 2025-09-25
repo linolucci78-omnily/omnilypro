@@ -417,6 +417,45 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     setSelectedCustomer(null)
   }
 
+  // Funzioni utility per gestione tiers dinamici
+  const calculateCustomerTier = (points: number, loyaltyTiers: any[]): any => {
+    if (!loyaltyTiers || loyaltyTiers.length === 0) {
+      // Fallback ai tiers fissi se non configurati
+      if (points >= 1000) return { name: 'Platinum', multiplier: 2, color: '#e5e7eb' };
+      if (points >= 500) return { name: 'Gold', multiplier: 1.5, color: '#f59e0b' };
+      if (points >= 200) return { name: 'Silver', multiplier: 1.2, color: '#64748b' };
+      return { name: 'Bronze', multiplier: 1, color: '#a3a3a3' };
+    }
+
+    // Ordina tiers per soglia decrescente per trovare il tier corretto
+    const sortedTiers = [...loyaltyTiers].sort((a, b) => parseFloat(b.threshold) - parseFloat(a.threshold));
+
+    for (const tier of sortedTiers) {
+      if (points >= parseFloat(tier.threshold)) {
+        return {
+          name: tier.name,
+          multiplier: parseFloat(tier.multiplier) || 1,
+          color: tier.color || '#64748b',
+          threshold: parseFloat(tier.threshold)
+        };
+      }
+    }
+
+    // Se non trova nessun tier, usa il primo (più basso)
+    const firstTier = loyaltyTiers[0];
+    return {
+      name: firstTier.name,
+      multiplier: parseFloat(firstTier.multiplier) || 1,
+      color: firstTier.color || '#64748b',
+      threshold: parseFloat(firstTier.threshold)
+    };
+  };
+
+  const calculatePointsWithMultiplier = (basePoints: number, customerPoints: number, loyaltyTiers: any[]): number => {
+    const tier = calculateCustomerTier(customerPoints, loyaltyTiers);
+    return Math.floor(basePoints * tier.multiplier);
+  };
+
   const handleAddPoints = async (customerId: string, points: number) => {
     console.log(`Aggiungi ${points} punti al cliente ${customerId}`)
 
@@ -1809,6 +1848,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onAddPoints={handleAddPoints}
         onNewTransaction={handleNewTransaction}
         pointsPerEuro={currentOrganization?.points_per_euro || 1}
+        loyaltyTiers={currentOrganization?.loyalty_tiers || []}
       />
 
       {/* Card Management Panel */}
