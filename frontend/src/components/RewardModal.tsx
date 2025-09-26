@@ -302,9 +302,28 @@ const RewardModal: React.FC<RewardModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  <small className="form-hint">
-                    Il cliente deve aver raggiunto questo livello di fedeltà oltre ai punti richiesti
-                  </small>
+                  <div className="tier-requirement-toggle">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={!!formData.required_tier}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            // Se spuntata, imposta il primo livello disponibile
+                            const firstTier = loyaltyTiers.length > 0 ? loyaltyTiers[0].name : '';
+                            handleInputChange('required_tier', firstTier);
+                          } else {
+                            // Se non spuntata, rimuovi il requisito livello
+                            handleInputChange('required_tier', undefined);
+                          }
+                        }}
+                        disabled={isLoading}
+                      />
+                      <span className="checkbox-text">
+                        Richiede livello di fedeltà oltre ai punti
+                      </span>
+                    </label>
+                  </div>
                 </div>
               )}
 
