@@ -87,7 +87,7 @@ const CustomerDisplay: React.FC = () => {
 
     // Riproduci suono pioggia monete
     try {
-      const audio = new Audio('/coinrain.mp3');
+      const audio = new Audio('/sounds/coinrain.mp3');
       audio.volume = 0.6; // Volume moderato
       audio.play().then(() => {
         console.log('🔊 Suono coinrain.mp3 riprodotto con successo');
