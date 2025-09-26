@@ -239,87 +239,65 @@ const CustomerDisplay: React.FC = () => {
             )}
           </>
         ) : saleProcessing ? (
-          // Sale Processing Screen - Elaborazione transazione
+          // Sale Processing Screen - COMPATTA per 4"
           <div style={{
             background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             color: 'white',
-            padding: '3rem',
-            borderRadius: '16px',
+            padding: '1.5rem',
+            borderRadius: '12px',
             textAlign: 'center',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            alignItems: 'center',
-            position: 'relative',
-            overflow: 'hidden'
+            gap: '1rem'
           }}>
-            {/* Spinner animato */}
+            {/* Spinner piccolo */}
             <div style={{
-              width: '80px',
-              height: '80px',
-              border: '6px solid rgba(255, 255, 255, 0.3)',
-              borderTop: '6px solid white',
+              width: '40px',
+              height: '40px',
+              border: '4px solid rgba(255, 255, 255, 0.3)',
+              borderTop: '4px solid white',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
-              marginBottom: '2rem'
+              margin: '0 auto'
             }} />
 
+            {/* Nome cliente compatto */}
             <h2 style={{
-              margin: '0 0 1rem 0',
-              fontSize: '2.5rem',
+              margin: 0,
+              fontSize: '1.8rem',
               fontWeight: 'bold'
             }}>
               {saleProcessing.customerName}
             </h2>
 
+            {/* Importo grande */}
             <div style={{
-              fontSize: '1.8rem',
-              fontWeight: '600',
-              marginBottom: '2rem',
-              opacity: 0.9
+              fontSize: '3rem',
+              fontWeight: 'bold',
+              lineHeight: 1
             }}>
-              Elaborazione in corso...
+              €{saleProcessing.amount.toFixed(2)}
             </div>
 
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              padding: '2rem',
-              borderRadius: '12px',
-              marginBottom: '2rem',
-              maxWidth: '400px'
-            }}>
-              <div style={{
-                fontSize: '1.2rem',
-                marginBottom: '1rem',
-                opacity: 0.9
-              }}>
-                IMPORTO
-              </div>
-              <div style={{
-                fontSize: '3.5rem',
-                fontWeight: 'bold',
-                marginBottom: '1rem'
-              }}>
-                €{saleProcessing.amount.toFixed(2)}
-              </div>
-              <div style={{
-                fontSize: '1.2rem',
-                opacity: 0.9
-              }}>
-                +{saleProcessing.pointsToEarn} punti
-              </div>
-            </div>
-
+            {/* Punti compatti */}
             <div style={{
               fontSize: '1.2rem',
+              opacity: 0.9
+            }}>
+              +{saleProcessing.pointsToEarn} punti
+            </div>
+
+            {/* Messaggio elaborazione */}
+            <div style={{
+              fontSize: '1rem',
               opacity: 0.8,
               animation: 'pulse 2s infinite'
             }}>
-              Attendere prego...
+              Elaborazione...
             </div>
 
-            {/* Stile per le animazioni */}
             <style dangerouslySetInnerHTML={{
               __html: `
                 @keyframes spin {
@@ -334,115 +312,94 @@ const CustomerDisplay: React.FC = () => {
             }} />
           </div>
         ) : salePreview ? (
-          // Sale Preview Screen - ULTRA SEMPLIFICATO per monitor 4"
+          // Sale Preview Screen - COMPATTA per 4"
           <div style={{
             background: 'white',
-            padding: '2rem',
-            borderRadius: '16px',
+            padding: '1.5rem',
+            borderRadius: '12px',
             textAlign: 'center',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between'
+            justifyContent: 'center',
+            gap: '1rem'
           }}>
-            {/* Customer Name - Large and Clear */}
+            {/* Customer Name - Compatto */}
             <div style={{
               background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
               color: 'white',
-              padding: '1.5rem',
-              borderRadius: '12px',
-              marginBottom: '2rem'
+              padding: '1rem',
+              borderRadius: '8px'
             }}>
               <h2 style={{
                 margin: 0,
-                fontSize: '2.5rem',
+                fontSize: '1.6rem',
                 fontWeight: 'bold'
               }}>
                 {salePreview.customerName}
               </h2>
+            </div>
+
+            {/* Amount - Compatto */}
+            {salePreview.amount > 0 ? (
               <div style={{
-                fontSize: '1.2rem',
-                marginTop: '0.5rem',
-                opacity: 0.9
+                background: '#f8fafc',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                border: '2px solid #e2e8f0'
               }}>
-                {salePreview.tier} Member
+                <div style={{
+                  fontSize: '3.5rem',
+                  fontWeight: 'bold',
+                  color: '#1e293b',
+                  lineHeight: 1
+                }}>
+                  €{salePreview.amount.toFixed(2)}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div style={{
+                background: '#f8fafc',
+                padding: '2rem',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💰</div>
+                <div style={{
+                  fontSize: '1.2rem',
+                  color: '#64748b'
+                }}>
+                  In attesa...
+                </div>
+              </div>
+            )}
 
-            {/* Amount - Very Large and Prominent */}
-            <div style={{
-              background: '#f8fafc',
-              padding: '3rem 2rem',
-              borderRadius: '16px',
-              marginBottom: '2rem',
-              border: '3px solid #e2e8f0'
-            }}>
-              {salePreview.amount > 0 ? (
-                <>
-                  <div style={{
-                    fontSize: '1.2rem',
-                    color: '#64748b',
-                    marginBottom: '1rem'
-                  }}>
-                    IMPORTO
-                  </div>
-                  <div style={{
-                    fontSize: '5rem',
-                    fontWeight: 'bold',
-                    color: '#1e293b',
-                    lineHeight: 1
-                  }}>
-                    €{salePreview.amount.toFixed(2)}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>💰</div>
-                  <div style={{
-                    fontSize: '1.8rem',
-                    color: '#64748b',
-                    fontWeight: '600'
-                  }}>
-                    In attesa dell'importo...
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Points - Simple Two Column Layout */}
+            {/* Points - Una riga compatta */}
             {salePreview.amount > 0 && (
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '1.5rem'
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'center'
               }}>
                 {/* Points to Earn */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                   color: 'white',
-                  padding: '2rem',
-                  borderRadius: '12px',
-                  textAlign: 'center'
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  flex: 1
                 }}>
                   <div style={{
-                    fontSize: '1rem',
-                    marginBottom: '0.5rem',
-                    opacity: 0.9
-                  }}>
-                    GUADAGNI
-                  </div>
-                  <div style={{
-                    fontSize: '3rem',
+                    fontSize: '1.8rem',
                     fontWeight: 'bold'
                   }}>
                     +{salePreview.pointsToEarn}
                   </div>
                   <div style={{
-                    fontSize: '1rem',
-                    marginTop: '0.5rem',
+                    fontSize: '0.8rem',
                     opacity: 0.9
                   }}>
-                    punti
+                    guadagni
                   </div>
                 </div>
 
@@ -450,29 +407,22 @@ const CustomerDisplay: React.FC = () => {
                 <div style={{
                   background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                   color: 'white',
-                  padding: '2rem',
-                  borderRadius: '12px',
-                  textAlign: 'center'
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  flex: 1
                 }}>
                   <div style={{
-                    fontSize: '1rem',
-                    marginBottom: '0.5rem',
-                    opacity: 0.9
-                  }}>
-                    TOTALE
-                  </div>
-                  <div style={{
-                    fontSize: '3rem',
+                    fontSize: '1.8rem',
                     fontWeight: 'bold'
                   }}>
                     {salePreview.newTotalPoints}
                   </div>
                   <div style={{
-                    fontSize: '1rem',
-                    marginTop: '0.5rem',
+                    fontSize: '0.8rem',
                     opacity: 0.9
                   }}>
-                    punti
+                    totali
                   </div>
                 </div>
               </div>
@@ -497,7 +447,7 @@ const CustomerDisplay: React.FC = () => {
         )}
       </div>
 
-      {/* Celebration Screen - SEMPLIFICATA per monitor 4" */}
+      {/* Celebration Screen - BRAND ROSSO COMPATTA per 4" */}
       {showCelebration && celebrationData && (
         <div style={{
           position: 'fixed',
@@ -505,7 +455,7 @@ const CustomerDisplay: React.FC = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -513,76 +463,68 @@ const CustomerDisplay: React.FC = () => {
           zIndex: 9999,
           color: 'white',
           textAlign: 'center',
-          padding: '2rem'
+          padding: '1.5rem',
+          gap: '1rem'
         }}>
 
-          {/* Icona grande di successo */}
+          {/* Icona successo compatta */}
           <div style={{
-            fontSize: '6rem',
-            marginBottom: '2rem',
+            fontSize: '3rem',
             animation: 'bounce 1s ease-in-out'
           }}>
             ✅
           </div>
 
-          {/* Nome cliente molto grande */}
+          {/* Nome cliente compatto */}
           <h1 style={{
-            margin: '0 0 2rem 0',
-            fontSize: '3.5rem',
+            margin: 0,
+            fontSize: '2rem',
             fontWeight: 'bold',
-            textShadow: '0 4px 8px rgba(0,0,0,0.3)'
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}>
             Grazie {celebrationData.customerName}!
           </h1>
 
-          {/* Messaggio principale */}
+          {/* Informazioni transazione compatte */}
           <div style={{
-            fontSize: '2.2rem',
-            fontWeight: '600',
-            marginBottom: '3rem',
-            opacity: 0.95
-          }}>
-            Vendita Completata!
-          </div>
-
-          {/* Informazioni transazione - Layout grande e pulito */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            padding: '3rem',
-            borderRadius: '20px',
-            marginBottom: '2rem',
+            background: 'rgba(255, 255, 255, 0.15)',
+            padding: '1.5rem',
+            borderRadius: '12px',
             backdropFilter: 'blur(10px)',
-            border: '2px solid rgba(255, 255, 255, 0.3)'
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            width: '100%',
+            maxWidth: '300px'
           }}>
             <div style={{
-              fontSize: '4.5rem',
+              fontSize: '3rem',
               fontWeight: 'bold',
-              marginBottom: '1rem'
+              marginBottom: '0.5rem',
+              lineHeight: 1
             }}>
               €{celebrationData.amount.toFixed(2)}
             </div>
             <div style={{
-              fontSize: '2rem',
-              marginBottom: '1rem',
+              fontSize: '1.2rem',
+              marginBottom: '0.5rem',
               opacity: 0.95
             }}>
-              +{celebrationData.pointsEarned} punti guadagnati!
+              +{celebrationData.pointsEarned} punti!
             </div>
             <div style={{
-              fontSize: '1.8rem',
-              opacity: 0.9
+              fontSize: '1rem',
+              opacity: 0.8
             }}>
-              Totale punti: {celebrationData.newTotalPoints}
+              Totale: {celebrationData.newTotalPoints} punti
             </div>
           </div>
 
-          {/* Messaggio finale */}
+          {/* Messaggio finale compatto */}
           <div style={{
-            fontSize: '1.6rem',
+            fontSize: '1.2rem',
             opacity: 0.9,
             animation: 'pulse 2s infinite'
           }}>
-            Arrivederci e a presto! 👋
+            Vendita completata! 🎉
           </div>
 
           {/* Stili per le animazioni */}
@@ -590,8 +532,8 @@ const CustomerDisplay: React.FC = () => {
             __html: `
               @keyframes bounce {
                 0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-                40% { transform: translateY(-20px); }
-                60% { transform: translateY(-10px); }
+                40% { transform: translateY(-10px); }
+                60% { transform: translateY(-5px); }
               }
               @keyframes pulse {
                 0%, 100% { opacity: 0.7; }
