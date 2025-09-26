@@ -49,6 +49,20 @@ const SaleModal: React.FC<SaleModalProps> = ({
     // Suono celebrativo "ka-ching"
     playCelebrationSound();
 
+    // NUOVO: Mostra stato "Elaborazione transazione" sul customer display
+    if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+      (window as any).updateCustomerDisplay({
+        type: 'SALE_PROCESSING',
+        processing: {
+          customerName: customer.name,
+          amount: parseFloat(amount),
+          pointsToEarn: pointsEarned,
+          tier: currentTier?.name || customer.tier || 'Bronze'
+        }
+      });
+      console.log('🔄 Mostrando schermata di elaborazione transazione...');
+    }
+
     const numAmount = parseFloat(amount);
     onConfirm(customer.id, numAmount, pointsEarned);
     setAmount('');
