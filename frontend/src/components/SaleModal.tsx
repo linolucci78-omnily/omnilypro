@@ -69,21 +69,15 @@ const SaleModal: React.FC<SaleModalProps> = ({
         const finalPoints = Math.floor(basePoints * tierMultiplier); // Punti finali con moltiplicatore
 
         (window as any).updateCustomerDisplay({
-          type: 'SALE_IN_PROGRESS',
-          transaction: {
+          type: 'SALE_PREVIEW',
+          preview: {
             customerName: customer.name,
             amount: numAmount,
-            formattedAmount: `€${numAmount.toFixed(2)}`,
             pointsToEarn: finalPoints,
             currentPoints: customer.points,
             newTotalPoints: customer.points + finalPoints,
             tier: currentTier?.name || customer.tier || 'Bronze',
-            tierMultiplier: tierMultiplier,
-            phase: numAmount > 0 ? 'calculating' : 'waiting',
-            message: numAmount > 0
-              ? `Spendi €${numAmount.toFixed(2)} e guadagni +${finalPoints} punti!`
-              : 'Il cassiere sta inserendo l\'importo...',
-            showProgress: true
+            tierMultiplier: tierMultiplier
           }
         });
         console.log(`💰 Customer display: €${numAmount.toFixed(2)} → +${finalPoints} punti`);
@@ -101,18 +95,14 @@ const SaleModal: React.FC<SaleModalProps> = ({
     // Reset customer display quando cancelli
     if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
       (window as any).updateCustomerDisplay({
-        type: 'SALE_IN_PROGRESS',
-        transaction: {
+        type: 'SALE_PREVIEW',
+        preview: {
           customerName: customer.name,
           amount: 0,
-          formattedAmount: '€0.00',
           pointsToEarn: 0,
           currentPoints: customer.points,
           newTotalPoints: customer.points,
-          tier: customer.tier,
-          phase: 'waiting',
-          message: 'Il cassiere sta inserendo l\'importo...',
-          showProgress: false
+          tier: customer.tier
         }
       });
     }
@@ -126,18 +116,14 @@ const SaleModal: React.FC<SaleModalProps> = ({
   useEffect(() => {
     if (isOpen && customer && typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
       (window as any).updateCustomerDisplay({
-        type: 'SALE_IN_PROGRESS',
-        transaction: {
+        type: 'SALE_PREVIEW',
+        preview: {
           customerName: customer.name,
           amount: 0,
-          formattedAmount: '€0.00',
           pointsToEarn: 0,
           currentPoints: customer.points,
           newTotalPoints: customer.points,
-          tier: currentTier?.name || customer.tier || 'Bronze',
-          phase: 'waiting',
-          message: 'Il cassiere sta inserendo l\'importo della tua spesa...',
-          showProgress: false
+          tier: currentTier?.name || customer.tier || 'Bronze'
         }
       });
       console.log(`🛒 SaleModal aperto per ${customer.name} - customer display inizializzato`);
