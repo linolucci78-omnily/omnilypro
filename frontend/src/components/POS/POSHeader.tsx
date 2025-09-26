@@ -66,11 +66,11 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
           <span className="pos-user-status">🟢 Online</span>
         </div>
         <button
-          className="pos-quick-logout"
+          className="pos-quick-logout-posheader pos-quick-logout"
           onClick={handleQuickLogout}
           title="Logout rapido"
         >
-          <MdLogout size={24} />
+          <MdLogout size={28} />
         </button>
       </div>
     </header>

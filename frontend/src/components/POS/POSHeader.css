@@ -104,32 +104,51 @@
   font-weight: 600;
 }
 
-/* Quick Logout */
+/* Quick Logout - POSHeader specifico */
+.pos-quick-logout-posheader {
+  width: 60px !important;
+  height: 60px !important;
+  background: #fef2f2 !important;
+  border: 2px solid #fca5a5 !important;
+  border-radius: 50% !important;
+  color: #dc2626 !important;
+  font-size: 1.5rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Mantieni anche la classe originale per compatibilità */
 .pos-quick-logout {
-  width: 50px;
-  height: 50px;
-  background: #fef2f2;
-  border: 2px solid #fca5a5;
-  border-radius: 50%;
-  color: #dc2626;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+  width: 60px !important;
+  height: 60px !important;
+  background: #fef2f2 !important;
+  border: 2px solid #fca5a5 !important;
+  border-radius: 50% !important;
+  color: #dc2626 !important;
+  font-size: 1.5rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1) !important;
 }
 
+.pos-quick-logout-posheader:hover,
 .pos-quick-logout:hover {
-  background: #fee2e2;
-  border-color: #ef4444;
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2);
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2) !important;
 }
 
+.pos-quick-logout-posheader:active,
 .pos-quick-logout:active {
-  transform: scale(0.9);
+  transform: scale(0.9) !important;
 }
 
 /* Responsive */
@@ -153,10 +172,11 @@
     display: none; /* Nascondi info utente su schermi piccoli */
   }
 
+  .pos-quick-logout-posheader,
   .pos-quick-logout {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 1.3rem !important;
   }
 }
 
@@ -169,8 +189,9 @@
     z-index: 99999 !important;
   }
 
+  .pos-quick-logout-posheader,
   .pos-quick-logout {
-    min-height: 48px;
-    min-width: 48px;
+    min-height: 56px !important;
+    min-width: 56px !important;
   }
 }
