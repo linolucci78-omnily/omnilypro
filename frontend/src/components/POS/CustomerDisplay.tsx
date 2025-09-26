@@ -25,6 +25,7 @@ const CustomerDisplay: React.FC = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState<any>(null);
   const [salePreview, setSalePreview] = useState<any>(null);
+  const [saleProcessing, setSaleProcessing] = useState<any>(null);
 
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
@@ -52,6 +53,7 @@ const CustomerDisplay: React.FC = () => {
         setCelebrationData(event.data.celebration);
         setShowCelebration(true);
         setSalePreview(null); // Nascondi preview durante celebrazione
+        setSaleProcessing(null); // Nascondi processing durante celebrazione
 
         // Termina celebrazione dopo il tempo specificato
         setTimeout(() => {
@@ -61,6 +63,11 @@ const CustomerDisplay: React.FC = () => {
       } else if (event.data.type === 'SALE_PREVIEW') {
         console.log('👀 Preview vendita ricevuta:', event.data.preview);
         setSalePreview(event.data.preview);
+        setSaleProcessing(null); // Reset processing se torniamo al preview
+      } else if (event.data.type === 'SALE_PROCESSING') {
+        console.log('🔄 Elaborazione transazione ricevuta:', event.data.processing);
+        setSaleProcessing(event.data.processing);
+        setSalePreview(null); // Nascondi preview durante elaborazione
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -231,6 +238,101 @@ const CustomerDisplay: React.FC = () => {
               </div>
             )}
           </>
+        ) : saleProcessing ? (
+          // Sale Processing Screen - Elaborazione transazione
+          <div style={{
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: 'white',
+            padding: '3rem',
+            borderRadius: '16px',
+            textAlign: 'center',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Spinner animato */}
+            <div style={{
+              width: '80px',
+              height: '80px',
+              border: '6px solid rgba(255, 255, 255, 0.3)',
+              borderTop: '6px solid white',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              marginBottom: '2rem'
+            }} />
+
+            <h2 style={{
+              margin: '0 0 1rem 0',
+              fontSize: '2.5rem',
+              fontWeight: 'bold'
+            }}>
+              {saleProcessing.customerName}
+            </h2>
+
+            <div style={{
+              fontSize: '1.8rem',
+              fontWeight: '600',
+              marginBottom: '2rem',
+              opacity: 0.9
+            }}>
+              Elaborazione in corso...
+            </div>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              padding: '2rem',
+              borderRadius: '12px',
+              marginBottom: '2rem',
+              maxWidth: '400px'
+            }}>
+              <div style={{
+                fontSize: '1.2rem',
+                marginBottom: '1rem',
+                opacity: 0.9
+              }}>
+                IMPORTO
+              </div>
+              <div style={{
+                fontSize: '3.5rem',
+                fontWeight: 'bold',
+                marginBottom: '1rem'
+              }}>
+                €{saleProcessing.amount.toFixed(2)}
+              </div>
+              <div style={{
+                fontSize: '1.2rem',
+                opacity: 0.9
+              }}>
+                +{saleProcessing.pointsToEarn} punti
+              </div>
+            </div>
+
+            <div style={{
+              fontSize: '1.2rem',
+              opacity: 0.8,
+              animation: 'pulse 2s infinite'
+            }}>
+              Attendere prego...
+            </div>
+
+            {/* Stile per le animazioni */}
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+                @keyframes pulse {
+                  0%, 100% { opacity: 0.6; }
+                  50% { opacity: 1; }
+                }
+              `
+            }} />
+          </div>
         ) : salePreview ? (
           // Sale Preview Screen - ULTRA SEMPLIFICATO per monitor 4"
           <div style={{
