@@ -85,6 +85,19 @@ const CustomerDisplay: React.FC = () => {
   const createCoinsRain = () => {
     console.log('🪙 CREAZIONE pioggia monete iniziata...');
 
+    // Riproduci suono pioggia monete
+    try {
+      const audio = new Audio('/coinrain.mp3');
+      audio.volume = 0.6; // Volume moderato
+      audio.play().then(() => {
+        console.log('🔊 Suono coinrain.mp3 riprodotto con successo');
+      }).catch((error) => {
+        console.warn('⚠️ Impossibile riprodurre coinrain.mp3:', error);
+      });
+    } catch (error) {
+      console.warn('⚠️ Errore caricamento coinrain.mp3:', error);
+    }
+
     let coinsContainer = document.getElementById('coins-container');
     if (!coinsContainer) {
       console.log('📦 Container monete non trovato, lo creo');
