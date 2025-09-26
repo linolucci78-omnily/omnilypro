@@ -1273,16 +1273,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
             {(() => {
               const orgData = currentOrganization || organizations[0];
-              const loyaltyTiers = orgData?.loyalty_tiers;
+              const loyaltyTiers = orgData?.loyalty_tiers || [];
 
               console.log('🏆 Loyalty Tiers Debug:', {
                 currentOrganization: !!currentOrganization,
                 organizationsLength: organizations.length,
                 orgData: !!orgData,
-                loyaltyTiers: loyaltyTiers
+                loyaltyTiers: loyaltyTiers,
+                loyaltyTiersType: typeof loyaltyTiers,
+                isArray: Array.isArray(loyaltyTiers)
               });
 
-              return loyaltyTiers && loyaltyTiers.length > 0 ? (
+              return Array.isArray(loyaltyTiers) && loyaltyTiers.length > 0 ? (
                 <div className="cards-grid">
                   {loyaltyTiers.map((tier, index) => (
                   <div key={index} className="feature-card tier-card">
