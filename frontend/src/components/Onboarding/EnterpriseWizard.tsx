@@ -73,9 +73,9 @@ const EnterpriseWizard: React.FC = () => {
     // Step 4: Rewards Configuration
     rewardTypes: ['discount', 'freeProduct', 'cashback'],
     defaultRewards: [
-      { points: '100', type: 'discount', value: '5', description: '5€ di sconto' },
-      { points: '200', type: 'discount', value: '10', description: '10€ di sconto' },
-      { points: '300', type: 'freeProduct', value: 'caffè', description: 'Caffè gratuito' }
+      { points: '100', requiredTier: 'Iniziale', type: 'discount', value: '5', description: '5€ di sconto' },
+      { points: '200', requiredTier: 'Affezionato', type: 'discount', value: '10', description: '10€ di sconto' },
+      { points: '300', requiredTier: 'VIP', type: 'freeProduct', value: 'caffè', description: 'Caffè gratuito' }
     ],
     
     // Step 5: Branding Setup
@@ -1186,6 +1186,24 @@ const EnterpriseWizard: React.FC = () => {
                         />
                       </div>
                       <div className={styles.formGroup}>
+                        <label className={styles.label}>Livello Richiesto</label>
+                        <select
+                          className={styles.input}
+                          value={reward.requiredTier || 'Iniziale'}
+                          onChange={(e) => {
+                            const newRewards = [...formData.defaultRewards]
+                            newRewards[index].requiredTier = e.target.value
+                            handleInputChange('defaultRewards', newRewards)
+                          }}
+                        >
+                          {formData.loyaltyTiers.map((tier: any) => (
+                            <option key={tier.name} value={tier.name}>
+                              {tier.name} ({tier.threshold}+ punti)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
                         <label className={styles.label}>Valore</label>
                         <input
                           type="text"
@@ -1228,7 +1246,7 @@ const EnterpriseWizard: React.FC = () => {
                   type="button"
                   className={styles.addBtn}
                   onClick={() => {
-                    const newRewards = [...formData.defaultRewards, { points: '100', type: 'discount', value: '5', description: '5€ di sconto' }]
+                    const newRewards = [...formData.defaultRewards, { points: '100', requiredTier: 'Iniziale', type: 'discount', value: '5', description: '5€ di sconto' }]
                     handleInputChange('defaultRewards', newRewards)
                   }}
                 >

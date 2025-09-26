@@ -8,6 +8,7 @@ interface RewardModalProps {
   onSave: (reward: RewardData) => void;
   reward?: RewardData | null;
   isLoading?: boolean;
+  loyaltyTiers?: any[]; // Livelli di fedeltà dall'organizzazione
 }
 
 export interface RewardData {
@@ -16,6 +17,7 @@ export interface RewardData {
   type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard';
   value: number | string;
   points_required: number;
+  required_tier?: string; // Livello di fedeltà richiesto
   description: string;
   image_url?: string;
   is_active: boolean;
@@ -37,13 +39,15 @@ const RewardModal: React.FC<RewardModalProps> = ({
   onClose,
   onSave,
   reward,
-  isLoading = false
+  isLoading = false,
+  loyaltyTiers = []
 }) => {
   const [formData, setFormData] = useState<RewardData>({
     name: '',
     type: 'discount',
     value: '',
     points_required: 100,
+    required_tier: loyaltyTiers.length > 0 ? loyaltyTiers[0].name : undefined,
     description: '',
     is_active: true,
     stock_quantity: undefined,
@@ -281,6 +285,28 @@ const RewardModal: React.FC<RewardModalProps> = ({
                 />
                 {errors.points_required && <div className="error-message">{errors.points_required}</div>}
               </div>
+
+              {loyaltyTiers && loyaltyTiers.length > 0 && (
+                <div className="form-group">
+                  <label className="form-label">Livello Richiesto</label>
+                  <select
+                    value={formData.required_tier || ''}
+                    onChange={(e) => handleInputChange('required_tier', e.target.value || undefined)}
+                    className="form-input"
+                    disabled={isLoading}
+                  >
+                    <option value="">Nessun livello richiesto</option>
+                    {loyaltyTiers.map((tier: any) => (
+                      <option key={tier.name} value={tier.name}>
+                        {tier.name} ({tier.threshold}+ punti)
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">
+                    Il cliente deve aver raggiunto questo livello di fedeltà oltre ai punti richiesti
+                  </small>
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Valore *</label>
