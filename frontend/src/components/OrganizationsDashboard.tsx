@@ -597,11 +597,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       }
 
       const newPoints = currentCustomer.points + pointsEarned;
+      const newTotalSpent = currentCustomer.total_spent + amount;
 
-      // Aggiorna i punti nel database
+      // Aggiorna punti e importo speso nel database
       const { data, error } = await supabase
         .from('customers')
-        .update({ points: newPoints })
+        .update({
+          points: newPoints,
+          total_spent: newTotalSpent
+        })
         .eq('id', customerId)
         .select()
         .single();
@@ -615,18 +619,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       setCustomers(prevCustomers =>
         prevCustomers.map(customer =>
           customer.id === customerId
-            ? { ...customer, points: newPoints }
+            ? { ...customer, points: newPoints, total_spent: newTotalSpent }
             : customer
         )
       );
 
       // Aggiorna anche il cliente selezionato se è quello che ha fatto la transazione
       if (selectedCustomer && selectedCustomer.id === customerId) {
-        setSelectedCustomer({ ...selectedCustomer, points: newPoints });
-        console.log(`✅ Cliente selezionato aggiornato in tempo reale: ${selectedCustomer.points} -> ${newPoints} punti`);
+        setSelectedCustomer({ ...selectedCustomer, points: newPoints, total_spent: newTotalSpent });
+        console.log(`✅ Cliente selezionato aggiornato: ${selectedCustomer.points} -> ${newPoints} punti, €${selectedCustomer.total_spent.toFixed(2)} -> €${newTotalSpent.toFixed(2)} speso`);
       }
 
-      console.log(`Transazione completata: ${currentCustomer.points} -> ${newPoints} punti`);
+      console.log(`Transazione completata: ${currentCustomer.points} -> ${newPoints} punti, €${currentCustomer.total_spent.toFixed(2)} -> €${newTotalSpent.toFixed(2)} speso`);
 
       // Incrementa visite per transazione completata (visita con acquisto)
       await incrementCustomerVisits(customerId);
@@ -650,7 +654,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       return {
         success: true,
-        customer: { ...currentCustomer, points: newPoints },
+        customer: { ...currentCustomer, points: newPoints, total_spent: newTotalSpent },
         amount,
         pointsEarned
       };
