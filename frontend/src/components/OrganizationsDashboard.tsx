@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, organizationsApi, customersApi, nfcCardsApi, customerActivitiesApi } from '../lib/supabase'
-import type { Organization, Customer } from '../lib/supabase'
+import type { Organization, Customer, Reward } from '../lib/supabase'
+import { rewardsService } from '../services/rewardsService'
+import RewardModal from './RewardModal'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2 } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -65,6 +67,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [qrStatus, setQrStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [qrResult, setQrResult] = useState<any>(null);
   const [nfcTimeoutId, setNfcTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  // Rewards management state
+  const [rewards, setRewards] = useState<Reward[]>([])
+  const [rewardsLoading, setRewardsLoading] = useState(false)
+  const [showRewardModal, setShowRewardModal] = useState(false)
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null)
+  const [rewardModalLoading, setRewardModalLoading] = useState(false)
 
   // FORCE RESET NFC STATE on component mount to prevent stuck states
   useEffect(() => {
@@ -698,6 +707,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }, [activeSection])
 
+  useEffect(() => {
+    if (activeSection === 'rewards') {
+      fetchRewards()
+    }
+  }, [activeSection])
+
   // OTTIMIZZAZIONE: Ricerca debounced per performance migliore nella gestione tessere
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -790,6 +805,96 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       setCustomerStats({ total: 0, male: 0, female: 0, withNotifications: 0 })
     } finally {
       setCustomersLoading(false)
+    }
+  }
+
+  const fetchRewards = async () => {
+    try {
+      setRewardsLoading(true)
+      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
+      const rewardsData = await rewardsService.getAll(organizationId)
+      setRewards(rewardsData)
+      console.log(`✅ Caricati ${rewardsData.length} premi per organization ${organizationId}`)
+    } catch (err) {
+      console.error('❌ Errore nel caricamento premi dal database:', err)
+      // In caso di errore, non mostrare errore per i premi (tabella potrebbe non esistere ancora)
+      setRewards([])
+    } finally {
+      setRewardsLoading(false)
+    }
+  }
+
+  // Reward management functions
+  const handleAddReward = () => {
+    setSelectedReward(null)
+    setShowRewardModal(true)
+  }
+
+  const handleEditReward = (reward: Reward) => {
+    setSelectedReward(reward)
+    setShowRewardModal(true)
+  }
+
+  const handleDeleteReward = async (rewardId: string) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo premio?')) {
+      return
+    }
+
+    try {
+      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
+      await rewardsService.delete(rewardId, organizationId)
+      console.log('✅ Premio eliminato con successo')
+      // Ricarica i premi
+      fetchRewards()
+    } catch (error) {
+      console.error('❌ Errore eliminazione premio:', error)
+      if (error instanceof Error) {
+        setError(`Errore eliminazione premio: ${error.message}`)
+      }
+    }
+  }
+
+  const handleToggleRewardStatus = async (rewardId: string, isActive: boolean) => {
+    try {
+      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
+      await rewardsService.toggleStatus(rewardId, organizationId, isActive)
+      console.log(`✅ Status premio aggiornato: ${isActive ? 'attivo' : 'inattivo'}`)
+      // Ricarica i premi
+      fetchRewards()
+    } catch (error) {
+      console.error('❌ Errore aggiornamento status premio:', error)
+      if (error instanceof Error) {
+        setError(`Errore aggiornamento status: ${error.message}`)
+      }
+    }
+  }
+
+  const handleSaveReward = async (rewardData: any) => {
+    try {
+      setRewardModalLoading(true)
+      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
+
+      if (selectedReward) {
+        // Update existing reward
+        await rewardsService.update(selectedReward.id, organizationId, rewardData)
+        console.log('✅ Premio aggiornato con successo')
+      } else {
+        // Create new reward
+        await rewardsService.create(organizationId, rewardData)
+        console.log('✅ Nuovo premio creato con successo')
+      }
+
+      setShowRewardModal(false)
+      setSelectedReward(null)
+      // Ricarica i premi
+      fetchRewards()
+    } catch (error) {
+      console.error('❌ Errore salvataggio premio:', error)
+      if (error instanceof Error) {
+        setError(`Errore salvataggio premio: ${error.message}`)
+      }
+    } finally {
+      setRewardModalLoading(false)
     }
   }
 
@@ -1206,22 +1311,27 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           <div className="section-content">
             <div className="section-header">
               <Award size={24} />
-              <h2>Premi Predefiniti</h2>
-              <p>Gestisci i premi configurati nel wizard</p>
+              <h2>Gestione Premi</h2>
+              <p>Crea e gestisci i premi del sistema di fedeltà</p>
             </div>
 
             <div className="rewards-management">
               <div className="management-header">
-                <button className="btn-primary">
+                <button className="btn-primary" onClick={handleAddReward}>
                   <Plus size={16} />
                   Aggiungi Premio
                 </button>
               </div>
 
-              {currentOrganization?.default_rewards && currentOrganization.default_rewards.length > 0 ? (
+              {rewardsLoading ? (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p>Caricamento premi...</p>
+                </div>
+              ) : rewards.length > 0 ? (
                 <div className="cards-grid">
-                  {currentOrganization.default_rewards.map((reward, index) => (
-                    <div key={index} className="feature-card reward-card enhanced">
+                  {rewards.map((reward) => (
+                    <div key={reward.id} className="feature-card reward-card enhanced">
                       {/* Immagine Premio */}
                       <div className="reward-image">
                         {reward.image_url ? (
@@ -1237,10 +1347,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         <div className="reward-header">
                           <h3>{reward.name}</h3>
                           <div className="reward-actions">
-                            <button className="btn-edit" title="Modifica">
+                            <button
+                              className="btn-edit"
+                              title="Modifica"
+                              onClick={() => handleEditReward(reward)}
+                            >
                               <Edit2 size={16} />
                             </button>
-                            <button className="btn-delete" title="Elimina">
+                            <button
+                              className="btn-delete"
+                              title="Elimina"
+                              onClick={() => handleDeleteReward(reward.id)}
+                            >
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -1249,7 +1367,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         <div className="reward-details">
                           <div className="reward-points">
                             <Target size={16} />
-                            <strong>{reward.points || 'N/A'} punti</strong>
+                            <strong>{reward.points_required} punti</strong>
                           </div>
                           <div className="reward-type">
                             <strong>Tipo:</strong> {reward.type}
@@ -1262,32 +1380,42 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                               {reward.description}
                             </div>
                           )}
+                          {reward.stock_quantity && (
+                            <div className="reward-stock">
+                              <strong>Stock:</strong> {reward.stock_quantity}
+                            </div>
+                          )}
                         </div>
 
                         <div className="reward-status">
                           <label className="toggle-switch">
                             <input
                               type="checkbox"
-                              checked={reward.is_active !== false}
-                              onChange={() => {/* TODO: Toggle active */}}
+                              checked={reward.is_active}
+                              onChange={(e) => handleToggleRewardStatus(reward.id, e.target.checked)}
                             />
                             <span className="slider"></span>
                           </label>
                           <span className="status-label">
-                            {reward.is_active !== false ? 'Attivo' : 'Disattivo'}
+                            {reward.is_active ? 'Attivo' : 'Disattivo'}
                           </span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-            ) : (
-              <div className="empty-state">
-                <Award size={48} />
-                <h3>Nessun premio configurato</h3>
-                <p>I premi predefiniti vengono configurati durante la creazione dell'organizzazione tramite wizard.</p>
-              </div>
-            )}
+              ) : (
+                <div className="empty-state">
+                  <Award size={48} />
+                  <h3>Nessun premio configurato</h3>
+                  <p>Inizia creando il tuo primo premio per il sistema di fedeltà.</p>
+                  <button className="btn-primary" onClick={handleAddReward}>
+                    <Plus size={16} />
+                    Crea Primo Premio
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )
 
@@ -2044,6 +2172,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           // TODO: Implement actual upgrade logic
           alert(`Upgrade a ${plan} non ancora implementato`)
         }}
+      />
+
+      {/* Reward Modal */}
+      <RewardModal
+        isOpen={showRewardModal}
+        onClose={() => setShowRewardModal(false)}
+        onSave={handleSaveReward}
+        reward={selectedReward}
+        isLoading={rewardModalLoading}
       />
     </div>
   )

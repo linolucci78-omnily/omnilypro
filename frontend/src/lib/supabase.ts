@@ -174,6 +174,24 @@ export interface CustomerActivity {
   customer?: Customer
 }
 
+export interface Reward {
+  id: string
+  organization_id: string
+  name: string
+  type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
+  value: number | string
+  points_required: number
+  description: string
+  image_url?: string
+  is_active: boolean
+  stock_quantity?: number
+  valid_from?: string
+  valid_until?: string
+  terms_conditions?: string
+  created_at: string
+  updated_at: string
+}
+
 // API functions
 export const organizationsApi = {
   // Get all organizations
@@ -641,5 +659,142 @@ export const customerActivitiesApi = {
 
     if (error) throw error
     return data || []
+  }
+}
+
+// Rewards API
+export const rewardsApi = {
+  // Get all rewards for an organization
+  async getAll(organizationId: string): Promise<Reward[]> {
+    const { data, error } = await supabase
+      .from('rewards')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get active rewards for an organization
+  async getActive(organizationId: string): Promise<Reward[]> {
+    const { data, error } = await supabase
+      .from('rewards')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+      .order('points_required', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get reward by ID
+  async getById(id: string, organizationId: string): Promise<Reward | null> {
+    const { data, error } = await supabase
+      .from('rewards')
+      .select('*')
+      .eq('id', id)
+      .eq('organization_id', organizationId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows found
+    return data
+  },
+
+  // Create new reward
+  async create(organizationId: string, rewardData: Omit<Reward, 'id' | 'organization_id' | 'created_at' | 'updated_at'>): Promise<Reward> {
+    const { data, error } = await supabase
+      .from('rewards')
+      .insert([{
+        ...rewardData,
+        organization_id: organizationId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Update reward
+  async update(id: string, organizationId: string, updates: Partial<Reward>): Promise<Reward> {
+    const { data, error } = await supabase
+      .from('rewards')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('organization_id', organizationId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete reward
+  async delete(id: string, organizationId: string): Promise<void> {
+    const { error } = await supabase
+      .from('rewards')
+      .delete()
+      .eq('id', id)
+      .eq('organization_id', organizationId)
+
+    if (error) throw error
+  },
+
+  // Toggle reward status
+  async toggleStatus(id: string, organizationId: string, isActive: boolean): Promise<Reward> {
+    return this.update(id, organizationId, { is_active: isActive })
+  },
+
+  // Get rewards statistics
+  async getStats(organizationId: string) {
+    const { data: all, error } = await supabase
+      .from('rewards')
+      .select('id, type, is_active, points_required, created_at')
+      .eq('organization_id', organizationId)
+
+    if (error) throw error
+
+    const now = new Date()
+    const monthAgo = new Date()
+    monthAgo.setMonth(monthAgo.getMonth() - 1)
+
+    return {
+      total: all.length,
+      active: all.filter(r => r.is_active).length,
+      inactive: all.filter(r => !r.is_active).length,
+      byType: {
+        discount: all.filter(r => r.type === 'discount').length,
+        freeProduct: all.filter(r => r.type === 'freeProduct').length,
+        cashback: all.filter(r => r.type === 'cashback').length,
+        giftCard: all.filter(r => r.type === 'giftCard').length
+      },
+      newThisMonth: all.filter(r => new Date(r.created_at) >= monthAgo).length
+    }
+  },
+
+  // Get available rewards for customer based on points
+  async getAvailableForCustomer(organizationId: string, customerPoints: number): Promise<Reward[]> {
+    const { data, error } = await supabase
+      .from('rewards')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+      .lte('points_required', customerPoints)
+      .order('points_required', { ascending: true })
+
+    if (error) throw error
+
+    // Filter by stock and validity
+    const now = new Date()
+    return (data || []).filter(reward => {
+      if (reward.stock_quantity && reward.stock_quantity <= 0) return false
+      if (reward.valid_from && new Date(reward.valid_from) > now) return false
+      if (reward.valid_until && new Date(reward.valid_until) < now) return false
+      return true
+    })
   }
 }
