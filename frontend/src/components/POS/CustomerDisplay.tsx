@@ -497,7 +497,7 @@ const CustomerDisplay: React.FC = () => {
         )}
       </div>
 
-      {/* Celebration Overlay */}
+      {/* Celebration Screen - SEMPLIFICATA per monitor 4" */}
       {showCelebration && celebrationData && (
         <div style={{
           position: 'fixed',
@@ -505,46 +505,100 @@ const CustomerDisplay: React.FC = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           zIndex: 9999,
           color: 'white',
-          textAlign: 'center'
+          textAlign: 'center',
+          padding: '2rem'
         }}>
+
+          {/* Icona grande di successo */}
           <div style={{
-            background: 'linear-gradient(135deg, #10b981, #059669)',
-            padding: '2rem',
-            borderRadius: '16px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
-            animation: 'pulse 2s infinite'
+            fontSize: '6rem',
+            marginBottom: '2rem',
+            animation: 'bounce 1s ease-in-out'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-            <h2 style={{ margin: '0 0 1rem 0', fontSize: '2rem' }}>
-              Vendita Completata!
-            </h2>
-            <p style={{ margin: '0 0 1rem 0', fontSize: '1.2rem' }}>
-              Grazie {celebrationData.customerName}!
-            </p>
+            ✅
+          </div>
+
+          {/* Nome cliente molto grande */}
+          <h1 style={{
+            margin: '0 0 2rem 0',
+            fontSize: '3.5rem',
+            fontWeight: 'bold',
+            textShadow: '0 4px 8px rgba(0,0,0,0.3)'
+          }}>
+            Grazie {celebrationData.customerName}!
+          </h1>
+
+          {/* Messaggio principale */}
+          <div style={{
+            fontSize: '2.2rem',
+            fontWeight: '600',
+            marginBottom: '3rem',
+            opacity: 0.95
+          }}>
+            Vendita Completata!
+          </div>
+
+          {/* Informazioni transazione - Layout grande e pulito */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            padding: '3rem',
+            borderRadius: '20px',
+            marginBottom: '2rem',
+            backdropFilter: 'blur(10px)',
+            border: '2px solid rgba(255, 255, 255, 0.3)'
+          }}>
             <div style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              padding: '1rem',
-              borderRadius: '8px',
+              fontSize: '4.5rem',
+              fontWeight: 'bold',
               marginBottom: '1rem'
             }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-                €{celebrationData.amount.toFixed(2)}
-              </div>
-              <div style={{ fontSize: '1rem', opacity: 0.9 }}>
-                +{celebrationData.pointsEarned} punti guadagnati!
-              </div>
-              <div style={{ fontSize: '1rem', opacity: 0.9 }}>
-                Totale punti: {celebrationData.newTotalPoints}
-              </div>
+              €{celebrationData.amount.toFixed(2)}
+            </div>
+            <div style={{
+              fontSize: '2rem',
+              marginBottom: '1rem',
+              opacity: 0.95
+            }}>
+              +{celebrationData.pointsEarned} punti guadagnati!
+            </div>
+            <div style={{
+              fontSize: '1.8rem',
+              opacity: 0.9
+            }}>
+              Totale punti: {celebrationData.newTotalPoints}
             </div>
           </div>
+
+          {/* Messaggio finale */}
+          <div style={{
+            fontSize: '1.6rem',
+            opacity: 0.9,
+            animation: 'pulse 2s infinite'
+          }}>
+            Arrivederci e a presto! 👋
+          </div>
+
+          {/* Stili per le animazioni */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                40% { transform: translateY(-20px); }
+                60% { transform: translateY(-10px); }
+              }
+              @keyframes pulse {
+                0%, 100% { opacity: 0.7; }
+                50% { opacity: 1; }
+              }
+            `
+          }} />
         </div>
       )}
 
