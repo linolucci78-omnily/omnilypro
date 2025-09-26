@@ -87,6 +87,59 @@
   }
 }
 
+/* Tier Requirement Toggle Checkbox */
+.tier-requirement-toggle {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  accent-color: #ef4444; /* Brand color */
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  border-color: #ef4444;
+}
+
+.checkbox-text {
+  font-weight: 500;
+  user-select: none;
+}
+
+/* POS: Larger checkbox for touch */
+@media (max-width: 1024px) {
+  .checkbox-label input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+  }
+
+  .checkbox-label {
+    font-size: 1.1rem;
+    gap: 1rem;
+  }
+
+  .tier-requirement-toggle {
+    padding: 1rem;
+  }
+}
+
 .form-section {
   margin-bottom: 2rem;
 }
