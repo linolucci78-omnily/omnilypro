@@ -107,15 +107,15 @@ const CustomerDisplay: React.FC = () => {
         coin.className = 'coin';
         coin.style.left = Math.random() * 100 + '%';
         coin.style.animationDelay = Math.random() * 2 + 's';
-        coin.style.animationDuration = (3 + Math.random() * 2) + 's';
+        coin.style.animationDuration = (1.5 + Math.random() * 1) + 's';
         coinsContainer!.appendChild(coin);
 
         console.log(`🪙 Moneta ${i + 1}/15 creata`);
 
-        // Rimuovi la moneta dopo l'animazione
+        // Rimuovi la moneta dopo l'animazione più veloce
         setTimeout(() => {
           coin.remove();
-        }, 5000);
+        }, 3000);
       }, i * 200);
     }
 
