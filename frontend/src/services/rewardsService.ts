@@ -12,6 +12,7 @@ export interface Reward {
   type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
   value: number | string
   points_required: number
+  required_tier?: string // Livello di fedeltà richiesto (es. 'Iniziale', 'Affezionato', 'VIP')
   description: string
   image_url?: string
   is_active: boolean
@@ -28,6 +29,7 @@ export interface RewardInput {
   type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
   value: number | string
   points_required: number
+  required_tier?: string // Livello di fedeltà richiesto
   description: string
   image_url?: string
   is_active: boolean
@@ -131,6 +133,7 @@ export class RewardsService {
         type: rewardData.type,
         value: rewardData.value,
         points_required: rewardData.points_required,
+        required_tier: rewardData.required_tier || null,
         description: rewardData.description,
         image_url: imageUrl,
         is_active: rewardData.is_active,
@@ -367,9 +370,9 @@ export class RewardsService {
   }
 
   /**
-   * Get rewards available for customer based on points
+   * Get rewards available for customer based on points AND loyalty tier
    */
-  async getAvailableForCustomer(organizationId: string, customerPoints: number): Promise<Reward[]> {
+  async getAvailableForCustomer(organizationId: string, customerPoints: number, customerTier?: string, loyaltyTiers?: any[]): Promise<Reward[]> {
     try {
       const { data, error } = await supabase
         .from('rewards')
@@ -384,8 +387,9 @@ export class RewardsService {
         throw error
       }
 
-      // Filter by stock quantity if applicable
+      // Filter by stock quantity, validity dates, and loyalty tier
       const availableRewards = (data || []).filter(reward => {
+        // Check stock quantity
         if (reward.stock_quantity && reward.stock_quantity <= 0) {
           return false
         }
@@ -397,6 +401,31 @@ export class RewardsService {
         }
         if (reward.valid_until && new Date(reward.valid_until) < now) {
           return false
+        }
+
+        // Check loyalty tier requirement
+        if (reward.required_tier && customerTier && loyaltyTiers) {
+          console.log(`🏆 Checking tier requirement: Reward needs '${reward.required_tier}', Customer has '${customerTier}'`);
+
+          // Find customer tier index
+          const customerTierData = loyaltyTiers.find(tier => tier.name === customerTier);
+          const requiredTierData = loyaltyTiers.find(tier => tier.name === reward.required_tier);
+
+          if (!customerTierData || !requiredTierData) {
+            console.log(`⚠️ Tier not found: Customer='${customerTier}', Required='${reward.required_tier}'`);
+            return false;
+          }
+
+          // Compare tier thresholds (customer must have >= required tier threshold)
+          const customerTierThreshold = parseInt(customerTierData.threshold);
+          const requiredTierThreshold = parseInt(requiredTierData.threshold);
+
+          if (customerTierThreshold < requiredTierThreshold) {
+            console.log(`❌ Tier too low: Customer threshold=${customerTierThreshold}, Required threshold=${requiredTierThreshold}`);
+            return false;
+          }
+
+          console.log(`✅ Tier check passed: Customer threshold=${customerTierThreshold} >= Required threshold=${requiredTierThreshold}`);
         }
 
         return true

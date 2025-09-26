@@ -7,6 +7,7 @@ import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOu
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
+import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import UpgradePrompt from './UpgradePrompt'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -420,6 +421,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Card Management Panel states
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
+  const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -1875,7 +1877,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Configurazione Account</h3>
                 <p>Gestisci le impostazioni del tuo account e profilo</p>
-                <button className="btn-primary">Configura</button>
+                <button className="btn-primary" onClick={() => setShowLoyaltyTiersPanel(true)}>Configura</button>
               </div>
               <div className="feature-card">
                 <h3>Fatturazione</h3>
@@ -2160,6 +2162,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }}
       />
 
+      {/* Loyalty Tiers Configuration Panel */}
+      <LoyaltyTiersConfigPanel
+        isOpen={showLoyaltyTiersPanel}
+        onClose={() => setShowLoyaltyTiersPanel(false)}
+        organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
+        organization={organizations.length > 0 ? organizations[0] : null}
+        onSaved={() => {
+          console.log('Loyalty tiers saved successfully');
+          fetchOrganizations(); // Reload organizations to get updated tiers
+        }}
+      />
+
       {/* Upgrade Prompt */}
       <UpgradePrompt
         isOpen={showUpgradePrompt}
@@ -2181,6 +2195,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onSave={handleSaveReward}
         reward={selectedReward}
         isLoading={rewardModalLoading}
+        loyaltyTiers={organizations.length > 0 ? organizations[0].loyalty_tiers : []}
       />
     </div>
   )

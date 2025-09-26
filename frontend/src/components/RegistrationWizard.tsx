@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Mail, FileText, Shield, Printer, Download } from 'lucide-react';
-import { customersApi } from '../lib/supabase';
+import { customersApi, supabase } from '../lib/supabase';
 import GDPRConsent from './GDPRConsent';
 import './RegistrationWizard.css';
 
@@ -40,12 +40,54 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [duplicateWarning, setDuplicateWarning] = useState('');
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [organization, setOrganization] = useState<any>(null);
+  const [loadingOrganization, setLoadingOrganization] = useState(false);
 
   const addDebugInfo = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     const debugMessage = `${timestamp}: ${message}`;
     setDebugInfo(prev => [...prev.slice(-4), debugMessage]); // Keep last 5 messages
     console.log(debugMessage);
+  };
+
+  // Fetch organization data dynamically from database
+  const fetchOrganization = async () => {
+    if (!organizationId) return;
+
+    setLoadingOrganization(true);
+    try {
+      console.log('🏢 Fetching organization data for:', organizationId);
+
+      const { data: orgData, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', organizationId)
+        .single();
+
+      if (error) {
+        console.error('❌ Error fetching organization:', error);
+        addDebugInfo(`❌ Error loading organization: ${error.message}`);
+        return;
+      }
+
+      console.log('✅ Organization data loaded:', orgData);
+      console.log('🏆 Loyalty tiers from DB:', orgData.loyalty_tiers);
+
+      setOrganization(orgData);
+      addDebugInfo(`✅ Organization loaded: ${orgData.name}`);
+
+      if (orgData.loyalty_tiers && orgData.loyalty_tiers.length > 0) {
+        addDebugInfo(`🏆 Found ${orgData.loyalty_tiers.length} custom loyalty tiers`);
+      } else {
+        addDebugInfo('⚠️ No custom loyalty tiers found, using defaults');
+      }
+
+    } catch (error: any) {
+      console.error('❌ Exception fetching organization:', error);
+      addDebugInfo(`❌ Exception: ${error.message}`);
+    } finally {
+      setLoadingOrganization(false);
+    }
   };
 
   // Smoothing helpers for better signature quality
@@ -90,8 +132,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     if (isOpen) {
       resetForm();
       initCanvas();
+      fetchOrganization(); // Fetch latest organization data from DB
     }
-  }, [isOpen]);
+  }, [isOpen, organizationId]);
 
   const resetForm = () => {
     setCurrentStep(1);
@@ -885,6 +928,36 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   };
 
   const calculateTier = (points: number) => {
+    console.log('🏆 calculateTier called with points:', points);
+    console.log('🏆 organization.loyalty_tiers:', organization?.loyalty_tiers);
+
+    // Use organization's loyalty_tiers from wizard if available
+    if (organization?.loyalty_tiers && organization.loyalty_tiers.length > 0) {
+      console.log('✅ Using organization loyalty tiers from wizard');
+
+      // Sort tiers by threshold (highest first)
+      const sortedTiers = [...organization.loyalty_tiers].sort((a, b) =>
+        parseInt(b.threshold) - parseInt(a.threshold)
+      );
+
+      console.log('🏆 Sorted tiers:', sortedTiers);
+
+      // Find the appropriate tier for the points
+      for (const tier of sortedTiers) {
+        if (points >= parseInt(tier.threshold)) {
+          console.log(`✅ Found tier: ${tier.name} for ${points} points (threshold: ${tier.threshold})`);
+          return tier.name;
+        }
+      }
+
+      // If no tier matches, return the first tier (lowest threshold)
+      const defaultTier = sortedTiers[sortedTiers.length - 1]?.name || 'Bronze';
+      console.log(`🏆 Using default tier: ${defaultTier}`);
+      return defaultTier;
+    }
+
+    // Fallback to hardcoded tiers if organization data not available
+    console.log('⚠️ Using fallback hardcoded tiers');
     if (points >= 500) return 'Platinum';
     if (points >= 300) return 'Gold';
     if (points >= 100) return 'Silver';
@@ -987,6 +1060,52 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         return (
           <div className="wizard-step-content">
             <h3>Dati Personali</h3>
+
+            {/* Loading indicator for organization data */}
+            {loadingOrganization && (
+              <div style={{
+                padding: '10px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                border: '1px solid #bae6fd',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #3b82f6',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                <span style={{ color: '#1e40af', fontSize: '14px' }}>
+                  Caricamento dati organizzazione...
+                </span>
+              </div>
+            )}
+
+            {/* Show organization info when loaded */}
+            {organization && !loadingOrganization && (
+              <div style={{
+                padding: '10px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                border: '1px solid #bae6fd'
+              }}>
+                <div style={{ color: '#1e40af', fontSize: '14px', fontWeight: '600' }}>
+                  🏢 {organization.name}
+                </div>
+                {organization.loyalty_tiers && organization.loyalty_tiers.length > 0 && (
+                  <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                    🏆 {organization.loyalty_tiers.length} livelli loyalty personalizzati
+                  </div>
+                )}
+              </div>
+            )}
             <div className="form-row">
               <div className="form-group">
                 <label>Nome *</label>
