@@ -2038,6 +2038,15 @@
     border-radius: 8px !important;
   }
 
+  /* LOGOUT BUTTON - Bigger for POS visibility */
+  .btn-logout {
+    padding: 18px !important;
+    border-radius: 12px !important;
+    border-width: 3px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+  }
+
   /* NFC CONTROLS - Touch optimized */
   .nfc-result {
     font-size: 1.1rem !important;

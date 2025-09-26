@@ -1946,7 +1946,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
           <div className="header-actions">
             <button className="btn-logout">
-              <LogOut size={28} />
+              <LogOut size={36} />
             </button>
           </div>
         </header>
