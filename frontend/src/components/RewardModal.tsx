@@ -208,14 +208,15 @@ const RewardModal: React.FC<RewardModalProps> = ({
                     <img src={imagePreview} alt="Preview" />
                     <button
                       type="button"
-                      className="remove-image"
+                      className="remove-image-btn"
                       onClick={() => {
                         setImagePreview('');
                         setImageFile(null);
                         handleInputChange('image_url', '');
                       }}
+                      title="Rimuovi immagine"
                     >
-                      <X size={16} />
+                      🗑️
                     </button>
                   </div>
                 ) : (
@@ -288,20 +289,6 @@ const RewardModal: React.FC<RewardModalProps> = ({
 
               {loyaltyTiers && loyaltyTiers.length > 0 && (
                 <div className="form-group">
-                  <label className="form-label">Livello Richiesto</label>
-                  <select
-                    value={formData.required_tier || ''}
-                    onChange={(e) => handleInputChange('required_tier', e.target.value || undefined)}
-                    className="form-input"
-                    disabled={isLoading}
-                  >
-                    <option value="">Nessun livello richiesto</option>
-                    {loyaltyTiers.map((tier: any) => (
-                      <option key={tier.name} value={tier.name}>
-                        {tier.name} ({tier.threshold}+ punti)
-                      </option>
-                    ))}
-                  </select>
                   <div className="tier-requirement-toggle">
                     <label className="checkbox-label">
                       <input
@@ -324,6 +311,24 @@ const RewardModal: React.FC<RewardModalProps> = ({
                       </span>
                     </label>
                   </div>
+
+                  {formData.required_tier && (
+                    <div className="tier-select-group">
+                      <label className="form-label">Livello Richiesto</label>
+                      <select
+                        value={formData.required_tier || ''}
+                        onChange={(e) => handleInputChange('required_tier', e.target.value || undefined)}
+                        className="form-input"
+                        disabled={isLoading}
+                      >
+                        {loyaltyTiers.map((tier: any) => (
+                          <option key={tier.name} value={tier.name}>
+                            {tier.name} ({tier.threshold}+ punti)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
 
