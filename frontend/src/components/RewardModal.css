@@ -22,7 +22,7 @@
   width: 100%;
   max-width: 700px;
   max-height: 90vh;
-  overflow: hidden;
+  overflow: visible; /* Permette scroll nel content */
   display: flex;
   flex-direction: column;
   transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Standard ROADMAP */
@@ -77,6 +77,14 @@
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
+}
+
+/* Desktop: Fix scrolling per modal lunghi */
+@media (min-width: 1025px) {
+  .reward-modal-content {
+    max-height: calc(90vh - 140px); /* Sottrae header + footer */
+    overflow-y: auto;
+  }
 }
 
 .form-section {
