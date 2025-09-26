@@ -4,7 +4,8 @@ import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
 
-import type { Customer, CustomerActivity, customerActivitiesApi } from '../lib/supabase';
+import type { Customer, CustomerActivity } from '../lib/supabase';
+import { customerActivitiesApi } from '../lib/supabase';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
