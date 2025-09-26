@@ -1873,13 +1873,13 @@
   }
 
   .customer-list-header h2 {
-    font-size: 2rem !important;
+    font-size: 1.4rem !important;
     font-weight: 700 !important;
   }
 
   .customer-list-header p {
-    font-size: 1.2rem !important;
-    margin-top: 10px !important;
+    font-size: 1rem !important;
+    margin-top: 8px !important;
   }
 
   /* CUSTOMER STATS - Touch-friendly cards */
@@ -1891,10 +1891,10 @@
   }
 
   .customer-stat-card {
-    padding: 24px !important;
-    gap: 16px !important;
-    min-height: 120px !important;
-    border-radius: 12px !important;
+    padding: 16px !important;
+    gap: 12px !important;
+    min-height: 90px !important;
+    border-radius: 8px !important;
     border-width: 2px !important;
   }
 
@@ -1929,11 +1929,11 @@
   }
 
   .customer-table-controls .search-bar input {
-    padding: 20px 24px !important;
-    font-size: 1.2rem !important;
-    min-height: 70px !important;
-    border-width: 3px !important;
-    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    font-size: 1rem !important;
+    min-height: 56px !important;
+    border-width: 2px !important;
+    border-radius: 8px !important;
   }
 
   .customer-table-controls .table-actions {
@@ -1944,11 +1944,11 @@
 
   .customer-table-controls .btn-secondary,
   .customer-table-controls .btn-primary {
-    padding: 20px 32px !important;
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-    min-height: 70px !important;
-    min-width: 180px !important;
+    padding: 14px 24px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    min-height: 56px !important;
+    min-width: 140px !important;
     border-radius: 12px !important;
     border-width: 3px !important;
     gap: 12px !important;
@@ -1963,45 +1963,45 @@
   }
 
   .customer-table-new {
-    font-size: 1.1rem !important;
+    font-size: 0.95rem !important;
     min-width: 100% !important;
   }
 
   .customer-table-new thead th {
-    padding: 20px 16px !important;
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-    min-height: 70px !important;
-    border-bottom-width: 3px !important;
-  }
-
-  .customer-table-new tbody td {
-    padding: 20px 16px !important;
-    font-size: 1.1rem !important;
-    min-height: 80px !important;
+    padding: 16px 14px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    min-height: 56px !important;
     border-bottom-width: 2px !important;
   }
 
+  .customer-table-new tbody td {
+    padding: 14px 14px !important;
+    font-size: 0.95rem !important;
+    min-height: 64px !important;
+    border-bottom-width: 1px !important;
+  }
+
   .customer-table-new tbody tr {
-    min-height: 80px !important;
+    min-height: 64px !important;
   }
 
   .customer-table-new tbody tr:hover {
     background-color: #f8fafc !important;
   }
 
-  /* CUSTOMER ROW CONTENT - Bigger text */
+  /* CUSTOMER ROW CONTENT - Proportionate text */
   .customer-name-new {
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
   }
 
   .customer-id {
-    font-size: 1rem !important;
+    font-size: 0.85rem !important;
   }
 
   .contact-item {
-    font-size: 1rem !important;
+    font-size: 0.9rem !important;
     margin: 8px 0 !important;
   }
 
@@ -2033,9 +2033,9 @@
 
   /* AVATAR - Bigger for touch */
   .customer-avatar-new {
-    width: 50px !important;
-    height: 50px !important;
-    border-radius: 10px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 8px !important;
   }
 
   /* NFC CONTROLS - Touch optimized */
