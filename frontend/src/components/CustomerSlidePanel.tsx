@@ -211,23 +211,41 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           //   (window as any).OmnilyPOS.beep("1", "300"); // Beep lungo di successo
           // }
 
-          // CELEBRAZIONE finale con pioggia di monete
+          // PRIMA: Conferma transazione in corso
           if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
-            console.log('🎉 Inviando SALE_CELEBRATION al customer display...');
+            console.log('💳 Inviando conferma transazione...');
             (window as any).updateCustomerDisplay({
-              type: 'SALE_CELEBRATION',
-              celebration: {
+              type: 'SALE_CONFIRMING',
+              confirmation: {
                 customerName: customer.name,
                 amount: amount,
+                formattedAmount: `€${amount.toFixed(2)}`,
                 pointsEarned: pointsEarned,
-                oldPoints: customer.points,
-                newTotalPoints: result.customer?.points || (customer.points + pointsEarned),
-                tier: customer.tier,
-                showCoinsRain: true, // Attiva pioggia di monete
-                duration: 4000 // Celebrazione per 4 secondi
+                message: 'Processando la transazione...',
+                phase: 'confirming'
               }
             });
-            console.log('✅ Messaggio SALE_CELEBRATION inviato');
+
+            // DOPO 1 secondo: CELEBRAZIONE finale
+            setTimeout(() => {
+              console.log('🎉 Inviando SALE_CELEBRATION al customer display...');
+              (window as any).updateCustomerDisplay({
+                type: 'SALE_CELEBRATION',
+                celebration: {
+                  customerName: customer.name,
+                  amount: amount,
+                  formattedAmount: `€${amount.toFixed(2)}`,
+                  pointsEarned: pointsEarned,
+                  oldPoints: customer.points,
+                  newTotalPoints: result.customer?.points || (customer.points + pointsEarned),
+                  tier: customer.tier,
+                  showCoinsRain: true,
+                  duration: 4000,
+                  message: `Hai guadagnato ${pointsEarned} punti!`
+                }
+              });
+              console.log('✅ Messaggio SALE_CELEBRATION inviato');
+            }, 1000);
           } else {
             console.error('❌ updateCustomerDisplay non disponibile!');
           }
