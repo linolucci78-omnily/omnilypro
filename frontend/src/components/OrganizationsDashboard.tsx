@@ -421,9 +421,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     incrementCustomerVisits(customer.id)
 
     // Registra l'attività visita nel database
-    if (selectedOrganization) {
+    if (currentOrganization) {
       customerActivitiesApi.create({
-        organization_id: selectedOrganization.id,
+        organization_id: currentOrganization.id,
         customer_id: customer.id,
         type: 'visit',
         description: `Visita cliente - ${customer.name} selezionato dal POS`
@@ -566,10 +566,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       console.log(`Punti aggiornati: ${currentCustomer.points} -> ${newPoints}`);
 
       // Registra l'attività nel database
-      if (selectedOrganization) {
+      if (currentOrganization) {
         try {
           await customerActivitiesApi.create({
-            organization_id: selectedOrganization.id,
+            organization_id: currentOrganization.id,
             customer_id: customerId,
             type: 'points_added',
             description: `Punti aggiunti manualmente: +${points} punti`,
@@ -632,10 +632,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       await incrementCustomerVisits(customerId);
 
       // Registra l'attività della transazione nel database
-      if (selectedOrganization) {
+      if (currentOrganization) {
         try {
           await customerActivitiesApi.create({
-            organization_id: selectedOrganization.id,
+            organization_id: currentOrganization.id,
             customer_id: customerId,
             type: 'transaction',
             description: `Transazione completata: €${amount.toFixed(2)} - +${pointsEarned} punti`,
