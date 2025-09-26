@@ -85,17 +85,34 @@ const CustomerDisplay: React.FC = () => {
   const createCoinsRain = () => {
     console.log('🪙 CREAZIONE pioggia monete iniziata...');
 
-    // Riproduci suono pioggia monete
+    // Riproduci suono pioggia monete con diagnostica avanzata
+    console.log('🎵 Tentativo riproduzione coinrain.mp3...');
     try {
       const audio = new Audio('/sounds/coinrain.mp3');
       audio.volume = 0.6; // Volume moderato
+
+      // Log eventi audio per debug
+      audio.addEventListener('loadstart', () => console.log('📥 Audio: Inizio caricamento'));
+      audio.addEventListener('canplay', () => console.log('✅ Audio: Pronto per riproduzione'));
+      audio.addEventListener('play', () => console.log('▶️ Audio: Riproduzione iniziata'));
+      audio.addEventListener('ended', () => console.log('⏹️ Audio: Riproduzione terminata'));
+      audio.addEventListener('error', (e) => console.error('❌ Audio Error:', e));
+
       audio.play().then(() => {
-        console.log('🔊 Suono coinrain.mp3 riprodotto con successo');
+        console.log('🔊 Suono coinrain.mp3 riprodotto con successo!');
       }).catch((error) => {
-        console.warn('⚠️ Impossibile riprodurre coinrain.mp3:', error);
+        console.error('⚠️ Autoplay bloccato dal browser:', error.message);
+        console.log('💡 Suggerimento: Il browser richiede interazione utente per audio');
+
+        // Tentativo alternativo con user gesture
+        document.addEventListener('click', () => {
+          audio.play().then(() => {
+            console.log('🔊 Audio riprodotto dopo click utente');
+          }).catch(e => console.error('❌ Anche con click non funziona:', e));
+        }, { once: true });
       });
     } catch (error) {
-      console.warn('⚠️ Errore caricamento coinrain.mp3:', error);
+      console.error('⚠️ Errore critico caricamento coinrain.mp3:', error);
     }
 
     let coinsContainer = document.getElementById('coins-container');
