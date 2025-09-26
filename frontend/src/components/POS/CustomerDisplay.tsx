@@ -232,287 +232,149 @@ const CustomerDisplay: React.FC = () => {
             )}
           </>
         ) : salePreview ? (
-          // Sale Preview Screen - Layout ricco e professionale
+          // Sale Preview Screen - ULTRA SEMPLIFICATO per monitor 4"
           <div style={{
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            background: 'white',
             padding: '2rem',
             borderRadius: '16px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-            border: '1px solid #e2e8f0',
-            position: 'relative',
-            overflow: 'hidden'
+            textAlign: 'center',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
           }}>
-            {/* Background Pattern */}
+            {/* Customer Name - Large and Clear */}
             <div style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: '200px',
-              height: '200px',
-              background: 'linear-gradient(45deg, rgba(239, 68, 68, 0.05), rgba(220, 38, 38, 0.05))',
-              borderRadius: '50%',
-              transform: 'translate(50%, -50%)'
-            }} />
-
-            {/* Customer Header */}
-            <div style={{
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
               color: 'white',
-              padding: '2rem',
+              padding: '1.5rem',
               borderRadius: '12px',
-              marginBottom: '2rem',
-              position: 'relative',
-              textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
+              marginBottom: '2rem'
             }}>
-              <div style={{
-                position: 'absolute',
-                top: '10px',
-                right: '15px',
-                background: 'rgba(255, 255, 255, 0.2)',
-                padding: '0.5rem',
-                borderRadius: '50%',
-                fontSize: '1.5rem'
-              }}>
-                ⭐
-              </div>
-
               <h2 style={{
-                margin: '0 0 0.5rem 0',
-                fontSize: '2.2rem',
-                fontWeight: 'bold',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                margin: 0,
+                fontSize: '2.5rem',
+                fontWeight: 'bold'
               }}>
-                Ciao {salePreview.customerName}! 👋
+                {salePreview.customerName}
               </h2>
-
               <div style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                display: 'inline-block',
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                marginTop: '0.5rem'
+                fontSize: '1.2rem',
+                marginTop: '0.5rem',
+                opacity: 0.9
               }}>
                 {salePreview.tier} Member
               </div>
             </div>
 
-            {/* Amount Display */}
-            {salePreview.amount > 0 ? (
+            {/* Amount - Very Large and Prominent */}
+            <div style={{
+              background: '#f8fafc',
+              padding: '3rem 2rem',
+              borderRadius: '16px',
+              marginBottom: '2rem',
+              border: '3px solid #e2e8f0'
+            }}>
+              {salePreview.amount > 0 ? (
+                <>
+                  <div style={{
+                    fontSize: '1.2rem',
+                    color: '#64748b',
+                    marginBottom: '1rem'
+                  }}>
+                    IMPORTO
+                  </div>
+                  <div style={{
+                    fontSize: '5rem',
+                    fontWeight: 'bold',
+                    color: '#1e293b',
+                    lineHeight: 1
+                  }}>
+                    €{salePreview.amount.toFixed(2)}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>💰</div>
+                  <div style={{
+                    fontSize: '1.8rem',
+                    color: '#64748b',
+                    fontWeight: '600'
+                  }}>
+                    In attesa dell'importo...
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Points - Simple Two Column Layout */}
+            {salePreview.amount > 0 && (
               <div style={{
-                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                color: 'white',
-                padding: '2.5rem',
-                borderRadius: '16px',
-                marginBottom: '2rem',
-                textAlign: 'center',
-                boxShadow: '0 15px 35px rgba(30, 41, 59, 0.4)',
-                border: '2px solid #334155'
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '1.5rem'
               }}>
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>
-                  IMPORTO VENDITA
-                </div>
+                {/* Points to Earn */}
                 <div style={{
-                  fontSize: '4rem',
-                  fontWeight: 'bold',
-                  marginBottom: '0.5rem',
-                  textShadow: '0 4px 8px rgba(0,0,0,0.3)'
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  color: 'white',
+                  padding: '2rem',
+                  borderRadius: '12px',
+                  textAlign: 'center'
                 }}>
-                  €{salePreview.amount.toFixed(2)}
+                  <div style={{
+                    fontSize: '1rem',
+                    marginBottom: '0.5rem',
+                    opacity: 0.9
+                  }}>
+                    GUADAGNI
+                  </div>
+                  <div style={{
+                    fontSize: '3rem',
+                    fontWeight: 'bold'
+                  }}>
+                    +{salePreview.pointsToEarn}
+                  </div>
+                  <div style={{
+                    fontSize: '1rem',
+                    marginTop: '0.5rem',
+                    opacity: 0.9
+                  }}>
+                    punti
+                  </div>
                 </div>
+
+                {/* Total Points */}
                 <div style={{
-                  fontSize: '1.1rem',
-                  opacity: 0.9,
-                  background: 'rgba(34, 197, 94, 0.2)',
-                  display: 'inline-block',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '20px',
-                  border: '1px solid rgba(34, 197, 94, 0.3)'
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: 'white',
+                  padding: '2rem',
+                  borderRadius: '12px',
+                  textAlign: 'center'
                 }}>
-                  ⚡ Transazione in corso...
-                </div>
-              </div>
-            ) : (
-              <div style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                color: 'white',
-                padding: '3rem',
-                borderRadius: '16px',
-                marginBottom: '2rem',
-                textAlign: 'center',
-                boxShadow: '0 15px 35px rgba(99, 102, 241, 0.4)'
-              }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💰</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '600' }}>
-                  In attesa dell'importo...
-                </div>
-                <div style={{ fontSize: '1rem', opacity: 0.9, marginTop: '0.5rem' }}>
-                  L'operatore sta inserendo l'importo della vendita
+                  <div style={{
+                    fontSize: '1rem',
+                    marginBottom: '0.5rem',
+                    opacity: 0.9
+                  }}>
+                    TOTALE
+                  </div>
+                  <div style={{
+                    fontSize: '3rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {salePreview.newTotalPoints}
+                  </div>
+                  <div style={{
+                    fontSize: '1rem',
+                    marginTop: '0.5rem',
+                    opacity: 0.9
+                  }}>
+                    punti
+                  </div>
                 </div>
               </div>
             )}
-
-            {/* Points Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: '1.5rem',
-              marginBottom: '2rem'
-            }}>
-              {/* Current Points */}
-              <div style={{
-                background: 'white',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.08)',
-                border: '2px solid #f1f5f9',
-                position: 'relative'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '-10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#64748b',
-                  color: 'white',
-                  padding: '0.3rem 0.8rem',
-                  borderRadius: '15px',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold'
-                }}>
-                  ATTUALI
-                </div>
-                <div style={{ fontSize: '2.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>📊</div>
-                <div style={{
-                  fontSize: '2.2rem',
-                  fontWeight: 'bold',
-                  color: '#334155',
-                  marginBottom: '0.5rem'
-                }}>
-                  {salePreview.currentPoints}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#64748b' }}>punti fedeltà</div>
-              </div>
-
-              {/* Earned Points */}
-              <div style={{
-                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                boxShadow: '0 8px 25px rgba(239, 68, 68, 0.15)',
-                border: '2px solid #ef4444',
-                position: 'relative',
-                transform: 'scale(1.05)'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '-10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#dc2626',
-                  color: 'white',
-                  padding: '0.3rem 0.8rem',
-                  borderRadius: '15px',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold',
-                  animation: 'pulse 2s infinite'
-                }}>
-                  GUADAGNI
-                </div>
-                <div style={{ fontSize: '2.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>🎯</div>
-                <div style={{
-                  fontSize: '2.8rem',
-                  fontWeight: 'bold',
-                  color: '#dc2626',
-                  marginBottom: '0.5rem'
-                }}>
-                  +{salePreview.pointsToEarn}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#b91c1c', fontWeight: '600' }}>nuovi punti!</div>
-              </div>
-
-              {/* Total Points */}
-              <div style={{
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                boxShadow: '0 8px 25px rgba(217, 119, 6, 0.15)',
-                border: '2px solid #d97706',
-                position: 'relative'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '-10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#d97706',
-                  color: 'white',
-                  padding: '0.3rem 0.8rem',
-                  borderRadius: '15px',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold'
-                }}>
-                  TOTALE
-                </div>
-                <div style={{ fontSize: '2.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>🏆</div>
-                <div style={{
-                  fontSize: '2.2rem',
-                  fontWeight: 'bold',
-                  color: '#d97706',
-                  marginBottom: '0.5rem'
-                }}>
-                  {salePreview.newTotalPoints}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#92400e', fontWeight: '600' }}>punti totali</div>
-              </div>
-            </div>
-
-            {/* Progress Bar Tier */}
-            <div style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '12px',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-              marginBottom: '1rem'
-            }}>
-              <div style={{
-                fontSize: '0.9rem',
-                color: '#6b7280',
-                marginBottom: '0.5rem',
-                textAlign: 'center'
-              }}>
-                Progresso verso il prossimo livello
-              </div>
-              <div style={{
-                background: '#f3f4f6',
-                height: '10px',
-                borderRadius: '5px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  background: 'linear-gradient(90deg, #ef4444, #f59e0b)',
-                  height: '100%',
-                  width: '65%',
-                  transition: 'width 0.5s ease'
-                }} />
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '0.8rem',
-                color: '#9ca3af',
-                marginTop: '0.5rem'
-              }}>
-                <span>Livello {salePreview.tier}</span>
-                <span>65% completato</span>
-              </div>
-            </div>
-
           </div>
         ) : (
           // Welcome Screen
