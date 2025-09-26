@@ -1299,14 +1299,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       <div className="tier-multiplier">
                         <strong>Moltiplicatore:</strong> {tier.multiplier}x
                       </div>
-                      <div className="tier-benefits">
-                        <strong>Benefici:</strong>
-                        <ul>
-                          {tier.benefits.map((benefit, idx) => (
-                            <li key={idx}>{benefit}</li>
-                          ))}
-                        </ul>
-                      </div>
+                      {tier.benefits && Array.isArray(tier.benefits) && tier.benefits.length > 0 && (
+                        <div className="tier-benefits">
+                          <strong>Benefici:</strong>
+                          <ul>
+                            {tier.benefits.map((benefit, idx) => (
+                              <li key={idx}>{benefit}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1450,7 +1452,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <p>Gestisci le categorie prodotti configurate nel wizard</p>
             </div>
 
-            {currentOrganization?.product_categories && currentOrganization.product_categories.length > 0 ? (
+            {currentOrganization?.product_categories && Array.isArray(currentOrganization.product_categories) && currentOrganization.product_categories.length > 0 ? (
               <div className="cards-grid">
                 {currentOrganization.product_categories.map((category, index) => (
                   <div key={index} className="feature-card category-card">
@@ -1544,13 +1546,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <div className="invites-card">
                   <h3>Inviti Team</h3>
                   <ul className="invites-list">
-                    {currentOrganization.invite_emails.map((email, index) => (
+                    {Array.isArray(currentOrganization.invite_emails) ? currentOrganization.invite_emails.map((email, index) => (
                       <li key={index} className="invite-item">
                         <Mail size={16} />
                         <span>{email}</span>
                         <span className="invite-status">In attesa</span>
                       </li>
-                    ))}
+                    )) : null}
                   </ul>
                 </div>
               ) : (
@@ -1699,7 +1701,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <div className="kpi-card">
                   <h3>KPI Monitorati</h3>
                   <ul className="kpi-list">
-                    {currentOrganization.kpi_tracking.map((kpi, index) => (
+                    {Array.isArray(currentOrganization.kpi_tracking) && currentOrganization.kpi_tracking.map((kpi, index) => (
                       <li key={index} className="kpi-item">
                         <CheckCircle2 size={16} />
                         <span>{kpi.replace('_', ' ').toUpperCase()}</span>
