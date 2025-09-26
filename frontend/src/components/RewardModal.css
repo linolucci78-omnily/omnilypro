@@ -89,11 +89,41 @@
 
 /* Tier Requirement Toggle Checkbox */
 .tier-requirement-toggle {
-  margin-top: 0.75rem;
+  margin-bottom: 1rem;
   padding: 0.75rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+}
+
+.tier-select-group {
+  margin-top: 1rem;
+}
+
+/* Remove Image Button - Improved Design */
+.remove-image-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.remove-image-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .checkbox-label {
@@ -260,27 +290,7 @@
   object-fit: cover;
 }
 
-.remove-image {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.remove-image:hover {
-  background: #b91c1c;
-  transform: scale(1.1);
-}
+/* Old remove-image styles removed - replaced with remove-image-btn */
 
 /* Checkbox */
 .checkbox-group {
