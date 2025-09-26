@@ -181,6 +181,7 @@ export interface Reward {
   type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
   value: number | string
   points_required: number
+  required_tier?: string // Livello di fedeltà richiesto
   description: string
   image_url?: string
   is_active: boolean

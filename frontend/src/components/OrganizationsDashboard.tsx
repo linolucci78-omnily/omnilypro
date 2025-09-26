@@ -1271,9 +1271,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <p>Gestisci i livelli di fedeltà configurati nel wizard</p>
             </div>
 
-            {currentOrganization?.loyalty_tiers && currentOrganization.loyalty_tiers.length > 0 ? (
-              <div className="cards-grid">
-                {currentOrganization.loyalty_tiers.map((tier, index) => (
+            {(() => {
+              const orgData = currentOrganization || organizations[0];
+              const loyaltyTiers = orgData?.loyalty_tiers;
+
+              console.log('🏆 Loyalty Tiers Debug:', {
+                currentOrganization: !!currentOrganization,
+                organizationsLength: organizations.length,
+                orgData: !!orgData,
+                loyaltyTiers: loyaltyTiers
+              });
+
+              return loyaltyTiers && loyaltyTiers.length > 0 ? (
+                <div className="cards-grid">
+                  {loyaltyTiers.map((tier, index) => (
                   <div key={index} className="feature-card tier-card">
                     <div className="tier-header" style={{ borderColor: tier.color }}>
                       <Star size={20} style={{ color: tier.color }} />
@@ -1298,13 +1309,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="empty-state">
-                <Star size={48} />
-                <h3>Nessun livello di fedeltà configurato</h3>
-                <p>I livelli di fedeltà vengono configurati durante la creazione dell'organizzazione tramite wizard.</p>
-              </div>
-            )}
+              ) : (
+                <div className="empty-state">
+                  <Star size={48} />
+                  <h3>Nessun livello di fedeltà configurato</h3>
+                  <p>I livelli di fedeltà vengono configurati durante la creazione dell'organizzazione tramite wizard.</p>
+                </div>
+              );
+            })()}
           </div>
         )
 
@@ -1371,6 +1383,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                             <Target size={16} />
                             <strong>{reward.points_required} punti</strong>
                           </div>
+                          {reward.required_tier && (
+                            <div className="reward-tier">
+                              <Star size={16} />
+                              <strong>Livello:</strong> {reward.required_tier}
+                            </div>
+                          )}
                           <div className="reward-type">
                             <strong>Tipo:</strong> {reward.type}
                           </div>
