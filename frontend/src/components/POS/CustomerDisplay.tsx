@@ -146,8 +146,8 @@ const CustomerDisplay: React.FC = () => {
       fontFamily: 'Inter, sans-serif',
       overflow: 'hidden'
     }}>
-      {/* Header - nascosto durante celebrazioni */}
-      {!showCelebration && (
+      {/* Header - nascosto durante transazioni per ottimizzare spazio */}
+      {!showCelebration && !salePreview && !saleProcessing && (
         <div style={{
           background: '#1e293b',
           color: 'white',
