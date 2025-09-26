@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, organizationsApi, customersApi, nfcCardsApi, customerActivitiesApi } from '../lib/supabase'
 import type { Organization, Customer } from '../lib/supabase'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2 } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
@@ -1210,30 +1210,77 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <p>Gestisci i premi configurati nel wizard</p>
             </div>
 
-            {currentOrganization?.default_rewards && currentOrganization.default_rewards.length > 0 ? (
-              <div className="cards-grid">
-                {currentOrganization.default_rewards.map((reward, index) => (
-                  <div key={index} className="feature-card reward-card">
-                    <div className="reward-header">
-                      <Award size={20} />
-                      <h3>{reward.name}</h3>
-                    </div>
-                    <div className="reward-details">
-                      <div className="reward-type">
-                        <strong>Tipo:</strong> {reward.type}
-                      </div>
-                      <div className="reward-value">
-                        <strong>Valore:</strong> {reward.value}
-                      </div>
-                      {reward.description && (
-                        <div className="reward-description">
-                          <strong>Descrizione:</strong> {reward.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            <div className="rewards-management">
+              <div className="management-header">
+                <button className="btn-primary">
+                  <Plus size={16} />
+                  Aggiungi Premio
+                </button>
               </div>
+
+              {currentOrganization?.default_rewards && currentOrganization.default_rewards.length > 0 ? (
+                <div className="cards-grid">
+                  {currentOrganization.default_rewards.map((reward, index) => (
+                    <div key={index} className="feature-card reward-card enhanced">
+                      {/* Immagine Premio */}
+                      <div className="reward-image">
+                        {reward.image_url ? (
+                          <img src={reward.image_url} alt={reward.name} />
+                        ) : (
+                          <div className="reward-placeholder">
+                            <Award size={32} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="reward-content">
+                        <div className="reward-header">
+                          <h3>{reward.name}</h3>
+                          <div className="reward-actions">
+                            <button className="btn-edit" title="Modifica">
+                              <Edit2 size={16} />
+                            </button>
+                            <button className="btn-delete" title="Elimina">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="reward-details">
+                          <div className="reward-points">
+                            <Target size={16} />
+                            <strong>{reward.points || 'N/A'} punti</strong>
+                          </div>
+                          <div className="reward-type">
+                            <strong>Tipo:</strong> {reward.type}
+                          </div>
+                          <div className="reward-value">
+                            <strong>Valore:</strong> {reward.value}
+                          </div>
+                          {reward.description && (
+                            <div className="reward-description">
+                              {reward.description}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="reward-status">
+                          <label className="toggle-switch">
+                            <input
+                              type="checkbox"
+                              checked={reward.is_active !== false}
+                              onChange={() => {/* TODO: Toggle active */}}
+                            />
+                            <span className="slider"></span>
+                          </label>
+                          <span className="status-label">
+                            {reward.is_active !== false ? 'Attivo' : 'Disattivo'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
             ) : (
               <div className="empty-state">
                 <Award size={48} />
