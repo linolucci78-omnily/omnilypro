@@ -7,10 +7,16 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth()
+  const { user, loading, isSuperAdmin, userRole } = useAuth()
   const location = useLocation()
 
-  console.log('🔐 ProtectedRoute Debug:', { user: !!user, loading, pathname: location.pathname })
+  console.log('🔐 ProtectedRoute Debug:', {
+    user: !!user,
+    loading,
+    pathname: location.pathname,
+    userRole,
+    isSuperAdmin
+  })
 
   if (loading) {
     return (

@@ -6,6 +6,8 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  userRole: string | null
+  isSuperAdmin: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<any>
   signOut: () => Promise<void>
@@ -31,12 +33,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+
+  // Function to check user role
+  const checkUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('organization_users')
+        .select('role')
+        .eq('user_id', userId)
+        .single()
+
+      if (error || !data) {
+        console.log('🔐 User role not found, checking for super admin...')
+        // Check if super admin (role with null org_id)
+        const { data: superAdminData, error: superAdminError } = await supabase
+          .from('organization_users')
+          .select('role')
+          .eq('user_id', userId)
+          .is('org_id', null)
+          .eq('role', 'super_admin')
+          .single()
+
+        if (!superAdminError && superAdminData) {
+          console.log('🔐 Super admin found!')
+          setUserRole('super_admin')
+          setIsSuperAdmin(true)
+          return
+        }
+      }
+
+      if (data) {
+        console.log('🔐 User role found:', data.role)
+        setUserRole(data.role)
+        setIsSuperAdmin(data.role === 'super_admin')
+      }
+    } catch (err) {
+      console.error('Error checking user role:', err)
+      setUserRole(null)
+      setIsSuperAdmin(false)
+    }
+  }
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+
+      if (session?.user) {
+        await checkUserRole(session.user.id)
+      }
+
       setLoading(false)
     })
 
@@ -47,6 +96,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Auth state changed:', event, session?.user?.email)
       setSession(session)
       setUser(session?.user ?? null)
+
+      if (session?.user) {
+        await checkUserRole(session.user.id)
+      } else {
+        setUserRole(null)
+        setIsSuperAdmin(false)
+      }
+
       setLoading(false)
     })
 
@@ -104,6 +161,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     loading,
+    userRole,
+    isSuperAdmin,
     signIn,
     signUp,
     signOut,
