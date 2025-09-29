@@ -406,6 +406,7 @@ const MDMDashboard: React.FC = () => {
             <button
               className="btn-primary"
               onClick={() => setShowAddDeviceModal(true)}
+              title="Aggiungi un nuovo dispositivo POS al sistema"
             >
               <Plus size={20} />
               Aggiungi Dispositivo
@@ -413,6 +414,7 @@ const MDMDashboard: React.FC = () => {
             <button
               className="btn-secondary"
               onClick={() => setShowQRModal(true)}
+              title="Genera QR Code per setup dispositivo"
             >
               <Download size={20} />
               Genera QR Setup
@@ -420,6 +422,7 @@ const MDMDashboard: React.FC = () => {
             <button
               className="btn-secondary"
               onClick={() => setShowStoreConfigModal(true)}
+              title="Gestisci configurazioni avanzate dei negozi"
             >
               <Settings size={20} />
               Configurazioni Store
@@ -987,13 +990,125 @@ const MDMDashboard: React.FC = () => {
             </div>
 
             <div className="modal-content">
-              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <Settings size={48} style={{ color: '#6b7280', marginBottom: '16px' }} />
-                <h3 style={{ color: '#374151', marginBottom: '8px' }}>Configurazioni Store</h3>
-                <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                  Gestione configurazioni avanzate per store e dispositivi.
-                  <br />Questa funzionalità sarà implementata nel prossimo aggiornamento.
-                </p>
+              <div className="add-device-form">
+                <div className="form-section">
+                  <h4>🏪 Configurazioni Globali Store</h4>
+                  <div style={{
+                    background: '#f0f9ff',
+                    border: '1px solid #0284c7',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginBottom: '20px'
+                  }}>
+                    <h5 style={{ margin: '0 0 12px 0', color: '#0369a1' }}>
+                      🔧 Gestione Configurazioni Template
+                    </h5>
+                    <p style={{
+                      margin: '0',
+                      fontSize: '14px',
+                      color: '#0369a1',
+                      lineHeight: '1.4'
+                    }}>
+                      Questa sezione permette di creare template di configurazione per diversi tipi di store
+                      (ristoranti, retail, farmacie, etc.) che possono essere applicati automaticamente ai dispositivi.
+                    </p>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Template predefiniti:</label>
+                    <select>
+                      <option>🍕 Ristorante/Pizzeria</option>
+                      <option>🛒 Negozio Retail</option>
+                      <option>💊 Farmacia</option>
+                      <option>☕ Bar/Caffetteria</option>
+                      <option>🏪 Supermercato</option>
+                      <option>⚙️ Configurazione Personalizzata</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>🖥️ Impostazioni Display POS</h4>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" defaultChecked />
+                      Abilita screensaver dopo inattività
+                    </label>
+                  </div>
+                  <div className="form-row">
+                    <label>Timeout screensaver (minuti):</label>
+                    <input type="number" defaultValue="5" min="1" max="60" />
+                  </div>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" defaultChecked />
+                      Mostra logo aziendale nello screensaver
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>🔒 Sicurezza e Accesso</h4>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" defaultChecked />
+                      Richiedi PIN per accesso admin
+                    </label>
+                  </div>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" />
+                      Blocco automatico dopo ore lavorative
+                    </label>
+                  </div>
+                  <div className="form-row">
+                    <label>Orario chiusura:</label>
+                    <input type="time" defaultValue="22:00" />
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>🖨️ Configurazione Stampa</h4>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" defaultChecked />
+                      Stampa automatica scontrini
+                    </label>
+                  </div>
+                  <div className="form-row">
+                    <label>Formato carta:</label>
+                    <select>
+                      <option>80mm termico</option>
+                      <option>58mm termico</option>
+                      <option>A4 standard</option>
+                    </select>
+                  </div>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" />
+                      Stampa logo su scontrini
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>📡 Connettività e Sincronizzazione</h4>
+                  <div className="form-row">
+                    <label>Frequenza sincronizzazione dati:</label>
+                    <select>
+                      <option>Ogni 5 minuti</option>
+                      <option>Ogni 15 minuti</option>
+                      <option>Ogni ora</option>
+                      <option>Solo manuale</option>
+                    </select>
+                  </div>
+                  <div className="form-row">
+                    <label>
+                      <input type="checkbox" defaultChecked />
+                      Backup automatico dati locali
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div className="modal-actions">
@@ -1001,7 +1116,15 @@ const MDMDashboard: React.FC = () => {
                   className="action-btn secondary"
                   onClick={() => setShowStoreConfigModal(false)}
                 >
-                  Chiudi
+                  Annulla
+                </button>
+                <button className="action-btn warning">
+                  <Download size={16} />
+                  Esporta Configurazione
+                </button>
+                <button className="action-btn success">
+                  <Settings size={16} />
+                  Salva Template
                 </button>
               </div>
             </div>
