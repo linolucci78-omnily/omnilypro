@@ -23,6 +23,8 @@ import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Layout;
+import android.text.Layout.Alignment;
 import android.util.Log;
 import android.view.Display;
 import android.webkit.JavascriptInterface;
@@ -49,12 +51,18 @@ import com.zcs.sdk.card.RfCard;
 import com.zcs.sdk.listener.OnSearchCardListener;
 import com.zcs.sdk.pin.pinpad.PinPadManager;
 import com.zcs.sdk.pin.PinAlgorithmMode;
+import com.zcs.sdk.Printer;
+import com.zcs.sdk.print.PrnStrFormat;
+import com.zcs.sdk.print.PrnTextStyle;
+import com.zcs.sdk.print.PrnAlignTypeEnum;
+import com.zcs.sdk.print.PrnFontSizeTypeEnum;
 
 import org.json.JSONObject;
 import org.json.JSONException;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.google.zxing.BarcodeFormat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +80,7 @@ public class MainActivityFinal extends AppCompatActivity {
     private PinPadManager mPinPadManager;
     private RfCard mRfCard;
     private HQrsanner mHQrsanner;
+    private Printer mPrinter;
     private WebView webView;
     private Presentation customerPresentation;
 
@@ -178,7 +187,8 @@ public class MainActivityFinal extends AppCompatActivity {
                     mRfCard = mCardReadManager.getRFCard(); // Initialize RfCard object
                     mHQrsanner = mDriverManager.getHQrsannerDriver(); // Initialize QR scanner
                     mPinPadManager = mDriverManager.getPadManager(); // Initialize PinPad
-                    Log.d(TAG, "ZCS SDK initialized successfully.");
+                    mPrinter = mDriverManager.getPrinter(); // Initialize Printer
+                    Log.d(TAG, "ZCS SDK initialized successfully with Printer support.");
                 } else {
                     Log.e(TAG, "ZCS SDK init failed, status: " + status);
                 }
@@ -794,7 +804,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -882,6 +892,444 @@ public class MainActivityFinal extends AppCompatActivity {
         public void inputAmountAsync() {
             Log.d(TAG, "inputAmountAsync called - using default callback");
             inputAmount("omnilyAmountInputHandler");
+        }
+
+        // ============================================================================
+        // METODI DI STAMPA - ZCS PRINTER SDK
+        // ============================================================================
+
+        @JavascriptInterface
+        public void initPrinter(String callbackName) {
+            Log.d(TAG, "initPrinter called with callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    // Check printer status instead of trying to init
+                    int status = mPrinter.getPrinterStatus();
+                    JSONObject result = new JSONObject();
+
+                    if (status == SdkResult.SDK_OK) {
+                        result.put("success", true);
+                        result.put("message", "Printer ready");
+                        Log.d(TAG, "Printer ready for use");
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Printer status error: " + status);
+                        Log.e(TAG, "Printer status error: " + status);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error checking printer", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Printer error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void printText(String text, String callbackName) {
+            Log.d(TAG, "printText called with text: " + text + ", callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    // Create format object for normal text
+                    PrnStrFormat format = new PrnStrFormat();
+                    format.setTextSize(24);
+                    format.setAli(Layout.Alignment.ALIGN_NORMAL);
+
+                    // Print text using proper format
+                    mPrinter.setPrintAppendString(text, format);
+
+                    // Start printing
+                    int printStatus = mPrinter.setPrintStart();
+                    JSONObject result = new JSONObject();
+                    if (printStatus == SdkResult.SDK_OK) {
+                        result.put("success", true);
+                        result.put("message", "Text printed successfully");
+                        Log.d(TAG, "Text printed successfully");
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Print start failed with status: " + printStatus);
+                        Log.e(TAG, "Print start failed with status: " + printStatus);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error printing text", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Print error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void printQRCode(String data, String callbackName) {
+            Log.d(TAG, "printQRCode called with data: " + data + ", callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    // Print QR code with correct ZCS API signature from Gemini
+                    mPrinter.setPrintAppendQRCode(data, 200, 200, Alignment.ALIGN_CENTER);
+                    int status = SdkResult.SDK_OK;
+
+                    JSONObject result = new JSONObject();
+                    if (status == SdkResult.SDK_OK) {
+                        // Start printing
+                        int printStatus = mPrinter.setPrintStart();
+                        if (printStatus == SdkResult.SDK_OK) {
+                            result.put("success", true);
+                            result.put("message", "QR code printed successfully");
+                            Log.d(TAG, "QR code printed successfully");
+                        } else {
+                            result.put("success", false);
+                            result.put("error", "Print start failed with status: " + printStatus);
+                            Log.e(TAG, "Print start failed with status: " + printStatus);
+                        }
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Print QR code failed with status: " + status);
+                        Log.e(TAG, "Print QR code failed with status: " + status);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error printing QR code", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Print error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void printBarcode(String data, String callbackName) {
+            Log.d(TAG, "printBarcode called with data: " + data + ", callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    // Print barcode with correct ZCS API signature from Gemini
+                    mPrinter.setPrintAppendBarCode(MainActivityFinal.this, data, 200, 100, true, Alignment.ALIGN_CENTER, BarcodeFormat.CODE_128);
+                    int status = SdkResult.SDK_OK;
+
+                    JSONObject result = new JSONObject();
+                    if (status == SdkResult.SDK_OK) {
+                        // Start printing
+                        int printStatus = mPrinter.setPrintStart();
+                        if (printStatus == SdkResult.SDK_OK) {
+                            result.put("success", true);
+                            result.put("message", "Barcode printed successfully");
+                            Log.d(TAG, "Barcode printed successfully");
+                        } else {
+                            result.put("success", false);
+                            result.put("error", "Print start failed with status: " + printStatus);
+                            Log.e(TAG, "Print start failed with status: " + printStatus);
+                        }
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Print barcode failed with status: " + status);
+                        Log.e(TAG, "Print barcode failed with status: " + status);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error printing barcode", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Print error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void cutPaper(String callbackName) {
+            Log.d(TAG, "cutPaper called with callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    // Cut paper using correct method
+                    int status = mPrinter.openPrnCutter((byte) 1);
+
+                    JSONObject result = new JSONObject();
+                    if (status == SdkResult.SDK_OK) {
+                        result.put("success", true);
+                        result.put("message", "Paper cut successfully");
+                        Log.d(TAG, "Paper cut successfully");
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Cut paper failed with status: " + status);
+                        Log.e(TAG, "Cut paper failed with status: " + status);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error cutting paper", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Cut error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void printReceipt(String receiptData, String callbackName) {
+            Log.d(TAG, "printReceipt called with callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    JSONObject receipt = new JSONObject(receiptData);
+
+                    // No need to initialize printer for receipt printing
+
+                    // Store name (large font, center)
+                    String storeName = receipt.optString("storeName", "");
+                    if (!storeName.isEmpty()) {
+                        PrnStrFormat headerFormat = new PrnStrFormat();
+                        headerFormat.setTextSize(30);
+                        headerFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+                        headerFormat.setStyle(PrnTextStyle.BOLD);
+                        mPrinter.setPrintAppendString(storeName, headerFormat);
+
+                        PrnStrFormat normalFormat = new PrnStrFormat();
+                        normalFormat.setTextSize(24);
+                        normalFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
+                        mPrinter.setPrintAppendString("\n", normalFormat);
+                    }
+
+                    // Store info
+                    String storeAddress = receipt.optString("storeAddress", "");
+                    String storePhone = receipt.optString("storePhone", "");
+                    String storeTax = receipt.optString("storeTax", "");
+
+                    PrnStrFormat normalFormat = new PrnStrFormat();
+                    normalFormat.setTextSize(24);
+                    normalFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
+
+                    if (!storeAddress.isEmpty()) {
+                        mPrinter.setPrintAppendString(storeAddress + "\n", normalFormat);
+                    }
+                    if (!storePhone.isEmpty()) {
+                        mPrinter.setPrintAppendString(storePhone + "\n", normalFormat);
+                    }
+                    if (!storeTax.isEmpty()) {
+                        mPrinter.setPrintAppendString("P.IVA: " + storeTax + "\n", normalFormat);
+                    }
+
+                    // Separator
+                    mPrinter.setPrintAppendString("----------------------------------------\n", normalFormat);
+
+                    // Receipt info
+                    String receiptNumber = receipt.optString("receiptNumber", "");
+                    String timestamp = receipt.optString("timestamp", "");
+                    String cashier = receipt.optString("cashier", "");
+
+                    if (!receiptNumber.isEmpty()) {
+                        mPrinter.setPrintAppendString("Scontrino: " + receiptNumber + "\n", normalFormat);
+                    }
+                    if (!timestamp.isEmpty()) {
+                        mPrinter.setPrintAppendString("Data: " + timestamp + "\n", normalFormat);
+                    }
+                    if (!cashier.isEmpty()) {
+                        mPrinter.setPrintAppendString("Cassiere: " + cashier + "\n", normalFormat);
+                    }
+
+                    // Separator
+                    mPrinter.setPrintAppendString("----------------------------------------\n", normalFormat);
+
+                    // Items
+                    if (receipt.has("items")) {
+                        org.json.JSONArray items = receipt.getJSONArray("items");
+                        for (int i = 0; i < items.length(); i++) {
+                            JSONObject item = items.getJSONObject(i);
+                            String name = item.optString("name", "");
+                            int quantity = item.optInt("quantity", 1);
+                            double price = item.optDouble("price", 0);
+                            double total = item.optDouble("total", 0);
+
+                            String itemLine = String.format("%dx %s", quantity, name);
+                            if (itemLine.length() > 30) {
+                                itemLine = itemLine.substring(0, 27) + "...";
+                            }
+
+                            mPrinter.setPrintAppendString(itemLine + "\n", normalFormat);
+                            mPrinter.setPrintAppendString(String.format("                          EUR %.2f\n", total), normalFormat);
+                        }
+                    }
+
+                    // Separator
+                    mPrinter.setPrintAppendString("----------------------------------------\n", normalFormat);
+
+                    // Totals
+                    double subtotal = receipt.optDouble("subtotal", 0);
+                    double tax = receipt.optDouble("tax", 0);
+                    double total = receipt.optDouble("total", 0);
+
+                    mPrinter.setPrintAppendString(String.format("Subtotale:                EUR %.2f\n", subtotal), normalFormat);
+                    mPrinter.setPrintAppendString(String.format("IVA 22%%:                  EUR %.2f\n", tax), normalFormat);
+
+                    PrnStrFormat totalFormat = new PrnStrFormat();
+                    totalFormat.setTextSize(30);
+                    totalFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
+                    totalFormat.setStyle(PrnTextStyle.BOLD);
+                    mPrinter.setPrintAppendString(String.format("TOTALE:                   EUR %.2f\n", total), totalFormat);
+
+                    // Payment method
+                    String paymentMethod = receipt.optString("paymentMethod", "");
+                    if (!paymentMethod.isEmpty()) {
+                        mPrinter.setPrintAppendString("----------------------------------------\n", normalFormat);
+                        mPrinter.setPrintAppendString("Pagamento: " + paymentMethod + "\n", normalFormat);
+                    }
+
+                    // Footer
+                    mPrinter.setPrintAppendString("\n", normalFormat);
+                    mPrinter.setPrintAppendString("        Grazie per la visita!\n", normalFormat);
+                    mPrinter.setPrintAppendString("       Powered by OMNILY PRO\n", normalFormat);
+                    mPrinter.setPrintAppendString("\n\n", normalFormat);
+
+                    // Print QR code if present
+                    String qrData = receipt.optString("qrData", "");
+                    if (!qrData.isEmpty()) {
+                        mPrinter.setPrintAppendQRCode(qrData, 200, 200, Alignment.ALIGN_CENTER);
+                        mPrinter.setPrintAppendString("\n", normalFormat);
+                    }
+
+                    // Start printing and cut paper
+                    int printStatus = mPrinter.setPrintStart();
+                    if (printStatus == SdkResult.SDK_OK) {
+                        // Wait for print to complete then cut
+                        Thread.sleep(2000);
+                        mPrinter.openPrnCutter((byte) 1);
+
+                        JSONObject result = new JSONObject();
+                        result.put("success", true);
+                        result.put("message", "Receipt printed successfully");
+                        runJsCallback(callbackName, result.toString());
+                        Log.d(TAG, "Receipt printed successfully");
+                    } else {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Print failed with status: " + printStatus);
+                        runJsCallback(callbackName, result.toString());
+                        Log.e(TAG, "Print failed with status: " + printStatus);
+                    }
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error printing receipt", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Receipt print error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
         }
 
         private void runJsCallback(final String callbackName, final String result) {

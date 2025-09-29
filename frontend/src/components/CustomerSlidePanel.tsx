@@ -6,6 +6,7 @@ import SaleModal from './SaleModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
+import { createPrintService } from '../services/printService';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
@@ -230,6 +231,59 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             console.log('✅ Messaggio SALE_CELEBRATION inviato');
           } else {
             console.error('❌ updateCustomerDisplay non disponibile!');
+          }
+
+          // 🖨️ STAMPA AUTOMATICA SCONTRINO
+          try {
+            console.log('🖨️ Iniziando stampa automatica scontrino...');
+
+            // Configurazione stampante
+            const printConfig = {
+              storeName: 'OMNILY PRO',
+              storeAddress: 'Via Roma 123, Milano',
+              storePhone: 'Tel: 02-12345678',
+              storeTax: 'P.IVA: 12345678901',
+              paperWidth: 384, // 58mm
+              fontSizeNormal: 24,
+              fontSizeLarge: 30,
+              printDensity: 0
+            };
+
+            // Dati scontrino
+            const receiptData = {
+              receiptNumber: `R${Date.now().toString().slice(-6)}`,
+              timestamp: new Date(),
+              items: [{
+                name: 'Transazione POS',
+                quantity: 1,
+                price: amount,
+                total: amount
+              }],
+              subtotal: amount,
+              tax: amount * 0.22,
+              total: amount,
+              paymentMethod: 'Contanti',
+              cashierName: 'POS Operatore',
+              customerPoints: pointsEarned,
+              loyaltyCard: customer.customerCode || customer.id
+            };
+
+            // Crea servizio stampa e stampa
+            const printService = createPrintService(printConfig);
+            const initialized = await printService.initialize();
+
+            if (initialized) {
+              const printed = await printService.printReceipt(receiptData);
+              if (printed) {
+                console.log('✅ Scontrino stampato con successo!');
+              } else {
+                console.error('❌ Errore durante la stampa dello scontrino');
+              }
+            } else {
+              console.error('❌ Impossibile inizializzare la stampante');
+            }
+          } catch (printError) {
+            console.error('❌ Errore stampa scontrino:', printError);
           }
 
           // Ricarica le attività per mostrare la nuova transazione
