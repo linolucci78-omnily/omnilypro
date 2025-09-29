@@ -10,6 +10,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth()
   const location = useLocation()
 
+  console.log('🔐 ProtectedRoute Debug:', { user: !!user, loading, pathname: location.pathname })
+
   if (loading) {
     return (
       <div className="loading-screen">
