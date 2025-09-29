@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import QRCode from 'qrcode'
 import {
   Smartphone,
   MapPin,
@@ -70,6 +71,8 @@ const MDMDashboard: React.FC = () => {
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [qrCodeData, setQrCodeData] = useState('')
+  const [qrCodeImage, setQrCodeImage] = useState('')
+  const [qrLoading, setQrLoading] = useState(false)
   const [stats, setStats] = useState({
     total: 0,
     online: 0,
@@ -280,24 +283,96 @@ const MDMDashboard: React.FC = () => {
     }
   }
 
-  const handleGenerateQR = () => {
+  const handleGenerateQR = async () => {
     if (!deviceForm.name || !deviceForm.organization_id) {
       alert('Compila almeno nome dispositivo e organizzazione per generare il QR Code')
       return
     }
 
-    const setupData = {
-      deviceName: deviceForm.name,
-      organizationId: deviceForm.organization_id,
-      storeLocation: deviceForm.store_location,
-      kioskAutoStart: deviceForm.kiosk_auto_start,
-      mainAppPackage: deviceForm.main_app_package,
-      setupUrl: `${window.location.origin}/device-setup`,
-      configureWifiOnSite: true
-    }
+    setQrLoading(true)
+    try {
+      const setupData = {
+        deviceName: deviceForm.name,
+        organizationId: deviceForm.organization_id,
+        storeLocation: deviceForm.store_location,
+        kioskAutoStart: deviceForm.kiosk_auto_start,
+        mainAppPackage: deviceForm.main_app_package,
+        setupUrl: `${window.location.origin}/device-setup`,
+        configureWifiOnSite: true,
+        timestamp: Date.now()
+      }
 
-    setQrCodeData(JSON.stringify(setupData))
-    setShowQRModal(true)
+      const qrDataString = JSON.stringify(setupData)
+      setQrCodeData(qrDataString)
+
+      // Generate QR code image
+      const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+
+      setQrCodeImage(qrCodeImageUrl)
+      setShowQRModal(true)
+    } catch (error) {
+      console.error('Error generating QR code:', error)
+      alert('Errore nella generazione del QR Code')
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  const handleGenerateQRForDevice = async (device: Device) => {
+    setQrLoading(true)
+    try {
+      const setupData = {
+        deviceName: device.name,
+        deviceId: device.id,
+        androidId: device.android_id,
+        organizationId: device.organization_id,
+        storeLocation: device.store_location,
+        kioskAutoStart: true,
+        mainAppPackage: device.current_app_package || 'com.omnily.bridge',
+        setupUrl: `${window.location.origin}/device-setup`,
+        configureWifiOnSite: true,
+        timestamp: Date.now()
+      }
+
+      const qrDataString = JSON.stringify(setupData)
+      setQrCodeData(qrDataString)
+
+      // Generate QR code image
+      const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+
+      setQrCodeImage(qrCodeImageUrl)
+      setShowQRModal(true)
+    } catch (error) {
+      console.error('Error generating QR code:', error)
+      alert('Errore nella generazione del QR Code')
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  const downloadQRCode = () => {
+    if (qrCodeImage) {
+      const link = document.createElement('a')
+      link.href = qrCodeImage
+      link.download = `qr-setup-${deviceForm.name || 'device'}-${Date.now()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 
   const filteredDevices = devices.filter(device =>
@@ -452,15 +527,15 @@ const MDMDashboard: React.FC = () => {
               </button>
 
               <button
-                className="action-btn secondary"
+                className="action-btn warning"
                 onClick={(e) => {
                   e.stopPropagation()
-                  sendCommand(device.id, 'locate')
+                  handleGenerateQRForDevice(device)
                 }}
-                disabled={device.status === 'offline'}
+                disabled={qrLoading}
               >
-                <MapPin size={14} />
-                Localizza
+                <Download size={14} />
+                QR Setup
               </button>
             </div>
 
@@ -757,10 +832,10 @@ const MDMDashboard: React.FC = () => {
                 <button
                   className="action-btn primary"
                   onClick={handleGenerateQR}
-                  disabled={formLoading}
+                  disabled={formLoading || qrLoading}
                 >
                   <Download size={16} />
-                  Genera QR Code Setup
+                  {qrLoading ? 'Generando...' : 'Genera QR Code Setup'}
                 </button>
                 <button
                   className="action-btn success"
@@ -798,24 +873,72 @@ const MDMDashboard: React.FC = () => {
                   borderRadius: '12px',
                   padding: '20px',
                   margin: '20px 0',
-                  minHeight: '200px',
+                  minHeight: '320px',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '18px',
-                  color: '#6b7280'
+                  justifyContent: 'center'
                 }}>
-                  📱 QR Code verrà generato qui
-                  <br /><br />
-                  <small style={{ fontSize: '12px', display: 'block' }}>
-                    Dati configurazione:
-                    <br />
-                    {qrCodeData && JSON.stringify(JSON.parse(qrCodeData), null, 2)}
-                  </small>
+                  {qrCodeImage ? (
+                    <>
+                      <img
+                        src={qrCodeImage}
+                        alt="QR Code Setup Dispositivo"
+                        style={{
+                          width: '300px',
+                          height: '300px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <p style={{
+                        color: '#059669',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        marginTop: '12px',
+                        marginBottom: '0'
+                      }}>
+                        ✅ QR Code generato con successo
+                      </p>
+                    </>
+                  ) : (
+                    <div style={{
+                      fontSize: '18px',
+                      color: '#6b7280',
+                      textAlign: 'center'
+                    }}>
+                      📱 Genera QR Code dal form o dalla lista dispositivi
+                    </div>
+                  )}
                 </div>
                 <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                  Inquadra questo QR Code con il dispositivo Android per configurazione automatica.
+                  <strong>Istruzioni:</strong> Stampa questo QR Code e consegnalo al tecnico per la configurazione del dispositivo sul posto.
                 </p>
+                {qrCodeData && (
+                  <details style={{
+                    marginTop: '16px',
+                    textAlign: 'left',
+                    backgroundColor: '#f9fafb',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}>
+                    <summary style={{ cursor: 'pointer', fontWeight: '600' }}>
+                      Visualizza dati configurazione
+                    </summary>
+                    <pre style={{
+                      marginTop: '8px',
+                      fontSize: '11px',
+                      overflow: 'auto',
+                      backgroundColor: '#ffffff',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      {qrCodeData && JSON.stringify(JSON.parse(qrCodeData), null, 2)}
+                    </pre>
+                  </details>
+                )}
               </div>
 
               <div className="modal-actions">
@@ -825,7 +948,11 @@ const MDMDashboard: React.FC = () => {
                 >
                   Chiudi
                 </button>
-                <button className="action-btn primary">
+                <button
+                  className="action-btn primary"
+                  onClick={downloadQRCode}
+                  disabled={!qrCodeImage}
+                >
                   <Download size={16} />
                   Scarica QR Code
                 </button>
