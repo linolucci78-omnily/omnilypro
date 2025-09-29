@@ -38,39 +38,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Function to check user role
   const checkUserRole = async (userId: string) => {
+    console.log('🔐 Checking user role for:', userId)
+
     try {
-      const { data, error } = await supabase
+      // First check all roles for this user
+      const { data: allRoles, error: allError } = await supabase
         .from('organization_users')
-        .select('role')
+        .select('*')
         .eq('user_id', userId)
-        .single()
 
-      if (error || !data) {
-        console.log('🔐 User role not found, checking for super admin...')
-        // Check if super admin (role with null org_id)
-        const { data: superAdminData, error: superAdminError } = await supabase
-          .from('organization_users')
-          .select('role')
-          .eq('user_id', userId)
-          .is('org_id', null)
-          .eq('role', 'super_admin')
-          .single()
+      console.log('🔐 All user roles:', allRoles, 'Error:', allError)
 
-        if (!superAdminError && superAdminData) {
-          console.log('🔐 Super admin found!')
-          setUserRole('super_admin')
-          setIsSuperAdmin(true)
-          return
-        }
+      // Check specifically for super admin
+      const superAdminRole = allRoles?.find(role => role.role === 'super_admin')
+
+      if (superAdminRole) {
+        console.log('🔐 Super admin found!', superAdminRole)
+        setUserRole('super_admin')
+        setIsSuperAdmin(true)
+        return
       }
 
-      if (data) {
-        console.log('🔐 User role found:', data.role)
-        setUserRole(data.role)
-        setIsSuperAdmin(data.role === 'super_admin')
+      // If no super admin, use first role found
+      if (allRoles && allRoles.length > 0) {
+        const firstRole = allRoles[0]
+        console.log('🔐 Regular role found:', firstRole.role)
+        setUserRole(firstRole.role)
+        setIsSuperAdmin(firstRole.role === 'super_admin')
+      } else {
+        console.log('🔐 No roles found for user')
+        setUserRole(null)
+        setIsSuperAdmin(false)
       }
     } catch (err) {
-      console.error('Error checking user role:', err)
+      console.error('🔐 Error checking user role:', err)
       setUserRole(null)
       setIsSuperAdmin(false)
     }
