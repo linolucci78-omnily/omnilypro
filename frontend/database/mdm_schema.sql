@@ -201,7 +201,40 @@ CREATE TABLE IF NOT EXISTS app_repository (
   CONSTRAINT app_repo_package_version_unique UNIQUE (package_name, version_code)
 );
 
--- 6. TABELLA LOG ATTIVITÀ MDM
+-- 6. TABELLA TEMPLATE STAMPA
+-- Template configurazione stampa per stampanti termiche 58mm
+CREATE TABLE IF NOT EXISTS print_templates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- Identificazione template
+  name varchar(100) NOT NULL,
+  organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- Configurazione negozio
+  store_name varchar(100) NOT NULL,
+  store_address text,
+  store_phone varchar(50),
+  store_tax varchar(20), -- P.IVA/Codice Fiscale
+  logo_base64 text, -- Logo in base64 per stampa
+
+  -- Configurazione carta
+  paper_width integer DEFAULT 384, -- 58mm = 384 dots
+  font_size_normal integer DEFAULT 24,
+  font_size_large integer DEFAULT 32,
+  print_density integer DEFAULT 3, -- 1-5 densità di stampa
+
+  -- Template settings
+  is_default boolean DEFAULT false,
+  is_active boolean DEFAULT true,
+
+  -- Timestamps
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now(),
+
+  CONSTRAINT print_templates_name_org_unique UNIQUE (name, organization_id)
+);
+
+-- 7. TABELLA LOG ATTIVITÀ MDM
 -- Log completo di tutte le attività del sistema MDM
 CREATE TABLE IF NOT EXISTS mdm_activity_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -246,6 +279,9 @@ CREATE INDEX IF NOT EXISTS idx_store_configs_org ON store_configs(organization_i
 
 CREATE INDEX IF NOT EXISTS idx_setup_tokens_valid ON setup_tokens(token, expires_at) WHERE used = false;
 
+CREATE INDEX IF NOT EXISTS idx_print_templates_org ON print_templates(organization_id) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_print_templates_default ON print_templates(organization_id, is_default) WHERE is_active = true;
+
 CREATE INDEX IF NOT EXISTS idx_app_repo_active ON app_repository(package_name, version_code DESC) WHERE is_active = true;
 
 CREATE INDEX IF NOT EXISTS idx_activity_logs_device_time ON mdm_activity_logs(device_id, created_at DESC);
@@ -261,6 +297,7 @@ ALTER TABLE device_commands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE setup_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app_repository ENABLE ROW LEVEL SECURITY;
+ALTER TABLE print_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mdm_activity_logs ENABLE ROW LEVEL SECURITY;
 
 -- Policy per admin - accesso completo a tutto
@@ -319,6 +356,23 @@ CREATE POLICY "Admin full access setup_tokens" ON setup_tokens FOR ALL USING (
   auth.uid() IN (
     SELECT user_id FROM organization_users
     WHERE role = 'super_admin'
+  )
+);
+
+-- Policy print templates per admin
+CREATE POLICY "Admin full access print_templates" ON print_templates FOR ALL USING (
+  auth.uid() IN (
+    SELECT user_id FROM organization_users
+    WHERE role = 'super_admin'
+  )
+);
+
+-- Policy print templates per org users
+CREATE POLICY "Organization users access print_templates" ON print_templates FOR ALL USING (
+  organization_id IN (
+    SELECT org_id FROM organization_users
+    WHERE user_id = auth.uid()
+    AND role IN ('org_admin', 'manager')
   )
 );
 
@@ -383,6 +437,9 @@ CREATE TRIGGER update_device_commands_updated_at BEFORE UPDATE ON device_command
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_store_configs_updated_at BEFORE UPDATE ON store_configs
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_print_templates_updated_at BEFORE UPDATE ON print_templates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_app_repository_updated_at BEFORE UPDATE ON app_repository

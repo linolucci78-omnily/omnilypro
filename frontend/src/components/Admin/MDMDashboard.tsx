@@ -20,9 +20,12 @@ import {
   CheckCircle,
   Clock,
   Search,
-  Plus
+  Plus,
+  Printer,
+  Devices
 } from 'lucide-react'
 import './MDMDashboard.css'
+import PrintTemplateManager from './PrintTemplateManager'
 
 interface Device {
   id: string
@@ -70,6 +73,7 @@ const MDMDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
+  const [activeTab, setActiveTab] = useState<'devices' | 'print'>('devices')
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
@@ -398,11 +402,65 @@ const MDMDashboard: React.FC = () => {
 
   return (
     <div className="mdm-dashboard">
-      {/* Header con statistiche */}
-      <div className="mdm-header">
-        <div className="header-title-section">
-          <h1>📱 Gestione Dispositivi POS</h1>
-          <div className="header-actions">
+      {/* Tab Navigation */}
+      <div style={{
+        borderBottom: '1px solid #e5e7eb',
+        marginBottom: '24px',
+        backgroundColor: 'white',
+        padding: '0 24px'
+      }}>
+        <div style={{ display: 'flex', gap: '0' }}>
+          <button
+            onClick={() => setActiveTab('devices')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              borderBottom: activeTab === 'devices' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'devices' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'devices' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Devices size={18} />
+            Gestione Dispositivi
+          </button>
+          <button
+            onClick={() => setActiveTab('print')}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              borderBottom: activeTab === 'print' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'print' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'print' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Printer size={18} />
+            Template Stampa
+          </button>
+        </div>
+      </div>
+
+      {/* Devices Tab */}
+      {activeTab === 'devices' && (
+        <>
+          {/* Header con statistiche */}
+          <div className="mdm-header">
+            <div className="header-title-section">
+              <h1>📱 Gestione Dispositivi POS</h1>
+              <div className="header-actions">
             <button
               className="btn-primary"
               onClick={() => setShowAddDeviceModal(true)}
@@ -1130,6 +1188,13 @@ const MDMDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+        </>
+      )}
+
+      {/* Print Templates Tab */}
+      {activeTab === 'print' && (
+        <PrintTemplateManager organizationId={undefined} />
       )}
 
       {/* Toast Notifications */}
