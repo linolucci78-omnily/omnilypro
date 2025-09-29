@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import QRCode from 'qrcode'
+import { useToast } from '../../hooks/useToast'
+import { useConfirm } from '../../hooks/useConfirm'
+import Toast from '../UI/Toast'
+import ConfirmModal from '../UI/ConfirmModal'
 import {
   Smartphone,
   MapPin,
@@ -73,6 +77,8 @@ const MDMDashboard: React.FC = () => {
   const [qrCodeData, setQrCodeData] = useState('')
   const [qrCodeImage, setQrCodeImage] = useState('')
   const [qrLoading, setQrLoading] = useState(false)
+  const { toast, showSuccess, showError, showWarning, hideToast } = useToast()
+  const { confirmState, showConfirm, hideConfirm, handleConfirm } = useConfirm()
   const [stats, setStats] = useState({
     total: 0,
     online: 0,
@@ -192,10 +198,10 @@ const MDMDashboard: React.FC = () => {
       if (error) throw error
 
       loadCommands()
-      alert(`Comando "${commandType}" inviato al dispositivo`)
+      showSuccess(`Comando "${commandType}" inviato al dispositivo`)
     } catch (error) {
       console.error('Error sending command:', error)
-      alert('Errore invio comando')
+      showError('Errore invio comando')
     }
   }
 
@@ -223,7 +229,7 @@ const MDMDashboard: React.FC = () => {
 
   const handleCreateDevice = async () => {
     if (!deviceForm.name || !deviceForm.organization_id || !deviceForm.store_location) {
-      alert('Compila tutti i campi obbligatori')
+      showWarning('Compila tutti i campi obbligatori')
       return
     }
 
@@ -273,11 +279,11 @@ const MDMDashboard: React.FC = () => {
 
       setShowAddDeviceModal(false)
       loadDevices()
-      alert('Dispositivo creato con successo! Il WiFi verrà configurato durante il setup fisico.')
+      showSuccess('Dispositivo creato con successo! Il WiFi verrà configurato durante il setup fisico.')
 
     } catch (error) {
       console.error('Error creating device:', error)
-      alert('Errore durante la creazione del dispositivo')
+      showError('Errore durante la creazione del dispositivo')
     } finally {
       setFormLoading(false)
     }
@@ -285,7 +291,7 @@ const MDMDashboard: React.FC = () => {
 
   const handleGenerateQR = async () => {
     if (!deviceForm.name || !deviceForm.organization_id) {
-      alert('Compila almeno nome dispositivo e organizzazione per generare il QR Code')
+      showWarning('Compila almeno nome dispositivo e organizzazione per generare il QR Code')
       return
     }
 
@@ -319,7 +325,7 @@ const MDMDashboard: React.FC = () => {
       setShowQRModal(true)
     } catch (error) {
       console.error('Error generating QR code:', error)
-      alert('Errore nella generazione del QR Code')
+      showError('Errore nella generazione del QR Code')
     } finally {
       setQrLoading(false)
     }
@@ -358,7 +364,7 @@ const MDMDashboard: React.FC = () => {
       setShowQRModal(true)
     } catch (error) {
       console.error('Error generating QR code:', error)
-      alert('Errore nella generazione del QR Code')
+      showError('Errore nella generazione del QR Code')
     } finally {
       setQrLoading(false)
     }
@@ -680,11 +686,15 @@ const MDMDashboard: React.FC = () => {
 
                 <button
                   className="action-btn warning"
-                  onClick={() => {
-                    if (confirm('Sei sicuro di voler spegnere il dispositivo?')) {
-                      sendCommand(selectedDevice.id, 'shutdown')
+                  onClick={() => showConfirm(
+                    'Sei sicuro di voler spegnere il dispositivo? Questa azione richiederà un riavvio manuale.',
+                    () => sendCommand(selectedDevice.id, 'shutdown'),
+                    {
+                      title: 'Spegni dispositivo',
+                      confirmText: 'Spegni',
+                      type: 'danger'
                     }
-                  }}
+                  )}
                   disabled={selectedDevice.status === 'offline'}
                 >
                   <Power size={16} />
@@ -998,6 +1008,26 @@ const MDMDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        type={confirmState.type}
+        onConfirm={handleConfirm}
+        onCancel={hideConfirm}
+      />
     </div>
   )
 }
