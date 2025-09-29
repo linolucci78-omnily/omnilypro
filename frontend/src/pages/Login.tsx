@@ -12,7 +12,7 @@ const Login: React.FC = () => {
   const [message, setMessage] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
 
-  const { user, signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,18 +28,23 @@ const Login: React.FC = () => {
     }
 
     if (user) {
-      // CORREZIONE: Desktop va al dashboard normale, POS va al dashboard aziendale
-      let redirectPath = '/dashboard'; // Default per desktop
-      
-      // Se è modalità POS, vai al dashboard (non alla pagina viola Z108)
-      if (isPosMode) {
+      // CORREZIONE: Super admin va al dashboard admin, altri al dashboard normale
+      let redirectPath = '/dashboard'; // Default per utenti normali
+
+      // Se è super admin, vai al dashboard admin
+      if (isSuperAdmin) {
+        redirectPath = '/admin';
+        console.log('🔐 Super admin login redirect to /admin');
+      }
+      // Se è modalità POS, vai al dashboard aziendale
+      else if (isPosMode) {
         redirectPath = '/dashboard'; // Dashboard aziendale per POS
       }
-      
+
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location, isPosMode]);
+  }, [user, navigate, location, isPosMode, isSuperAdmin]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
