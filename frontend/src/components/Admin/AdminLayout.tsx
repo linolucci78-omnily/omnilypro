@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { 
-  Building2, 
-  Users, 
-  BarChart3, 
-  Settings, 
+import {
+  Building2,
+  Users,
+  BarChart3,
+  Settings,
   CreditCard,
   Globe,
   Shield,
@@ -20,7 +20,8 @@ import {
   X,
   Home,
   LogOut,
-  User
+  User,
+  Smartphone
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -43,6 +44,7 @@ const AdminLayout: React.FC = () => {
         { path: '/admin/organizations', icon: Building2, label: 'Aziende' },
         { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
         { path: '/admin/pos', icon: CreditCard, label: 'Sistemi POS' },
+        { path: '/admin/mdm', icon: Smartphone, label: 'Gestione Dispositivi' },
         { path: '/admin/subscriptions', icon: Package, label: 'Abbonamenti' }
       ]
     },

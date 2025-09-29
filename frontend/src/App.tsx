@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import Admin from './pages/Admin'
 import BusinessCustomers from './pages/BusinessCustomers'
 import BusinessOwners from './pages/BusinessOwners'
+import MDMDashboard from './components/Admin/MDMDashboard'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
 
@@ -158,6 +159,7 @@ function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="organizations" element={<Admin />} />
               <Route path="business-owners" element={<BusinessOwners />} />
+              <Route path="mdm" element={<MDMDashboard />} />
             </Route>
             <Route
               path="/customer-display"
