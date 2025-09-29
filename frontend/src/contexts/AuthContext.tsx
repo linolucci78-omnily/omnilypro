@@ -41,22 +41,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 Checking user role for:', userId)
 
     try {
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Role check timeout')), 10000)
-      )
+      // Simplified query without timeout - direct check
+      console.log('🔐 Starting role query...')
 
-      const queryPromise = supabase
+      const { data: allRoles, error: allError } = await supabase
         .from('organization_users')
-        .select('*')
+        .select('role, org_id')
         .eq('user_id', userId)
 
-      const { data: allRoles, error: allError } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
-
-      console.log('🔐 All user roles:', allRoles, 'Error:', allError)
+      console.log('🔐 Query completed. All user roles:', allRoles, 'Error:', allError)
 
       // Check specifically for super admin
       const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
