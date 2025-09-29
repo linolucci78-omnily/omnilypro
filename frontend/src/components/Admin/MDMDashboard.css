@@ -274,7 +274,9 @@
   transition: all 0.2s ease;
   flex: 1;
   min-width: 80px;
+  max-width: 120px;
   justify-content: center;
+  height: 36px;
 }
 
 .action-btn:disabled {
@@ -546,18 +548,33 @@
 .modal-actions .action-btn {
   flex: none;
   min-width: auto;
-  padding: 12px 16px;
+  padding: 10px 14px;
+  font-size: 13px;
+  height: 40px;
 }
 
 /* ============================================================================ */
 /* ADD DEVICE FORM */
 /* ============================================================================ */
 
+/* ============================================================================ */
+/* HEADER TITLE AND ACTIONS */
+/* ============================================================================ */
+
 .header-title-section {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 20px;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .header-title-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
 }
 
 .header-actions {
@@ -567,18 +584,21 @@
 }
 
 .btn-primary, .btn-secondary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
   position: relative;
+  flex-shrink: 0;
+  min-width: auto;
+  height: 40px;
 }
 
 .btn-primary:hover, .btn-secondary:hover {
