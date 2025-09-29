@@ -41,11 +41,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 Checking user role for:', userId)
 
     try {
-      // First check all roles for this user
-      const { data: allRoles, error: allError } = await supabase
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Role check timeout')), 10000)
+      )
+
+      const queryPromise = supabase
         .from('organization_users')
         .select('*')
         .eq('user_id', userId)
+
+      const { data: allRoles, error: allError } = await Promise.race([
+        queryPromise,
+        timeoutPromise
+      ]) as any
 
       console.log('🔐 All user roles:', allRoles, 'Error:', allError)
 
@@ -72,8 +81,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (err) {
       console.error('🔐 Error checking user role:', err)
+
+      // If timeout or other error, set defaults but stop loading
       setUserRole(null)
       setIsSuperAdmin(false)
+
+      // Don't stay in loading state forever
+      setLoading(false)
     }
   }
 
