@@ -12,7 +12,7 @@ const Login: React.FC = () => {
   const [message, setMessage] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
 
-  const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,7 +27,8 @@ const Login: React.FC = () => {
       setIsPosMode(true);
     }
 
-    if (user) {
+    // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect
+    if (user && !authLoading) {
       // CORREZIONE: Super admin va al dashboard admin, altri al dashboard normale
       let redirectPath = '/dashboard'; // Default per utenti normali
 
@@ -41,10 +42,12 @@ const Login: React.FC = () => {
         redirectPath = '/dashboard'; // Dashboard aziendale per POS
       }
 
+      console.log('🔐 Login redirect:', { isSuperAdmin, redirectPath, authLoading });
+
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location, isPosMode, isSuperAdmin]);
+  }, [user, navigate, location, isPosMode, isSuperAdmin, authLoading]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
