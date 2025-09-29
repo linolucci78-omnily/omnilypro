@@ -265,7 +265,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               paymentMethod: 'Contanti',
               cashierName: 'POS Operatore',
               customerPoints: pointsEarned,
-              loyaltyCard: customer.customerCode || customer.id
+              loyaltyCard: customer.id
             };
 
             // Crea servizio stampa e stampa

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Receipt, TestTube, Save, Clock } from 'lucide-react'
-import { createPrintService, PrintConfig, Receipt as ReceiptData } from '../../services/printService'
+import { createPrintService, type PrintConfig, type Receipt as ReceiptData } from '../../services/printService'
 import { useToast } from '../../hooks/useToast'
 
 interface ReceiptDemoProps {

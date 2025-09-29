@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Printer, Save, TestTube, Upload, Download, Settings } from 'lucide-react'
-import { createPrintService, PrintConfig, Receipt } from '../../services/printService'
+import { createPrintService, type PrintConfig, type Receipt } from '../../services/printService'
 import { useToast } from '../../hooks/useToast'
 import { supabase } from '../../lib/supabase'
 import ReceiptDemo from './ReceiptDemo'

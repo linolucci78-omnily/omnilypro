@@ -22,7 +22,7 @@ import {
   Search,
   Plus,
   Printer,
-  Devices
+  Monitor
 } from 'lucide-react'
 import './MDMDashboard.css'
 import PrintTemplateManager from './PrintTemplateManager'
@@ -427,7 +427,7 @@ const MDMDashboard: React.FC = () => {
               transition: 'all 0.2s'
             }}
           >
-            <Devices size={18} />
+            <Monitor size={18} />
             Gestione Dispositivi
           </button>
           <button

@@ -198,22 +198,23 @@ export class ZCSPrintService {
 
     try {
       // Print header text
-      const headerText = `
-        OMNILY PRO
-        CARTA FEDELTÀ
-        ----------------------------------------
-        Cliente: ${customerName}
-        Carta: ${cardNumber}
-        Punti attuali: ${points}
-
-        ${this.printConfig.storeName}
-      `
+      const lines: string[] = [
+        'OMNILY PRO',
+        'CARTA FEDELTÀ',
+        '----------------------------------------',
+        `Cliente: ${customerName}`,
+        `Carta: ${cardNumber}`,
+        `Punti attuali: ${points}`,
+        '',
+        this.printConfig.storeName
+      ]
+      const headerText = lines.join('\n')
 
       return new Promise((resolve) => {
         (window as any).omnilyTextPrintHandler = (result: any) => {
           if (result.success) {
             // Print QR code after text
-            const qrData = `LOYALTY:${cardNumber}:${customerName}`
+            const qrData = 'LOYALTY:' + cardNumber + ':' + customerName;
 
             (window as any).omnilyQRPrintHandler = (qrResult: any) => {
               if (qrResult.success) {
@@ -272,7 +273,7 @@ export class ZCSPrintService {
         isOnline: false,
         paperStatus: 'Error',
         temperature: 'Unknown',
-        errors: [error.message || 'Status check failed']
+        errors: [error instanceof Error ? error.message : 'Status check failed']
       }
     }
   }
