@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Link, useLocation, Outlet } from 'react-router-dom'
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   Building2,
   Users,
@@ -28,6 +29,17 @@ import './AdminLayout.css'
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 
   const menuItems = [
     {
@@ -139,10 +151,10 @@ const AdminLayout: React.FC = () => {
             <Home size={16} />
             <span>Torna al Sito</span>
           </Link>
-          <Link to="/login" className="footer-link">
+          <button onClick={handleLogout} className="footer-link">
             <LogOut size={16} />
             <span>Logout</span>
-          </Link>
+          </button>
         </div>
       </div>
 
