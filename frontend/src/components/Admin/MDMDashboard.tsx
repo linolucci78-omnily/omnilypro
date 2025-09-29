@@ -84,9 +84,6 @@ const MDMDashboard: React.FC = () => {
     organization_id: '',
     store_location: '',
     store_address: '',
-    wifi_ssid: '',
-    wifi_password: '',
-    wifi_security: 'WPA2',
     kiosk_auto_start: true,
     main_app_package: 'com.omnily.bridge'
   })
@@ -241,7 +238,6 @@ const MDMDashboard: React.FC = () => {
           organization_id: deviceForm.organization_id,
           store_location: deviceForm.store_location,
           status: 'setup',
-          wifi_ssid: deviceForm.wifi_ssid,
           kiosk_mode_active: false,
           current_app_package: deviceForm.main_app_package,
           language: 'it',
@@ -250,21 +246,16 @@ const MDMDashboard: React.FC = () => {
 
       if (error) throw error
 
-      // Create store config if WiFi is provided
-      if (deviceForm.wifi_ssid && deviceForm.wifi_password) {
-        await supabase
-          .from('store_configs')
-          .insert({
-            store_name: deviceForm.store_location,
-            organization_id: deviceForm.organization_id,
-            wifi_ssid: deviceForm.wifi_ssid,
-            wifi_password: deviceForm.wifi_password,
-            wifi_security_type: deviceForm.wifi_security,
-            pos_terminal_count: 1,
-            kiosk_auto_start: deviceForm.kiosk_auto_start,
-            main_app_package: deviceForm.main_app_package
-          })
-      }
+      // Create basic store config
+      await supabase
+        .from('store_configs')
+        .insert({
+          store_name: deviceForm.store_location,
+          organization_id: deviceForm.organization_id,
+          pos_terminal_count: 1,
+          kiosk_auto_start: deviceForm.kiosk_auto_start,
+          main_app_package: deviceForm.main_app_package
+        })
 
       // Reset form
       setDeviceForm({
@@ -273,16 +264,13 @@ const MDMDashboard: React.FC = () => {
         organization_id: '',
         store_location: '',
         store_address: '',
-        wifi_ssid: '',
-        wifi_password: '',
-        wifi_security: 'WPA2',
         kiosk_auto_start: true,
         main_app_package: 'com.omnily.bridge'
       })
 
       setShowAddDeviceModal(false)
       loadDevices()
-      alert('Dispositivo creato con successo!')
+      alert('Dispositivo creato con successo! Il WiFi verrà configurato durante il setup fisico.')
 
     } catch (error) {
       console.error('Error creating device:', error)
@@ -302,12 +290,10 @@ const MDMDashboard: React.FC = () => {
       deviceName: deviceForm.name,
       organizationId: deviceForm.organization_id,
       storeLocation: deviceForm.store_location,
-      wifiSSID: deviceForm.wifi_ssid,
-      wifiPassword: deviceForm.wifi_password,
-      wifiSecurity: deviceForm.wifi_security,
       kioskAutoStart: deviceForm.kiosk_auto_start,
       mainAppPackage: deviceForm.main_app_package,
-      setupUrl: `${window.location.origin}/device-setup`
+      setupUrl: `${window.location.origin}/device-setup`,
+      configureWifiOnSite: true
     }
 
     setQrCodeData(JSON.stringify(setupData))
@@ -722,35 +708,17 @@ const MDMDashboard: React.FC = () => {
                 </div>
 
                 <div className="form-section">
-                  <h4>📶 Configurazione WiFi</h4>
-                  <div className="form-row">
-                    <label>Nome WiFi (SSID):</label>
-                    <input
-                      type="text"
-                      placeholder="Nome rete WiFi store"
-                      value={deviceForm.wifi_ssid}
-                      onChange={(e) => setDeviceForm({...deviceForm, wifi_ssid: e.target.value})}
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Password WiFi:</label>
-                    <input
-                      type="password"
-                      placeholder="Password rete WiFi"
-                      value={deviceForm.wifi_password}
-                      onChange={(e) => setDeviceForm({...deviceForm, wifi_password: e.target.value})}
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Tipo Sicurezza:</label>
-                    <select
-                      value={deviceForm.wifi_security}
-                      onChange={(e) => setDeviceForm({...deviceForm, wifi_security: e.target.value})}
-                    >
-                      <option value="WPA2">WPA2</option>
-                      <option value="WPA3">WPA3</option>
-                      <option value="OPEN">Aperta</option>
-                    </select>
+                  <h4>📶 Configurazione Rete</h4>
+                  <div style={{
+                    background: '#f0f9ff',
+                    border: '1px solid #0284c7',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontSize: '13px',
+                    color: '#0369a1'
+                  }}>
+                    ℹ️ <strong>WiFi sarà configurato durante il setup fisico</strong><br />
+                    Il tecnico sul posto selezionerà la rete WiFi disponibile e inserirà le credenziali
                   </div>
                 </div>
 
