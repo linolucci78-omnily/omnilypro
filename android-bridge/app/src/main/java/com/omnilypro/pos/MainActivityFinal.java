@@ -965,13 +965,16 @@ public class MainActivityFinal extends AppCompatActivity {
 
             mExecutor.submit(() -> {
                 try {
+                    // Add extra lines for manual paper tearing (using spaces instead of empty lines)
+                    String textWithFeed = text + "\n \n \n \n \n \n ";
+
                     // Create format object for normal text
                     PrnStrFormat format = new PrnStrFormat();
                     format.setTextSize(24);
                     format.setAli(Layout.Alignment.ALIGN_NORMAL);
 
                     // Print text using proper format
-                    mPrinter.setPrintAppendString(text, format);
+                    mPrinter.setPrintAppendString(textWithFeed, format);
 
                     // Start printing
                     int printStatus = mPrinter.setPrintStart();
@@ -979,7 +982,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     if (printStatus == SdkResult.SDK_OK) {
                         result.put("success", true);
                         result.put("message", "Text printed successfully");
-                        Log.d(TAG, "Text printed successfully");
+                        Log.d(TAG, "Text printed successfully with paper feed");
                     } else {
                         result.put("success", false);
                         result.put("error", "Print start failed with status: " + printStatus);
@@ -1022,6 +1025,13 @@ public class MainActivityFinal extends AppCompatActivity {
                 try {
                     // Print QR code with correct ZCS API signature from Gemini
                     mPrinter.setPrintAppendQRCode(data, 200, 200, Alignment.ALIGN_CENTER);
+
+                    // Add extra lines for manual paper tearing (using spaces instead of empty lines)
+                    PrnStrFormat format = new PrnStrFormat();
+                    format.setTextSize(24);
+                    format.setAli(Layout.Alignment.ALIGN_NORMAL);
+                    mPrinter.setPrintAppendString("\n \n \n \n \n \n ", format);
+
                     int status = SdkResult.SDK_OK;
 
                     JSONObject result = new JSONObject();
@@ -1031,7 +1041,7 @@ public class MainActivityFinal extends AppCompatActivity {
                         if (printStatus == SdkResult.SDK_OK) {
                             result.put("success", true);
                             result.put("message", "QR code printed successfully");
-                            Log.d(TAG, "QR code printed successfully");
+                            Log.d(TAG, "QR code printed successfully with paper feed");
                         } else {
                             result.put("success", false);
                             result.put("error", "Print start failed with status: " + printStatus);
