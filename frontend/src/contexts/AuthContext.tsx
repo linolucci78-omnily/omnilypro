@@ -40,14 +40,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkUserRole = async (userId: string) => {
     console.log('🔐 Checking user role for:', userId)
 
-    // TEMPORARY BYPASS for testing - hardcode super admin for your user ID
-    if (userId === '4462e3f1-d08c-4dac-98ae-ba14f28f57fe') {
-      console.log('🔐 BYPASS: Setting pako.lucci@gmail.com as super admin')
-      setUserRole('super_admin')
-      setIsSuperAdmin(true)
-      return
-    }
-
     try {
       // Add timeout to prevent infinite loading
       console.log('🔐 Starting role query...')

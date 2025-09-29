@@ -40,14 +40,25 @@ export class ZCSPrintService {
 
   async initialize(): Promise<boolean> {
     try {
-      // Initialize ZCS POS SDK printer
-      if (typeof window !== 'undefined' && (window as any).ZCSPrinter) {
-        const printer = (window as any).ZCSPrinter
-        await printer.init()
-        this.isInitialized = true
-        return true
+      // Check if Android bridge is available
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        // Initialize printer via Android bridge
+        return new Promise((resolve) => {
+          (window as any).omnilyPrinterInitHandler = (result: any) => {
+            if (result.success) {
+              this.isInitialized = true
+              resolve(true)
+            } else {
+              console.error('Printer initialization failed:', result.error)
+              this.isInitialized = false
+              resolve(false)
+            }
+          }
+
+          (window as any).OmnilyPOS.initPrinter('omnilyPrinterInitHandler')
+        })
       }
-      throw new Error('ZCS Printer SDK not available')
+      throw new Error('Android POS bridge not available')
     } catch (error) {
       console.error('Failed to initialize printer:', error)
       this.isInitialized = false
@@ -105,143 +116,44 @@ export class ZCSPrintService {
     }
 
     try {
-      const printer = (window as any).ZCSPrinter
-
-      // Start print job
-      await printer.printStart()
-
-      // Store logo if available
-      if (this.printConfig.logoBase64) {
-        await printer.printBitmap(this.printConfig.logoBase64, 1) // Center align
+      // Prepare receipt data for Android bridge
+      const receiptData = {
+        storeName: this.printConfig.storeName,
+        storeAddress: this.printConfig.storeAddress,
+        storePhone: this.printConfig.storePhone,
+        storeTax: this.printConfig.storeTax,
+        receiptNumber: receipt.receiptNumber,
+        timestamp: this.formatDateTime(receipt.timestamp),
+        cashier: receipt.cashierName,
+        items: receipt.items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total
+        })),
+        subtotal: receipt.subtotal,
+        tax: receipt.tax,
+        total: receipt.total,
+        paymentMethod: receipt.paymentMethod,
+        qrData: `RECEIPT:${receipt.receiptNumber}:${receipt.total}`
       }
 
-      // Store header
-      await printer.printText(this.centerText(this.printConfig.storeName), {
-        fontSize: this.printConfig.fontSizeLarge,
-        bold: true,
-        align: 1 // Center
-      })
-
-      await printer.printText(this.centerText(this.printConfig.storeAddress), {
-        fontSize: this.printConfig.fontSizeNormal,
-        align: 1
-      })
-
-      await printer.printText(this.centerText(this.printConfig.storePhone), {
-        fontSize: this.printConfig.fontSizeNormal,
-        align: 1
-      })
-
-      if (this.printConfig.storeTax) {
-        await printer.printText(this.centerText(`P.IVA: ${this.printConfig.storeTax}`), {
-          fontSize: this.printConfig.fontSizeNormal,
-          align: 1
-        })
-      }
-
-      // Separator
-      await printer.printText(this.createSeparatorLine())
-
-      // Receipt info
-      await printer.printText(`Scontrino: ${receipt.receiptNumber}`, {
-        fontSize: this.printConfig.fontSizeNormal,
-        bold: true
-      })
-
-      await printer.printText(`Data: ${this.formatDateTime(receipt.timestamp)}`)
-      await printer.printText(`Cassiere: ${receipt.cashierName}`)
-
-      if (receipt.loyaltyCard) {
-        await printer.printText(`Carta: ${receipt.loyaltyCard}`)
-      }
-
-      // Separator
-      await printer.printText(this.createSeparatorLine())
-
-      // Items
-      for (const item of receipt.items) {
-        const itemLine = this.formatItemLine(
-          item.name,
-          item.quantity,
-          this.formatPrice(item.total)
-        )
-        await printer.printText(itemLine)
-
-        if (item.quantity > 1) {
-          const priceLine = this.rightAlignText(
-            `(${this.formatPrice(item.price)} cad.)`
-          )
-          await printer.printText(priceLine, {
-            fontSize: this.printConfig.fontSizeNormal - 1
-          })
+      return new Promise((resolve) => {
+        (window as any).omnilyReceiptPrintHandler = (result: any) => {
+          if (result.success) {
+            console.log('Receipt printed successfully via Android bridge')
+            resolve(true)
+          } else {
+            console.error('Receipt print failed:', result.error)
+            resolve(false)
+          }
         }
-      }
 
-      // Separator
-      await printer.printText(this.createSeparatorLine())
-
-      // Totals
-      await printer.printText(
-        `Subtotale:${' '.repeat(22)}${this.formatPrice(receipt.subtotal)}`,
-        { align: 2 } // Right align
-      )
-
-      if (receipt.tax > 0) {
-        await printer.printText(
-          `IVA 22%:${' '.repeat(24)}${this.formatPrice(receipt.tax)}`,
-          { align: 2 }
+        (window as any).OmnilyPOS.printReceipt(
+          JSON.stringify(receiptData),
+          'omnilyReceiptPrintHandler'
         )
-      }
-
-      await printer.printText(
-        `TOTALE:${' '.repeat(25)}${this.formatPrice(receipt.total)}`,
-        {
-          fontSize: this.printConfig.fontSizeLarge,
-          bold: true,
-          align: 2
-        }
-      )
-
-      // Payment method
-      await printer.printText(this.createSeparatorLine())
-      await printer.printText(`Pagamento: ${receipt.paymentMethod}`, {
-        bold: true
       })
-
-      // Loyalty points if applicable
-      if (receipt.customerPoints !== undefined) {
-        await printer.printText('')
-        await printer.printText(`Punti guadagnati: ${receipt.customerPoints}`, {
-          bold: true
-        })
-      }
-
-      // Footer
-      await printer.printText('')
-      await printer.printText(this.centerText('Grazie per la visita!'), {
-        fontSize: this.printConfig.fontSizeNormal,
-        bold: true,
-        align: 1
-      })
-
-      await printer.printText(this.centerText('Powered by OMNILY PRO'), {
-        fontSize: this.printConfig.fontSizeNormal - 1,
-        align: 1
-      })
-
-      // QR Code for digital receipt (optional)
-      const qrData = `RECEIPT:${receipt.receiptNumber}:${receipt.total}`
-      await printer.printQRCode(qrData, {
-        size: 6,
-        align: 1 // Center
-      })
-
-      // Feed paper and cut
-      await printer.printText('\n\n\n')
-      await printer.cutPaper()
-
-      console.log('Receipt printed successfully')
-      return true
 
     } catch (error) {
       console.error('Print error:', error)
@@ -285,50 +197,43 @@ export class ZCSPrintService {
     }
 
     try {
-      const printer = (window as any).ZCSPrinter
+      // Print header text
+      const headerText = `
+        OMNILY PRO
+        CARTA FEDELTÀ
+        ----------------------------------------
+        Cliente: ${customerName}
+        Carta: ${cardNumber}
+        Punti attuali: ${points}
 
-      await printer.printStart()
+        ${this.printConfig.storeName}
+      `
 
-      // Header
-      await printer.printText(this.centerText('OMNILY PRO'), {
-        fontSize: this.printConfig.fontSizeLarge,
-        bold: true,
-        align: 1
+      return new Promise((resolve) => {
+        (window as any).omnilyTextPrintHandler = (result: any) => {
+          if (result.success) {
+            // Print QR code after text
+            const qrData = `LOYALTY:${cardNumber}:${customerName}`
+
+            (window as any).omnilyQRPrintHandler = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('Loyalty card printed successfully')
+                resolve(true)
+              } else {
+                console.error('QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilyQRPrintHandler')
+          } else {
+            console.error('Header text print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(headerText, 'omnilyTextPrintHandler')
       })
-
-      await printer.printText(this.centerText('CARTA FEDELTÀ'), {
-        fontSize: this.printConfig.fontSizeNormal,
-        bold: true,
-        align: 1
-      })
-
-      await printer.printText(this.createSeparatorLine())
-
-      // Customer info
-      await printer.printText(`Cliente: ${customerName}`, {
-        bold: true
-      })
-
-      await printer.printText(`Carta: ${cardNumber}`)
-      await printer.printText(`Punti attuali: ${points}`)
-
-      // QR Code with card data
-      await printer.printText('')
-      const qrData = `LOYALTY:${cardNumber}:${customerName}`
-      await printer.printQRCode(qrData, {
-        size: 8,
-        align: 1
-      })
-
-      await printer.printText('')
-      await printer.printText(this.centerText(this.printConfig.storeName), {
-        align: 1
-      })
-
-      await printer.printText('\n\n')
-      await printer.cutPaper()
-
-      return true
 
     } catch (error) {
       console.error('Loyalty card print error:', error)
