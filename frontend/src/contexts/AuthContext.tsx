@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 All user roles:', allRoles, 'Error:', allError)
 
       // Check specifically for super admin
-      const superAdminRole = allRoles?.find(role => role.role === 'super_admin')
+      const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
 
       if (superAdminRole) {
         console.log('🔐 Super admin found!', superAdminRole)
