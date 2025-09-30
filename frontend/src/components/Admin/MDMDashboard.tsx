@@ -20,18 +20,12 @@ import {
   CheckCircle,
   Clock,
   Search,
-<<<<<<< HEAD
   Plus,
   Printer,
   Monitor
 } from 'lucide-react'
 import './MDMDashboard.css'
 import PrintTemplateManager from './PrintTemplateManager'
-=======
-  Plus
-} from 'lucide-react'
-import './MDMDashboard.css'
->>>>>>> b9322021e15b7c369cf3e1157626ee12e3605d4c
 
 interface Device {
   id: string
@@ -79,10 +73,7 @@ const MDMDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
-<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<'devices' | 'print'>('devices')
-=======
->>>>>>> b9322021e15b7c369cf3e1157626ee12e3605d4c
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
@@ -411,7 +402,6 @@ const MDMDashboard: React.FC = () => {
 
   return (
     <div className="mdm-dashboard">
-<<<<<<< HEAD
       {/* Tab Navigation */}
       <div style={{
         borderBottom: '1px solid #e5e7eb',
@@ -471,13 +461,6 @@ const MDMDashboard: React.FC = () => {
             <div className="header-title-section">
               <h1>📱 Gestione Dispositivi POS</h1>
               <div className="header-actions">
-=======
-      {/* Header con statistiche */}
-      <div className="mdm-header">
-        <div className="header-title-section">
-          <h1>📱 Gestione Dispositivi POS</h1>
-          <div className="header-actions">
->>>>>>> b9322021e15b7c369cf3e1157626ee12e3605d4c
             <button
               className="btn-primary"
               onClick={() => setShowAddDeviceModal(true)}
@@ -1206,7 +1189,6 @@ const MDMDashboard: React.FC = () => {
           </div>
         </div>
       )}
-<<<<<<< HEAD
         </>
       )}
 
@@ -1214,8 +1196,6 @@ const MDMDashboard: React.FC = () => {
       {activeTab === 'print' && (
         <PrintTemplateManager organizationId={undefined} />
       )}
-=======
->>>>>>> b9322021e15b7c369cf3e1157626ee12e3605d4c
 
       {/* Toast Notifications */}
       <Toast
