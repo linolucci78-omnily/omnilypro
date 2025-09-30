@@ -305,6 +305,8 @@
   border-radius: 8px;
   font-size: 0.9rem;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* POS: Larger inputs */
