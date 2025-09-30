@@ -190,7 +190,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
 
   return (
     <div className="reward-modal-backdrop">
-      <div className="reward-modal">
+      <div className={`reward-modal ${isOpen ? 'open' : ''}`}>
         <div className="reward-modal-header">
           <h2>
             <Award size={24} />
