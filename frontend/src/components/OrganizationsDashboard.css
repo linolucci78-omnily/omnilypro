@@ -2695,13 +2695,17 @@ input:checked + .slider:before {
     min-height: 60px;
   }
 
-  .section-header h2 {
-    font-size: 1.8rem;
+  .section-header h2,
+  div.section-header h2,
+  .main-content .section-header h2 {
+    font-size: 1.8rem !important;
     color: white !important;
   }
 
-  .section-header p {
-    font-size: 1.1rem;
+  .section-header p,
+  div.section-header p,
+  .main-content .section-header p {
+    font-size: 1.1rem !important;
     color: white !important;
     opacity: 1 !important;
   }
