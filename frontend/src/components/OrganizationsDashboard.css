@@ -85,6 +85,8 @@
 .sidebar-nav {
   flex: 1;
   padding: 1rem 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nav-item {
@@ -2695,10 +2697,17 @@ input:checked + .slider:before {
 
   .section-header h2 {
     font-size: 1.8rem;
+    color: white !important;
   }
 
   .section-header p {
     font-size: 1.1rem;
+    color: white !important;
+    opacity: 1 !important;
+  }
+
+  .section-content h2 {
+    color: white !important;
   }
 }
 
