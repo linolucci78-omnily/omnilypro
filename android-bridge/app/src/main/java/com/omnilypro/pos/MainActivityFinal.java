@@ -95,9 +95,13 @@ public class MainActivityFinal extends AppCompatActivity {
     private String currentQRCallback;
 
     private static final int REQUEST_PERMISSIONS_CODE = 101;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 102;
+    private android.webkit.ValueCallback<android.net.Uri[]> filePathCallback;
+
     private static final String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.CAMERA,
             Manifest.permission.NFC,
@@ -380,6 +384,32 @@ public class MainActivityFinal extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // Handle file chooser result
+        if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
+            if (filePathCallback == null) {
+                Log.w(TAG, "⚠️ File chooser callback is null");
+                return;
+            }
+
+            android.net.Uri[] results = null;
+
+            if (resultCode == RESULT_OK) {
+                if (data != null) {
+                    String dataString = data.getDataString();
+                    if (dataString != null) {
+                        results = new android.net.Uri[]{android.net.Uri.parse(dataString)};
+                        Log.d(TAG, "✅ File selezionato: " + dataString);
+                    }
+                }
+            } else {
+                Log.d(TAG, "📸 Selezione file annullata");
+            }
+
+            filePathCallback.onReceiveValue(results);
+            filePathCallback = null;
+            return;
+        }
+
         // Handle ZXing QR scan result
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (result != null) {
@@ -485,6 +515,42 @@ public class MainActivityFinal extends AppCompatActivity {
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
                 Log.w(TAG, "🚫 BLOCCATO window.open() - popup non consentito");
                 return false; // Blocca TUTTI i tentativi di aprire nuove finestre
+            }
+
+            @Override
+            public boolean onShowFileChooser(WebView webView, android.webkit.ValueCallback<android.net.Uri[]> filePathCallback,
+                                            WebChromeClient.FileChooserParams fileChooserParams) {
+                Log.d(TAG, "📸 File chooser richiesto");
+
+                // Chiudi il file chooser precedente se esiste
+                if (MainActivityFinal.this.filePathCallback != null) {
+                    MainActivityFinal.this.filePathCallback.onReceiveValue(null);
+                }
+
+                MainActivityFinal.this.filePathCallback = filePathCallback;
+
+                // Crea intent per selezionare immagini
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+
+                // Aggiungi opzione per fotocamera
+                Intent takePictureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+
+                // Crea chooser con entrambe le opzioni
+                Intent chooserIntent = Intent.createChooser(intent, "Seleziona immagine");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { takePictureIntent });
+
+                try {
+                    startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST_CODE);
+                    Log.d(TAG, "✅ File chooser aperto");
+                } catch (Exception e) {
+                    MainActivityFinal.this.filePathCallback = null;
+                    Log.e(TAG, "❌ Errore apertura file chooser: " + e.getMessage());
+                    return false;
+                }
+
+                return true;
             }
         });
 
