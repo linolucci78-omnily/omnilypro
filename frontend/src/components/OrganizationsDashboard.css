@@ -2668,9 +2668,15 @@ input:checked + .slider:before {
 }
 
 /* POS Mode: paragrafi bianchi pieni */
-.dashboard-layout.pos-mode .section-header p {
+.dashboard-layout.pos-mode .section-header p,
+.pos-mode .section-header p {
   color: white !important;
   opacity: 1 !important;
+}
+
+/* Forza anche tutto il testo dentro section-header */
+.dashboard-layout.pos-mode .section-header * {
+  color: white !important;
 }
 
 /* POS/Tablet: Full width e touch-friendly */
