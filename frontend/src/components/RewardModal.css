@@ -350,7 +350,26 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  margin-bottom: 0;
+  margin-bottom: 1.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Desktop: Padding compatto */
+@media (min-width: 1025px) {
+  .form-grid {
+    padding: 1rem;
+  }
+}
+
+/* POS: Padding maggiore */
+@media (max-width: 1024px) {
+  .form-grid {
+    padding: 1.5rem;
+  }
 }
 
 /* Reward Types Grid - Custom Radio Buttons con Icone */
