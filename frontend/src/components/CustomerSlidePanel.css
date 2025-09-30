@@ -36,17 +36,24 @@
 }
 
 /* Responsive Widths - UN SOLO CSS! */
-/* Desktop: Pannello stretto come modal */
-.customer-slide-panel {
-  width: 400px;
+/* Desktop: Pannello laterale 500px, sotto header app */
+@media (min-width: 1025px) {
+  .customer-slide-panel {
+    width: 500px !important;
+    max-width: 500px !important;
+    top: 69px;
+    height: calc(100vh - 69px);
+    z-index: 998;
+  }
 }
 
 /* POS/Tablet: Full width per massima visibilità */
 @media (max-width: 1024px) {
   .customer-slide-panel {
-    width: 100vw;
+    width: 100vw !important;
     height: 100vh;
     right: -100vw;
+    top: 0;
   }
 }
 
@@ -70,6 +77,18 @@
     0 8px 32px rgba(239, 68, 68, 0.3),
     0 4px 16px rgba(239, 68, 68, 0.2);
   overflow: hidden;
+}
+
+/* Desktop: Header compatto ma elegante */
+@media (min-width: 1025px) {
+  .customer-panel-header {
+    padding: 2rem 2rem;
+    min-height: 100px;
+  }
+
+  .customer-slide-panel-header-info h2 {
+    font-size: 1.5rem;
+  }
 }
 
 /* POS: Header più grande e visibile */

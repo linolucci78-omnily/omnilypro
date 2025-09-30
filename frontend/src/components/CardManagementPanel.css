@@ -38,17 +38,24 @@
 }
 
 /* Responsive Widths - IDENTICHE AL CUSTOMER PANEL */
-/* Desktop: Pannello stretto come modal */
-.card-management-panel {
-  width: 400px;
+/* Desktop: Pannello laterale 500px, sotto header app */
+@media (min-width: 1025px) {
+  .card-management-panel {
+    width: 500px !important;
+    max-width: 500px !important;
+    top: 69px;
+    height: calc(100vh - 69px);
+    z-index: 998;
+  }
 }
 
 /* POS/Tablet: Full width per massima visibilità */
 @media (max-width: 1024px) {
   .card-management-panel {
-    width: 100vw;
+    width: 100vw !important;
     height: 100vh;
     right: -100vw;
+    top: 0;
   }
 }
 
@@ -71,6 +78,18 @@
     0 8px 32px rgba(239, 68, 68, 0.3),
     0 4px 16px rgba(239, 68, 68, 0.2);
   overflow: hidden;
+}
+
+/* Desktop: Header compatto ma elegante */
+@media (min-width: 1025px) {
+  .card-management-header {
+    padding: 2rem 2rem;
+    min-height: 100px;
+  }
+
+  .header-info h2 {
+    font-size: 1.5rem;
+  }
 }
 
 /* POS: Header più grande e visibile */
