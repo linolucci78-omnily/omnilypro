@@ -14,9 +14,9 @@
 /* Slide Panel Base - COPIATO ESATTAMENTE DA CustomerSlidePanel */
 .loyalty-tiers-panel {
   position: fixed;
-  top: 71px;
+  top: 69px;
   right: -100%;
-  height: calc(100vh - 71px);
+  height: calc(100vh - 69px);
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
   border-left: none;
   z-index: 999;
@@ -31,11 +31,11 @@
   backdrop-filter: blur(20px);
 }
 
-/* Desktop: Sotto header app (71px = 70px height + 1px border) */
+/* Desktop: Sotto header app - attaccato perfettamente */
 @media (min-width: 1025px) {
   .loyalty-tiers-panel {
-    top: 71px;
-    height: calc(100vh - 71px);
+    top: 69px;
+    height: calc(100vh - 69px);
   }
 }
 
