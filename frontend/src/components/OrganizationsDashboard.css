@@ -588,7 +588,13 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 2rem;
-  color: #1f2937;
+  color: white;
+}
+
+/* POS Mode: testi section-content bianchi */
+.dashboard-layout.pos-mode .section-content h2,
+.dashboard-layout.pos-mode .section-content p {
+  color: white !important;
 }
 
 .section-subtitle {
