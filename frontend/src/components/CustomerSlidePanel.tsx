@@ -285,7 +285,6 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           } catch (printError) {
             console.error('❌ Errore stampa scontrino:', printError);
           }
-
           // Ricarica le attività per mostrare la nuova transazione
           try {
             const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);

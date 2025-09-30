@@ -281,7 +281,6 @@ CREATE INDEX IF NOT EXISTS idx_setup_tokens_valid ON setup_tokens(token, expires
 
 CREATE INDEX IF NOT EXISTS idx_print_templates_org ON print_templates(organization_id) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_print_templates_default ON print_templates(organization_id, is_default) WHERE is_active = true;
-
 CREATE INDEX IF NOT EXISTS idx_app_repo_active ON app_repository(package_name, version_code DESC) WHERE is_active = true;
 
 CREATE INDEX IF NOT EXISTS idx_activity_logs_device_time ON mdm_activity_logs(device_id, created_at DESC);
@@ -375,7 +374,6 @@ CREATE POLICY "Organization users access print_templates" ON print_templates FOR
     AND role IN ('org_admin', 'manager')
   )
 );
-
 -- Policy app repository - tutti possono leggere, solo admin può scrivere
 CREATE POLICY "All users read app_repository" ON app_repository FOR SELECT USING (true);
 
@@ -441,7 +439,6 @@ CREATE TRIGGER update_store_configs_updated_at BEFORE UPDATE ON store_configs
 
 CREATE TRIGGER update_print_templates_updated_at BEFORE UPDATE ON print_templates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_app_repository_updated_at BEFORE UPDATE ON app_repository
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
