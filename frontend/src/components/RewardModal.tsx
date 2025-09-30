@@ -237,7 +237,6 @@ const RewardModal: React.FC<RewardModalProps> = ({
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={handleImageChange}
                   className="image-input"
                   style={{ display: 'none' }}
