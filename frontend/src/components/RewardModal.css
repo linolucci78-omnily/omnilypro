@@ -231,7 +231,7 @@
 .tier-requirement-toggle {
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background: #f8fafc;
+  background: white;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
 }
@@ -443,14 +443,13 @@
 .form-textarea,
 .form-select {
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.9rem;
   transition: all 0.2s ease;
-  background: #ffffff;
+  background: white;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Desktop: Input compatti */
@@ -613,10 +612,26 @@
 .reward-modal-actions {
   padding: 1.5rem;
   border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
+  background: #f8fafc;
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
+}
+
+/* Desktop: Footer compatto */
+@media (min-width: 1025px) {
+  .reward-modal-actions {
+    padding: 1rem 1.5rem;
+    gap: 0.75rem;
+  }
+}
+
+/* POS: Footer più grande */
+@media (max-width: 1024px) {
+  .reward-modal-actions {
+    padding: 2rem;
+    gap: 1.5rem;
+  }
 }
 
 .btn-primary,
