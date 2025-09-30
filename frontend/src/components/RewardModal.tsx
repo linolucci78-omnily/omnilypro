@@ -131,39 +131,11 @@ const RewardModal: React.FC<RewardModalProps> = ({
   };
 
   const handleImageUploadClick = () => {
-    // Check if Android Bridge is available (POS device)
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.capturePhoto) {
-      console.log('📸 Richiesta cattura foto tramite Android Bridge...');
-
-      // Setup callback per ricevere l'immagine dal bridge
-      (window as any).omnilyPhotoHandler = (result: any) => {
-        console.log('📸 Risultato cattura foto:', result);
-
-        if (result.success && result.imageBase64) {
-          // Converte base64 in data URL
-          const imageDataUrl = result.imageBase64.startsWith('data:')
-            ? result.imageBase64
-            : `data:image/jpeg;base64,${result.imageBase64}`;
-
-          setImagePreview(imageDataUrl);
-          handleInputChange('image_url', imageDataUrl);
-
-          console.log('✅ Immagine caricata con successo dal bridge');
-        } else {
-          console.error('❌ Errore cattura foto:', result.error);
-          setErrors(prev => ({ ...prev, image: result.error || 'Errore durante la cattura' }));
-        }
-      };
-
-      // Chiama il bridge Android per catturare la foto
-      (window as any).OmnilyPOS.capturePhoto('omnilyPhotoHandler');
-    } else {
-      // Fallback: usa input file normale per browser web
-      console.log('🌐 Usando input file standard (browser web)');
-      const input = document.querySelector('.image-input') as HTMLInputElement;
-      if (input) {
-        input.click();
-      }
+    // Usa input file con attributo capture per Android
+    console.log('📸 Aprendo fotocamera per cattura immagine...');
+    const input = document.querySelector('.image-input') as HTMLInputElement;
+    if (input) {
+      input.click();
     }
   };
 
@@ -265,6 +237,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
                 <input
                   type="file"
                   accept="image/*"
+                  capture="environment"
                   onChange={handleImageChange}
                   className="image-input"
                   style={{ display: 'none' }}
