@@ -2667,6 +2667,12 @@ input:checked + .slider:before {
   font-size: 0.95rem;
 }
 
+/* POS Mode: paragrafi bianchi pieni */
+.dashboard-layout.pos-mode .section-header p {
+  color: white;
+  opacity: 1;
+}
+
 /* POS/Tablet: Full width e touch-friendly */
 @media (max-width: 1024px) {
   .section-header {
