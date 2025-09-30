@@ -130,6 +130,43 @@ const RewardModal: React.FC<RewardModalProps> = ({
     }
   };
 
+  const handleImageUploadClick = () => {
+    // Check if Android Bridge is available (POS device)
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.capturePhoto) {
+      console.log('📸 Richiesta cattura foto tramite Android Bridge...');
+
+      // Setup callback per ricevere l'immagine dal bridge
+      (window as any).omnilyPhotoHandler = (result: any) => {
+        console.log('📸 Risultato cattura foto:', result);
+
+        if (result.success && result.imageBase64) {
+          // Converte base64 in data URL
+          const imageDataUrl = result.imageBase64.startsWith('data:')
+            ? result.imageBase64
+            : `data:image/jpeg;base64,${result.imageBase64}`;
+
+          setImagePreview(imageDataUrl);
+          handleInputChange('image_url', imageDataUrl);
+
+          console.log('✅ Immagine caricata con successo dal bridge');
+        } else {
+          console.error('❌ Errore cattura foto:', result.error);
+          setErrors(prev => ({ ...prev, image: result.error || 'Errore durante la cattura' }));
+        }
+      };
+
+      // Chiama il bridge Android per catturare la foto
+      (window as any).OmnilyPOS.capturePhoto('omnilyPhotoHandler');
+    } else {
+      // Fallback: usa input file normale per browser web
+      console.log('🌐 Usando input file standard (browser web)');
+      const input = document.querySelector('.image-input') as HTMLInputElement;
+      if (input) {
+        input.click();
+      }
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -202,7 +239,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
             {/* Image Upload Section */}
             <div className="form-section">
               <label className="form-label">Immagine Premio</label>
-              <div className="image-upload-area">
+              <div className="image-upload-area" onClick={imagePreview ? undefined : handleImageUploadClick}>
                 {imagePreview ? (
                   <div className="image-preview">
                     <img src={imagePreview} alt="Preview" />
@@ -220,9 +257,9 @@ const RewardModal: React.FC<RewardModalProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className="upload-placeholder">
+                  <div className="upload-placeholder" style={{ cursor: 'pointer' }}>
                     <Image size={32} />
-                    <span>Clicca per caricare immagine</span>
+                    <span>📸 Clicca per scattare/caricare foto</span>
                   </div>
                 )}
                 <input
@@ -230,6 +267,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
                   accept="image/*"
                   onChange={handleImageChange}
                   className="image-input"
+                  style={{ display: 'none' }}
                 />
               </div>
               {errors.image && (
