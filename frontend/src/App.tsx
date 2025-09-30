@@ -16,6 +16,7 @@ import MDMDashboard from './components/Admin/MDMDashboard'
 import BillingDashboard from './components/Admin/BillingDashboardReal'
 import SecurityDashboard from './components/Admin/SecurityDashboardSafe'
 import SystemSettings from './components/Admin/SystemSettingsSafe'
+import AnalyticsDashboard from './components/Admin/AnalyticsDashboard'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
 
@@ -166,6 +167,7 @@ function App() {
               <Route path="subscriptions" element={<BillingDashboard />} />
               <Route path="security" element={<SecurityDashboard />} />
               <Route path="settings" element={<SystemSettings />} />
+              <Route path="analytics" element={<AnalyticsDashboard />} />
             </Route>
             <Route
               path="/customer-display"
