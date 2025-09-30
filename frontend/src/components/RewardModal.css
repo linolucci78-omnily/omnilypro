@@ -276,12 +276,13 @@
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: 2px solid #d1d5db;
   border-radius: 4px;
   cursor: pointer;
   accent-color: #ef4444; /* Brand color */
+  flex-shrink: 0;
 }
 
 .checkbox-label input[type="checkbox"]:checked {
@@ -293,11 +294,23 @@
   user-select: none;
 }
 
+/* Desktop: Checkbox visibile */
+@media (min-width: 1025px) {
+  .checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  .checkbox-label {
+    font-size: 0.9rem;
+  }
+}
+
 /* POS: Larger checkbox for touch */
 @media (max-width: 1024px) {
   .checkbox-label input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
   }
 
   .checkbox-label {
