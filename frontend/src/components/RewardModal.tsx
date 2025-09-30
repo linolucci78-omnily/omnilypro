@@ -275,18 +275,30 @@ const RewardModal: React.FC<RewardModalProps> = ({
 
               <div className="form-group">
                 <label className="form-label">Tipo Premio *</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => handleInputChange('type', e.target.value)}
-                  className="form-input"
-                  disabled={isLoading}
-                >
-                  {REWARD_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="reward-types-grid">
+                  {REWARD_TYPES.map(type => {
+                    const IconComponent = type.icon;
+                    return (
+                      <label
+                        key={type.value}
+                        className={`reward-type-option ${formData.type === type.value ? 'selected' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name="reward-type"
+                          value={type.value}
+                          checked={formData.type === type.value}
+                          onChange={(e) => handleInputChange('type', e.target.value)}
+                          disabled={isLoading}
+                        />
+                        <div className="reward-type-content">
+                          <IconComponent size={20} />
+                          <span>{type.label}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="form-group">

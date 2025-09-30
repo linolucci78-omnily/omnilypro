@@ -321,6 +321,92 @@
   margin-bottom: 1.5rem;
 }
 
+/* Reward Types Grid - Custom Radio Buttons con Icone */
+.reward-types-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.reward-type-option {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.reward-type-option:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reward-type-option.selected {
+  border-color: #ef4444;
+  background: #fef2f2;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.reward-type-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.reward-type-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.reward-type-option.selected .reward-type-content {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.reward-type-content svg {
+  flex-shrink: 0;
+}
+
+/* Desktop: Grid più compatto */
+@media (min-width: 1025px) {
+  .reward-types-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .reward-type-content {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* POS: Grid con elementi più grandi */
+@media (max-width: 1024px) {
+  .reward-types-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .reward-type-content {
+    padding: 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  .reward-type-content svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -357,13 +443,14 @@
 .form-textarea,
 .form-select {
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.9rem;
   transition: all 0.2s ease;
-  background: white;
+  background: #ffffff;
   width: 100%;
   box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Desktop: Input compatti */
