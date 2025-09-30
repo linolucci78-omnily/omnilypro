@@ -327,27 +327,69 @@
 }
 
 .form-label {
-  font-weight: 500;
-  color: #374151;
+  font-weight: 600;
+  color: #1f2937;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+}
+
+/* Desktop: Label compatti */
+@media (min-width: 1025px) {
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
+/* POS: Label più grandi */
+@media (max-width: 1024px) {
+  .form-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
 }
 
 .form-input,
-.form-textarea {
+.form-textarea,
+.form-select {
   padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
   background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Desktop: Input compatti */
+@media (min-width: 1025px) {
+  .form-input,
+  .form-textarea,
+  .form-select {
+    padding: 0.65rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* POS: Input più grandi per touch */
+@media (max-width: 1024px) {
+  .form-input,
+  .form-textarea,
+  .form-select {
+    padding: 1rem;
+    font-size: 1.1rem;
+    min-height: 60px;
+  }
 }
 
 .form-input:focus,
-.form-textarea:focus {
+.form-textarea:focus,
+.form-select:focus {
   outline: none;
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);

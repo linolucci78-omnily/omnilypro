@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Award, Target, Image, AlertCircle } from 'lucide-react';
+import { X, Upload, Award, Target, Image, AlertCircle, Percent, Gift, DollarSign, CreditCard } from 'lucide-react';
 import './RewardModal.css';
 
 interface RewardModalProps {
@@ -28,10 +28,10 @@ export interface RewardData {
 }
 
 const REWARD_TYPES = [
-  { value: 'discount', label: 'Sconto (€)', icon: '💰' },
-  { value: 'freeProduct', label: 'Prodotto Gratuito', icon: '🎁' },
-  { value: 'cashback', label: 'Cashback', icon: '💸' },
-  { value: 'giftCard', label: 'Gift Card', icon: '🎟️' }
+  { value: 'discount', label: 'Sconto (€)', icon: Percent },
+  { value: 'freeProduct', label: 'Prodotto Gratuito', icon: Gift },
+  { value: 'cashback', label: 'Cashback', icon: DollarSign },
+  { value: 'giftCard', label: 'Gift Card', icon: CreditCard }
 ];
 
 const RewardModal: React.FC<RewardModalProps> = ({
@@ -283,7 +283,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
                 >
                   {REWARD_TYPES.map(type => (
                     <option key={type.value} value={type.value}>
-                      {type.icon} {type.label}
+                      {type.label}
                     </option>
                   ))}
                 </select>
