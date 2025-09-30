@@ -3,7 +3,7 @@ import { Shield, AlertTriangle, Activity, Users, CheckCircle2, RefreshCw } from 
 
 const SecurityDashboardSafe: React.FC = () => {
   return (
-    <div style={{ padding: '24px', background: '#f8fafc', minHeight: '100vh' }}>
+    <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh', width: '100%' }}>
       {/* Header */}
       <div style={{
         display: 'flex',
@@ -12,8 +12,10 @@ const SecurityDashboardSafe: React.FC = () => {
         marginBottom: '32px',
         padding: '24px',
         background: 'white',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0'
+        borderRadius: '0',
+        border: 'none',
+        borderBottom: '1px solid #e2e8f0',
+        width: '100%'
       }}>
         <div>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#1e293b' }}>
@@ -42,9 +44,11 @@ const SecurityDashboardSafe: React.FC = () => {
       {/* Stats Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '20px',
-        marginBottom: '32px'
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '24px',
+        marginBottom: '32px',
+        padding: '0 24px',
+        width: '100%'
       }}>
         <div style={{
           background: 'white',
@@ -186,10 +190,13 @@ const SecurityDashboardSafe: React.FC = () => {
       {/* Content Area */}
       <div style={{
         background: 'white',
-        borderRadius: '12px',
-        padding: '40px',
-        border: '1px solid #e2e8f0',
-        textAlign: 'center'
+        borderRadius: '0',
+        padding: '40px 24px',
+        border: 'none',
+        borderTop: '1px solid #e2e8f0',
+        textAlign: 'center',
+        width: '100%',
+        margin: '0'
       }}>
         <Shield size={64} style={{ color: '#64748b', marginBottom: '16px' }} />
         <h3 style={{ margin: '0 0 8px 0', color: '#1e293b' }}>
