@@ -1,65 +1,172 @@
-/* Reward Modal - Gestione Premi - CONFORME ROADMAP */
+/* Reward Panel - Slide Panel Laterale - UNIFORME */
 
+/* Overlay */
 .reward-modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
-  backdrop-filter: blur(20px); /* Standard ROADMAP */
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 998;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Slide Panel Base */
 .reward-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  width: 100%;
-  max-width: 700px;
-  max-height: 90vh;
-  overflow: visible; /* Permette scroll nel content */
+  position: fixed;
+  top: 0;
+  right: -100%;
+  height: 100vh;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  border-left: none;
+  z-index: 999;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow-y: auto;
+  box-shadow:
+    -25px 0 80px -15px rgba(239, 68, 68, 0.15),
+    -12px 0 40px -8px rgba(0, 0, 0, 0.1),
+    -4px 0 16px rgba(239, 68, 68, 0.08);
   display: flex;
   flex-direction: column;
-  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Standard ROADMAP */
+  backdrop-filter: blur(20px);
 }
 
+.reward-modal.open {
+  right: 0;
+}
+
+/* Desktop: Pannello laterale 500px, sotto header app */
+@media (min-width: 1025px) {
+  .reward-modal {
+    width: 500px !important;
+    max-width: 500px !important;
+    top: 69px;
+    height: calc(100vh - 69px);
+    z-index: 998;
+  }
+}
+
+/* POS/Tablet: Full width */
+@media (max-width: 1024px) {
+  .reward-modal {
+    width: 100vw !important;
+    height: 100vh;
+    right: -100vw;
+    top: 0;
+  }
+
+  .reward-modal.open {
+    right: 0;
+  }
+}
+
+/* Header - STILE UNIFORME CON ALTRI PANNELLI */
 .reward-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  padding: 2.5rem 2rem;
+  border-bottom: none;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  position: relative;
+  box-shadow:
+    0 8px 32px rgba(239, 68, 68, 0.3),
+    0 4px 16px rgba(239, 68, 68, 0.2);
+  overflow: hidden;
+}
+
+/* Animazione floating */
+.reward-modal-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: headerFloat 6s ease-in-out infinite;
+}
+
+@keyframes headerFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-10px, -10px) rotate(5deg); }
+  66% { transform: translate(10px, -5px) rotate(-3deg); }
+}
+
+/* Desktop: Header compatto ma elegante */
+@media (min-width: 1025px) {
+  .reward-modal-header {
+    padding: 2rem 2rem;
+    min-height: 100px;
+  }
+
+  .reward-modal-header h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* POS: Header più grande e visibile */
+@media (max-width: 1024px) {
+  .reward-modal-header {
+    padding: 2.5rem 2rem;
+    min-height: 120px;
+  }
 }
 
 .reward-modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* POS: Titolo grande e visibile */
+@media (max-width: 1024px) {
+  .reward-modal-header h2 {
+    font-size: 2.25rem;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+  }
 }
 
 .reward-modal-close {
-  padding: 0.5rem;
-  border: none;
-  background: #f3f4f6;
-  border-radius: 6px;
-  color: #6b7280;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 2;
+  padding: 0;
 }
 
 .reward-modal-close:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.reward-modal-close:active {
+  transform: rotate(90deg) scale(0.95);
 }
 
 .reward-modal-close:disabled {
@@ -79,11 +186,17 @@
   overflow-y: auto;
 }
 
-/* Desktop: Fix scrolling per modal lunghi */
+/* Desktop: Padding compatto */
 @media (min-width: 1025px) {
   .reward-modal-content {
-    max-height: calc(90vh - 140px); /* Sottrae header + footer */
-    overflow-y: auto;
+    padding: 1.5rem;
+  }
+}
+
+/* POS: Padding maggiore per touch */
+@media (max-width: 1024px) {
+  .reward-modal-content {
+    padding: 2.5rem 2rem;
   }
 }
 
