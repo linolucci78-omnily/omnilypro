@@ -37,14 +37,17 @@
 
 /* Responsive Widths - IDENTICO A CustomerSlidePanel */
 /* Desktop: Pannello stretto come modal */
-.loyalty-tiers-panel {
-  width: 400px;
+@media (min-width: 1025px) {
+  .loyalty-tiers-panel {
+    width: 500px !important;
+    max-width: 500px !important;
+  }
 }
 
 /* POS/Tablet: Full width per massima visibilità */
 @media (max-width: 1024px) {
   .loyalty-tiers-panel {
-    width: 100vw;
+    width: 100vw !important;
     height: 100vh;
     right: -100vw;
   }
