@@ -29,7 +29,8 @@ import {
   TrendingUp,
   BarChart3,
   Smartphone,
-  Users
+  Users,
+  CreditCard
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import './SystemSettings.css'
