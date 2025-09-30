@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { MdLogout } from 'react-icons/md';
+import ConfirmModal from '../UI/ConfirmModal';
 import './POSHeader.css';
 
 interface POSHeaderProps {
@@ -9,6 +10,7 @@ interface POSHeaderProps {
 
 const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const { user, signOut } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -16,19 +18,27 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
     onMenuToggle();
   };
 
-  const handleQuickLogout = async () => {
+  const handleQuickLogout = () => {
     console.log('🚪 LOGOUT HEADER CLICKED!');
-    if (confirm('Sei sicuro di voler uscire?')) {
-      try {
-        console.log('🚪 Setting POS mode flag...');
-        localStorage.setItem('pos-mode', 'true');
-        console.log('🚪 Calling signOut...');
-        await signOut();
-        console.log('🚪 SignOut success');
-      } catch (error) {
-        console.error('❌ Errore logout:', error);
-      }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      console.log('🚪 Setting POS mode flag...');
+      localStorage.setItem('pos-mode', 'true');
+      console.log('🚪 Calling signOut...');
+      await signOut();
+      console.log('🚪 SignOut success');
+    } catch (error) {
+      console.error('❌ Errore logout:', error);
+    } finally {
+      setShowLogoutConfirm(false);
     }
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   return (
@@ -73,6 +83,18 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
           <MdLogout size={36} />
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        title="Conferma Logout"
+        message="Sei sicuro di voler uscire dal sistema POS?"
+        confirmText="Esci"
+        cancelText="Annulla"
+        onConfirm={confirmLogout}
+        onCancel={cancelLogout}
+        type="danger"
+      />
     </header>
   );
 };
