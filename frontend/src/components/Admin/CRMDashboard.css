@@ -20,10 +20,13 @@
 }
 
 .crm-header {
-  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-  padding: 1rem;
-  color: white;
-  width: 100%;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+  padding: 1rem !important;
+  color: white !important;
+  width: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @media (min-width: 768px) {
@@ -39,15 +42,17 @@
 }
 
 .crm-header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 2rem !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @media (min-width: 768px) {
@@ -98,51 +103,56 @@
 }
 
 .crm-header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-direction: column;
-  width: 100%;
+  display: flex !important;
+  gap: 0.5rem !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 @media (min-width: 768px) {
   .crm-header-actions {
-    flex-direction: row;
-    gap: 1rem;
-    width: auto;
+    flex-direction: row !important;
+    gap: 1rem !important;
+    width: auto !important;
   }
 }
 
 .crm-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  border: none;
-  font-size: 0.875rem;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+  border: none !important;
+  font-size: 0.875rem !important;
+  white-space: nowrap !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .crm-btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
 }
 
 .crm-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.3) !important;
 }
 
 .crm-btn-primary {
-  background: white;
-  color: #1e40af;
+  background: white !important;
+  color: #1e40af !important;
 }
 
 .crm-btn-primary:hover {
-  background: #f1f5f9;
+  background: #f1f5f9 !important;
 }
 
 .crm-kpi-grid {
