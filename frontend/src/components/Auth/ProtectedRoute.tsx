@@ -1,6 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import PageLoader from '../UI/PageLoader'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -19,12 +20,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   })
 
   if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner">🔄</div>
-        <p>Caricamento autenticazione...</p>
-      </div>
-    )
+    return <PageLoader message="Autenticazione in corso..." size="large" />
   }
 
   if (!user) {
