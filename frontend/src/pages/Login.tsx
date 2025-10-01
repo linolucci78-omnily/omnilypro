@@ -133,7 +133,8 @@ const Login: React.FC = () => {
   // Layout standard per il Desktop
   return (
     <div className="login-page">
-      <div className="login-container">
+      <div className="login-wrapper">
+        <div className="login-container">
         <div className="login-header">
           <Link to="/" className="login-logo">
             <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '80px', marginBottom: '1rem' }} />
@@ -177,10 +178,10 @@ const Login: React.FC = () => {
           {authMode === 'signup' && <p>Hai già un account? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Accedi qui</button></p>}
           {authMode === 'reset' && <p>Tornare al? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Login</button></p>}
         </div>
-      </div>
+        </div>
 
-      {/* Right Side - Illustration Panel */}
-      <div className="login-illustration">
+        {/* Right Side - Illustration Panel */}
+        <div className="login-illustration">
         <div className="illustration-content">
           <div className="illustration-badge">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -213,6 +214,7 @@ const Login: React.FC = () => {
               <span>-30% Costi Acquisizione</span>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
