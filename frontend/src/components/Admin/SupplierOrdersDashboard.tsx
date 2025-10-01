@@ -19,7 +19,8 @@ import {
   Calendar,
   MapPin,
   User,
-  Building2
+  Building2,
+  X
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
