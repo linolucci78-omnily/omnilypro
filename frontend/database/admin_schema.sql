@@ -1,7 +1,7 @@
 -- ============================================================================
 -- OMNILY PRO - ADMIN CONTROL SCHEMA COMPLETO
 -- Versione: 1.0
--- Data: 1 Ottobre 2024
+-- Data: 1 Ottobre 2025
 -- Descrizione: Schema completo per controllo totale admin SaaS
 -- ============================================================================
 

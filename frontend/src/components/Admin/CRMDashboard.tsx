@@ -40,200 +40,105 @@ import {
   XCircle
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { crmService } from '../../services/crmService'
+import type { Customer, Campaign, CustomerSegment, CRMStats } from '../../services/crmService'
 import PageLoader from '../UI/PageLoader'
 
-interface Customer {
-  id: string
-  first_name: string
-  last_name: string
-  email: string
-  phone?: string
-  date_of_birth?: string
-  gender?: 'M' | 'F' | 'Other'
-  city?: string
-  country?: string
-  created_at: string
-  last_activity?: string
-  total_spent: number
-  total_orders: number
-  avg_order_value: number
-  lifetime_value: number
-  loyalty_points: number
-  tier: string
-  status: 'active' | 'inactive' | 'churned' | 'vip'
-  tags: string[]
-  notes?: string
-  acquisition_channel: string
-  last_purchase_date?: string
-  predicted_churn_risk: number
-  engagement_score: number
-}
-
-interface Campaign {
-  id: string
-  name: string
-  type: 'email' | 'sms' | 'push' | 'direct_mail'
-  status: 'draft' | 'scheduled' | 'running' | 'completed' | 'paused'
-  target_segments: string[]
-  sent_count: number
-  opened_count: number
-  clicked_count: number
-  converted_count: number
-  revenue_generated: number
-  created_at: string
-  scheduled_at?: string
-  budget: number
-}
-
-interface Segment {
-  id: string
-  name: string
-  description: string
-  criteria: any
-  customer_count: number
-  avg_clv: number
-  created_at: string
-  last_updated: string
-}
+// Interfaces importate dal service CRMService
 
 const CRMDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [customers, setCustomers] = useState<Customer[]>([])
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [segments, setSegments] = useState<Segment[]>([])
+  const [segments, setSegments] = useState<CustomerSegment[]>([])
+  const [crmStats, setCrmStats] = useState<CRMStats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
   const [showCustomerModal, setShowCustomerModal] = useState(false)
   const [showCampaignModal, setShowCampaignModal] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [totalCustomers, setTotalCustomers] = useState(0)
+  const [currentOrganizationId, setCurrentOrganizationId] = useState<string | null>(null)
 
-  // Mock data - In produzione verrà da Supabase
-  const mockCustomers: Customer[] = [
-    {
-      id: '1',
-      first_name: 'Marco',
-      last_name: 'Rossi',
-      email: 'marco.rossi@gmail.com',
-      phone: '+39 345 123 4567',
-      date_of_birth: '1985-06-15',
-      gender: 'M',
-      city: 'Milano',
-      country: 'Italia',
-      created_at: '2024-01-15T10:00:00Z',
-      last_activity: '2024-09-30T15:30:00Z',
-      total_spent: 2450.50,
-      total_orders: 24,
-      avg_order_value: 102.10,
-      lifetime_value: 3200.00,
-      loyalty_points: 1250,
-      tier: 'Gold',
-      status: 'vip',
-      tags: ['High Value', 'Frequent Buyer', 'Email Subscriber'],
-      acquisition_channel: 'Social Media',
-      last_purchase_date: '2024-09-28T00:00:00Z',
-      predicted_churn_risk: 15,
-      engagement_score: 92
-    },
-    {
-      id: '2',
-      first_name: 'Sofia',
-      last_name: 'Bianchi',
-      email: 'sofia.bianchi@outlook.com',
-      phone: '+39 347 987 6543',
-      date_of_birth: '1992-03-22',
-      gender: 'F',
-      city: 'Roma',
-      country: 'Italia',
-      created_at: '2024-03-10T14:20:00Z',
-      last_activity: '2024-09-29T09:15:00Z',
-      total_spent: 890.75,
-      total_orders: 12,
-      avg_order_value: 74.23,
-      lifetime_value: 1400.00,
-      loyalty_points: 450,
-      tier: 'Silver',
-      status: 'active',
-      tags: ['Regular Customer', 'Mobile User'],
-      acquisition_channel: 'Google Ads',
-      last_purchase_date: '2024-09-25T00:00:00Z',
-      predicted_churn_risk: 35,
-      engagement_score: 78
-    },
-    {
-      id: '3',
-      first_name: 'Alessandro',
-      last_name: 'Verde',
-      email: 'ale.verde@yahoo.it',
-      city: 'Torino',
-      country: 'Italia',
-      created_at: '2024-02-05T11:45:00Z',
-      last_activity: '2024-08-15T16:20:00Z',
-      total_spent: 156.20,
-      total_orders: 3,
-      avg_order_value: 52.07,
-      lifetime_value: 300.00,
-      loyalty_points: 85,
-      tier: 'Bronze',
-      status: 'churned',
-      tags: ['At Risk', 'Low Engagement'],
-      acquisition_channel: 'Referral',
-      last_purchase_date: '2024-07-10T00:00:00Z',
-      predicted_churn_risk: 85,
-      engagement_score: 23
-    }
-  ]
-
-  const mockCampaigns: Campaign[] = [
-    {
-      id: '1',
-      name: 'Black Friday 2024 - VIP Exclusive',
-      type: 'email',
-      status: 'running',
-      target_segments: ['VIP Customers', 'High Value'],
-      sent_count: 1250,
-      opened_count: 487,
-      clicked_count: 156,
-      converted_count: 43,
-      revenue_generated: 12650.00,
-      created_at: '2024-09-20T10:00:00Z',
-      scheduled_at: '2024-10-01T09:00:00Z',
-      budget: 5000
-    },
-    {
-      id: '2',
-      name: 'Welcome Series - New Customers',
-      type: 'email',
-      status: 'running',
-      target_segments: ['New Signups'],
-      sent_count: 890,
-      opened_count: 445,
-      clicked_count: 89,
-      converted_count: 67,
-      revenue_generated: 3420.00,
-      created_at: '2024-09-15T14:30:00Z',
-      budget: 1200
-    }
-  ]
-
+  // Get current organization ID from user context or props
   useEffect(() => {
+    const getCurrentOrganization = async () => {
+      try {
+        // Get current user's organization from organization_users table
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data: orgUser } = await supabase
+          .from('organization_users')
+          .select('org_id')
+          .eq('user_id', user.id)
+          .single()
+
+        if (orgUser) {
+          setCurrentOrganizationId(orgUser.org_id)
+        }
+      } catch (error) {
+        console.error('Error getting current organization:', error)
+      }
+    }
+
+    getCurrentOrganization()
+  }, [])
+
+  // Load CRM data when organization is available
+  useEffect(() => {
+    if (!currentOrganizationId) return
+
     const loadCRMData = async () => {
       try {
         setLoading(true)
-        // TODO: Sostituire con chiamate Supabase reali
-        setCustomers(mockCustomers)
-        setCampaigns(mockCampaigns)
-        // In produzione: await loadCustomersFromSupabase()
+        console.log('🔄 Loading CRM data for organization:', currentOrganizationId)
+
+        // Load data in parallel for better performance
+        const [
+          customersResponse,
+          campaignsData,
+          segmentsData,
+          statsData
+        ] = await Promise.all([
+          crmService.getCustomers(currentOrganizationId, {
+            status: selectedFilter !== 'all' ? selectedFilter : undefined,
+            search: searchTerm || undefined,
+            limit: 50
+          }),
+          crmService.getCampaigns(currentOrganizationId),
+          crmService.getSegments(currentOrganizationId),
+          crmService.getCRMStats(currentOrganizationId)
+        ])
+
+        setCustomers(customersResponse.customers)
+        setTotalCustomers(customersResponse.total)
+        setCampaigns(campaignsData)
+        setSegments(segmentsData)
+        setCrmStats(statsData)
+
+        console.log('✅ CRM data loaded successfully:', {
+          customers: customersResponse.customers.length,
+          campaigns: campaignsData.length,
+          segments: segmentsData.length
+        })
+
       } catch (error) {
-        console.error('Error loading CRM data:', error)
+        console.error('❌ Error loading CRM data:', error)
+        // Fall back to empty arrays to prevent crashes
+        setCustomers([])
+        setCampaigns([])
+        setSegments([])
+        setCrmStats(null)
       } finally {
         setLoading(false)
       }
     }
 
     loadCRMData()
-  }, [])
+  }, [currentOrganizationId, selectedFilter, searchTerm])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -291,14 +196,19 @@ const CRMDashboard: React.FC = () => {
     return matchesSearch && matchesFilter
   })
 
-  // Calcolo statistiche dashboard
-  const totalCustomers = customers.length
-  const totalRevenue = customers.reduce((sum, c) => sum + c.total_spent, 0)
-  const avgCLV = customers.length > 0 ? customers.reduce((sum, c) => sum + c.lifetime_value, 0) / customers.length : 0
-  const avgEngagement = customers.length > 0 ? customers.reduce((sum, c) => sum + c.engagement_score, 0) / customers.length : 0
-  const activeCustomers = customers.filter(c => c.status === 'active' || c.status === 'vip').length
-  const churnedCustomers = customers.filter(c => c.status === 'churned').length
-  const vipCustomers = customers.filter(c => c.status === 'vip').length
+  // Use real stats from CRM service or fallback to calculated values
+  const statsToUse = crmStats || {
+    total_customers: customers.length,
+    total_revenue: customers.reduce((sum, c) => sum + c.total_spent, 0),
+    avg_clv: customers.length > 0 ? customers.reduce((sum, c) => sum + c.lifetime_value, 0) / customers.length : 0,
+    avg_engagement: customers.length > 0 ? customers.reduce((sum, c) => sum + c.engagement_score, 0) / customers.length : 0,
+    active_customers: customers.filter(c => c.status === 'active' || c.status === 'vip').length,
+    churned_customers: customers.filter(c => c.status === 'churned').length,
+    vip_customers: customers.filter(c => c.status === 'vip').length,
+    active_campaigns: campaigns.filter(c => c.status === 'running').length,
+    conversion_rate: 0,
+    customer_growth_rate: 0
+  }
 
   if (loading) {
     return <PageLoader />
@@ -381,7 +291,7 @@ const CRMDashboard: React.FC = () => {
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-              {totalCustomers.toLocaleString()}
+              {statsToUse.total_customers.toLocaleString()}
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Clienti Totali</div>
           </div>
@@ -398,7 +308,7 @@ const CRMDashboard: React.FC = () => {
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-              {formatCurrency(totalRevenue)}
+              {formatCurrency(statsToUse.total_revenue)}
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Revenue Totale</div>
           </div>
@@ -415,7 +325,7 @@ const CRMDashboard: React.FC = () => {
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-              {formatCurrency(avgCLV)}
+              {formatCurrency(statsToUse.avg_clv)}
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>CLV Medio</div>
           </div>
@@ -432,7 +342,7 @@ const CRMDashboard: React.FC = () => {
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-              {avgEngagement.toFixed(0)}%
+              {statsToUse.avg_engagement.toFixed(0)}%
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Engagement Score</div>
           </div>
@@ -451,7 +361,7 @@ const CRMDashboard: React.FC = () => {
               </span>
             </div>
             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-              {vipCustomers}
+              {statsToUse.vip_customers}
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Clienti VIP</div>
           </div>
@@ -911,21 +821,21 @@ const CRMDashboard: React.FC = () => {
                       <Crown size={16} style={{ color: 'var(--omnily-primary)' }} />
                       VIP
                     </span>
-                    <span style={{ fontWeight: '600' }}>{vipCustomers}</span>
+                    <span style={{ fontWeight: '600' }}>{statsToUse.vip_customers}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <CheckCircle size={16} style={{ color: 'var(--omnily-success)' }} />
                       Attivi
                     </span>
-                    <span style={{ fontWeight: '600' }}>{activeCustomers}</span>
+                    <span style={{ fontWeight: '600' }}>{statsToUse.active_customers}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <XCircle size={16} style={{ color: 'var(--omnily-error)' }} />
                       Persi
                     </span>
-                    <span style={{ fontWeight: '600' }}>{churnedCustomers}</span>
+                    <span style={{ fontWeight: '600' }}>{statsToUse.churned_customers}</span>
                   </div>
                 </div>
               </div>
