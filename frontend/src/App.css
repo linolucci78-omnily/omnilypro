@@ -449,15 +449,15 @@ body.admin-page {
 }
 
 .btn {
-  padding: 1rem 2rem;
-  border-radius: 8px;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
   font-weight: 600;
   text-decoration: none;
   display: inline-block;
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.8rem;
 }
 
 .btn-primary {
@@ -465,7 +465,7 @@ body.admin-page {
   color: white;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .btn-primary:hover {
@@ -1288,10 +1288,10 @@ body.admin-page {
 
 .login-wrapper {
   display: flex;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
   overflow: hidden;
-  max-width: 900px;
+  max-width: 650px;
   width: 100%;
   animation: fadeInUp 0.6s ease-out;
 }
@@ -1309,18 +1309,18 @@ body.admin-page {
 
 .login-container {
   background: white;
-  padding: 2.5rem 2rem;
+  padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 50%;
-  min-height: 500px;
+  min-height: 400px;
 }
 
 .login-container > * {
   width: 100%;
-  max-width: 340px;
+  max-width: 240px;
   margin-left: auto !important;
   margin-right: auto !important;
 }
@@ -1342,11 +1342,11 @@ body.admin-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 2rem;
+  padding: 1.5rem 1.25rem;
   position: relative;
   overflow: hidden;
   width: 50%;
-  min-height: 500px;
+  min-height: 400px;
 }
 
 .login-illustration::before {
@@ -1376,14 +1376,14 @@ body.admin-page {
 .illustration-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-size: 0.875rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.7rem;
   font-weight: 600;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -1409,23 +1409,23 @@ body.admin-page {
 }
 
 .illustration-content h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
   line-height: 1.3;
 }
 
 .illustration-content > p {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   opacity: 0.95;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .illustration-features {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.625rem;
   align-items: flex-start;
 }
 
@@ -1433,7 +1433,7 @@ body.admin-page {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -1449,7 +1449,7 @@ body.admin-page {
 
 .login-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .login-logo {
@@ -1474,16 +1474,16 @@ body.admin-page {
 }
 
 .login-header h1 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   margin-top: 0;
 }
 
 .login-header p {
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   margin: 0;
 }
@@ -1491,7 +1491,7 @@ body.admin-page {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
   width: 100%;
   max-width: 340px;
   align-items: stretch;
@@ -1506,15 +1506,15 @@ body.admin-page {
 .form-group label {
   font-weight: 600;
   color: #334155;
-  font-size: 0.925rem;
-  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.3rem;
 }
 
 .form-group input {
-  padding: 0.875rem 1rem;
+  padding: 0.5rem 0.75rem;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
   transition: all 0.3s ease;
   background: #f8fafc;
 }
@@ -1538,10 +1538,10 @@ body.admin-page {
 .login-page .btn-primary {
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
-  padding: 0.875rem 1.5rem;
-  border-radius: 12px;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.8rem;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1564,10 +1564,10 @@ body.admin-page {
   background: white;
   color: #4b5563;
   border: 2px solid #e5e7eb;
-  padding: 0.875rem 1.5rem;
-  border-radius: 12px;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
