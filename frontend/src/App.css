@@ -1290,13 +1290,15 @@ body.admin-page {
   }
 }
 
-/* Left side - Login Form */
-.login-page::before {
-  display: none;
+/* Left side wrapper to center the form */
+.login-page > :first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
 }
 
 .login-container {
-  background: white;
   padding: 2rem 3rem;
   display: flex;
   flex-direction: column;
@@ -1304,8 +1306,6 @@ body.admin-page {
   align-items: center;
   width: 100%;
   max-width: 450px;
-  margin: auto;
-  height: 100vh;
   animation: fadeInLeft 0.6s ease-out;
 }
 
