@@ -21,6 +21,7 @@ import {
   Factory,
   Database
 } from 'lucide-react'
+import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
 
 interface ActivityLog {
@@ -297,24 +298,7 @@ const ActivityLogDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="admin-dashboard">
-        <div className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <Activity size={32} />
-              <div>
-                <h1>Log Attività</h1>
-                <p>Caricamento audit trail...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="dashboard-section" style={{ textAlign: 'center' }}>
-          <div className="loading-spinner">Caricamento...</div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Caricamento audit trail..." size="medium" />
   }
 
   return (

@@ -25,6 +25,7 @@ import {
   Download,
   Upload
 } from 'lucide-react'
+import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
 
 interface SupportTicket {
@@ -271,24 +272,7 @@ const SupportDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="admin-dashboard">
-        <div className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <HelpCircle size={32} />
-              <div>
-                <h1>Support Center</h1>
-                <p>Caricamento sistema support...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <div className="loading-spinner">Caricamento...</div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Caricamento sistema support..." size="medium" />
   }
 
   return (

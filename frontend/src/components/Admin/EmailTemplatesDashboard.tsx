@@ -28,6 +28,7 @@ import {
   AlignLeft,
   AlignCenter
 } from 'lucide-react'
+import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
 
 interface EmailTemplate {
@@ -231,24 +232,7 @@ const EmailTemplatesDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="admin-dashboard">
-        <div className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <Mail size={32} />
-              <div>
-                <h1>Email Templates</h1>
-                <p>Caricamento sistema email...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <div className="loading-spinner">Caricamento...</div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Caricamento sistema email..." size="medium" />
   }
 
   return (

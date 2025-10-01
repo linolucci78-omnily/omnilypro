@@ -22,6 +22,7 @@ import {
   X
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import PageLoader from '../UI/PageLoader'
 
 interface HardwareOrder {
   id: string
@@ -236,17 +237,7 @@ const HardwareOrdersDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '400px',
-        color: '#64748b'
-      }}>
-        <div>Caricamento ordini hardware...</div>
-      </div>
-    )
+    return <PageLoader message="Caricamento ordini hardware Z108..." size="medium" />
   }
 
   return (

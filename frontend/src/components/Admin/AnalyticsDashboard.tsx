@@ -25,6 +25,7 @@ import {
   LineChart
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import PageLoader from '../UI/PageLoader'
 
 interface AnalyticsData {
   revenue: {
@@ -225,27 +226,7 @@ const AnalyticsDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '400px',
-        color: '#64748b'
-      }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          border: '3px solid #e2e8f0',
-          borderTop: '3px solid #3b82f6',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          marginBottom: '16px'
-        }} />
-        <p>Caricamento analytics...</p>
-      </div>
-    )
+    return <PageLoader message="Caricamento analytics..." size="medium" />
   }
 
   if (error) {

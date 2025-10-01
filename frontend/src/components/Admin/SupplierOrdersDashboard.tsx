@@ -23,6 +23,7 @@ import {
   X
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import PageLoader from '../UI/PageLoader'
 
 interface SupplierOrder {
   id: string
@@ -292,17 +293,7 @@ const SupplierOrdersDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '400px',
-        color: '#64748b'
-      }}>
-        <div>Caricamento ordini fornitori...</div>
-      </div>
-    )
+    return <PageLoader message="Caricamento ordini fornitori..." size="medium" />
   }
 
   return (

@@ -27,6 +27,7 @@ import {
 import './AdminLayout.css'
 import './MDMDashboard.css'
 import PrintTemplateManager from './PrintTemplateManager'
+import PageLoader from '../UI/PageLoader'
 
 interface Device {
   id: string
@@ -393,12 +394,7 @@ const MDMDashboard: React.FC = () => {
   )
 
   if (loading) {
-    return (
-      <div className="mdm-dashboard loading">
-        <RefreshCw className="loading-spinner" size={24} />
-        <p>Caricamento dispositivi...</p>
-      </div>
-    )
+    return <PageLoader message="Caricamento dispositivi POS..." size="medium" />
   }
 
   return (

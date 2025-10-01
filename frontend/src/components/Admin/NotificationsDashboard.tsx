@@ -23,6 +23,7 @@ import {
   MessageSquare,
   Zap
 } from 'lucide-react'
+import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
 
 interface Notification {
@@ -221,24 +222,7 @@ const NotificationsDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="admin-dashboard">
-        <div className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <Bell size={32} />
-              <div>
-                <h1>Gestione Notifiche</h1>
-                <p>Caricamento sistema notifiche...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <div className="loading-spinner">Caricamento...</div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Caricamento sistema notifiche..." size="medium" />
   }
 
   return (

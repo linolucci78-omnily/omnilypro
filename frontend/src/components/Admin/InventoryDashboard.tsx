@@ -21,6 +21,7 @@ import {
   Settings
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import PageLoader from '../UI/PageLoader'
 
 interface InventoryItem {
   id: string
@@ -271,17 +272,7 @@ const InventoryDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '400px',
-        color: '#64748b'
-      }}>
-        <div>Caricamento inventory...</div>
-      </div>
-    )
+    return <PageLoader message="Caricamento inventario hardware..." size="medium" />
   }
 
   return (

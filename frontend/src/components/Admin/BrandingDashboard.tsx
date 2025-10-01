@@ -22,6 +22,7 @@ import {
   Zap
 } from 'lucide-react'
 import './AdminLayout.css'
+import PageLoader from '../UI/PageLoader'
 
 interface BrandTheme {
   id: string
@@ -341,24 +342,7 @@ const BrandingDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="admin-dashboard">
-        <div className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <Palette size={32} />
-              <div>
-                <h1>Brand & Temi</h1>
-                <p>Caricamento sistema branding...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <div className="loading-spinner">Caricamento...</div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Caricamento temi e branding..." size="medium" />
   }
 
   return (

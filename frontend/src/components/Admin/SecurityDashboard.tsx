@@ -31,6 +31,7 @@ import {
   Zap
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import PageLoader from '../UI/PageLoader'
 import './SecurityDashboard.css'
 
 interface SecurityEvent {
@@ -292,12 +293,7 @@ const SecurityDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Caricamento dati di sicurezza...</p>
-      </div>
-    )
+    return <PageLoader message="Caricamento dati di sicurezza..." size="medium" />
   }
 
   if (error) {
