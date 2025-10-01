@@ -109,6 +109,8 @@
   width: 100% !important;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 @media (min-width: 768px) {
@@ -134,6 +136,9 @@
   white-space: nowrap !important;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
 }
 
 .crm-btn-secondary {
@@ -766,6 +771,9 @@
   transition: background 0.2s !important;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
 }
 
 .crm-add-button:hover {
