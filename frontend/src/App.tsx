@@ -130,37 +130,36 @@ function App() {
     <Router>
       <AuthProvider>
         <div className="App">
-          <Navbar />
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<><Navbar /><Landing /></>} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
             <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
-            <Route 
-              path="/onboarding" 
+            <Route
+              path="/onboarding"
               element={
                 <ProtectedRoute>
-                  <Onboarding />
+                  <><Navbar /><Onboarding /></>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <><Navbar /><Dashboard /></>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/dashboard/customers" 
+            <Route
+              path="/dashboard/customers"
               element={
                 <ProtectedRoute>
-                  <BusinessCustomers />
+                  <><Navbar /><BusinessCustomers /></>
                 </ProtectedRoute>
-              } 
+              }
             />
             <Route
               path="/admin"
