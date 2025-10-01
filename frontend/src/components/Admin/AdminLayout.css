@@ -365,26 +365,81 @@
 }
 
 /* =========================================
-   FULL-WIDTH ADMIN DASHBOARD LAYOUTS
+   UNIFIED RESPONSIVE DASHBOARD STYLES
    ========================================= */
 
-/* Ensure all admin dashboards use full width */
-.admin-dashboard {
+/* Base dashboard container - applies to ALL dashboards */
+.admin-dashboard,
+.crm-dashboard,
+.mdm-dashboard,
+.billing-dashboard,
+.security-dashboard,
+.analytics-dashboard,
+.inventory-dashboard,
+.hardware-orders-dashboard,
+.supplier-orders-dashboard,
+[class*="-dashboard"] {
   width: 100% !important;
-  max-width: none !important;
+  max-width: 100% !important;
   margin: 0 !important;
-  padding: 0 !important;
-  box-sizing: border-box;
+  padding: 1rem !important;
+  box-sizing: border-box !important;
+  background: #f8fafc !important;
+  min-height: 100vh !important;
 }
 
-/* Dashboard headers full width */
+@media (min-width: 768px) {
+  .admin-dashboard,
+  .crm-dashboard,
+  .mdm-dashboard,
+  .billing-dashboard,
+  .security-dashboard,
+  .analytics-dashboard,
+  .inventory-dashboard,
+  .hardware-orders-dashboard,
+  .supplier-orders-dashboard,
+  [class*="-dashboard"] {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-dashboard,
+  .crm-dashboard,
+  .mdm-dashboard,
+  .billing-dashboard,
+  .security-dashboard,
+  .analytics-dashboard,
+  .inventory-dashboard,
+  .hardware-orders-dashboard,
+  .supplier-orders-dashboard,
+  [class*="-dashboard"] {
+    padding: 2rem !important;
+  }
+}
+
+/* Dashboard headers - uniform style */
 .dashboard-header {
   width: 100% !important;
-  padding: 1.5rem !important;
-  margin: 0 !important;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  box-sizing: border-box;
+  padding: 1rem !important;
+  margin: 0 0 1.5rem 0 !important;
+  background: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 768px) {
+  .dashboard-header {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-header {
+    padding: 2rem !important;
+    margin: 0 0 2rem 0 !important;
+  }
 }
 
 .header-content {
@@ -395,35 +450,101 @@
   max-width: none !important;
 }
 
-/* Dashboard sections full width */
-.dashboard-section {
+/* Dashboard sections - uniform */
+.dashboard-section,
+.dashboard-content-section {
   width: 100% !important;
-  padding: 1.5rem !important;
-  margin: 0 !important;
-  box-sizing: border-box;
+  padding: 1rem !important;
+  margin: 0 0 1.5rem 0 !important;
+  background: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-sizing: border-box !important;
 }
 
-/* Dashboard stats grids full width */
-.dashboard-stats {
+@media (min-width: 768px) {
+  .dashboard-section,
+  .dashboard-content-section {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-section,
+  .dashboard-content-section {
+    padding: 2rem !important;
+  }
+}
+
+/* Dashboard stats grids - uniform responsive */
+.dashboard-stats,
+.stats-grid,
+.kpi-grid,
+.crm-kpi-grid {
   width: 100% !important;
   margin: 0 0 1.5rem 0 !important;
-  padding: 1.5rem !important;
+  padding: 0 !important;
   display: grid !important;
+  grid-template-columns: 1fr !important;
   gap: 1rem !important;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 
-/* Stat cards full width responsive */
-.stat-card {
+@media (min-width: 640px) {
+  .dashboard-stats,
+  .stats-grid,
+  .kpi-grid,
+  .crm-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-stats,
+  .stats-grid,
+  .kpi-grid,
+  .crm-kpi-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .dashboard-stats,
+  .stats-grid,
+  .kpi-grid,
+  .crm-kpi-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+}
+
+/* Stat cards - uniform style */
+.stat-card,
+.kpi-card,
+.crm-kpi-card {
   width: 100% !important;
-  padding: 1.5rem !important;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid var(--omnily-border-color);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  padding: 1.25rem !important;
+  background: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+@media (min-width: 768px) {
+  .stat-card,
+  .kpi-card,
+  .crm-kpi-card {
+    padding: 1.5rem !important;
+  }
+}
+
+.stat-card:hover,
+.kpi-card:hover,
+.crm-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--omnily-primary);
 }
 
 /* Content grids full width */
@@ -433,53 +554,161 @@
   padding: 0 !important;
 }
 
-/* Tables and lists full width */
+/* Tables and lists - uniform full width */
 .dashboard-table,
 .items-list,
 .orders-list,
 .tickets-list,
 .notifications-list,
-.templates-grid,
-.assets-grid,
 .activity-timeline,
 .analytics-grid,
 .monitoring-grid,
 .backups-list,
 .queries-list,
 .agents-grid,
-.reports-grid {
+.reports-grid,
+.crm-table-card,
+.table-container {
   width: 100% !important;
-  margin: 0 !important;
-  overflow-x: auto;
+  margin: 0 0 1.5rem 0 !important;
+  background: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
-/* Templates grid specific layout */
-.templates-grid {
+/* Table scroll wrapper */
+.table-wrapper,
+.crm-table-scroll {
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+/* Actual table element */
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  min-width: 600px !important;
+}
+
+@media (min-width: 768px) {
+  table {
+    min-width: 800px !important;
+  }
+}
+
+table th {
+  padding: 0.75rem !important;
+  text-align: left !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  background: #f8fafc !important;
+  white-space: nowrap !important;
+}
+
+@media (min-width: 768px) {
+  table th {
+    padding: 1rem !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+table td {
+  padding: 0.75rem !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+@media (min-width: 768px) {
+  table td {
+    padding: 1rem !important;
+  }
+}
+
+table tbody tr {
+  transition: background 0.2s ease !important;
+}
+
+table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+/* Content grids - uniform responsive */
+.templates-grid,
+.assets-grid,
+.cards-grid {
+  width: 100% !important;
   display: grid !important;
+  grid-template-columns: 1fr !important;
   gap: 1rem !important;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
+  margin: 0 0 1.5rem 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
-.assets-grid {
-  display: grid !important;
-  gap: 1rem !important;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+@media (min-width: 640px) {
+  .templates-grid,
+  .assets-grid,
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
-/* Cards in grids responsive */
+@media (min-width: 1024px) {
+  .templates-grid,
+  .assets-grid,
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .templates-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* Cards in grids - uniform */
 .order-card,
 .ticket-card,
 .notification-card,
 .template-card,
 .asset-card,
-.inventory-card {
+.inventory-card,
+.content-card {
   width: 100% !important;
-  margin-bottom: 1rem !important;
-  padding: 1.5rem !important;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid var(--omnily-border-color);
-  box-sizing: border-box;
+  padding: 1rem !important;
+  background: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+@media (min-width: 768px) {
+  .order-card,
+  .ticket-card,
+  .notification-card,
+  .template-card,
+  .asset-card,
+  .inventory-card,
+  .content-card {
+    padding: 1.5rem !important;
+  }
+}
+
+.order-card:hover,
+.ticket-card:hover,
+.notification-card:hover,
+.template-card:hover,
+.asset-card:hover,
+.inventory-card:hover,
+.content-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--omnily-primary);
 }
 
 /* Dashboard tabs full width */
