@@ -18,7 +18,8 @@ import {
   Plus,
   Edit2,
   Eye,
-  MoreHorizontal
+  MoreHorizontal,
+  X
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
@@ -623,6 +624,340 @@ const HardwareOrdersDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* New Order Modal */}
+      {showOrderModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            width: '90%',
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '2rem'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>
+                Nuovo Ordine Hardware
+              </h2>
+              <button
+                onClick={() => setShowOrderModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: '#64748b'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              // Handle form submission here
+              setShowOrderModal(false)
+            }}>
+              <div style={{ display: 'grid', gap: '1.5rem' }}>
+                {/* Cliente */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Cliente / Organizzazione *
+                  </label>
+                  <select
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Seleziona cliente...</option>
+                    <option value="org-1">Ristorante Da Mario</option>
+                    <option value="org-2">Bar Centrale</option>
+                    <option value="org-3">Pizzeria Napoletana</option>
+                    <option value="org-4">Caffè del Corso</option>
+                  </select>
+                </div>
+
+                {/* Tipo Ordine */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Tipo Ordine *
+                  </label>
+                  <select
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Seleziona tipo...</option>
+                    <option value="initial_setup">Setup Iniziale (€299 setup fee)</option>
+                    <option value="additional_hardware">Hardware Aggiuntivo</option>
+                    <option value="replacement">Sostituzione (€50 handling fee)</option>
+                  </select>
+                </div>
+
+                {/* Hardware Model e Quantità */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Modello Hardware *
+                    </label>
+                    <select
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <option value="">Seleziona modello...</option>
+                      <option value="Z108">Z108 Terminal - €200</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Quantità *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      defaultValue="1"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Indirizzo di Spedizione */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Indirizzo di Spedizione
+                  </label>
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <input
+                        type="text"
+                        placeholder="Nome completo"
+                        style={{
+                          padding: '0.75rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nome azienda"
+                        style={{
+                          padding: '0.75rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Indirizzo"
+                      style={{
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                      <input
+                        type="text"
+                        placeholder="Città"
+                        style={{
+                          padding: '0.75rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="CAP"
+                        style={{
+                          padding: '0.75rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <input
+                        type="tel"
+                        placeholder="Telefono"
+                        style={{
+                          padding: '0.75rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Note */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Note Aggiuntive
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Note speciali per la spedizione..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                {/* Riepilogo Costi */}
+                <div style={{
+                  background: '#f8fafc',
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>Riepilogo Costi</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span>Hardware (1x Z108):</span>
+                    <span>€200.00</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span>Setup Fee:</span>
+                    <span>€299.00</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span>Spedizione:</span>
+                    <span>€0.00</span>
+                  </div>
+                  <hr style={{ margin: '0.5rem 0', border: 'none', borderTop: '1px solid #d1d5db' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                    <span>Totale:</span>
+                    <span>€499.00</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'flex-end',
+                marginTop: '2rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid #e2e8f0'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setShowOrderModal(false)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#f8fafc',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#3b82f6',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'white'
+                  }}
+                >
+                  Crea Ordine
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -700,6 +700,291 @@ const SupplierOrdersDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Order Modal */}
+      {showOrderModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '800px',
+            maxHeight: '90vh',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <h2 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: '600', color: '#1e293b' }}>
+                  {selectedOrder ? 'Modifica Ordine Fornitore' : 'Nuovo Ordine Fornitore'}
+                </h2>
+                <p style={{ margin: 0, color: '#64748b' }}>
+                  {selectedOrder ? 'Modifica i dettagli dell\'ordine' : 'Crea un nuovo ordine dai fornitori cinesi'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowOrderModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  padding: '8px'
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '24px', overflow: 'auto', flex: 1 }}>
+              <form>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '24px',
+                  marginBottom: '24px'
+                }}>
+                  {/* Supplier Selection */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Fornitore
+                    </label>
+                    <select
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <option value="">Seleziona fornitore</option>
+                      <option value="sup-1">TechnoChina Ltd - Shenzhen</option>
+                      <option value="sup-2">POS Solutions China - Guangzhou</option>
+                      <option value="sup-3">Smart Terminals Co - Beijing</option>
+                    </select>
+                  </div>
+
+                  {/* Order Number */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Numero Ordine
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={selectedOrder?.order_number || `PO-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  {/* Product Selection */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Prodotto
+                    </label>
+                    <select
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <option value="">Seleziona prodotto</option>
+                      <option value="Z108-STD">Z108 Standard - €200</option>
+                      <option value="Z108-PRO">Z108 Pro - €240</option>
+                      <option value="CUST-DISP">Customer Display - €50</option>
+                    </select>
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Quantità
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      defaultValue="50"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  {/* Expected Delivery */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Consegna Prevista
+                    </label>
+                    <input
+                      type="date"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  {/* Payment Method */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Metodo Pagamento
+                    </label>
+                    <select
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="paypal">PayPal</option>
+                      <option value="30_days">30 Days</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  marginBottom: '24px'
+                }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>
+                    Riepilogo Ordine
+                  </h3>
+                  <div style={{ fontSize: '14px', color: '#64748b' }}>
+                    <p>Subtotale: $10,000.00</p>
+                    <p>Spedizione: $500.00</p>
+                    <p>Dogana: $300.00</p>
+                    <p style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+                      Totale: $10,800.00 (€9,180.00)
+                    </p>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '24px',
+              borderTop: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px'
+            }}>
+              <button
+                type="button"
+                onClick={() => setShowOrderModal(false)}
+                style={{
+                  padding: '12px 20px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                Annulla
+              </button>
+              <button
+                type="submit"
+                style={{
+                  padding: '12px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#10b981',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                {selectedOrder ? 'Salva Modifiche' : 'Crea Ordine'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
