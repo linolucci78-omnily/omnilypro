@@ -133,10 +133,10 @@ const Login: React.FC = () => {
   // Layout standard per il Desktop
   return (
     <div className="login-page">
-       <div className="login-container">
+      <div className="login-container">
         <div className="login-header">
           <Link to="/" className="login-logo">
-            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '200px' }} />
+            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '140px' }} />
           </Link>
           <h1>{getTitle()}</h1>
           <p>Benvenuto nella piattaforma SaaS multi-tenant</p>
@@ -176,6 +176,45 @@ const Login: React.FC = () => {
           {authMode === 'login' && <p>Non hai un account? <button type="button" onClick={() => setAuthMode('signup')} className="link-button">Registrati qui</button></p>}
           {authMode === 'signup' && <p>Hai già un account? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Accedi qui</button></p>}
           {authMode === 'reset' && <p>Tornare al? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Login</button></p>}
+        </div>
+      </div>
+
+      {/* Right Side - Illustration Panel */}
+      <div className="login-illustration">
+        <div className="illustration-content">
+          <div className="illustration-icon">
+            <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
+              <circle cx="100" cy="100" r="80" fill="rgba(255, 255, 255, 0.1)" />
+              <circle cx="100" cy="100" r="60" fill="rgba(255, 255, 255, 0.15)" />
+              <path d="M100 60V100L130 115" stroke="white" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="100" cy="100" r="8" fill="white" />
+            </svg>
+          </div>
+          <h2>Gestisci la tua azienda in modo intelligente</h2>
+          <p>Piattaforma SaaS multi-tenant completa per gestire clienti, ordini, inventario e molto altro. Tutto in un unico posto.</p>
+          <div className="illustration-features">
+            <div className="feature-item">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>CRM Avanzato</span>
+            </div>
+            <div className="feature-item">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Gestione Ordini</span>
+            </div>
+            <div className="feature-item">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Analytics in Tempo Reale</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
