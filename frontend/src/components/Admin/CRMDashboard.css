@@ -273,7 +273,7 @@
 .crm-search {
   position: relative;
   flex: 1;
-  min-width: 250px;
+  min-width: 200px;
 }
 
 .crm-search input {
@@ -314,7 +314,6 @@
 .crm-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
 }
 
 .crm-table th {
@@ -635,6 +634,7 @@
   padding: 0.5rem;
   width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
@@ -647,6 +647,377 @@
   .crm-content-area {
     padding: 1.5rem;
   }
+}
+
+/* Filters Section - Full Width */
+.crm-filters-section {
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .crm-filters-section {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+}
+
+.crm-search-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 180px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .crm-search-wrapper {
+    min-width: 250px;
+  }
+}
+
+.crm-search-input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+}
+
+.crm-search-icon-wrapper {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.crm-filter-dropdown {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.crm-add-button {
+  background: var(--omnily-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.crm-add-button:hover {
+  background: #1e3a8a;
+}
+
+/* Table Wrapper - Full Width */
+.crm-table-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.crm-table-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.crm-customers-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.crm-customers-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.75rem;
+  background: #f8fafc;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .crm-customers-table th {
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+.crm-customers-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+@media (min-width: 768px) {
+  .crm-customers-table td {
+    padding: 1rem;
+  }
+}
+
+.crm-customers-table tbody tr {
+  transition: background 0.2s;
+}
+
+.crm-customers-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Customer Cell Content */
+.customer-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .customer-cell {
+    gap: 0.75rem;
+  }
+}
+
+.customer-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .customer-avatar-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+  }
+}
+
+.customer-name-email {
+  min-width: 0;
+  flex: 1;
+}
+
+.customer-name {
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customer-email {
+  font-size: 0.75rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 768px) {
+  .customer-email {
+    font-size: 0.875rem;
+  }
+}
+
+.customer-address-line {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* Status Cell */
+.status-tier-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.status-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+@media (min-width: 768px) {
+  .status-badge-inline {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    gap: 0.5rem;
+  }
+}
+
+.tier-text {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .tier-text {
+    font-size: 0.75rem;
+  }
+}
+
+/* Value Cell */
+.value-cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.clv-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem;
+}
+
+.clv-label-small {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+@media (min-width: 768px) {
+  .clv-label-small {
+    font-size: 0.75rem;
+  }
+}
+
+/* Engagement/Churn Cells */
+.progress-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-bar-container {
+  width: 40px;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .progress-bar-container {
+    width: 60px;
+    height: 8px;
+  }
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.progress-percentage {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .progress-percentage {
+    font-size: 0.875rem;
+  }
+}
+
+/* Activity Cell */
+.activity-date-cell {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+@media (min-width: 768px) {
+  .activity-date-cell {
+    font-size: 0.875rem;
+  }
+}
+
+.last-visit-text {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.125rem;
+}
+
+@media (min-width: 768px) {
+  .last-visit-text {
+    font-size: 0.75rem;
+  }
+}
+
+/* Actions Cell */
+.actions-cell {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .actions-cell {
+    gap: 0.5rem;
+  }
+}
+
+.action-button-circle {
+  padding: 0.375rem;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+@media (min-width: 768px) {
+  .action-button-circle {
+    padding: 0.5rem;
+  }
+}
+
+.action-button-circle:hover {
+  background: #e5e7eb;
 }
 
 /* Custom variables */

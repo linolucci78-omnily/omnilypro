@@ -347,50 +347,24 @@ const CRMDashboard: React.FC = () => {
         {activeTab === 'customers' && (
           <div>
             {/* Filters & Search */}
-            <div style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              marginBottom: '1.5rem',
-              display: 'flex',
-              gap: '1rem',
-              alignItems: 'center',
-              flexWrap: 'wrap'
-            }}>
-              <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
-                <Search size={18} style={{
-                  position: 'absolute',
-                  left: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#9ca3af'
-                }} />
+            <div className="crm-filters-section">
+              <div className="crm-search-wrapper">
+                <div className="crm-search-icon-wrapper">
+                  <Search size={18} />
+                </div>
                 <input
                   type="text"
                   placeholder="Cerca clienti per nome, email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '0.875rem'
-                  }}
+                  className="crm-search-input"
                 />
               </div>
 
               <select
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value)}
-                style={{
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  background: 'white'
-                }}
+                className="crm-filter-dropdown"
               >
                 <option value="all">Tutti i Clienti</option>
                 <option value="vip">VIP</option>
@@ -399,93 +373,47 @@ const CRMDashboard: React.FC = () => {
                 <option value="churned">Persi</option>
               </select>
 
-              <button style={{
-                background: 'var(--omnily-primary)',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontWeight: '500'
-              }}>
+              <button className="crm-add-button">
                 <Plus size={18} />
                 Nuovo Cliente
               </button>
             </div>
 
             {/* Customers Table */}
-            <div style={{
-              background: 'white',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden'
-            }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="crm-table-card">
+              <div className="crm-table-scroll">
+                <table className="crm-customers-table">
                   <thead>
-                    <tr style={{ background: '#f8fafc' }}>
-                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Cliente
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Status & Tier
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Valore
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Engagement
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Rischio Churn
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Ultima Attività
-                      </th>
-                      <th style={{ padding: '1rem', textAlign: 'center', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                        Azioni
-                      </th>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Status & Tier</th>
+                      <th>Valore</th>
+                      <th>Engagement</th>
+                      <th>Rischio Churn</th>
+                      <th>Ultima Attività</th>
+                      <th style={{ textAlign: 'center' }}>Azioni</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredCustomers.map((customer, index) => (
-                      <tr
-                        key={customer.id}
-                        style={{
-                          borderBottom: index < filteredCustomers.length - 1 ? '1px solid #f1f5f9' : 'none',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              background: getStatusColor(customer.is_active ? 'active' : 'inactive'),
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white',
-                              fontWeight: '600',
-                              fontSize: '0.875rem'
-                            }}>
+                      <tr key={customer.id}>
+                        <td>
+                          <div className="customer-cell">
+                            <div
+                              className="customer-avatar-circle"
+                              style={{ background: getStatusColor(customer.is_active ? 'active' : 'inactive') }}
+                            >
                               {customer.name.charAt(0)}{customer.name.split(' ')[1]?.charAt(0) || ''}
                             </div>
-                            <div>
-                              <div style={{ fontWeight: '500', color: '#1f2937' }}>
+                            <div className="customer-name-email">
+                              <div className="customer-name">
                                 {customer.name}
                               </div>
-                              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                              <div className="customer-email">
                                 {customer.email}
                               </div>
                               {customer.address && (
-                                <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <div className="customer-address-line">
                                   <MapPin size={12} />
                                   {customer.address}
                                 </div>
@@ -493,138 +421,91 @@ const CRMDashboard: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <div style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.375rem 0.75rem',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: '600',
-                              background: `${getStatusColor(customer.is_active ? 'active' : 'inactive')}20`,
-                              color: getStatusColor(customer.is_active ? 'active' : 'inactive'),
-                              width: 'fit-content'
-                            }}>
+                        <td>
+                          <div className="status-tier-cell">
+                            <div
+                              className="status-badge-inline"
+                              style={{
+                                background: `${getStatusColor(customer.is_active ? 'active' : 'inactive')}20`,
+                                color: getStatusColor(customer.is_active ? 'active' : 'inactive')
+                              }}
+                            >
                               {getStatusIcon(customer.is_active ? 'active' : 'inactive')}
                               {customer.is_active ? 'ATTIVO' : 'INATTIVO'}
                             </div>
-                            <div style={{
-                              fontSize: '0.75rem',
-                              color: '#6b7280',
-                              fontWeight: '500'
-                            }}>
+                            <div className="tier-text">
                               Tier: {customer.tier}
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                            <div style={{ fontWeight: '600', color: '#1f2937' }}>
+                        <td>
+                          <div className="value-cell-content">
+                            <div className="clv-value">
                               {formatCurrency(customer.lifetime_value || 0)}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            <div className="clv-label-small">
                               CLV
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            <div className="clv-label-small">
                               {customer.total_orders} ordini
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                              width: '60px',
-                              height: '8px',
-                              background: '#f1f5f9',
-                              borderRadius: '4px',
-                              overflow: 'hidden'
-                            }}>
-                              <div style={{
-                                width: `${customer.engagement_score || 0}%`,
-                                height: '100%',
-                                background: (customer.engagement_score || 0) >= 70 ? '#10b981' :
-                                          (customer.engagement_score || 0) >= 40 ? '#f59e0b' : '#ef4444',
-                                borderRadius: '4px'
-                              }} />
+                        <td>
+                          <div className="progress-cell">
+                            <div className="progress-bar-container">
+                              <div
+                                className="progress-bar-fill"
+                                style={{
+                                  width: `${customer.engagement_score || 0}%`,
+                                  background: (customer.engagement_score || 0) >= 70 ? '#10b981' :
+                                            (customer.engagement_score || 0) >= 40 ? '#f59e0b' : '#ef4444'
+                                }}
+                              />
                             </div>
-                            <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+                            <span className="progress-percentage">
                               {customer.engagement_score || 0}%
                             </span>
                           </div>
                         </td>
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                              width: '60px',
-                              height: '8px',
-                              background: '#f1f5f9',
-                              borderRadius: '4px',
-                              overflow: 'hidden'
-                            }}>
-                              <div style={{
-                                width: `${customer.predicted_churn_risk || 0}%`,
-                                height: '100%',
-                                background: getChurnRiskColor(customer.predicted_churn_risk || 0),
-                                borderRadius: '4px'
-                              }} />
+                        <td>
+                          <div className="progress-cell">
+                            <div className="progress-bar-container">
+                              <div
+                                className="progress-bar-fill"
+                                style={{
+                                  width: `${customer.predicted_churn_risk || 0}%`,
+                                  background: getChurnRiskColor(customer.predicted_churn_risk || 0)
+                                }}
+                              />
                             </div>
-                            <span style={{
-                              fontSize: '0.875rem',
-                              fontWeight: '500',
-                              color: getChurnRiskColor(customer.predicted_churn_risk || 0)
-                            }}>
+                            <span
+                              className="progress-percentage"
+                              style={{ color: getChurnRiskColor(customer.predicted_churn_risk || 0) }}
+                            >
                               {customer.predicted_churn_risk || 0}%
                             </span>
                           </div>
                         </td>
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                        <td>
+                          <div className="activity-date-cell">
                             {customer.last_activity ? formatDate(customer.last_activity) : 'Mai'}
                           </div>
                           {customer.last_visit && (
-                            <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                            <div className="last-visit-text">
                               Ultima visita: {formatDate(customer.last_visit)}
                             </div>
                           )}
                         </td>
-                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                            <button style={{
-                              padding: '0.5rem',
-                              border: 'none',
-                              background: '#f3f4f6',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}>
+                        <td style={{ textAlign: 'center' }}>
+                          <div className="actions-cell">
+                            <button className="action-button-circle">
                               <Eye size={16} />
                             </button>
-                            <button style={{
-                              padding: '0.5rem',
-                              border: 'none',
-                              background: '#f3f4f6',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}>
+                            <button className="action-button-circle">
                               <Edit2 size={16} />
                             </button>
-                            <button style={{
-                              padding: '0.5rem',
-                              border: 'none',
-                              background: '#f3f4f6',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}>
+                            <button className="action-button-circle">
                               <Mail size={16} />
                             </button>
                           </div>
