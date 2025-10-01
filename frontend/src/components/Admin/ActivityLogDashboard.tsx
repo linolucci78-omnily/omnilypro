@@ -310,7 +310,7 @@ const ActivityLogDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <div className="dashboard-section" style={{ textAlign: 'center' }}>
           <div className="loading-spinner">Caricamento...</div>
         </div>
       </div>
@@ -415,12 +415,7 @@ const ActivityLogDashboard: React.FC = () => {
       )}
 
       {/* Quick Stats */}
-      <div className="dashboard-stats" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1rem',
-        padding: '0'
-      }}>
+      <div className="dashboard-stats">
         <div className="stat-card">
           <div className="stat-icon security">
             <Shield size={24} />

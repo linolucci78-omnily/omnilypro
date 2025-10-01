@@ -311,12 +311,7 @@ const EmailTemplatesDashboard: React.FC = () => {
       {activeTab === 'list' && (
         <>
           {/* Category Stats */}
-          <div className="dashboard-stats" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '1rem',
-            padding: '0'
-          }}>
+          <div className="dashboard-stats">
             {categories.map((category) => (
               <div key={category.id} className="stat-card">
                 <div className="stat-icon primary">
@@ -363,11 +358,7 @@ const EmailTemplatesDashboard: React.FC = () => {
             </div>
 
             {/* Templates Grid */}
-            <div className="templates-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-              gap: '1rem'
-            }}>
+            <div className="templates-grid">
               {templates.map((template) => (
                 <div key={template.id} className="template-card">
                   <div className="template-header">
