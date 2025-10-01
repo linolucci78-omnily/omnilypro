@@ -177,7 +177,7 @@
   height: 64px;
   background: white;
   border-bottom: 1px solid #e2e8f0;
-  display: flex;
+  display: none; /* Hidden by default - not needed with sidebar */
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
