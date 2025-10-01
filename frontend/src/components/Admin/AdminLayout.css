@@ -306,11 +306,21 @@
   padding: 24px;
   overflow-y: auto;
   background: #f8fafc;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Remove padding for CRM dashboard to use full width */
 .admin-main:has(.crm-dashboard) {
   padding: 0;
+}
+
+/* Force all direct children to be full width */
+.admin-main > * {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Mobile Overlay */
