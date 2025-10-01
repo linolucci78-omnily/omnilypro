@@ -362,7 +362,8 @@ const BrandingDashboard: React.FC = () => {
   }
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard"
+         style={{ width: '100%', maxWidth: 'none', margin: 0, padding: 0, boxSizing: 'border-box' }}>
       <div className="dashboard-header">
         <div className="header-content">
           <div className="header-title">

@@ -67,6 +67,7 @@ const InventoryDashboard: React.FC = () => {
   const [stockFilter, setStockFilter] = useState<string>('all')
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
   const [showMovementModal, setShowMovementModal] = useState(false)
+  const [showAddProductModal, setShowAddProductModal] = useState(false)
 
   // Mock data per demo
   const mockInventory: InventoryItem[] = [
@@ -321,6 +322,7 @@ const InventoryDashboard: React.FC = () => {
               Movimento
             </button>
             <button
+              onClick={() => setShowAddProductModal(true)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -732,6 +734,524 @@ const InventoryDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Movement Modal */}
+      {showMovementModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '2rem'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>
+                Registra Movimento Inventario
+              </h2>
+              <button
+                onClick={() => setShowMovementModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: '#64748b'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              setShowMovementModal(false)
+            }}>
+              <div style={{ display: 'grid', gap: '1.5rem' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Prodotto *
+                  </label>
+                  <select
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Seleziona prodotto...</option>
+                    <option value="Z108-STD">Z108 Standard POS Terminal</option>
+                    <option value="Z108-PRO">Z108 Pro POS Terminal</option>
+                    <option value="ACC-PRINTER">Stampante Termica</option>
+                    <option value="ACC-SCANNER">Scanner Barcode</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Tipo Movimento *
+                  </label>
+                  <select
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Seleziona tipo...</option>
+                    <option value="IN">Entrata (IN) - Nuovi arrivi</option>
+                    <option value="OUT">Uscita (OUT) - Spedizione ordine</option>
+                    <option value="ADJUSTMENT">Aggiustamento inventario</option>
+                    <option value="DEFECTIVE">Prodotto difettoso</option>
+                    <option value="RESERVED">Riservato per ordine</option>
+                    <option value="UNRESERVED">Rilasciata riserva</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Quantità *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Riferimento (Ordine/Documento)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="es. ORD-2025-001, DOC-123"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Note
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Note aggiuntive..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'flex-end',
+                marginTop: '2rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid #e2e8f0'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setShowMovementModal(false)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#f8fafc',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#3b82f6',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'white'
+                  }}
+                >
+                  Registra Movimento
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Product Modal */}
+      {showAddProductModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            width: '90%',
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '2rem'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>
+                Aggiungi Nuovo Prodotto Hardware
+              </h2>
+              <button
+                onClick={() => setShowAddProductModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: '#64748b'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              setShowAddProductModal(false)
+            }}>
+              <div style={{ display: 'grid', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Nome Prodotto *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="es. Z108 Pro POS Terminal"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      SKU *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Z108-PRO"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Categoria *
+                  </label>
+                  <select
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Seleziona categoria...</option>
+                    <option value="terminals">Terminali POS</option>
+                    <option value="accessories">Accessori</option>
+                    <option value="cables">Cavi e Connettori</option>
+                    <option value="stands">Supporti e Stand</option>
+                    <option value="replacements">Ricambi</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Costo Unitario (€) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="200.00"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Punto Riordino
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="20"
+                      defaultValue="20"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: '#374151'
+                    }}>
+                      Stock Massimo
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="100"
+                      defaultValue="100"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Ubicazione *
+                  </label>
+                  <select
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Seleziona ubicazione...</option>
+                    <option value="main">Main Warehouse</option>
+                    <option value="storage">Storage Room</option>
+                    <option value="repair">Repair Center</option>
+                    <option value="quality">Quality Control</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}>
+                    Descrizione
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Descrizione dettagliata del prodotto..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'flex-end',
+                marginTop: '2rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid #e2e8f0'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddProductModal(false)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#f8fafc',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151'
+                  }}
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#3b82f6',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'white'
+                  }}
+                >
+                  Aggiungi Prodotto
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
