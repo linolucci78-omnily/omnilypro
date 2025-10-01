@@ -24,9 +24,22 @@ import {
   User,
   Smartphone,
   Truck,
-  Factory
+  Factory,
+  Target
 } from 'lucide-react'
 import './AdminLayout.css'
+
+interface MenuItem {
+  path: string;
+  icon: any;
+  label: string;
+  exact?: boolean;
+}
+
+interface MenuGroup {
+  group: string;
+  items: MenuItem[];
+}
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -43,7 +56,7 @@ const AdminLayout: React.FC = () => {
     }
   }
 
-  const menuItems = [
+  const menuItems: MenuGroup[] = [
     {
       group: 'Dashboard',
       items: [
