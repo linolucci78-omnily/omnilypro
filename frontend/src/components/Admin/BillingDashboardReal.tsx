@@ -25,6 +25,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import SubscriptionModal from './SubscriptionModal'
 
 interface Subscription {
   id: string
@@ -99,6 +100,9 @@ const BillingDashboardReal: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'past_due' | 'canceled'>('all')
   const [planFilter, setPlanFilter] = useState<'all' | 'basic' | 'premium' | 'enterprise'>('all')
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
 
   useEffect(() => {
     loadBillingData()
@@ -382,13 +386,30 @@ const BillingDashboardReal: React.FC = () => {
   }
 
   const handleCreateSubscription = () => {
-    // TODO: Implementare creazione abbonamento
-    console.log('Create subscription')
+    setSelectedSubscription(null)
+    setModalMode('create')
+    setShowSubscriptionModal(true)
   }
 
   const handleEditSubscription = (subscription: Subscription) => {
-    // TODO: Implementare modifica abbonamento
-    console.log('Edit subscription', subscription)
+    setSelectedSubscription(subscription)
+    setModalMode('edit')
+    setShowSubscriptionModal(true)
+  }
+
+  const handleSaveSubscription = (subscriptionData: any) => {
+    if (modalMode === 'create') {
+      // Add new subscription to list
+      setSubscriptions(prev => [subscriptionData, ...prev])
+    } else {
+      // Update existing subscription
+      setSubscriptions(prev =>
+        prev.map(sub => sub.id === subscriptionData.id ? subscriptionData : sub)
+      )
+    }
+
+    // Recalculate stats
+    loadBillingData()
   }
 
   const handleCancelSubscription = (subscription: Subscription) => {
@@ -943,6 +964,17 @@ const BillingDashboardReal: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedSubscription(null)
+        }}
+        subscription={selectedSubscription}
+        onSave={handleSaveSubscription}
+      />
     </div>
   )
 }

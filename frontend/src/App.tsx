@@ -17,6 +17,15 @@ import BillingDashboard from './components/Admin/BillingDashboardReal'
 import SecurityDashboard from './components/Admin/SecurityDashboardSafe'
 import SystemSettings from './components/Admin/SystemSettingsSafe'
 import AnalyticsDashboard from './components/Admin/AnalyticsDashboard'
+import HardwareOrdersDashboard from './components/Admin/HardwareOrdersDashboard'
+import SupplierOrdersDashboard from './components/Admin/SupplierOrdersDashboard'
+import InventoryDashboard from './components/Admin/InventoryDashboard'
+import ActivityLogDashboard from './components/Admin/ActivityLogDashboard'
+import NotificationsDashboard from './components/Admin/NotificationsDashboard'
+import EmailTemplatesDashboard from './components/Admin/EmailTemplatesDashboard'
+import DatabaseDashboard from './components/Admin/DatabaseDashboard'
+import SupportDashboard from './components/Admin/SupportDashboard'
+import BrandingDashboard from './components/Admin/BrandingDashboard'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
 
@@ -163,11 +172,20 @@ function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="organizations" element={<Admin />} />
               <Route path="business-owners" element={<BusinessOwners />} />
+              <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
+              <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
               <Route path="mdm" element={<MDMDashboard />} />
+              <Route path="inventory" element={<InventoryDashboard />} />
               <Route path="subscriptions" element={<BillingDashboard />} />
               <Route path="security" element={<SecurityDashboard />} />
               <Route path="settings" element={<SystemSettings />} />
               <Route path="analytics" element={<AnalyticsDashboard />} />
+              <Route path="activity" element={<ActivityLogDashboard />} />
+              <Route path="notifications" element={<NotificationsDashboard />} />
+              <Route path="emails" element={<EmailTemplatesDashboard />} />
+              <Route path="database" element={<DatabaseDashboard />} />
+              <Route path="support" element={<SupportDashboard />} />
+              <Route path="branding" element={<BrandingDashboard />} />
             </Route>
             <Route
               path="/customer-display"

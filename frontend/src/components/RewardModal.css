@@ -494,13 +494,16 @@
 .form-textarea,
 .form-select {
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 2px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.9rem;
   transition: all 0.2s ease;
-  background: white;
+  background: #ffffff;
+  color: #1f2937;
   width: 100%;
   box-sizing: border-box;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 /* Desktop: Input compatti */

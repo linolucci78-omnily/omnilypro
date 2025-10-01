@@ -22,7 +22,9 @@ import {
   Home,
   LogOut,
   User,
-  Smartphone
+  Smartphone,
+  Truck,
+  Factory
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -55,9 +57,11 @@ const AdminLayout: React.FC = () => {
       items: [
         { path: '/admin/organizations', icon: Building2, label: 'Aziende' },
         { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
-        { path: '/admin/pos', icon: CreditCard, label: 'Sistemi POS' },
+        { path: '/admin/supplier-orders', icon: Factory, label: 'Ordini Fornitori' },
+        { path: '/admin/hardware-orders', icon: Truck, label: 'Ordini Hardware' },
         { path: '/admin/mdm', icon: Smartphone, label: 'Gestione Dispositivi' },
-        { path: '/admin/subscriptions', icon: Package, label: 'Abbonamenti' }
+        { path: '/admin/inventory', icon: Package, label: 'Inventario' },
+        { path: '/admin/subscriptions', icon: CreditCard, label: 'Abbonamenti' }
       ]
     },
     {

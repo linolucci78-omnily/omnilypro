@@ -121,6 +121,61 @@ CREATE TABLE IF NOT EXISTS subscription_discounts (
     created_at timestamp DEFAULT now()
 );
 
+-- Tabella per gestione hardware e setup fees
+CREATE TABLE IF NOT EXISTS hardware_orders (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+    subscription_id uuid REFERENCES subscriptions(id) ON DELETE SET NULL,
+    order_type varchar(50) NOT NULL, -- 'initial_setup', 'additional_hardware', 'replacement'
+    hardware_model varchar(100) DEFAULT 'Z108', -- 'Z108', 'Z108_PRO', 'CUSTOMER_DISPLAY'
+    quantity integer DEFAULT 1,
+    unit_price decimal(10,2) NOT NULL, -- Prezzo singola unità hardware
+    setup_fee decimal(10,2) DEFAULT 299.00, -- Setup fee una tantum
+    total_amount decimal(10,2) NOT NULL,
+    currency varchar(3) DEFAULT 'EUR',
+    status varchar(50) DEFAULT 'pending', -- 'pending', 'paid', 'shipped', 'delivered', 'cancelled'
+    stripe_payment_intent_id varchar(255),
+    tracking_number varchar(255),
+    shipping_address jsonb,
+    notes text,
+    ordered_at timestamp DEFAULT now(),
+    shipped_at timestamp,
+    delivered_at timestamp,
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+);
+
+-- Tabella per servizi premium e add-ons
+CREATE TABLE IF NOT EXISTS subscription_addons (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    subscription_id uuid REFERENCES subscriptions(id) ON DELETE CASCADE,
+    addon_type varchar(50) NOT NULL, -- 'ai_premium', 'extra_locations', 'white_label', 'custom_integration'
+    addon_name varchar(100) NOT NULL,
+    price_monthly decimal(10,2) NOT NULL,
+    quantity integer DEFAULT 1,
+    status varchar(20) DEFAULT 'active', -- 'active', 'suspended', 'cancelled'
+    stripe_price_id varchar(255),
+    features jsonb, -- Features specifiche dell'addon
+    activation_date timestamp DEFAULT now(),
+    cancellation_date timestamp,
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+);
+
+-- Tabella per tracking utilizzo AI services
+CREATE TABLE IF NOT EXISTS ai_usage_tracking (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+    ai_service varchar(50) NOT NULL, -- 'customer_segmentation', 'content_generation', 'churn_prediction', 'voice_assistant'
+    usage_count integer DEFAULT 0,
+    tokens_used integer DEFAULT 0, -- Per servizi basati su token (OpenAI, Claude)
+    cost_cents integer DEFAULT 0, -- Costo in centesimi
+    reporting_period_start timestamp NOT NULL,
+    reporting_period_end timestamp NOT NULL,
+    metadata jsonb,
+    created_at timestamp DEFAULT now()
+);
+
 -- Indici per performance
 CREATE INDEX IF NOT EXISTS idx_subscriptions_organization ON subscriptions(organization_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
@@ -169,11 +224,12 @@ CREATE POLICY "Organization own subscriptions" ON subscriptions
         )
     );
 
--- Inserimento piani base
+-- Inserimento piani base OMNILY PRO - ECOSISTEMA COMPLETO CON AI
 INSERT INTO subscription_plans (name, slug, price_monthly, price_yearly, max_users, max_organizations, max_transactions_monthly, features) VALUES
-('Basic', 'basic', 29.00, 290.00, 5, 1, 1000, '["POS System", "Customer Management", "Basic Analytics", "Email Support"]'),
-('Premium', 'premium', 99.00, 990.00, 25, 3, 10000, '["Everything in Basic", "Advanced Analytics", "Multi-location", "Priority Support", "API Access"]'),
-('Enterprise', 'enterprise', 299.00, 2990.00, 100, 10, 100000, '["Everything in Premium", "Custom Integrations", "Dedicated Support", "White Label", "SLA Guarantee"]')
+('Basic', 'basic', 49.00, 490.00, 3, 1, 2000, '["POS Z108 Terminal", "Digital Wallet", "NFC Loyalty Cards", "AI Customer Segmentation", "AI Sales Prediction", "Thermal Printing", "Coupon System", "Email Marketing", "SMS Birthday", "Chatbot FAQ", "Analytics Dashboard", "Excel Export", "Email Support"]'),
+('Pro', 'pro', 99.00, 990.00, 15, 3, 10000, '["Everything in Basic", "Gift Cards System", "AI Revenue Optimization", "AI Churn Prediction", "AI Content Generation", "Advanced Chatbot", "AI Inventory Forecasting", "Product Subscriptions", "Live Chat", "Page Builder", "WhatsApp Integration", "Push Notifications", "Multi-location", "API Access", "Priority Support"]'),
+('Enterprise', 'enterprise', 199.00, 1990.00, 0, 0, 0, '["Everything in Pro", "AI Custom Model Training", "AI Voice Assistant", "AI Competitor Analysis", "AI Dynamic Pricing", "AI Fraud Detection", "White Label Complete", "E-commerce Integration", "Unlimited Locations", "Custom Integrations", "Advanced Security", "GDPR Compliance", "Dedicated Account Manager", "SLA 99.9%"]'),
+('AI Premium Add-on', 'ai-premium', 99.00, 990.00, 0, 0, 0, '["Custom AI Model Training", "AI Business Consultant", "AI Market Analysis", "AI Growth Strategy", "AI Risk Assessment", "Dedicated AI Support"]')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Trigger per aggiornare updated_at
