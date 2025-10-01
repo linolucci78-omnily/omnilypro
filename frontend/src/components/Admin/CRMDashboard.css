@@ -230,15 +230,19 @@
 }
 
 .crm-tabs {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0 0.5rem;
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  background: white !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 0 0.5rem !important;
+  display: flex !important;
+  gap: 0.5rem !important;
+  overflow-x: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 @media (min-width: 768px) {
@@ -254,19 +258,24 @@
 }
 
 .crm-tab {
-  padding: 1rem 1rem;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: #64748b;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-  font-weight: 500;
-  white-space: nowrap;
-  font-size: 0.875rem;
+  padding: 1rem 1rem !important;
+  background: none !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.2s !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  font-size: 0.875rem !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  z-index: 11 !important;
+  pointer-events: auto !important;
 }
 
 @media (min-width: 768px) {
@@ -277,8 +286,9 @@
 }
 
 .crm-tab.active {
-  border-bottom-color: var(--omnily-primary);
-  color: var(--omnily-primary);
+  border-bottom-color: var(--omnily-primary) !important;
+  color: var(--omnily-primary) !important;
+  font-weight: 600 !important;
 }
 
 .crm-content {
