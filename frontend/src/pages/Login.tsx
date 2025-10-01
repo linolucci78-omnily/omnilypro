@@ -182,37 +182,35 @@ const Login: React.FC = () => {
       {/* Right Side - Illustration Panel */}
       <div className="login-illustration">
         <div className="illustration-content">
-          <div className="illustration-icon">
-            <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
-              <circle cx="100" cy="100" r="80" fill="rgba(255, 255, 255, 0.1)" />
-              <circle cx="100" cy="100" r="60" fill="rgba(255, 255, 255, 0.15)" />
-              <path d="M100 60V100L130 115" stroke="white" strokeWidth="6" strokeLinecap="round" />
-              <circle cx="100" cy="100" r="8" fill="white" />
+          <div className="illustration-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
+            #1 Loyalty Platform Italia
           </div>
-          <h2>Gestisci la tua azienda in modo intelligente</h2>
-          <p>Piattaforma SaaS multi-tenant completa per gestire clienti, ordini, inventario e molto altro. Tutto in un unico posto.</p>
+          <h2>Trasforma la Customer Loyalty della tua Azienda</h2>
+          <p>La piattaforma SaaS leader per creare, gestire e ottimizzare programmi di fidelizzazione enterprise con ROI garantito del +40%.</p>
           <div className="illustration-features">
             <div className="feature-item">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>CRM Avanzato</span>
+              <span>+40% Ritorno Clienti</span>
             </div>
             <div className="feature-item">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>Gestione Ordini</span>
+              <span>+65% Engagement</span>
             </div>
             <div className="feature-item">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>Analytics in Tempo Reale</span>
+              <span>-30% Costi Acquisizione</span>
             </div>
           </div>
         </div>

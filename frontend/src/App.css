@@ -1354,6 +1354,20 @@ body.admin-page {
   animation: fadeInRight 0.8s ease-out;
 }
 
+.illustration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
 @keyframes fadeInRight {
   from {
     opacity: 0;
