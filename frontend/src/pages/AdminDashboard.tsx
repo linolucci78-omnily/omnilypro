@@ -18,6 +18,7 @@ import {
   MoreHorizontal
 } from 'lucide-react'
 import { organizationsApi } from '../lib/supabase'
+import PageLoader from '../components/UI/PageLoader'
 import './AdminDashboard.css'
 
 interface DashboardStats {
@@ -112,12 +113,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="loading-dashboard">
-        <div className="spinner"></div>
-        <p>Caricamento dashboard...</p>
-      </div>
-    )
+    return <PageLoader message="Caricamento dashboard amministrazione..." size="medium" />
   }
 
   return (
