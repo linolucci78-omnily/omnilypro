@@ -479,8 +479,7 @@
 /* Dashboard stats grids - FLUID responsive che riempie tutto lo spazio */
 .dashboard-stats,
 .stats-grid,
-.kpi-grid,
-.crm-kpi-grid {
+.kpi-grid {
   width: 100% !important;
   margin: 0 0 1.5rem 0 !important;
   padding: 0 !important;
@@ -493,16 +492,20 @@
 @media (min-width: 1024px) {
   .dashboard-stats,
   .stats-grid,
-  .kpi-grid,
-  .crm-kpi-grid {
+  .kpi-grid {
     gap: 1.5rem !important;
   }
 }
 
+/* CRM KPI grid - keep its unique responsive behavior */
+.crm-kpi-grid {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 /* Stat cards - uniform style */
 .stat-card,
-.kpi-card,
-.crm-kpi-card {
+.kpi-card {
   width: 100% !important;
   padding: 1.25rem !important;
   background: white !important;
@@ -514,18 +517,22 @@
 
 @media (min-width: 768px) {
   .stat-card,
-  .kpi-card,
-  .crm-kpi-card {
+  .kpi-card {
     padding: 1.5rem !important;
   }
 }
 
 .stat-card:hover,
-.kpi-card:hover,
-.crm-kpi-card:hover {
+.kpi-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: var(--omnily-primary);
+}
+
+/* CRM KPI cards - keep their unique glassmorphism style */
+.crm-kpi-card {
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Content grids full width */
