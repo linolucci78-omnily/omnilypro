@@ -3,7 +3,7 @@ import React from 'react'
 interface PageLoaderProps {
   message?: string
   size?: 'small' | 'medium' | 'large'
-  inline?: boolean // Per caricamenti inline invece che fullscreen
+  inline?: boolean
 }
 
 const PageLoader: React.FC<PageLoaderProps> = ({
@@ -14,134 +14,136 @@ const PageLoader: React.FC<PageLoaderProps> = ({
   const getSizes = () => {
     switch (size) {
       case 'small':
-        return {
-          container: inline ? '200px' : '250px',
-          bar: '4px',
-          logo: '1rem',
-          text: '0.75rem'
-        }
+        return { spinner: '32px', text: '0.875rem' }
       case 'large':
-        return {
-          container: inline ? '400px' : '500px',
-          bar: '12px',
-          logo: '2rem',
-          text: '1rem'
-        }
+        return { spinner: '64px', text: '1.125rem' }
       default:
-        return {
-          container: inline ? '300px' : '350px',
-          bar: '6px',
-          logo: '1.25rem',
-          text: '0.875rem'
-        }
+        return { spinner: '48px', text: '1rem' }
     }
   }
 
   const sizes = getSizes()
 
   const containerStyle = inline ? {
-    background: 'var(--omnily-gray-50)',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: '2rem',
-    borderRadius: '8px',
-    border: '1px solid var(--omnily-border-color)',
-    width: sizes.container,
-    textAlign: 'center' as const
+    gap: '1rem'
   } : {
     position: 'fixed' as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(248, 250, 252, 0.95)',
+    background: 'rgba(248, 250, 252, 0.98)',
     display: 'flex',
+    flexDirection: 'column' as const,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 9999,
-    backdropFilter: 'blur(1px)'
-  }
-
-  const cardStyle = inline ? {} : {
-    background: 'white',
-    padding: '2rem',
-    borderRadius: '12px',
-    border: '1px solid var(--omnily-border-color)',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    width: sizes.container,
-    textAlign: 'center' as const
+    backdropFilter: 'blur(8px)',
+    gap: '1.5rem'
   }
 
   return (
     <div style={containerStyle}>
-      <div style={cardStyle}>
-        {/* Logo */}
+      {/* Modern Spinner */}
+      <div style={{
+        width: sizes.spinner,
+        height: sizes.spinner,
+        position: 'relative'
+      }}>
+        {/* Outer ring */}
         <div style={{
-          fontSize: sizes.logo,
-          fontWeight: 'bold',
-          color: 'var(--omnily-primary)',
-          marginBottom: '1rem'
-        }}>
-          OMNILY PRO
-        </div>
-
-        {/* Progress Bar */}
-        <div style={{
+          position: 'absolute',
           width: '100%',
-          height: sizes.bar,
-          background: 'var(--omnily-gray-200)',
-          borderRadius: '99px',
-          overflow: 'hidden',
-          marginBottom: '1rem'
-        }}>
-          <div style={{
-            width: '70%',
-            height: '100%',
-            background: 'linear-gradient(90deg, var(--omnily-primary), var(--omnily-primary-dark))',
-            borderRadius: '99px',
-            animation: 'loading-slide 2s ease-in-out infinite',
-            transformOrigin: 'left'
-          }} />
-        </div>
+          height: '100%',
+          borderRadius: '50%',
+          border: '3px solid #e2e8f0',
+          borderTopColor: '#1e40af',
+          animation: 'spin 1s linear infinite'
+        }} />
 
-        {/* Message */}
+        {/* Inner pulsing circle */}
+        <div style={{
+          position: 'absolute',
+          width: '60%',
+          height: '60%',
+          top: '20%',
+          left: '20%',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #3b82f6, #1e40af)',
+          animation: 'pulse 1.5s ease-in-out infinite',
+          opacity: 0.3
+        }} />
+      </div>
+
+      {/* Message */}
+      {message && (
         <div style={{
           fontSize: sizes.text,
-          color: 'var(--omnily-gray-500)',
-          marginBottom: '0.5rem'
+          color: '#64748b',
+          fontWeight: '500',
+          textAlign: 'center',
+          animation: 'fade-in 0.5s ease-in'
         }}>
           {message}
         </div>
+      )}
 
-        {/* Animated dots */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '3px'
-        }}>
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              style={{
-                width: '4px',
-                height: '4px',
-                borderRadius: '50%',
-                background: 'var(--omnily-primary)',
-                animation: `loading-dots 1.4s infinite ${i * 0.2}s`
-              }}
-            />
-          ))}
-        </div>
+      {/* Loading dots */}
+      <div style={{
+        display: 'flex',
+        gap: '6px',
+        alignItems: 'center'
+      }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#1e40af',
+              animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite`
+            }}
+          />
+        ))}
       </div>
 
       {/* CSS Animations */}
       <style>{`
-        @keyframes loading-slide {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(0%); }
-          100% { transform: translateX(100%); }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
-        @keyframes loading-dots {
-          0%, 20%, 80%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(0.8);
+            opacity: 0.3;
+          }
+          50% {
+            transform: scale(1.2);
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes bounce {
+          0%, 80%, 100% {
+            transform: translateY(0);
+            opacity: 0.4;
+          }
+          40% {
+            transform: translateY(-10px);
+            opacity: 1;
+          }
+        }
+
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

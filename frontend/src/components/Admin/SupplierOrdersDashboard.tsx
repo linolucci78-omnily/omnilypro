@@ -297,7 +297,7 @@ const SupplierOrdersDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '0', background: 'var(--omnily-gray-50)', minHeight: '100vh' }}>
+    <div className="supplier-orders-dashboard">
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, var(--omnily-primary) 0%, var(--omnily-primary-dark) 100%)',

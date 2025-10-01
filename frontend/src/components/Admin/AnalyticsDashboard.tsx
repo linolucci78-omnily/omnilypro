@@ -264,7 +264,7 @@ const AnalyticsDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh', width: '100%' }}>
+    <div className="analytics-dashboard">
       {/* Header */}
       <div style={{
         display: 'flex',

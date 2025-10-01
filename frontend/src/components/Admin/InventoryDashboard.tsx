@@ -276,7 +276,7 @@ const InventoryDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh' }}>
+    <div className="inventory-dashboard">
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
