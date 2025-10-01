@@ -1278,50 +1278,95 @@ body.admin-page {
 
 /* Login Page Styles */
 .login-page {
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 50%, #172554 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background pattern */
+.login-page::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: backgroundScroll 20s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes backgroundScroll {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
 }
 
 .login-container {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   padding: 3rem;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 100px rgba(59, 130, 246, 0.3);
   width: 100%;
-  max-width: 400px;
+  max-width: 440px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .login-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 700;
+  gap: 0.75rem;
+  font-size: 2rem;
+  font-weight: 800;
   text-decoration: none;
-  color: #8B4513;
-  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.login-logo svg {
+  color: #1e40af;
+  filter: drop-shadow(0 2px 4px rgba(30, 64, 175, 0.3));
 }
 
 .login-header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
 }
 
 .login-header p {
   color: #64748b;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .login-form {
@@ -1338,36 +1383,78 @@ body.admin-page {
 
 .form-group label {
   font-weight: 600;
-  color: #2d3748;
-  font-size: 0.9rem;
+  color: #334155;
+  font-size: 0.925rem;
+  margin-bottom: 0.25rem;
 }
 
 .form-group input {
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+}
+
+.form-group input:hover {
+  border-color: #cbd5e1;
+  background: white;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #8B4513;
-  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+  background: white;
 }
 
 .btn-full {
   width: 100%;
 }
 
-.btn-google {
-  background: #4285f4;
+.login-page .btn-primary {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.login-page .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.4);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+}
+
+.login-page .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-google {
+  background: white;
+  color: #4b5563;
+  border: 2px solid #e5e7eb;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .btn-google:hover {
-  background: #357ae8;
-  transform: translateY(-1px);
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .auth-divider {
@@ -1425,7 +1512,7 @@ body.admin-page {
 .link-button {
   background: none;
   border: none;
-  color: #8B4513;
+  color: #1e40af;
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
