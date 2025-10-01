@@ -320,9 +320,14 @@ body {
   align-items: center;
 }
 
-/* Compensate for fixed navbar */
-body {
+/* Compensate for fixed navbar - only for public pages */
+body:not(.admin-page) {
   padding-top: 70px;
+}
+
+/* No padding for admin */
+body.admin-page {
+  padding-top: 0;
 }
 
 .navbar-logo {

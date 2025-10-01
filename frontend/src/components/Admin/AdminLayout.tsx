@@ -112,6 +112,14 @@ const AdminLayout: React.FC = () => {
     return location.pathname.startsWith(path)
   }
 
+  // Add admin-page class to body when in admin area
+  React.useEffect(() => {
+    document.body.classList.add('admin-page')
+    return () => {
+      document.body.classList.remove('admin-page')
+    }
+  }, [])
+
   return (
     <div className="admin-layout">
       {/* Sidebar */}
