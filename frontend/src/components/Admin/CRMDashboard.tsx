@@ -43,6 +43,7 @@ import { supabase } from '../../lib/supabase'
 import { crmService } from '../../services/crmService'
 import type { Customer, Campaign, CustomerSegment, CRMStats } from '../../services/crmService'
 import PageLoader from '../UI/PageLoader'
+import './CRMDashboard.css'
 
 // Interfaces importate dal service CRMService
 
@@ -232,57 +233,28 @@ const CRMDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh' }}>
+    <div className="crm-dashboard">
       {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
-        padding: '2rem 2rem 4rem 2rem',
-        color: 'white'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="crm-header">
+        <div className="crm-header-content">
           <div>
-            <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h1 className="crm-title">
               <Users size={40} />
               CRM & Customer Intelligence
             </h1>
-            <p style={{ margin: '0', opacity: '0.9', fontSize: '1.1rem' }}>
+            <p className="crm-subtitle">
               Gestione clienti avanzata con analytics predittive e automazione marketing
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="crm-header-actions">
             <button
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: 'white',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                transition: 'all 0.2s'
-              }}
+              className="crm-btn crm-btn-secondary"
               onClick={() => setShowCampaignModal(true)}
             >
               <Send size={18} />
               Nuova Campagna
             </button>
-            <button
-              style={{
-                background: 'white',
-                border: 'none',
-                color: '#1e40af',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontWeight: '600',
-                transition: 'all 0.2s'
-              }}
-            >
+            <button className="crm-btn crm-btn-primary">
               <Download size={18} />
               Esporta Dati
             </button>
@@ -290,109 +262,68 @@ const CRMDashboard: React.FC = () => {
         </div>
 
         {/* KPI Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1.5rem',
-          marginTop: '2rem'
-        }}>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div className="crm-kpi-grid">
+          <div className="crm-kpi-card">
+            <div className="crm-kpi-header">
               <Users size={24} />
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+            <div className="crm-kpi-value">
               {statsToUse.total_customers.toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Clienti Totali</div>
+            <div className="crm-kpi-label">Clienti Totali</div>
           </div>
 
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div className="crm-kpi-card">
+            <div className="crm-kpi-header">
               <DollarSign size={24} />
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+            <div className="crm-kpi-value">
               {formatCurrency(statsToUse.total_revenue)}
             </div>
-            <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Revenue Totale</div>
+            <div className="crm-kpi-label">Revenue Totale</div>
           </div>
 
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div className="crm-kpi-card">
+            <div className="crm-kpi-header">
               <Target size={24} />
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+            <div className="crm-kpi-value">
               {formatCurrency(statsToUse.avg_clv)}
             </div>
-            <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>CLV Medio</div>
+            <div className="crm-kpi-label">CLV Medio</div>
           </div>
 
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div className="crm-kpi-card">
+            <div className="crm-kpi-header">
               <Activity size={24} />
               <ArrowUpRight size={16} style={{ color: '#22c55e' }} />
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+            <div className="crm-kpi-value">
               {statsToUse.avg_engagement.toFixed(0)}%
             </div>
-            <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Engagement Score</div>
+            <div className="crm-kpi-label">Engagement Score</div>
           </div>
 
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div className="crm-kpi-card">
+            <div className="crm-kpi-header">
               <Crown size={24} />
               <span style={{ fontSize: '0.75rem', background: '#22c55e', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                 +12%
               </span>
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+            <div className="crm-kpi-value">
               {statsToUse.vip_customers}
             </div>
-            <div style={{ fontSize: '0.875rem', opacity: '0.8' }}>Clienti VIP</div>
+            <div className="crm-kpi-label">Clienti VIP</div>
           </div>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div style={{
-        background: 'white',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '0 2rem',
-        display: 'flex',
-        gap: '0.5rem'
-      }}>
+      <div className="crm-tabs">
         {[
           { id: 'overview', label: 'Overview', icon: BarChart3 },
           { id: 'customers', label: 'Clienti', icon: Users },
@@ -403,19 +334,7 @@ const CRMDashboard: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: '1rem 1.5rem',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === tab.id ? '2px solid var(--omnily-primary)' : '2px solid transparent',
-              color: activeTab === tab.id ? 'var(--omnily-primary)' : '#64748b',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s',
-              fontWeight: '500'
-            }}
+            className={`crm-tab ${activeTab === tab.id ? 'active' : ''}`}
           >
             <tab.icon size={18} />
             {tab.label}
@@ -424,7 +343,13 @@ const CRMDashboard: React.FC = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: '2rem' }}>
+      <div style={{
+        padding: '0.5rem',
+        '@media (min-width: 768px)': { padding: '1rem' },
+        '@media (min-width: 1024px)': { padding: '1.5rem' },
+        width: '100%',
+        maxWidth: '100%'
+      }}>
         {activeTab === 'customers' && (
           <div>
             {/* Filters & Search */}
