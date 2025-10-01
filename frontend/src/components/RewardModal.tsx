@@ -190,20 +190,12 @@ const RewardModal: React.FC<RewardModalProps> = ({
 
   return (
     <div className="reward-modal-backdrop">
-      <div className={`reward-modal ${isOpen ? 'open' : ''}`}>
+      <div className="reward-modal">
         <div className="reward-modal-header">
-          <div className="reward-modal-header-info">
-            <h2>
-              <Award size={24} />
-              {reward ? 'Modifica Premio' : 'Nuovo Premio'}
-            </h2>
-            {formData.required_tier && (
-              <div className="reward-tier-badge">
-                <Target size={16} />
-                Richiede: {formData.required_tier}
-              </div>
-            )}
-          </div>
+          <h2>
+            <Award size={24} />
+            {reward ? 'Modifica Premio' : 'Nuovo Premio'}
+          </h2>
           <button
             className="reward-modal-close"
             onClick={onClose}

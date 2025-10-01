@@ -297,10 +297,10 @@ const SupplierOrdersDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh' }}>
+    <div style={{ padding: '0', background: 'var(--omnily-gray-50)', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+        background: 'linear-gradient(135deg, var(--omnily-primary) 0%, var(--omnily-primary-dark) 100%)',
         padding: '2rem 2rem 4rem 2rem',
         color: 'white'
       }}>
@@ -490,7 +490,7 @@ const SupplierOrdersDashboard: React.FC = () => {
               alignItems: 'center',
               gap: '8px',
               padding: '10px 16px',
-              background: '#f1f5f9',
+              background: 'var(--omnily-gray-100)',
               border: '1px solid #e2e8f0',
               borderRadius: '8px',
               color: '#64748b',
@@ -526,7 +526,7 @@ const SupplierOrdersDashboard: React.FC = () => {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <tr style={{ background: 'var(--omnily-gray-50)', borderBottom: '1px solid var(--omnily-border-color)' }}>
                     <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>
                       Ordine
                     </th>
@@ -646,7 +646,7 @@ const SupplierOrdersDashboard: React.FC = () => {
                             onClick={() => setSelectedOrder(order)}
                             style={{
                               padding: '6px',
-                              background: '#f1f5f9',
+                              background: 'var(--omnily-gray-100)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -659,7 +659,7 @@ const SupplierOrdersDashboard: React.FC = () => {
                           <button
                             style={{
                               padding: '6px',
-                              background: '#f1f5f9',
+                              background: 'var(--omnily-gray-100)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -672,7 +672,7 @@ const SupplierOrdersDashboard: React.FC = () => {
                           <button
                             style={{
                               padding: '6px',
-                              background: '#f1f5f9',
+                              background: 'var(--omnily-gray-100)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -913,7 +913,7 @@ const SupplierOrdersDashboard: React.FC = () => {
                 </div>
 
                 <div style={{
-                  background: '#f8fafc',
+                  background: 'var(--omnily-gray-50)',
                   border: '1px solid #e2e8f0',
                   borderRadius: '8px',
                   padding: '20px',
@@ -964,7 +964,7 @@ const SupplierOrdersDashboard: React.FC = () => {
                   padding: '12px 20px',
                   border: 'none',
                   borderRadius: '8px',
-                  background: '#10b981',
+                  background: 'var(--omnily-success)',
                   color: 'white',
                   cursor: 'pointer',
                   fontSize: '14px',

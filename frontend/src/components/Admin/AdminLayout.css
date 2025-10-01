@@ -130,9 +130,9 @@
 }
 
 .nav-link.active {
-  background: #1e40af;
+  background: var(--omnily-primary);
   color: white;
-  border-right-color: #60a5fa;
+  border-right-color: #f87171;
 }
 
 .nav-text {
@@ -270,7 +270,7 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  background: #ef4444;
+  background: var(--omnily-primary);
   color: white;
   font-size: 10px;
   font-weight: 600;
@@ -494,7 +494,7 @@
 
 .tab.active {
   color: var(--omnily-primary);
-  border-bottom-color: #3b82f6;
+  border-bottom-color: var(--omnily-primary);
 }
 
 .tab:hover {
@@ -585,8 +585,8 @@
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--omnily-primary);
-  box-shadow: 0 0 0 3px var(--omnily-primary-100);
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 /* Search inputs */
@@ -629,7 +629,7 @@
 }
 
 .btn-primary:hover {
-  background: var(--omnily-primary-dark);
+  background: #dc2626;
 }
 
 .btn-secondary {

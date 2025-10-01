@@ -126,14 +126,14 @@ export class RewardsService {
         imageUrl = await this.uploadImage(organizationId, rewardData.imageFile)
       }
 
-      // Prepare reward data (temporarily remove required_tier until DB column is added)
+      // Prepare reward data
       const rewardToCreate = {
         organization_id: organizationId,
         name: rewardData.name,
         type: rewardData.type,
         value: rewardData.value,
         points_required: rewardData.points_required,
-        // required_tier: rewardData.required_tier || null, // TODO: Add column to DB first
+        required_tier: rewardData.required_tier || null,
         description: rewardData.description,
         image_url: imageUrl,
         is_active: rewardData.is_active,

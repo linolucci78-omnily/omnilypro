@@ -219,11 +219,11 @@ const InventoryDashboard: React.FC = () => {
 
   const getStockStatusColor = (status: string) => {
     switch (status) {
-      case 'out_of_stock': return '#ef4444'
-      case 'low_stock': return '#f59e0b'
+      case 'out_of_stock': return 'var(--omnily-error)'
+      case 'low_stock': return 'var(--omnily-warning)'
       case 'overstock': return '#8b5cf6'
-      case 'normal': return '#10b981'
-      default: return '#64748b'
+      case 'normal': return 'var(--omnily-primary)'
+      default: return 'var(--omnily-gray-500)'
     }
   }
 
@@ -239,13 +239,13 @@ const InventoryDashboard: React.FC = () => {
 
   const getMovementIcon = (type: string) => {
     switch (type) {
-      case 'IN': return <TrendingUp size={14} style={{ color: '#10b981' }} />
-      case 'OUT': return <TrendingDown size={14} style={{ color: '#ef4444' }} />
-      case 'RESERVED': return <Archive size={14} style={{ color: '#f59e0b' }} />
-      case 'UNRESERVED': return <RefreshCw size={14} style={{ color: '#3b82f6' }} />
-      case 'DEFECTIVE': return <XCircle size={14} style={{ color: '#ef4444' }} />
-      case 'ADJUSTMENT': return <Settings size={14} style={{ color: '#64748b' }} />
-      default: return <Package size={14} style={{ color: '#64748b' }} />
+      case 'IN': return <TrendingUp size={14} style={{ color: 'var(--omnily-primary)' }} />
+      case 'OUT': return <TrendingDown size={14} style={{ color: 'var(--omnily-error)' }} />
+      case 'RESERVED': return <Archive size={14} style={{ color: 'var(--omnily-warning)' }} />
+      case 'UNRESERVED': return <RefreshCw size={14} style={{ color: 'var(--omnily-primary)' }} />
+      case 'DEFECTIVE': return <XCircle size={14} style={{ color: 'var(--omnily-error)' }} />
+      case 'ADJUSTMENT': return <Settings size={14} style={{ color: 'var(--omnily-gray-500)' }} />
+      default: return <Package size={14} style={{ color: 'var(--omnily-gray-500)' }} />
     }
   }
 
@@ -279,7 +279,7 @@ const InventoryDashboard: React.FC = () => {
     <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
         padding: '2rem 2rem 4rem 2rem',
         color: 'white'
       }}>
@@ -601,7 +601,7 @@ const InventoryDashboard: React.FC = () => {
                             {getStockStatusLabel(stockStatus)}
                           </div>
                           {item.quantity_available <= item.reorder_point && (
-                            <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--omnily-warning)', marginTop: '4px' }}>
                               ⚠️ Sotto punto riordino ({item.reorder_point})
                             </div>
                           )}

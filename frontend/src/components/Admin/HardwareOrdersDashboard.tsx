@@ -241,10 +241,10 @@ const HardwareOrdersDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '0', background: '#f8fafc', minHeight: '100vh' }}>
+    <div style={{ padding: '0', background: 'var(--omnily-gray-50)', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, var(--omnily-primary) 0%, var(--omnily-primary-dark) 100%)',
         padding: '2rem 2rem 4rem 2rem',
         color: 'white'
       }}>
@@ -419,7 +419,7 @@ const HardwareOrdersDashboard: React.FC = () => {
               alignItems: 'center',
               gap: '8px',
               padding: '10px 16px',
-              background: '#f1f5f9',
+              background: 'var(--omnily-gray-100)',
               border: '1px solid #e2e8f0',
               borderRadius: '8px',
               color: '#64748b',
@@ -455,7 +455,7 @@ const HardwareOrdersDashboard: React.FC = () => {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <tr style={{ background: 'var(--omnily-gray-50)', borderBottom: '1px solid var(--omnily-border-color)' }}>
                     <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>
                       Ordine
                     </th>
@@ -569,7 +569,7 @@ const HardwareOrdersDashboard: React.FC = () => {
                             onClick={() => setSelectedOrder(order)}
                             style={{
                               padding: '6px',
-                              background: '#f1f5f9',
+                              background: 'var(--omnily-gray-100)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -582,7 +582,7 @@ const HardwareOrdersDashboard: React.FC = () => {
                           <button
                             style={{
                               padding: '6px',
-                              background: '#f1f5f9',
+                              background: 'var(--omnily-gray-100)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -595,7 +595,7 @@ const HardwareOrdersDashboard: React.FC = () => {
                           <button
                             style={{
                               padding: '6px',
-                              background: '#f1f5f9',
+                              background: 'var(--omnily-gray-100)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -878,7 +878,7 @@ const HardwareOrdersDashboard: React.FC = () => {
 
                 {/* Riepilogo Costi */}
                 <div style={{
-                  background: '#f8fafc',
+                  background: 'var(--omnily-gray-50)',
                   padding: '1rem',
                   borderRadius: '8px',
                   border: '1px solid #e2e8f0'
@@ -918,7 +918,7 @@ const HardwareOrdersDashboard: React.FC = () => {
                   onClick={() => setShowOrderModal(false)}
                   style={{
                     padding: '0.75rem 1.5rem',
-                    background: '#f8fafc',
+                    background: 'var(--omnily-gray-50)',
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -933,7 +933,7 @@ const HardwareOrdersDashboard: React.FC = () => {
                   type="submit"
                   style={{
                     padding: '0.75rem 1.5rem',
-                    background: '#3b82f6',
+                    background: 'var(--omnily-primary)',
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
