@@ -25,6 +25,7 @@ import {
   Monitor
 } from 'lucide-react'
 import './AdminLayout.css'
+import './MDMDashboard.css'
 import PrintTemplateManager from './PrintTemplateManager'
 
 interface Device {
@@ -401,7 +402,7 @@ const MDMDashboard: React.FC = () => {
   }
 
   return (
-    <div className="admin-dashboard"
+    <div className="mdm-dashboard admin-dashboard"
          style={{ width: '100%', maxWidth: 'none', margin: 0, padding: 0, boxSizing: 'border-box' }}>
       {/* Tab Navigation */}
       <div className="dashboard-tabs">
@@ -427,7 +428,7 @@ const MDMDashboard: React.FC = () => {
       {activeTab === 'devices' && (
         <>
           {/* Header con statistiche */}
-          <div className="dashboard-header"
+          <div className="mdm-header dashboard-header"
                style={{ width: '100%', margin: 0, padding: '1.5rem', boxSizing: 'border-box' }}>
             <div className="header-title-section">
               <h1>📱 Gestione Dispositivi POS</h1>
@@ -458,7 +459,7 @@ const MDMDashboard: React.FC = () => {
             </button>
           </div>
         </div>
-        <div className="dashboard-stats"
+        <div className="stats-cards dashboard-stats"
              style={{ width: '100%', margin: '0 0 1.5rem 0', padding: '1.5rem', display: 'grid', gap: '1rem', boxSizing: 'border-box' }}>
           <div className="stat-card">
             <Smartphone size={20} />

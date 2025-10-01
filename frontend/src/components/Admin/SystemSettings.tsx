@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import './AdminLayout.css'
+import './SystemSettings.css'
 
 interface SystemHealth {
   status: 'healthy' | 'warning' | 'critical'
@@ -385,10 +386,10 @@ const SystemSettings: React.FC = () => {
   }
 
   return (
-    <div className="admin-dashboard"
+    <div className="system-settings admin-dashboard"
          style={{ width: '100%', maxWidth: 'none', margin: 0, padding: 0, boxSizing: 'border-box' }}>
       {/* Header */}
-      <div className="dashboard-header"
+      <div className="settings-header dashboard-header"
            style={{ width: '100%', margin: 0, padding: '1.5rem', boxSizing: 'border-box' }}>
         <div className="header-content">
           <h1>Impostazioni di Sistema</h1>
