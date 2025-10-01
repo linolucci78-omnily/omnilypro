@@ -1279,11 +1279,14 @@ body.admin-page {
 /* Login Page Styles */
 .login-page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   background: #f1f5f9;
   padding: 2rem;
+  margin: 0 auto !important;
+  width: 100vw !important;
+  position: relative;
 }
 
 .login-wrapper {
@@ -1294,6 +1297,10 @@ body.admin-page {
   max-width: 650px;
   width: 100%;
   animation: fadeInUp 0.6s ease-out;
+  margin: 0 auto !important;
+  position: relative;
+  left: 0 !important;
+  right: 0 !important;
 }
 
 @keyframes fadeInUp {
