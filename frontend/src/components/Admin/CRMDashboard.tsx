@@ -521,27 +521,11 @@ const CRMDashboard: React.FC = () => {
 
         {activeTab === 'campaigns' && (
           <div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1.5rem'
-            }}>
-              <h2 style={{ margin: '0', fontSize: '1.5rem', fontWeight: '600' }}>
+            <div className="crm-filters-section">
+              <h2 style={{ margin: '0', fontSize: '1.5rem', fontWeight: '600', flex: '1' }}>
                 Campagne Marketing
               </h2>
-              <button style={{
-                background: 'var(--omnily-primary)',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontWeight: '500'
-              }}>
+              <button className="crm-add-button">
                 <Plus size={18} />
                 Nuova Campagna
               </button>
