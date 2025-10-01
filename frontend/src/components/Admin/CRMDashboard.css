@@ -630,6 +630,25 @@
 .mt-1 { margin-top: 0.25rem; }
 .mt-2 { margin-top: 0.5rem; }
 
+/* Content Area */
+.crm-content-area {
+  padding: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .crm-content-area {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .crm-content-area {
+    padding: 1.5rem;
+  }
+}
+
 /* Custom variables */
 :root {
   --omnily-primary: #1e40af;

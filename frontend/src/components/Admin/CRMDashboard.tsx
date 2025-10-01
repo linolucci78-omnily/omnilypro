@@ -343,13 +343,7 @@ const CRMDashboard: React.FC = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{
-        padding: '0.5rem',
-        '@media (min-width: 768px)': { padding: '1rem' },
-        '@media (min-width: 1024px)': { padding: '1.5rem' },
-        width: '100%',
-        maxWidth: '100%'
-      }}>
+      <div className="crm-content-area">
         {activeTab === 'customers' && (
           <div>
             {/* Filters & Search */}
