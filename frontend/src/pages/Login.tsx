@@ -136,7 +136,7 @@ const Login: React.FC = () => {
       <div className="login-container">
         <div className="login-header">
           <Link to="/" className="login-logo">
-            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '140px' }} />
+            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '80px', marginBottom: '1rem' }} />
           </Link>
           <h1>{getTitle()}</h1>
           <p>Benvenuto nella piattaforma SaaS multi-tenant</p>
