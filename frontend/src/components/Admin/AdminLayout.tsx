@@ -34,6 +34,7 @@ interface MenuItem {
   icon: any;
   label: string;
   exact?: boolean;
+  disabled?: boolean;
 }
 
 interface MenuGroup {
@@ -91,7 +92,7 @@ const AdminLayout: React.FC = () => {
       group: 'Personalizzazione',
       items: [
         { path: '/admin/branding', icon: Palette, label: 'Brand & Temi' },
-        { path: '/admin/domains', icon: Globe, label: 'Domini' },
+        { path: '/admin/domains', icon: Globe, label: 'Domini', disabled: true },
         { path: '/admin/emails', icon: Mail, label: 'Email Templates' },
         { path: '/admin/reports', icon: FileText, label: 'Report' }
       ]
@@ -157,13 +158,21 @@ const AdminLayout: React.FC = () => {
               <ul className="nav-items">
                 {group.items.map(item => (
                   <li key={item.path}>
-                    <Link 
-                      to={item.path}
-                      className={`nav-link ${isActive(item.path, item.exact) ? 'active' : ''}`}
-                    >
-                      <item.icon size={18} />
-                      <span className="nav-text">{item.label}</span>
-                    </Link>
+                    {item.disabled ? (
+                      <div className="nav-link disabled" title="Funzionalità in arrivo">
+                        <item.icon size={18} />
+                        <span className="nav-text">{item.label}</span>
+                        <span className="coming-soon-badge">Prossimamente</span>
+                      </div>
+                    ) : (
+                      <Link
+                        to={item.path}
+                        className={`nav-link ${isActive(item.path, item.exact) ? 'active' : ''}`}
+                      >
+                        <item.icon size={18} />
+                        <span className="nav-text">{item.label}</span>
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
