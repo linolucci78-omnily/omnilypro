@@ -259,10 +259,10 @@
 
 .crm-tab {
   padding: 1rem 1.5rem !important;
-  background: transparent !important;
-  border: none !important;
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
   border-bottom: 3px solid transparent !important;
-  color: #64748b !important;
+  color: #475569 !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -278,11 +278,13 @@
   z-index: 11 !important;
   pointer-events: auto !important;
   flex-shrink: 0 !important;
+  margin-right: 0.25rem !important;
+  border-radius: 6px 6px 0 0 !important;
 }
 
 .crm-tab:hover {
   color: #1e40af !important;
-  background: #f8fafc !important;
+  background: #e2e8f0 !important;
 }
 
 @media (min-width: 768px) {
@@ -293,10 +295,13 @@
 }
 
 .crm-tab.active {
-  background: transparent !important;
+  background: white !important;
   border-bottom: 3px solid var(--omnily-primary) !important;
   color: var(--omnily-primary) !important;
   font-weight: 600 !important;
+  border-left: 1px solid #e2e8f0 !important;
+  border-right: 1px solid #e2e8f0 !important;
+  border-top: 1px solid #e2e8f0 !important;
 }
 
 .crm-content {
