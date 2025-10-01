@@ -23,7 +23,7 @@ import {
   MessageSquare,
   Zap
 } from 'lucide-react'
-import './AdminDashboard.css'
+import './AdminLayout.css'
 
 interface Notification {
   id: string

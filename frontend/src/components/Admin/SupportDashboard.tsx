@@ -25,7 +25,7 @@ import {
   Download,
   Upload
 } from 'lucide-react'
-import './AdminDashboard.css'
+import './AdminLayout.css'
 
 interface SupportTicket {
   id: string

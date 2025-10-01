@@ -21,7 +21,7 @@ import {
   Globe,
   Zap
 } from 'lucide-react'
-import './AdminDashboard.css'
+import './AdminLayout.css'
 
 interface BrandTheme {
   id: string

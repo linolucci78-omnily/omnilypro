@@ -21,7 +21,7 @@ import {
   Pause,
   Trash2
 } from 'lucide-react'
-import './AdminDashboard.css'
+import './AdminLayout.css'
 
 interface DatabaseStats {
   total_size: string

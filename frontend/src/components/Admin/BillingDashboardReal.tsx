@@ -967,13 +967,14 @@ const BillingDashboardReal: React.FC = () => {
 
       {/* Subscription Modal */}
       <SubscriptionModal
-        isOpen={isModalOpen}
+        isOpen={showSubscriptionModal}
         onClose={() => {
-          setIsModalOpen(false)
+          setShowSubscriptionModal(false)
           setSelectedSubscription(null)
         }}
         subscription={selectedSubscription}
         onSave={handleSaveSubscription}
+        mode={selectedSubscription ? 'edit' : 'create'}
       />
     </div>
   )

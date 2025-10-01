@@ -21,7 +21,7 @@ import {
   Factory,
   Database
 } from 'lucide-react'
-import './AdminDashboard.css'
+import './AdminLayout.css'
 
 interface ActivityLog {
   id: string

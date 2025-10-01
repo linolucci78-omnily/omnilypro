@@ -28,7 +28,7 @@ import {
   AlignLeft,
   AlignCenter
 } from 'lucide-react'
-import './AdminDashboard.css'
+import './AdminLayout.css'
 
 interface EmailTemplate {
   id: string

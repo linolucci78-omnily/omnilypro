@@ -170,6 +170,8 @@ const SupplierOrdersDashboard: React.FC = () => {
       payment_method: 'Bank Transfer',
       payment_status: 'paid',
       expected_delivery_date: '2025-10-15',
+      shipping_cost: 150.00,
+      customs_cost: 300.00,
       ordered_at: '2025-09-25T09:00:00Z',
       supplier: {
         name: 'TechnoChina Ltd',
