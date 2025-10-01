@@ -231,10 +231,10 @@
 
 .crm-tabs {
   background: white !important;
-  border-bottom: 2px solid #e2e8f0 !important;
-  padding: 0 0.5rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 0 1rem !important;
   display: flex !important;
-  gap: 0.5rem !important;
+  gap: 0 !important;
   overflow-x: auto !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -243,8 +243,6 @@
   visibility: visible !important;
   position: relative !important;
   z-index: 10 !important;
-  min-height: 60px !important;
-  border-top: 3px solid #ff0000 !important;
 }
 
 @media (min-width: 768px) {
@@ -261,29 +259,30 @@
 
 .crm-tab {
   padding: 1rem 1.5rem !important;
-  background: #ff0000 !important;
-  border: 3px solid #000000 !important;
-  border-radius: 8px !important;
-  color: #ffffff !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  color: #64748b !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 0.5rem !important;
   transition: all 0.2s !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
   white-space: nowrap !important;
-  font-size: 1rem !important;
+  font-size: 0.95rem !important;
   opacity: 1 !important;
   visibility: visible !important;
   position: relative !important;
   z-index: 11 !important;
   pointer-events: auto !important;
-  min-height: 50px !important;
-  min-width: 120px !important;
-  height: auto !important;
-  width: auto !important;
   flex-shrink: 0 !important;
+}
+
+.crm-tab:hover {
+  color: #1e40af !important;
+  background: #f8fafc !important;
 }
 
 @media (min-width: 768px) {
@@ -294,10 +293,10 @@
 }
 
 .crm-tab.active {
-  background: white !important;
+  background: transparent !important;
   border-bottom: 3px solid var(--omnily-primary) !important;
   color: var(--omnily-primary) !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 .crm-content {
