@@ -49,6 +49,21 @@ const PageLoader: React.FC<PageLoaderProps> = ({
 
   return (
     <div style={containerStyle}>
+      {/* OMNILY PRO Logo */}
+      <div style={{
+        fontSize: size === 'large' ? '2rem' : size === 'small' ? '1.25rem' : '1.5rem',
+        fontWeight: '800',
+        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        marginBottom: '1.5rem',
+        letterSpacing: '0.05em',
+        animation: 'fade-in 0.5s ease-in'
+      }}>
+        OMNILY PRO
+      </div>
+
       {/* Modern Spinner */}
       <div style={{
         width: sizes.spinner,
