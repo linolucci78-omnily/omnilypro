@@ -308,6 +308,11 @@
   background: #f8fafc;
 }
 
+/* Remove padding for CRM dashboard to use full width */
+.admin-main:has(.crm-dashboard) {
+  padding: 0;
+}
+
 /* Mobile Overlay */
 .sidebar-overlay {
   position: fixed;
