@@ -187,11 +187,13 @@ const CRMDashboard: React.FC = () => {
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = searchTerm === '' ||
-      customer.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesFilter = selectedFilter === 'all' || customer.status === selectedFilter
+    const matchesFilter = selectedFilter === 'all' ||
+      (selectedFilter === 'active' && customer.is_active === true) ||
+      (selectedFilter === 'inactive' && customer.is_active === false) ||
+      (selectedFilter === 'vip' && customer.tier === 'Platinum')
 
     return matchesSearch && matchesFilter
   })
@@ -200,11 +202,11 @@ const CRMDashboard: React.FC = () => {
   const statsToUse = crmStats || {
     total_customers: customers.length,
     total_revenue: customers.reduce((sum, c) => sum + c.total_spent, 0),
-    avg_clv: customers.length > 0 ? customers.reduce((sum, c) => sum + c.lifetime_value, 0) / customers.length : 0,
-    avg_engagement: customers.length > 0 ? customers.reduce((sum, c) => sum + c.engagement_score, 0) / customers.length : 0,
-    active_customers: customers.filter(c => c.status === 'active' || c.status === 'vip').length,
-    churned_customers: customers.filter(c => c.status === 'churned').length,
-    vip_customers: customers.filter(c => c.status === 'vip').length,
+    avg_clv: customers.length > 0 ? customers.reduce((sum, c) => sum + (c.lifetime_value || 0), 0) / customers.length : 0,
+    avg_engagement: customers.length > 0 ? customers.reduce((sum, c) => sum + (c.engagement_score || 0), 0) / customers.length : 0,
+    active_customers: customers.filter(c => c.is_active === true).length,
+    churned_customers: customers.filter(c => c.is_active === false).length,
+    vip_customers: customers.filter(c => c.tier === 'Platinum' && c.is_active === true).length,
     active_campaigns: campaigns.filter(c => c.status === 'running').length,
     conversion_rate: 0,
     customer_growth_rate: 0
@@ -531,7 +533,7 @@ const CRMDashboard: React.FC = () => {
                               width: '40px',
                               height: '40px',
                               borderRadius: '50%',
-                              background: getStatusColor(customer.status),
+                              background: getStatusColor(customer.is_active ? 'active' : 'inactive'),
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -539,19 +541,19 @@ const CRMDashboard: React.FC = () => {
                               fontWeight: '600',
                               fontSize: '0.875rem'
                             }}>
-                              {customer.first_name.charAt(0)}{customer.last_name.charAt(0)}
+                              {customer.name.charAt(0)}{customer.name.split(' ')[1]?.charAt(0) || ''}
                             </div>
                             <div>
                               <div style={{ fontWeight: '500', color: '#1f2937' }}>
-                                {customer.first_name} {customer.last_name}
+                                {customer.name}
                               </div>
                               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                                 {customer.email}
                               </div>
-                              {customer.city && (
+                              {customer.address && (
                                 <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                   <MapPin size={12} />
-                                  {customer.city}
+                                  {customer.address}
                                 </div>
                               )}
                             </div>
@@ -567,12 +569,12 @@ const CRMDashboard: React.FC = () => {
                               borderRadius: '6px',
                               fontSize: '0.75rem',
                               fontWeight: '600',
-                              background: `${getStatusColor(customer.status)}20`,
-                              color: getStatusColor(customer.status),
+                              background: `${getStatusColor(customer.is_active ? 'active' : 'inactive')}20`,
+                              color: getStatusColor(customer.is_active ? 'active' : 'inactive'),
                               width: 'fit-content'
                             }}>
-                              {getStatusIcon(customer.status)}
-                              {customer.status.toUpperCase()}
+                              {getStatusIcon(customer.is_active ? 'active' : 'inactive')}
+                              {customer.is_active ? 'ATTIVO' : 'INATTIVO'}
                             </div>
                             <div style={{
                               fontSize: '0.75rem',
@@ -586,7 +588,7 @@ const CRMDashboard: React.FC = () => {
                         <td style={{ padding: '1rem' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                             <div style={{ fontWeight: '600', color: '#1f2937' }}>
-                              {formatCurrency(customer.lifetime_value)}
+                              {formatCurrency(customer.lifetime_value || 0)}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
                               CLV
@@ -606,15 +608,15 @@ const CRMDashboard: React.FC = () => {
                               overflow: 'hidden'
                             }}>
                               <div style={{
-                                width: `${customer.engagement_score}%`,
+                                width: `${customer.engagement_score || 0}%`,
                                 height: '100%',
-                                background: customer.engagement_score >= 70 ? '#10b981' :
-                                          customer.engagement_score >= 40 ? '#f59e0b' : '#ef4444',
+                                background: (customer.engagement_score || 0) >= 70 ? '#10b981' :
+                                          (customer.engagement_score || 0) >= 40 ? '#f59e0b' : '#ef4444',
                                 borderRadius: '4px'
                               }} />
                             </div>
                             <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
-                              {customer.engagement_score}%
+                              {customer.engagement_score || 0}%
                             </span>
                           </div>
                         </td>
@@ -628,18 +630,18 @@ const CRMDashboard: React.FC = () => {
                               overflow: 'hidden'
                             }}>
                               <div style={{
-                                width: `${customer.predicted_churn_risk}%`,
+                                width: `${customer.predicted_churn_risk || 0}%`,
                                 height: '100%',
-                                background: getChurnRiskColor(customer.predicted_churn_risk),
+                                background: getChurnRiskColor(customer.predicted_churn_risk || 0),
                                 borderRadius: '4px'
                               }} />
                             </div>
                             <span style={{
                               fontSize: '0.875rem',
                               fontWeight: '500',
-                              color: getChurnRiskColor(customer.predicted_churn_risk)
+                              color: getChurnRiskColor(customer.predicted_churn_risk || 0)
                             }}>
-                              {customer.predicted_churn_risk}%
+                              {customer.predicted_churn_risk || 0}%
                             </span>
                           </div>
                         </td>
@@ -647,9 +649,9 @@ const CRMDashboard: React.FC = () => {
                           <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                             {customer.last_activity ? formatDate(customer.last_activity) : 'Mai'}
                           </div>
-                          {customer.last_purchase_date && (
+                          {customer.last_visit && (
                             <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                              Ultimo acquisto: {formatDate(customer.last_purchase_date)}
+                              Ultima visita: {formatDate(customer.last_visit)}
                             </div>
                           )}
                         </td>
@@ -790,7 +792,7 @@ const CRMDashboard: React.FC = () => {
                     </div>
                     <div>
                       <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--omnily-success)' }}>
-                        {formatCurrency(campaign.revenue_generated)}
+                        {formatCurrency(campaign.revenue_generated || 0)}
                       </div>
                       <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Revenue</div>
                     </div>
@@ -860,7 +862,7 @@ const CRMDashboard: React.FC = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>Revenue Generata</span>
                     <span style={{ fontWeight: '600', color: 'var(--omnily-primary)' }}>
-                      {formatCurrency(campaigns.reduce((sum, c) => sum + c.revenue_generated, 0))}
+                      {formatCurrency(campaigns.reduce((sum, c) => sum + (c.revenue_generated || 0), 0))}
                     </span>
                   </div>
                 </div>

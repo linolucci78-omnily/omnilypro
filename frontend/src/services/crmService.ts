@@ -3,33 +3,36 @@ import { supabase } from '../lib/supabase'
 /**
  * Service for CRM operations in OMNILY PRO
  * Handles customers, campaigns, segments, and analytics
+ * Compatible with existing customer table structure
  */
 
 export interface Customer {
   id: string
-  first_name: string
-  last_name: string
+  // Use existing column names from database
+  name: string // existing field
+  first_name?: string // added field
+  last_name?: string // added field
   email: string
   phone?: string
-  date_of_birth?: string
-  gender?: 'M' | 'F' | 'Other'
-  city?: string
-  country?: string
+  birth_date?: string // matches existing column name
+  gender?: string
+  address?: string // existing field
   organization_id: string
   total_spent: number
-  total_orders: number
-  avg_order_value: number
-  lifetime_value: number
-  loyalty_points: number
+  total_orders?: number
+  avg_order_value?: number
+  lifetime_value?: number
+  points: number // existing field (loyalty_points)
   tier: string
-  status: 'active' | 'inactive' | 'churned' | 'vip'
-  engagement_score: number
-  predicted_churn_risk: number
-  acquisition_channel?: string
+  status?: string // added field
+  is_active: boolean // existing field
+  engagement_score?: number
+  predicted_churn_risk?: number
+  last_visit?: string // existing field
   last_activity?: string
-  last_purchase_date?: string
   created_at: string
   updated_at: string
+  visits?: number // existing field
 }
 
 export interface CustomerInput {
@@ -123,6 +126,7 @@ export class CRMService {
 
   /**
    * Get all customers for an organization
+   * Uses safe column names and error handling
    */
   async getCustomers(organizationId: string, filters?: {
     status?: string
@@ -132,14 +136,24 @@ export class CRMService {
     offset?: number
   }): Promise<{ customers: Customer[], total: number }> {
     try {
+      console.log('🔄 CRMService.getCustomers called with organizationId:', organizationId)
+
+      // Start with basic query
       let query = supabase
         .from('customers')
         .select('*', { count: 'exact' })
         .eq('organization_id', organizationId)
 
-      // Apply filters
+      // Apply filters safely
       if (filters?.status && filters.status !== 'all') {
-        query = query.eq('status', filters.status)
+        // Map status filter to appropriate column
+        if (filters.status === 'active') {
+          query = query.eq('is_active', true)
+        } else if (filters.status === 'inactive') {
+          query = query.eq('is_active', false)
+        } else if (filters.status === 'vip') {
+          query = query.eq('tier', 'Platinum').eq('is_active', true)
+        }
       }
 
       if (filters?.tier) {
@@ -147,7 +161,8 @@ export class CRMService {
       }
 
       if (filters?.search) {
-        query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`)
+        // Use existing column names for search
+        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`)
       }
 
       // Pagination
@@ -158,24 +173,34 @@ export class CRMService {
         query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1)
       }
 
-      // Order by last activity
-      query = query.order('last_activity', { ascending: false, nullsFirst: false })
+      // Order by existing columns
+      query = query.order('last_visit', { ascending: false, nullsFirst: false })
                    .order('created_at', { ascending: false })
 
       const { data, error, count } = await query
 
       if (error) {
-        console.error('Failed to get customers:', error)
-        throw error
+        console.error('❌ Failed to get customers:', error)
+        console.error('Query details:', { organizationId, filters })
+        // Return empty result instead of throwing to prevent app crash
+        return {
+          customers: [],
+          total: 0
+        }
       }
 
+      console.log('✅ Successfully loaded customers:', data?.length || 0)
       return {
         customers: data || [],
         total: count || 0
       }
     } catch (error: any) {
       console.error('Error in CRMService.getCustomers:', error)
-      throw error
+      // Return empty result to prevent app crash
+      return {
+        customers: [],
+        total: 0
+      }
     }
   }
 
@@ -353,6 +378,8 @@ export class CRMService {
    */
   async getSegments(organizationId: string): Promise<CustomerSegment[]> {
     try {
+      console.log('🔄 Loading segments for organization:', organizationId)
+
       const { data, error } = await supabase
         .from('customer_segments')
         .select('*')
@@ -361,14 +388,17 @@ export class CRMService {
         .order('customer_count', { ascending: false })
 
       if (error) {
-        console.error('Failed to get segments:', error)
-        throw error
+        console.error('❌ Failed to get segments:', error)
+        // Return empty array instead of throwing
+        return []
       }
 
+      console.log('✅ Successfully loaded segments:', data?.length || 0)
       return data || []
     } catch (error: any) {
       console.error('Error in CRMService.getSegments:', error)
-      throw error
+      // Return empty array to prevent crash
+      return []
     }
   }
 
@@ -538,7 +568,19 @@ export class CRMService {
       }
     } catch (error: any) {
       console.error('Error in CRMService.getCRMStats:', error)
-      throw error
+      // Return default stats to prevent crash
+      return {
+        total_customers: 0,
+        active_customers: 0,
+        vip_customers: 0,
+        churned_customers: 0,
+        total_revenue: 0,
+        avg_clv: 0,
+        avg_engagement: 0,
+        active_campaigns: 0,
+        conversion_rate: 0,
+        customer_growth_rate: 0
+      }
     }
   }
 
@@ -551,9 +593,9 @@ export class CRMService {
         .from('customers')
         .select('*')
         .eq('organization_id', organizationId)
-        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
+        .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
         .limit(limit)
-        .order('last_activity', { ascending: false, nullsFirst: false })
+        .order('last_visit', { ascending: false, nullsFirst: false })
 
       if (error) {
         console.error('Failed to search customers:', error)
@@ -563,7 +605,8 @@ export class CRMService {
       return data || []
     } catch (error: any) {
       console.error('Error in CRMService.searchCustomers:', error)
-      throw error
+      // Return empty array to prevent crash
+      return []
     }
   }
 
