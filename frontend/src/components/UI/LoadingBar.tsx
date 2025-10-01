@@ -59,27 +59,27 @@ const LoadingBar: React.FC<LoadingBarProps> = ({
     switch (theme) {
       case 'success':
         return {
-          bg: '#f0fdf4',
-          bar: '#22c55e',
-          text: '#15803d'
+          bg: 'var(--omnily-success-bg)',
+          bar: 'var(--omnily-success)',
+          text: 'var(--omnily-success)'
         }
       case 'warning':
         return {
-          bg: '#fffbeb',
-          bar: '#f59e0b',
-          text: '#d97706'
+          bg: 'var(--omnily-warning-bg)',
+          bar: 'var(--omnily-warning)',
+          text: 'var(--omnily-warning)'
         }
       case 'error':
         return {
-          bg: '#fef2f2',
-          bar: '#ef4444',
-          text: '#dc2626'
+          bg: 'var(--omnily-error-bg)',
+          bar: 'var(--omnily-error)',
+          text: 'var(--omnily-error)'
         }
       default:
         return {
-          bg: '#f8fafc',
-          bar: '#3b82f6',
-          text: '#475569'
+          bg: 'var(--omnily-gray-50)',
+          bar: 'var(--omnily-primary)',
+          text: 'var(--omnily-gray-600)'
         }
     }
   }
@@ -105,7 +105,7 @@ const LoadingBar: React.FC<LoadingBarProps> = ({
         background: colors.bg,
         padding: '2rem',
         borderRadius: '12px',
-        border: '1px solid #e2e8f0',
+        border: '1px solid var(--omnily-border-color)',
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
         minWidth: '300px',
         maxWidth: '500px',
@@ -137,7 +137,7 @@ const LoadingBar: React.FC<LoadingBarProps> = ({
         <div style={{
           width: '100%',
           height: '8px',
-          background: '#e2e8f0',
+          background: 'var(--omnily-gray-200)',
           borderRadius: '4px',
           overflow: 'hidden',
           marginBottom: '1rem'

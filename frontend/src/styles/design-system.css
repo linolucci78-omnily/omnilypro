@@ -1,0 +1,388 @@
+/* ============================================================================
+   OMNILY PRO - DESIGN SYSTEM UNIFORME
+   Sistema di colori professionale e coerente
+   ============================================================================ */
+
+:root {
+  /* === PALETTE COLORI PRINCIPALI === */
+
+  /* Blu OMNILY Pro - Colore primario ufficiale */
+  --omnily-primary: #1e40af;
+  --omnily-primary-light: #3b82f6;
+  --omnily-primary-dark: #1e3a8a;
+  --omnily-primary-50: #eff6ff;
+  --omnily-primary-100: #dbeafe;
+  --omnily-primary-200: #bfdbfe;
+  --omnily-primary-300: #93c5fd;
+  --omnily-primary-400: #60a5fa;
+  --omnily-primary-500: #3b82f6;
+  --omnily-primary-600: #2563eb;
+  --omnily-primary-700: #1d4ed8;
+  --omnily-primary-800: #1e40af;
+  --omnily-primary-900: #1e3a8a;
+
+  /* Grigi Neutri - Per testi e sfondo */
+  --omnily-gray-50: #f8fafc;
+  --omnily-gray-100: #f1f5f9;
+  --omnily-gray-200: #e2e8f0;
+  --omnily-gray-300: #cbd5e1;
+  --omnily-gray-400: #94a3b8;
+  --omnily-gray-500: #64748b;
+  --omnily-gray-600: #475569;
+  --omnily-gray-700: #334155;
+  --omnily-gray-800: #1e293b;
+  --omnily-gray-900: #0f172a;
+
+  /* Semantici - Solo per stati */
+  --omnily-success: #10b981;
+  --omnily-success-light: #34d399;
+  --omnily-success-bg: #ecfdf5;
+
+  --omnily-warning: #f59e0b;
+  --omnily-warning-light: #fbbf24;
+  --omnily-warning-bg: #fffbeb;
+
+  --omnily-error: #ef4444;
+  --omnily-error-light: #f87171;
+  --omnily-error-bg: #fef2f2;
+
+  --omnily-info: #06b6d4;
+  --omnily-info-light: #22d3ee;
+  --omnily-info-bg: #f0fdff;
+
+  /* === TIPOGRAFIA === */
+  --omnily-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --omnily-font-size-xs: 0.75rem;
+  --omnily-font-size-sm: 0.875rem;
+  --omnily-font-size-base: 1rem;
+  --omnily-font-size-lg: 1.125rem;
+  --omnily-font-size-xl: 1.25rem;
+  --omnily-font-size-2xl: 1.5rem;
+  --omnily-font-size-3xl: 1.875rem;
+
+  /* === SPAZIATURE === */
+  --omnily-spacing-1: 0.25rem;
+  --omnily-spacing-2: 0.5rem;
+  --omnily-spacing-3: 0.75rem;
+  --omnily-spacing-4: 1rem;
+  --omnily-spacing-5: 1.25rem;
+  --omnily-spacing-6: 1.5rem;
+  --omnily-spacing-8: 2rem;
+  --omnily-spacing-10: 2.5rem;
+  --omnily-spacing-12: 3rem;
+
+  /* === BORDI E OMBRE === */
+  --omnily-border-radius: 0.5rem;
+  --omnily-border-radius-lg: 0.75rem;
+  --omnily-border-radius-xl: 1rem;
+  --omnily-border-color: var(--omnily-gray-200);
+  --omnily-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --omnily-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --omnily-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* === CLASSI UTILITY GLOBALI === */
+
+/* Colori Background */
+.bg-primary { background-color: var(--omnily-primary) !important; }
+.bg-primary-light { background-color: var(--omnily-primary-light) !important; }
+.bg-success { background-color: var(--omnily-success) !important; }
+.bg-warning { background-color: var(--omnily-warning) !important; }
+.bg-error { background-color: var(--omnily-error) !important; }
+.bg-info { background-color: var(--omnily-info) !important; }
+.bg-gray-50 { background-color: var(--omnily-gray-50) !important; }
+.bg-white { background-color: #ffffff !important; }
+
+/* Colori Testo */
+.text-primary { color: var(--omnily-primary) !important; }
+.text-success { color: var(--omnily-success) !important; }
+.text-warning { color: var(--omnily-warning) !important; }
+.text-error { color: var(--omnily-error) !important; }
+.text-info { color: var(--omnily-info) !important; }
+.text-gray-500 { color: var(--omnily-gray-500) !important; }
+.text-gray-600 { color: var(--omnily-gray-600) !important; }
+.text-gray-700 { color: var(--omnily-gray-700) !important; }
+.text-gray-800 { color: var(--omnily-gray-800) !important; }
+.text-white { color: #ffffff !important; }
+
+/* === COMPONENTI UNIFICATI === */
+
+/* Bottoni */
+.omnily-btn {
+  padding: var(--omnily-spacing-3) var(--omnily-spacing-6);
+  border-radius: var(--omnily-border-radius);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--omnily-spacing-2);
+  font-weight: 500;
+  font-size: var(--omnily-font-size-sm);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.omnily-btn-primary {
+  background-color: var(--omnily-primary);
+  color: white;
+}
+
+.omnily-btn-primary:hover {
+  background-color: var(--omnily-primary-dark);
+}
+
+.omnily-btn-secondary {
+  background-color: var(--omnily-gray-50);
+  color: var(--omnily-gray-700);
+  border: 1px solid var(--omnily-border-color);
+}
+
+.omnily-btn-secondary:hover {
+  background-color: var(--omnily-gray-100);
+}
+
+.omnily-btn-success {
+  background-color: var(--omnily-success);
+  color: white;
+}
+
+.omnily-btn-warning {
+  background-color: var(--omnily-warning);
+  color: white;
+}
+
+.omnily-btn-error {
+  background-color: var(--omnily-error);
+  color: white;
+}
+
+/* Cards unificate */
+.omnily-card {
+  background: white;
+  border-radius: var(--omnily-border-radius-lg);
+  border: 1px solid var(--omnily-border-color);
+  box-shadow: var(--omnily-shadow-sm);
+  padding: var(--omnily-spacing-6);
+  transition: all 0.2s;
+}
+
+.omnily-card:hover {
+  box-shadow: var(--omnily-shadow);
+}
+
+/* Stat Cards unificate */
+.omnily-stat-card {
+  background: white;
+  border-radius: var(--omnily-border-radius-lg);
+  border: 1px solid var(--omnily-border-color);
+  padding: var(--omnily-spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--omnily-spacing-4);
+  transition: all 0.2s;
+}
+
+.omnily-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--omnily-border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background-color: var(--omnily-primary);
+}
+
+.omnily-stat-icon.success {
+  background-color: var(--omnily-success);
+}
+
+.omnily-stat-icon.warning {
+  background-color: var(--omnily-warning);
+}
+
+.omnily-stat-icon.error {
+  background-color: var(--omnily-error);
+}
+
+.omnily-stat-icon.info {
+  background-color: var(--omnily-info);
+}
+
+.omnily-stat-number {
+  font-size: var(--omnily-font-size-2xl);
+  font-weight: 700;
+  color: var(--omnily-gray-800);
+  line-height: 1;
+}
+
+.omnily-stat-label {
+  font-size: var(--omnily-font-size-sm);
+  color: var(--omnily-gray-500);
+  font-weight: 500;
+}
+
+/* Status Badges unificate */
+.omnily-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--omnily-spacing-1);
+  padding: var(--omnily-spacing-1) var(--omnily-spacing-3);
+  border-radius: var(--omnily-border-radius);
+  font-size: var(--omnily-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.omnily-status-badge.online,
+.omnily-status-badge.active,
+.omnily-status-badge.success {
+  background-color: var(--omnily-success-bg);
+  color: var(--omnily-success);
+}
+
+.omnily-status-badge.offline,
+.omnily-status-badge.error,
+.omnily-status-badge.failed {
+  background-color: var(--omnily-error-bg);
+  color: var(--omnily-error);
+}
+
+.omnily-status-badge.pending,
+.omnily-status-badge.warning {
+  background-color: var(--omnily-warning-bg);
+  color: var(--omnily-warning);
+}
+
+.omnily-status-badge.info {
+  background-color: var(--omnily-info-bg);
+  color: var(--omnily-info);
+}
+
+/* Input Forms unificate */
+.omnily-input {
+  width: 100%;
+  padding: var(--omnily-spacing-3);
+  border: 1px solid var(--omnily-border-color);
+  border-radius: var(--omnily-border-radius);
+  font-size: var(--omnily-font-size-sm);
+  transition: border-color 0.2s;
+}
+
+.omnily-input:focus {
+  outline: none;
+  border-color: var(--omnily-primary);
+  box-shadow: 0 0 0 3px var(--omnily-primary-100);
+}
+
+/* Tabelle unificate */
+.omnily-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--omnily-border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--omnily-shadow-sm);
+}
+
+.omnily-table th,
+.omnily-table td {
+  padding: var(--omnily-spacing-4);
+  text-align: left;
+  border-bottom: 1px solid var(--omnily-border-color);
+}
+
+.omnily-table th {
+  background-color: var(--omnily-gray-50);
+  font-weight: 600;
+  color: var(--omnily-gray-700);
+}
+
+/* === DASHBOARD SPECIFICI === */
+
+/* Header Dashboard */
+.omnily-dashboard-header {
+  background: white;
+  border-bottom: 1px solid var(--omnily-border-color);
+  padding: var(--omnily-spacing-6);
+  margin: 0;
+  width: 100%;
+}
+
+.omnily-dashboard-title {
+  font-size: var(--omnily-font-size-2xl);
+  font-weight: 700;
+  color: var(--omnily-gray-800);
+  margin: 0;
+}
+
+.omnily-dashboard-subtitle {
+  font-size: var(--omnily-font-size-sm);
+  color: var(--omnily-gray-500);
+  margin: var(--omnily-spacing-1) 0 0 0;
+}
+
+/* Sezioni Dashboard */
+.omnily-dashboard-section {
+  background: var(--omnily-gray-50);
+  padding: var(--omnily-spacing-6);
+  margin: 0;
+  width: 100%;
+}
+
+/* Grid Stats */
+.omnily-stats-grid {
+  display: grid;
+  gap: var(--omnily-spacing-4);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  margin-bottom: var(--omnily-spacing-6);
+}
+
+/* Tabs unificate */
+.omnily-tabs {
+  background: white;
+  border-bottom: 1px solid var(--omnily-border-color);
+  padding: 0 var(--omnily-spacing-6);
+  display: flex;
+  gap: var(--omnily-spacing-1);
+}
+
+.omnily-tab {
+  padding: var(--omnily-spacing-4) var(--omnily-spacing-6);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--omnily-gray-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--omnily-spacing-2);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.omnily-tab.active {
+  color: var(--omnily-primary);
+  border-bottom-color: var(--omnily-primary);
+}
+
+.omnily-tab:hover {
+  color: var(--omnily-primary);
+}
+
+/* Override per reset CSS framework precedenti */
+.admin-dashboard * {
+  font-family: var(--omnily-font-family) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .omnily-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .omnily-dashboard-header,
+  .omnily-dashboard-section {
+    padding: var(--omnily-spacing-4);
+  }
+}

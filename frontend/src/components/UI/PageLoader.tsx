@@ -40,10 +40,10 @@ const PageLoader: React.FC<PageLoaderProps> = ({
   const sizes = getSizes()
 
   const containerStyle = inline ? {
-    background: '#f8fafc',
+    background: 'var(--omnily-gray-50)',
     padding: '2rem',
     borderRadius: '8px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid var(--omnily-border-color)',
     width: sizes.container,
     textAlign: 'center' as const
   } : {
@@ -64,7 +64,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
     background: 'white',
     padding: '2rem',
     borderRadius: '12px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid var(--omnily-border-color)',
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
     width: sizes.container,
     textAlign: 'center' as const
@@ -77,7 +77,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
         <div style={{
           fontSize: sizes.logo,
           fontWeight: 'bold',
-          color: '#3b82f6',
+          color: 'var(--omnily-primary)',
           marginBottom: '1rem'
         }}>
           OMNILY PRO
@@ -87,7 +87,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
         <div style={{
           width: '100%',
           height: sizes.bar,
-          background: '#e2e8f0',
+          background: 'var(--omnily-gray-200)',
           borderRadius: '99px',
           overflow: 'hidden',
           marginBottom: '1rem'
@@ -95,7 +95,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
           <div style={{
             width: '70%',
             height: '100%',
-            background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
+            background: 'linear-gradient(90deg, var(--omnily-primary), var(--omnily-primary-dark))',
             borderRadius: '99px',
             animation: 'loading-slide 2s ease-in-out infinite',
             transformOrigin: 'left'
@@ -105,7 +105,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
         {/* Message */}
         <div style={{
           fontSize: sizes.text,
-          color: '#64748b',
+          color: 'var(--omnily-gray-500)',
           marginBottom: '0.5rem'
         }}>
           {message}
@@ -124,7 +124,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
                 width: '4px',
                 height: '4px',
                 borderRadius: '50%',
-                background: '#3b82f6',
+                background: 'var(--omnily-primary)',
                 animation: `loading-dots 1.4s infinite ${i * 0.2}s`
               }}
             />
