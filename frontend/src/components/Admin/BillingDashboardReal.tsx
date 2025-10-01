@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import SubscriptionModal from './SubscriptionModal'
+import PageLoader from '../UI/PageLoader'
 
 interface Subscription {
   id: string
@@ -424,12 +425,7 @@ const BillingDashboardReal: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Caricamento dati di fatturazione...</p>
-      </div>
-    )
+    return <PageLoader message="Caricamento dati di fatturazione..." size="medium" />
   }
 
   if (error) {

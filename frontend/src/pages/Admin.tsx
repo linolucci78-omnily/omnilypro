@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { organizationsApi } from '../lib/supabase'
 import type { Organization } from '../lib/supabase'
+import PageLoader from '../components/UI/PageLoader'
 import './Admin.css'
 
 const Admin: React.FC = () => {
@@ -210,10 +211,7 @@ const Admin: React.FC = () => {
       {/* Organizations Table */}
       <div className="organizations-table-container">
         {loading ? (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Caricamento organizzazioni...</p>
-          </div>
+          <PageLoader message="Caricamento organizzazioni..." size="medium" inline />
         ) : (
           <table className="organizations-table">
             <thead>

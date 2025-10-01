@@ -33,6 +33,7 @@ import {
   CreditCard
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
 import './SystemSettings.css'
 
@@ -363,12 +364,7 @@ const SystemSettings: React.FC = () => {
   }, {} as Record<string, ConfigSetting[]>)
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Caricamento impostazioni di sistema...</p>
-      </div>
-    )
+    return <PageLoader message="Caricamento impostazioni di sistema..." size="medium" />
   }
 
   if (error) {

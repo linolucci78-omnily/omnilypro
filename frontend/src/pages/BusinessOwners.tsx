@@ -24,6 +24,7 @@ import {
   Shield,
   Zap
 } from 'lucide-react'
+import PageLoader from '../components/UI/PageLoader'
 import './BusinessOwners.css'
 
 interface BusinessOwner {
@@ -394,10 +395,7 @@ const BusinessOwners: React.FC = () => {
       {/* Owners Table */}
       <div className="owners-table-container">
         {loading ? (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Caricamento proprietari...</p>
-          </div>
+          <PageLoader message="Caricamento proprietari aziendali..." size="medium" inline />
         ) : (
           <table className="owners-table">
             <thead>

@@ -24,6 +24,7 @@ import {
   Euro,
   Zap
 } from 'lucide-react'
+import PageLoader from '../components/UI/PageLoader'
 import './BusinessCustomers.css'
 
 interface Customer {
@@ -355,10 +356,7 @@ const BusinessCustomers: React.FC = () => {
       {/* Customers Table */}
       <div className="customers-table-container">
         {loading ? (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Caricamento clienti...</p>
-          </div>
+          <PageLoader message="Caricamento clienti aziendali..." size="medium" inline />
         ) : (
           <table className="customers-table">
             <thead>
