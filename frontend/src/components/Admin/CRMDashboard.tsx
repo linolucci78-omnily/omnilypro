@@ -41,8 +41,9 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { crmService } from '../../services/crmService'
-import type { Customer, Campaign, CustomerSegment, CRMStats } from '../../services/crmService'
+import type { Customer, Campaign, CustomerSegment, CRMStats, CustomerInput } from '../../services/crmService'
 import PageLoader from '../UI/PageLoader'
+import CustomerModal from './CustomerModal'
 import './CRMDashboard.css'
 
 // Interfaces importate dal service CRMService
@@ -199,6 +200,30 @@ const CRMDashboard: React.FC = () => {
 
   const calculateConversionRate = (converted: number, sent: number) => {
     return sent > 0 ? ((converted / sent) * 100).toFixed(1) : '0.0'
+  }
+
+  // Handle save new customer
+  const handleSaveCustomer = async (customerData: CustomerInput) => {
+    if (!currentOrganizationId) {
+      throw new Error('Organization ID not available')
+    }
+
+    try {
+      console.log('💾 Creating new customer...', customerData)
+      const newCustomer = await crmService.createCustomer(currentOrganizationId, customerData)
+      console.log('✅ Customer created:', newCustomer)
+
+      // Add to customers list
+      setCustomers(prev => [newCustomer, ...prev])
+      setTotalCustomers(prev => prev + 1)
+
+      // Reload data to update stats
+      const { customers: updatedCustomers } = await crmService.getCustomers(currentOrganizationId)
+      setCustomers(updatedCustomers)
+    } catch (error) {
+      console.error('❌ Error creating customer:', error)
+      throw error
+    }
   }
 
   const filteredCustomers = customers.filter(customer => {
@@ -718,6 +743,13 @@ const CRMDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Customer Modal */}
+      <CustomerModal
+        isOpen={showCustomerModal}
+        onClose={() => setShowCustomerModal(false)}
+        onSave={handleSaveCustomer}
+      />
     </div>
   )
 }
