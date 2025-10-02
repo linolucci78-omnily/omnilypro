@@ -3,6 +3,7 @@ import { supabase, organizationsApi, customersApi, nfcCardsApi, customerActiviti
 import type { Organization, Customer, Reward } from '../lib/supabase'
 import { rewardsService } from '../services/rewardsService'
 import RewardModal from './RewardModal'
+import { useAuth } from '../contexts/AuthContext'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2 } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -28,6 +29,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   // Detect POS mode
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
+  const { user } = useAuth()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -2102,10 +2104,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <img src={currentOrganization.logo_url} alt={currentOrganization.name} />
             </div>
           ) : (
-            <div className="logo">
-              <div className="logo-icon">O</div>
-              <span className="logo-text">OMNILY PRO</span>
-            </div>
+            <>
+              {console.log('⚠️ Logo URL mancante per:', currentOrganization?.name, 'logo_url:', currentOrganization?.logo_url)}
+              <div className="logo">
+                <div className="logo-icon">O</div>
+                <span className="logo-text">OMNILY PRO</span>
+              </div>
+            </>
           )}
 
           {/* Nome Organizzazione */}
@@ -2114,7 +2119,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           {/* Operatore Loggato */}
           <div className="operator-info">
             <div className="operator-label">Operatore</div>
-            <div className="operator-name">{currentOrganization?.business_email || 'Admin'}</div>
+            <div className="operator-name">{user?.email || 'Admin'}</div>
           </div>
         </div>
 

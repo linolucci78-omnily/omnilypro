@@ -51,11 +51,14 @@ const AdminLayout: React.FC = () => {
   const { signOut } = useAuth()
 
   const handleLogout = async () => {
+    console.log('🔴 Logout button clicked')
     try {
+      console.log('🔴 Calling signOut...')
       await signOut()
+      console.log('✅ SignOut successful, navigating to /login')
       navigate('/login')
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error('❌ Logout error:', error)
     }
   }
 

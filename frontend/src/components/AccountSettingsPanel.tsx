@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Gift, Award, Palette, AlertTriangle } from 'lucide-react';
+import { X, Building2, Gift, Award, Palette, AlertTriangle, Upload } from 'lucide-react';
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel';
 import { organizationService } from '../services/organizationService';
+import { supabase } from '../lib/supabase';
 import './AccountSettingsPanel.css';
 
 interface AccountSettingsPanelProps {
@@ -57,6 +58,7 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (organization) {
@@ -92,6 +94,68 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
       }
     }
   }, [organization]);
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !organization?.id) {
+      console.error('❌ Nessun file o organization ID mancante');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      console.log('📤 Inizio upload logo:', file.name, 'size:', file.size);
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Per favore seleziona un file immagine');
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Il file deve essere inferiore a 2MB');
+        return;
+      }
+
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${organization.id}-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      console.log('📁 Upload path:', filePath);
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('IMG')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      console.log('📦 Upload response:', { data, error });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('IMG')
+        .getPublicUrl(filePath);
+
+      console.log('🔗 Public URL:', publicUrl);
+
+      // Update form data
+      setFormData({ ...formData, logo_url: publicUrl });
+
+      console.log('✅ Logo caricato con successo!');
+      alert('✅ Logo caricato! Ricordati di cliccare "Salva Modifiche"');
+    } catch (error: any) {
+      console.error('❌ Errore upload logo:', error);
+      alert(`Errore: ${error.message || 'Errore durante il caricamento del logo'}`);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -519,13 +583,22 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
               <h3>Branding Aziendale</h3>
 
               <div className="form-group">
-                <label>Logo URL</label>
-                <input
-                  type="url"
-                  value={formData.logo_url}
-                  onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                  placeholder="https://example.com/logo.png"
-                />
+                <label>Logo Aziendale</label>
+                <div className="file-upload-container">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    disabled={uploading}
+                    id="logo-upload"
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="logo-upload" className="upload-button">
+                    <Upload size={18} />
+                    {uploading ? 'Caricamento...' : 'Carica Logo'}
+                  </label>
+                  <span className="upload-hint">PNG, JPG, max 2MB</span>
+                </div>
                 {formData.logo_url && (
                   <div className="logo-preview">
                     <img src={formData.logo_url} alt="Logo" />
