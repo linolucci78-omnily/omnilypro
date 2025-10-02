@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { X, Building2, Gift, Award, Palette, AlertTriangle } from 'lucide-react';
-import ConfirmModal from './UI/ConfirmModal';
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel';
 import './AccountSettingsPanel.css';
 
@@ -50,7 +49,6 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
     secondary_color: '#dc2626'
   });
 
-  const [showResetModal, setShowResetModal] = useState(false);
   const [resetConfirmText, setResetConfirmText] = useState('');
   const [scheduledResetDate, setScheduledResetDate] = useState('');
   const [scheduledResetTime, setScheduledResetTime] = useState('');
@@ -502,13 +500,32 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
               <div className="danger-zone">
                 <div className="danger-section">
                   <AlertTriangle size={24} color="#ef4444" />
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <h4>Azzera Tutti i Punti</h4>
                     <p>Questa operazione azzererà i punti di tutti i clienti immediatamente. <strong>Questa azione è irreversibile!</strong></p>
+                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#991b1b' }}>
+                      Per confermare, digita <strong>AZZERA</strong> e clicca sul bottone:
+                    </p>
+                    <input
+                      type="text"
+                      value={resetConfirmText}
+                      onChange={(e) => setResetConfirmText(e.target.value)}
+                      placeholder="Digita AZZERA"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        marginTop: '0.5rem',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '1rem'
+                      }}
+                    />
                   </div>
                   <button
                     className="btn-danger"
-                    onClick={() => setShowResetModal(true)}
+                    onClick={handleResetAllPoints}
+                    disabled={resetConfirmText !== 'AZZERA'}
+                    style={{ opacity: resetConfirmText !== 'AZZERA' ? 0.5 : 1, cursor: resetConfirmText !== 'AZZERA' ? 'not-allowed' : 'pointer' }}
                   >
                     Azzera Punti
                   </button>
@@ -556,46 +573,17 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
         </div>
       </div>
 
-      {/* Confirm Reset Modal */}
-      <ConfirmModal
-        isOpen={showResetModal}
-        title="⚠️ OPERAZIONE IRREVERSIBILE"
-        message={`Stai per azzerare TUTTI i punti di TUTTI i clienti dell'organizzazione "${organization?.name}".\n\nQuesta operazione NON può essere annullata.\n\nPer confermare, digita "AZZERA" nel campo sottostante:`}
-        confirmText="Conferma Azzeramento"
-        cancelText="Annulla"
-        type="danger"
-        onConfirm={handleResetAllPoints}
-        onCancel={() => {
-          setShowResetModal(false);
-          setResetConfirmText('');
-        }}
-      >
-        <input
-          type="text"
-          value={resetConfirmText}
-          onChange={(e) => setResetConfirmText(e.target.value)}
-          placeholder="Digita AZZERA"
-          style={{
-            width: '100%',
-            padding: '12px',
-            marginTop: '16px',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '16px'
-          }}
-        />
-      </ConfirmModal>
-
       {/* Loyalty Tiers Panel */}
-      <LoyaltyTiersConfigPanel
-        isOpen={showLoyaltyTiersPanel}
-        onClose={() => setShowLoyaltyTiersPanel(false)}
-        organization={organization}
-        onUpdate={() => {
-          setShowLoyaltyTiersPanel(false);
-          onUpdate();
-        }}
-      />
+      {showLoyaltyTiersPanel && (
+        <LoyaltyTiersConfigPanel
+          isOpen={showLoyaltyTiersPanel}
+          onClose={() => {
+            setShowLoyaltyTiersPanel(false);
+            onUpdate();
+          }}
+          organization={organization}
+        />
+      )}
     </>
   );
 };

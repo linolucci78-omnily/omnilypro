@@ -2245,7 +2245,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={() => setShowAccountSettingsPanel(false)}
         organization={currentOrganization}
         onUpdate={() => {
-          loadOrganizations()
+          fetchOrganizations()
           setShowAccountSettingsPanel(false)
         }}
       />

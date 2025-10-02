@@ -221,18 +221,18 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     await onAddPoints(customer.id, pointsChange);
 
     // Registra l'attività con il motivo
-    if (currentOrganization) {
+    if (customer.organization_id) {
       try {
         console.log('📝 Creazione attività modifica punti:', {
           customer_id: customer.id,
-          organization_id: currentOrganization.id,
+          organization_id: customer.organization_id,
           type: 'points_added',
           description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
           points: pointsChange
         });
         const activity = await customerActivitiesApi.create({
           customer_id: customer.id,
-          organization_id: currentOrganization.id,
+          organization_id: customer.organization_id,
           type: 'points_added',
           description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
           points: pointsChange

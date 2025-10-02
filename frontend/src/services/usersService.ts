@@ -11,6 +11,7 @@ export interface SystemUser {
   email: string
   role: UserRole
   status: 'pending' | 'active' | 'suspended' // Stato account
+  is_active: boolean // Campo per compatibilità
   temp_password?: string // Password temporanea per attivazione
   created_at: string
   updated_at: string
