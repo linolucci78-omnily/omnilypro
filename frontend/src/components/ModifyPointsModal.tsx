@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus } from 'lucide-react';
+import ConfirmModal from './UI/ConfirmModal';
 
 interface ModifyPointsModalProps {
   isOpen: boolean;
@@ -19,16 +20,20 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
 }) => {
   const [pointsChange, setPointsChange] = useState<number>(0);
   const [reason, setReason] = useState<string>('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen || !customer) return null;
 
   const handleConfirm = () => {
     if (pointsChange === 0) {
-      alert('Inserisci un valore diverso da zero');
+      setErrorMessage('Devi inserire un valore diverso da zero per modificare i punti');
+      setShowErrorModal(true);
       return;
     }
     if (!reason.trim()) {
-      alert('Inserisci il motivo della modifica');
+      setErrorMessage('Il motivo della modifica è obbligatorio e non può essere vuoto');
+      setShowErrorModal(true);
       return;
     }
     onConfirm(pointsChange, reason);
@@ -262,6 +267,17 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Error Modal */}
+      <ConfirmModal
+        isOpen={showErrorModal}
+        title="Attenzione"
+        message={errorMessage}
+        confirmText="OK"
+        type="warning"
+        onConfirm={() => setShowErrorModal(false)}
+        onCancel={() => setShowErrorModal(false)}
+      />
     </div>
   );
 };

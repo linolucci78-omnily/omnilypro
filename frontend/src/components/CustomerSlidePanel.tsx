@@ -51,9 +51,10 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
       setLoadingActivities(true);
       try {
+        console.log(`🔍 Caricamento attività per customer ID: ${customer.id}`);
         const activities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
+        console.log(`✅ Caricate ${activities.length} attività per ${customer.name}`, activities);
         setCustomerActivities(activities);
-        console.log(`✅ Caricate ${activities.length} attività per ${customer.name}`);
       } catch (error) {
         console.error('❌ Errore caricamento attività:', error);
         setCustomerActivities([]);
@@ -219,17 +220,28 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     // Usa onAddPoints che gestisce già l'update al database
     await onAddPoints(customer.id, pointsChange);
 
-    // TODO: Registra l'attività con il motivo
-    // if (currentOrganization) {
-    //   await customerActivitiesApi.create({
-    //     customer_id: customer.id,
-    //     organization_id: currentOrganization.id,
-    //     type: 'points_added',
-    //     description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
-    //     points: pointsChange,
-    //     metadata: { reason, pointsChange }
-    //   });
-    // }
+    // Registra l'attività con il motivo
+    if (currentOrganization) {
+      try {
+        console.log('📝 Creazione attività modifica punti:', {
+          customer_id: customer.id,
+          organization_id: currentOrganization.id,
+          type: 'points_added',
+          description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
+          points: pointsChange
+        });
+        const activity = await customerActivitiesApi.create({
+          customer_id: customer.id,
+          organization_id: currentOrganization.id,
+          type: 'points_added',
+          description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
+          points: pointsChange
+        });
+        console.log('✅ Attività creata:', activity);
+      } catch (error) {
+        console.error('❌ Errore creazione attività:', error);
+      }
+    }
 
     // Aggiorna display
     updateCustomerDisplay();

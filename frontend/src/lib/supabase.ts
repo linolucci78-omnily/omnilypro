@@ -620,17 +620,34 @@ export const customerActivitiesApi = {
     amount?: number
     points?: number
   }): Promise<CustomerActivity> {
+    // Determina se i punti sono guadagnati o spesi
+    const pointsEarned = activity.points && activity.points > 0 ? activity.points : null
+    const pointsSpent = activity.points && activity.points < 0 ? Math.abs(activity.points) : null
+
     const { data, error } = await supabase
       .from('customer_activities')
       .insert({
-        ...activity,
+        organization_id: activity.organization_id,
+        customer_id: activity.customer_id,
+        activity_type: activity.type,
+        activity_description: activity.description,
+        monetary_value: activity.amount,
+        points_earned: pointsEarned,
+        points_spent: pointsSpent,
         created_at: new Date().toISOString()
       })
       .select()
       .single()
 
     if (error) throw error
-    return data
+    // Map back to interface format
+    return {
+      ...data,
+      type: data.activity_type,
+      description: data.activity_description,
+      amount: data.monetary_value,
+      points: data.points_earned || (data.points_spent ? -data.points_spent : 0)
+    }
   },
 
   // Get activities for a customer
@@ -643,7 +660,14 @@ export const customerActivitiesApi = {
       .limit(limit)
 
     if (error) throw error
-    return data || []
+    // Map database columns to interface format
+    return (data || []).map(activity => ({
+      ...activity,
+      type: activity.activity_type,
+      description: activity.activity_description,
+      amount: activity.monetary_value,
+      points: activity.points_earned || (activity.points_spent ? -activity.points_spent : 0)
+    }))
   },
 
   // Get recent activities for organization
@@ -659,7 +683,14 @@ export const customerActivitiesApi = {
       .limit(limit)
 
     if (error) throw error
-    return data || []
+    // Map database columns to interface format
+    return (data || []).map(activity => ({
+      ...activity,
+      type: activity.activity_type,
+      description: activity.activity_description,
+      amount: activity.monetary_value,
+      points: activity.points_earned || (activity.points_spent ? -activity.points_spent : 0)
+    }))
   }
 }
 
