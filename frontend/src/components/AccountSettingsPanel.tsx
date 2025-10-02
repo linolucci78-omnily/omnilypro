@@ -115,7 +115,6 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
       // TODO: Implementare reset su Supabase
       console.log('Resetting all points for organization:', organization.id);
 
-      setShowResetModal(false);
       setResetConfirmText('');
       onUpdate();
     } catch (error) {
@@ -574,7 +573,7 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
       </div>
 
       {/* Loyalty Tiers Panel */}
-      {showLoyaltyTiersPanel && (
+      {showLoyaltyTiersPanel && organization && (
         <LoyaltyTiersConfigPanel
           isOpen={showLoyaltyTiersPanel}
           onClose={() => {
@@ -582,6 +581,7 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
             onUpdate();
           }}
           organization={organization}
+          organizationId={organization.id}
         />
       )}
     </>
