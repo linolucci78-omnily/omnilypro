@@ -17,6 +17,7 @@ import {
 import { usersService } from '../../services/usersService'
 import type { SystemUser, UserRole } from '../../services/usersService'
 import PageLoader from '../UI/PageLoader'
+import CreateUserModal from './CreateUserModal'
 import './UsersManagement.css'
 
 const UsersManagement: React.FC = () => {
@@ -272,20 +273,12 @@ const UsersManagement: React.FC = () => {
         )}
       </div>
 
-      {/* TODO: Create User Modal */}
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Nuovo Utente</h2>
-              <button onClick={() => setShowCreateModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <p>Form di creazione utente - Coming soon</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Create User Modal */}
+      <CreateUserModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={loadData}
+      />
     </div>
   )
 }
