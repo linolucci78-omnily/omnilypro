@@ -12,12 +12,15 @@ import {
   Mail,
   Calendar,
   Activity,
-  AlertCircle
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react'
 import { usersService } from '../../services/usersService'
 import type { SystemUser, UserRole } from '../../services/usersService'
 import PageLoader from '../UI/PageLoader'
 import CreateUserModal from './CreateUserModal'
+import EditUserRoleModal from './EditUserRoleModal'
+import ConfirmModal from '../UI/ConfirmModal'
 import './UsersManagement.css'
 
 const UsersManagement: React.FC = () => {
@@ -31,6 +34,16 @@ const UsersManagement: React.FC = () => {
     active: 0,
     by_role: {} as { [key: string]: number }
   })
+
+  // Modal states
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null)
+  const [showConfirmActivate, setShowConfirmActivate] = useState(false)
+  const [showConfirmSuspend, setShowConfirmSuspend] = useState(false)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [showErrorMessage, setShowErrorMessage] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     loadData()
@@ -57,70 +70,60 @@ const UsersManagement: React.FC = () => {
     }
   }
 
-  const handleActivateUser = async (user: SystemUser) => {
-    if (!confirm(`Sei sicuro di voler attivare l'account per ${user.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login.`)) {
-      return
-    }
+  const handleActivateUser = async () => {
+    if (!selectedUser) return
 
     try {
       // @ts-ignore - temp_password exists in database but not in type
-      const tempPassword = user.temp_password
+      const tempPassword = selectedUser.temp_password
 
       if (!tempPassword) {
-        alert('Errore: Password temporanea non trovata. Ricrea l\'utente.')
+        setErrorMessage('Password temporanea non trovata. Ricrea l\'utente.')
+        setShowErrorMessage(true)
         return
       }
 
-      await usersService.activateUser(user.id, user.email, tempPassword)
+      await usersService.activateUser(selectedUser.id, selectedUser.email, tempPassword)
 
-      alert(`✅ Account attivato!\n\nEmail: ${user.email}\n\nL'utente può ora fare login con le credenziali impostate.`)
+      setSuccessMessage(`Account attivato con successo! ${selectedUser.email} può ora accedere al sistema.`)
+      setShowSuccessMessage(true)
 
       // Reload data
       await loadData()
     } catch (error: any) {
       console.error('Error activating user:', error)
-      alert(`❌ Errore durante l'attivazione: ${error.message}`)
+      setErrorMessage(error.message || 'Errore durante l\'attivazione dell\'account')
+      setShowErrorMessage(true)
     }
   }
 
-  const handleEditUser = async (user: SystemUser) => {
-    const newRole = prompt(
-      `Modifica ruolo per ${user.email}\n\nRuolo attuale: ${getRoleLabel(user.role)}\n\nInserisci nuovo ruolo:\n- super_admin\n- sales_agent\n- account_manager\n- organization_owner\n- organization_staff`,
-      user.role
-    )
-
-    if (!newRole || newRole === user.role) {
-      return
-    }
-
-    const validRoles = ['super_admin', 'sales_agent', 'account_manager', 'organization_owner', 'organization_staff']
-    if (!validRoles.includes(newRole)) {
-      alert('❌ Ruolo non valido!')
-      return
-    }
+  const handleEditUserRole = async (newRole: UserRole) => {
+    if (!selectedUser) return
 
     try {
-      await usersService.updateUser(user.id, { role: newRole as UserRole })
-      alert(`✅ Ruolo aggiornato a: ${getRoleLabel(newRole as UserRole)}`)
+      await usersService.updateUser(selectedUser.id, { role: newRole })
+      setSuccessMessage(`Ruolo aggiornato con successo a: ${getRoleLabel(newRole)}`)
+      setShowSuccessMessage(true)
       await loadData()
     } catch (error: any) {
       console.error('Error updating user:', error)
-      alert(`❌ Errore durante l'aggiornamento: ${error.message}`)
+      setErrorMessage(error.message || 'Errore durante l\'aggiornamento del ruolo')
+      setShowErrorMessage(true)
     }
   }
 
-  const handleSuspendUser = async (user: SystemUser) => {
-    if (!confirm(`Sei sicuro di voler sospendere ${user.email}?\n\nL'utente non potrà più accedere al sistema.`)) {
-      return
-    }
+  const handleSuspendUser = async () => {
+    if (!selectedUser) return
 
     try {
-      await usersService.suspendUser(user.id)
-      alert(`✅ Utente sospeso: ${user.email}`)
+      await usersService.suspendUser(selectedUser.id)
+      setSuccessMessage(`Utente ${selectedUser.email} sospeso con successo`)
+      setShowSuccessMessage(true)
       await loadData()
     } catch (error: any) {
       console.error('Error suspending user:', error)
-      alert(`❌ Errore durante la sospensione: ${error.message}`)
+      setErrorMessage(error.message || 'Errore durante la sospensione dell\'utente')
+      setShowErrorMessage(true)
     }
   }
 
@@ -322,25 +325,37 @@ const UsersManagement: React.FC = () => {
                       <button
                         className="action-btn activate"
                         title="Attiva Account"
-                        onClick={() => handleActivateUser(user)}
+                        onClick={() => {
+                          setSelectedUser(user)
+                          setShowConfirmActivate(true)
+                        }}
                       >
                         <UserCheck size={16} />
+                        Attiva
                       </button>
                     ) : (
                       <>
                         <button
-                          className="action-btn"
-                          title="Modifica"
-                          onClick={() => handleEditUser(user)}
+                          className="action-btn edit"
+                          title="Modifica Ruolo"
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setShowEditRoleModal(true)
+                          }}
                         >
                           <Edit2 size={16} />
+                          Modifica
                         </button>
                         <button
                           className="action-btn delete"
-                          title="Sospendi"
-                          onClick={() => handleSuspendUser(user)}
+                          title="Sospendi Utente"
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setShowConfirmSuspend(true)
+                          }}
                         >
                           <Trash2 size={16} />
+                          Sospendi
                         </button>
                       </>
                     )}
@@ -365,6 +380,90 @@ const UsersManagement: React.FC = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={loadData}
+      />
+
+      {/* Edit Role Modal */}
+      {selectedUser && (
+        <EditUserRoleModal
+          isOpen={showEditRoleModal}
+          onClose={() => {
+            setShowEditRoleModal(false)
+            setSelectedUser(null)
+          }}
+          onSave={handleEditUserRole}
+          currentEmail={selectedUser.email}
+          currentRole={selectedUser.role}
+        />
+      )}
+
+      {/* Confirm Activate Modal */}
+      <ConfirmModal
+        isOpen={showConfirmActivate}
+        title="Attiva Account"
+        message={`Sei sicuro di voler attivare l'account per ${selectedUser?.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login con le credenziali impostate.`}
+        confirmText="Attiva Account"
+        cancelText="Annulla"
+        type="info"
+        onConfirm={handleActivateUser}
+        onCancel={() => {
+          setShowConfirmActivate(false)
+          setSelectedUser(null)
+        }}
+      />
+
+      {/* Confirm Suspend Modal */}
+      <ConfirmModal
+        isOpen={showConfirmSuspend}
+        title="Sospendi Utente"
+        message={`Sei sicuro di voler sospendere ${selectedUser?.email}?\n\nL'utente non potrà più accedere al sistema.`}
+        confirmText="Sospendi"
+        cancelText="Annulla"
+        type="danger"
+        onConfirm={handleSuspendUser}
+        onCancel={() => {
+          setShowConfirmSuspend(false)
+          setSelectedUser(null)
+        }}
+      />
+
+      {/* Success Message Modal */}
+      <ConfirmModal
+        isOpen={showSuccessMessage}
+        title="Operazione Completata"
+        message={successMessage}
+        confirmText="OK"
+        cancelText=""
+        type="info"
+        onConfirm={() => {
+          setShowSuccessMessage(false)
+          setSuccessMessage('')
+          setSelectedUser(null)
+        }}
+        onCancel={() => {
+          setShowSuccessMessage(false)
+          setSuccessMessage('')
+          setSelectedUser(null)
+        }}
+      />
+
+      {/* Error Message Modal */}
+      <ConfirmModal
+        isOpen={showErrorMessage}
+        title="Errore"
+        message={errorMessage}
+        confirmText="OK"
+        cancelText=""
+        type="danger"
+        onConfirm={() => {
+          setShowErrorMessage(false)
+          setErrorMessage('')
+          setSelectedUser(null)
+        }}
+        onCancel={() => {
+          setShowErrorMessage(false)
+          setErrorMessage('')
+          setSelectedUser(null)
+        }}
       />
     </div>
   )
