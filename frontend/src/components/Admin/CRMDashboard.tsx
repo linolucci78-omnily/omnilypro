@@ -398,7 +398,10 @@ const CRMDashboard: React.FC = () => {
                 <option value="churned">Persi</option>
               </select>
 
-              <button className="crm-add-button">
+              <button
+                className="crm-add-button"
+                onClick={() => setShowCustomerModal(true)}
+              >
                 <Plus size={18} />
                 Nuovo Cliente
               </button>
