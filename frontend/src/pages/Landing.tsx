@@ -692,12 +692,7 @@ const Landing: React.FC = () => {
               <a href="#pricing">Prezzi</a>
               <a href="#">Integrazioni</a>
               <a href="#">API Docs</a>
-            </div>
-            <div className="footer-column">
-              <h4>Azienda</h4>
-              <a href="#">Chi Siamo</a>
               <a href="#">Clienti</a>
-              <a href="#">Careers</a>
               <a href="#">Blog</a>
             </div>
             <div className="footer-column">
@@ -706,13 +701,17 @@ const Landing: React.FC = () => {
               <a href="#">Documentazione</a>
               <a href="#">Status</a>
               <a href="#">Contatti</a>
+              <a href="#">Chi Siamo</a>
+              <a href="#">Careers</a>
             </div>
             <div className="footer-column">
-              <h4>Legal</h4>
+              <h4>Legal & Sicurezza</h4>
               <a href="#">Privacy Policy</a>
               <a href="#">Terms of Service</a>
-              <a href="#">GDPR</a>
+              <a href="#">GDPR Compliance</a>
               <a href="#">Cookie Policy</a>
+              <a href="#">Security</a>
+              <a href="#">SLA</a>
             </div>
           </div>
         </div>
