@@ -26,7 +26,8 @@ import {
   Truck,
   Factory,
   Target,
-  Clock
+  Clock,
+  UserCog
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -70,6 +71,7 @@ const AdminLayout: React.FC = () => {
     {
       group: 'Gestione',
       items: [
+        { path: '/admin/users', icon: UserCog, label: 'Gestione Utenti' },
         { path: '/admin/organizations', icon: Building2, label: 'Aziende' },
         { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
         { path: '/admin/pending-customers', icon: Clock, label: 'Clienti da Attivare' },

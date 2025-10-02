@@ -22,6 +22,7 @@ import SupplierOrdersDashboard from './components/Admin/SupplierOrdersDashboard'
 import InventoryDashboard from './components/Admin/InventoryDashboard'
 import CRMLeadsDashboard from './components/Admin/CRMLeadsDashboard'
 import PendingCustomers from './components/Admin/PendingCustomers'
+import UsersManagement from './components/Admin/UsersManagement'
 import ActivityLogDashboard from './components/Admin/ActivityLogDashboard'
 import NotificationsDashboard from './components/Admin/NotificationsDashboard'
 import EmailTemplatesDashboard from './components/Admin/EmailTemplatesDashboard'
@@ -174,6 +175,7 @@ function App() {
               <Route path="organizations" element={<Admin />} />
               <Route path="business-owners" element={<BusinessOwners />} />
               <Route path="pending-customers" element={<PendingCustomers />} />
+              <Route path="users" element={<UsersManagement />} />
               <Route path="crm" element={<CRMLeadsDashboard />} />
               <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
               <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
