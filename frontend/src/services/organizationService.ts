@@ -390,15 +390,13 @@ export class OrganizationService {
                 partita_iva: data.partita_iva,
                 codice_fiscale: data.codice_fiscale,
                 industry: data.industry,
-                team_size: data.team_size,
                 business_email: data.business_email,
-                phone_number: data.phone_number,
+                phone: data.phone_number,
                 website: data.website,
                 tagline: data.tagline,
                 address: data.address,
                 city: data.city,
-                province: data.province,
-                cap: data.cap,
+                postal_code: data.cap,
                 updated_at: new Date().toISOString()
             })
             .eq('id', orgId)

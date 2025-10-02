@@ -67,13 +67,13 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
         industry: organization.industry || '',
         team_size: organization.team_size || '',
         business_email: organization.business_email || '',
-        phone_number: organization.phone_number || '',
+        phone_number: organization.phone || '',
         website: organization.website || '',
         tagline: organization.tagline || '',
         address: organization.address || '',
         city: organization.city || '',
-        province: organization.province || '',
-        cap: organization.cap || '',
+        province: '', // Not in DB
+        cap: organization.postal_code || '',
         points_name: organization.points_name || 'Punti',
         points_per_euro: organization.points_per_euro || 1,
         reward_threshold: organization.reward_threshold || 100,
@@ -670,7 +670,7 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
           isOpen={showLoyaltyTiersPanel}
           onClose={() => {
             setShowLoyaltyTiersPanel(false);
-            onUpdate();
+            // Don't call onUpdate() here - it reloads the entire AccountSettingsPanel
           }}
           organization={organization}
           organizationId={organization.id}
