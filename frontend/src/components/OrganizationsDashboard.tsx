@@ -11,6 +11,7 @@ import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import UpgradePrompt from './UpgradePrompt'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
+import './RewardCard.css'
 
 interface OrganizationsDashboardProps {
   onSectionChange?: (section: string) => void;

@@ -1,0 +1,163 @@
+/* Reward Card - Design professionale e pulito */
+
+.reward-card,
+.reward-card.enhanced,
+.feature-card.reward-card,
+.feature-card.reward-card.enhanced {
+  background: white !important;
+  border-radius: 16px !important;
+  padding: 0 !important;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15) !important;
+  border: 2px solid #ef4444 !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.reward-card:hover,
+.reward-card.enhanced:hover,
+.feature-card.reward-card:hover,
+.feature-card.reward-card.enhanced:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Immagine premio */
+.reward-image {
+  width: 100% !important;
+  height: 200px !important;
+  overflow: hidden !important;
+  background: #f8fafc !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.reward-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.reward-placeholder {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #9ca3af !important;
+  background: #f3f4f6 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Contenuto card */
+.reward-content {
+  padding: 1.5rem !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.reward-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 1rem !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.reward-header h3 {
+  margin: 0 !important;
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.4 !important;
+  flex: 1 !important;
+}
+
+.reward-actions {
+  display: flex !important;
+  gap: 0.5rem !important;
+}
+
+/* Dettagli premio */
+.reward-details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.reward-points,
+.reward-tier,
+.reward-type,
+.reward-value,
+.reward-description,
+.reward-stock {
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.reward-points {
+  color: #3b82f6 !important;
+  font-weight: 600 !important;
+}
+
+/* Status toggle */
+.reward-status {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid #e5e7eb !important;
+  margin-top: auto !important;
+}
+
+.status-label {
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+}
+
+/* POS Mode - Cards più grandi e touch-friendly */
+@media (max-width: 1024px) {
+  .reward-card,
+  .reward-card.enhanced,
+  .feature-card.reward-card,
+  .feature-card.reward-card.enhanced {
+    border-radius: 20px !important;
+  }
+
+  .reward-image {
+    height: 240px !important;
+  }
+
+  .reward-content {
+    padding: 2rem !important;
+  }
+
+  .reward-header h3 {
+    font-size: 1.25rem !important;
+  }
+
+  .reward-details {
+    gap: 1rem !important;
+  }
+
+  .reward-points,
+  .reward-tier,
+  .reward-type,
+  .reward-value,
+  .reward-description,
+  .reward-stock {
+    font-size: 1rem !important;
+  }
+}
