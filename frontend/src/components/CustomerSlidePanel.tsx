@@ -28,6 +28,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   loyaltyTiers = [] // Default array vuoto se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [showRewardsSection, setShowRewardsSection] = useState(false);
+  const [rewardsView, setRewardsView] = useState<'redeem' | 'redeemed'>('redeem'); // 'redeem' = Riscatta Premio, 'redeemed' = Premi Riscattati
   const [customerActivities, setCustomerActivities] = useState<CustomerActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
 
