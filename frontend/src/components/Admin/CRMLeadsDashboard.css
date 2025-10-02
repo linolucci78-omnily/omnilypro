@@ -12,6 +12,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .crm-leads-title {
@@ -31,17 +33,19 @@
 }
 
 .btn-add-lead {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  background: var(--omnily-primary);
-  color: white;
+  background: var(--omnily-primary) !important;
+  color: white !important;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-add-lead:hover {
@@ -53,9 +57,15 @@
 /* Stats Grid */
 .crm-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
+}
+
+@media (max-width: 1400px) {
+  .crm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .crm-stat-card {
