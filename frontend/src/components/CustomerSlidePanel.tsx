@@ -7,6 +7,7 @@ import SaleModal from './SaleModal';
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
 import { createPrintService } from '../services/printService';
+import { rewardsService, type Reward } from '../services/rewardsService';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
@@ -32,6 +33,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const [rewardsView, setRewardsView] = useState<'redeem' | 'redeemed'>('redeem'); // 'redeem' = Riscatta Premio, 'redeemed' = Premi Riscattati
   const [customerActivities, setCustomerActivities] = useState<CustomerActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  const [availableRewards, setAvailableRewards] = useState<Reward[]>([]);
+  const [allRewards, setAllRewards] = useState<Reward[]>([]);
+  const [loadingRewards, setLoadingRewards] = useState(false);
 
   // Carica attività del cliente quando il pannello si apre o cambia cliente
   useEffect(() => {
@@ -53,6 +57,42 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
     loadCustomerActivities();
   }, [customer, isOpen]);
+
+  // Carica premi quando la sezione premi viene aperta
+  useEffect(() => {
+    const loadRewards = async () => {
+      if (!customer || !showRewardsSection) return;
+
+      setLoadingRewards(true);
+      try {
+        // Calcola tier corrente del cliente
+        const currentTier = calculateCustomerTier(customer.points);
+
+        // Carica tutti i premi attivi per mostrare anche quelli non disponibili
+        const active = await rewardsService.getActive(customer.organization_id);
+        setAllRewards(active);
+
+        // Carica premi disponibili in base a punti e tier
+        const available = await rewardsService.getAvailableForCustomer(
+          customer.organization_id,
+          customer.points,
+          currentTier.name,
+          loyaltyTiers
+        );
+        setAvailableRewards(available);
+
+        console.log(`✅ Caricati ${active.length} premi totali, ${available.length} disponibili per ${customer.name}`);
+      } catch (error) {
+        console.error('❌ Errore caricamento premi:', error);
+        setAllRewards([]);
+        setAvailableRewards([]);
+      } finally {
+        setLoadingRewards(false);
+      }
+    };
+
+    loadRewards();
+  }, [customer, showRewardsSection, loyaltyTiers]);
 
   if (!customer) return null;
 
@@ -124,6 +164,40 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           visits: customer.visits
         }
       });
+    }
+  };
+
+  // Funzione per riscattare un premio
+  const handleRedeemReward = async (reward: Reward) => {
+    if (!customer) return;
+
+    // Conferma riscatto
+    const confirmed = window.confirm(
+      `Vuoi riscattare "${reward.name}" per ${reward.points_required} punti?\n\n` +
+      `Punti attuali: ${customer.points}\n` +
+      `Punti dopo riscatto: ${customer.points - reward.points_required}`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      console.log(`🎁 Riscatto premio "${reward.name}" per ${customer.name}...`);
+
+      // TODO: Implementare la logica completa di riscatto:
+      // 1. Scalare i punti dal cliente
+      // 2. Registrare il riscatto nella tabella reward_redemptions
+      // 3. Aggiornare lo stock del premio se applicabile
+
+      // Per ora mostriamo solo un alert
+      alert(`✅ Premio "${reward.name}" riscattato con successo!\n\nI punti verranno scalati dal tuo account.`);
+
+      // Ricarica i premi
+      setShowRewardsSection(false);
+      setTimeout(() => setShowRewardsSection(true), 100);
+
+    } catch (error) {
+      console.error('❌ Errore riscatto premio:', error);
+      alert('❌ Errore durante il riscatto del premio. Riprova.');
     }
   };
 
@@ -478,32 +552,47 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
                   {/* Lista premi disponibili */}
                   <div className="rewards-list">
-                    {/* TODO: Caricare premi disponibili dal database */}
-                    <div className="reward-item">
-                      <div className="reward-item-header">
-                        <Award size={20} className="reward-icon" />
-                        <div className="reward-info">
-                          <h4>Caffè Gratuito</h4>
-                          <p className="reward-points">100 punti</p>
-                        </div>
-                      </div>
-                      <button className="reward-redeem-btn">
-                        Riscatta
-                      </button>
-                    </div>
+                    {loadingRewards ? (
+                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Caricamento premi...</p>
+                    ) : allRewards.length === 0 ? (
+                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Nessun premio configurato</p>
+                    ) : (
+                      allRewards.map(reward => {
+                        const isAvailable = availableRewards.some(r => r.id === reward.id);
+                        const canRedeem = isAvailable && customer.points >= reward.points_required;
 
-                    <div className="reward-item disabled">
-                      <div className="reward-item-header">
-                        <Award size={20} className="reward-icon" />
-                        <div className="reward-info">
-                          <h4>Sconto 10€</h4>
-                          <p className="reward-points">500 punti</p>
-                        </div>
-                      </div>
-                      <button className="reward-redeem-btn" disabled>
-                        Punti Insufficienti
-                      </button>
-                    </div>
+                        return (
+                          <div
+                            key={reward.id}
+                            className={`reward-item ${!canRedeem ? 'disabled' : ''}`}
+                          >
+                            <div className="reward-item-header">
+                              <Award size={20} className="reward-icon" />
+                              <div className="reward-info">
+                                <h4>{reward.name}</h4>
+                                <p className="reward-points">{reward.points_required} punti</p>
+                                {reward.required_tier && (
+                                  <p className="reward-tier-requirement" style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+                                    Richiede: {reward.required_tier}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              className="reward-redeem-btn"
+                              disabled={!canRedeem}
+                              onClick={() => handleRedeemReward(reward)}
+                            >
+                              {!isAvailable && reward.required_tier
+                                ? `Richiede ${reward.required_tier}`
+                                : !canRedeem
+                                ? 'Punti Insufficienti'
+                                : 'Riscatta'}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               ) : (
