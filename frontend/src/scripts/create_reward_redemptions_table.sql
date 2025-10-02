@@ -37,28 +37,36 @@ CREATE INDEX IF NOT EXISTS idx_reward_redemptions_organization ON reward_redempt
 CREATE INDEX IF NOT EXISTS idx_reward_redemptions_reward ON reward_redemptions(reward_id);
 CREATE INDEX IF NOT EXISTS idx_reward_redemptions_status ON reward_redemptions(status);
 
--- RLS (Row Level Security) - Policy semplificate per testing
+-- RLS (Row Level Security) - Stesso pattern delle altre tabelle
 ALTER TABLE reward_redemptions ENABLE ROW LEVEL SECURITY;
 
--- Policy: Tutti possono leggere (per ora, puoi restringere dopo)
-DROP POLICY IF EXISTS "Enable read access for all users" ON reward_redemptions;
-CREATE POLICY "Enable read access for all users"
+-- Policy SELECT: Users can view reward redemptions from their organizations
+DROP POLICY IF EXISTS "Users can view reward redemptions from their organizations" ON reward_redemptions;
+CREATE POLICY "Users can view reward redemptions from their organizations"
   ON reward_redemptions
   FOR SELECT
   USING (true);
 
--- Policy: Tutti possono inserire (per ora, puoi restringere dopo)
-DROP POLICY IF EXISTS "Enable insert for all users" ON reward_redemptions;
-CREATE POLICY "Enable insert for all users"
+-- Policy INSERT: Fidelity system reward redemption
+DROP POLICY IF EXISTS "Fidelity system reward redemption" ON reward_redemptions;
+CREATE POLICY "Fidelity system reward redemption"
   ON reward_redemptions
   FOR INSERT
   WITH CHECK (true);
 
--- Policy: Tutti possono aggiornare (per ora, puoi restringere dopo)
-DROP POLICY IF EXISTS "Enable update for all users" ON reward_redemptions;
-CREATE POLICY "Enable update for all users"
+-- Policy UPDATE: Users can update reward redemptions from their organizations
+DROP POLICY IF EXISTS "Users can update reward redemptions from their organizations" ON reward_redemptions;
+CREATE POLICY "Users can update reward redemptions from their organizations"
   ON reward_redemptions
   FOR UPDATE
+  USING (true)
+  WITH CHECK (true);
+
+-- Policy DELETE: Users can delete reward redemptions from their organizations
+DROP POLICY IF EXISTS "Users can delete reward redemptions from their organizations" ON reward_redemptions;
+CREATE POLICY "Users can delete reward redemptions from their organizations"
+  ON reward_redemptions
+  FOR DELETE
   USING (true);
 
 -- Commenti per documentazione

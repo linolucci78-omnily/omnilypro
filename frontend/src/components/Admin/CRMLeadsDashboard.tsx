@@ -174,9 +174,9 @@ const CRMLeadsDashboard: React.FC = () => {
   }
 
   return (
-    <div className="crm-leads-dashboard">
+    <div className="crm-leads-dashboard" style={{ width: '100%', maxWidth: '100%', overflow: 'visible' }}>
       {/* Header */}
-      <div className="crm-leads-header">
+      <div className="crm-leads-header" style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
         <div>
           <h1 className="crm-leads-title">
             <Briefcase size={32} />
@@ -187,7 +187,22 @@ const CRMLeadsDashboard: React.FC = () => {
           </p>
         </div>
 
-        <button className="btn-add-lead" onClick={() => setShowLeadModal(true)}>
+        <button
+          className="btn-add-lead"
+          onClick={() => setShowLeadModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.875rem 1.5rem',
+            background: '#1e40af',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
           <Plus size={18} />
           Nuovo Lead
         </button>
