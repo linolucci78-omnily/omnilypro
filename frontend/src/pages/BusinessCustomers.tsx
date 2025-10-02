@@ -174,18 +174,45 @@ const BusinessCustomers: React.FC = () => {
   }
 
   const getTierBadge = (tier: string) => {
-    const tierConfig = {
-      Bronze: { color: '#cd7f32', bg: '#fef3c7' },
-      Silver: { color: '#c0c0c0', bg: '#f3f4f6' },
-      Gold: { color: '#ffd700', bg: '#fef3c7' },
-      Platinum: { color: '#e5e4e2', bg: '#f3f4f6' }
-    }
-    const config = tierConfig[tier as keyof typeof tierConfig]
-    
+    // Genera colore dinamico basato sul nome del tier invece di hardcoded
+    // Questo permette di supportare tier personalizzati come "Start", "Interpraise", ecc.
+    const generateColorFromTier = (tierName: string): { color: string; bg: string } => {
+      // Fallback per tier conosciuti (backward compatibility)
+      const knownTiers: Record<string, { color: string; bg: string }> = {
+        Bronze: { color: '#cd7f32', bg: '#fef3c7' },
+        Bronzo: { color: '#cd7f32', bg: '#fef3c7' },
+        Silver: { color: '#c0c0c0', bg: '#f3f4f6' },
+        Argento: { color: '#c0c0c0', bg: '#f3f4f6' },
+        Gold: { color: '#ffd700', bg: '#fef3c7' },
+        Oro: { color: '#ffd700', bg: '#fef3c7' },
+        Platinum: { color: '#e5e4e2', bg: '#f3f4f6' }
+      };
+
+      if (knownTiers[tierName]) {
+        return knownTiers[tierName];
+      }
+
+      // Per tier personalizzati, genera colori dinamici ma consistenti
+      const colors = [
+        { color: '#3b82f6', bg: '#dbeafe' }, // Blue
+        { color: '#8b5cf6', bg: '#ede9fe' }, // Purple
+        { color: '#ec4899', bg: '#fce7f3' }, // Pink
+        { color: '#10b981', bg: '#d1fae5' }, // Green
+        { color: '#f59e0b', bg: '#fef3c7' }, // Amber
+        { color: '#ef4444', bg: '#fee2e2' }, // Red
+      ];
+
+      // Usa hash del nome per selezionare un colore consistente
+      const hash = tierName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return colors[hash % colors.length];
+    };
+
+    const config = generateColorFromTier(tier);
+
     return (
-      <span 
+      <span
         className="tier-badge"
-        style={{ 
+        style={{
           backgroundColor: config.bg,
           color: config.color,
           border: `1px solid ${config.color}30`

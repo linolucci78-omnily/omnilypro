@@ -92,20 +92,22 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const currentTier = calculateCustomerTier(customer.points);
 
   const getTierColor = (tierName?: string) => {
-    if (tierName) {
-      // Se viene passato un nome tier specifico, usa i colori fissi (backward compatibility)
-      switch (tierName) {
-        case 'Platinum': return '#8B5CF6';
-        case 'Gold': return '#F59E0B';
-        case 'Silver': return '#94A3B8';
-        case 'Bronze': return '#A16207';
-        case 'Argento': return '#94A3B8';
-        case 'Bronzo': return '#A16207';
-        default: return '#F59E0B';
+    // Se abbiamo tier dinamici configurati, cerca il colore dal tier
+    if (loyaltyTiers && loyaltyTiers.length > 0) {
+      const targetTierName = tierName || currentTier.name;
+      const tier = loyaltyTiers.find(t => t.name === targetTierName);
+      if (tier && tier.color) {
+        return tier.color;
       }
     }
-    // Altrimenti usa il colore dal tier dinamico
-    return currentTier.color || '#F59E0B';
+
+    // Fallback: usa il colore dal tier corrente se disponibile
+    if (currentTier.color) {
+      return currentTier.color;
+    }
+
+    // Ultimo fallback: colore arancione di default
+    return '#F59E0B';
   };
 
   const updateCustomerDisplay = () => {
