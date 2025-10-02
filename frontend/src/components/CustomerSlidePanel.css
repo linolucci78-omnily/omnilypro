@@ -735,6 +735,38 @@
   flex: 1;
   font-weight: 500;
   margin-left: 1rem;
+  font-size: 0.95rem;
+}
+
+/* POS: Testo attività più grande e visibile */
+@media (max-width: 1024px) {
+  .customer-slide-panel-activity {
+    padding: 2rem;
+  }
+
+  .customer-slide-panel-activity h3 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .customer-slide-panel-activity-item {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .customer-slide-panel-activity-date {
+    font-size: 0.95rem;
+    padding: 0.875rem 1.25rem;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .customer-slide-panel-activity-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.5;
+  }
 }
 
 /* Scrollbar Styling */
