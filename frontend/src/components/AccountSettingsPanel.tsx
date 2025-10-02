@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Building2, Gift, Award, Palette, AlertTriangle } from 'lucide-react';
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel';
+import { organizationService } from '../services/organizationService';
 import './AccountSettingsPanel.css';
 
 interface AccountSettingsPanelProps {
@@ -54,6 +55,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
   const [scheduledResetTime, setScheduledResetTime] = useState('');
   const [saving, setSaving] = useState(false);
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (organization) {
@@ -92,16 +95,58 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
-    try {
-      // TODO: Implementare save su Supabase
-      console.log('Saving settings:', formData);
+    setSaveSuccess(false);
+    setSaveError(null);
 
-      setTimeout(() => {
-        setSaving(false);
-        onUpdate();
-      }, 1000);
-    } catch (error) {
+    try {
+      if (!organization?.id) {
+        throw new Error('Organization ID not found');
+      }
+
+      // Save based on active tab
+      if (activeTab === 'details') {
+        await organizationService.updateOrganizationDetails(organization.id, {
+          name: formData.name,
+          partita_iva: formData.partita_iva,
+          codice_fiscale: formData.codice_fiscale,
+          industry: formData.industry,
+          team_size: formData.team_size,
+          business_email: formData.business_email,
+          phone_number: formData.phone_number,
+          website: formData.website,
+          tagline: formData.tagline,
+          address: formData.address,
+          city: formData.city,
+          province: formData.province,
+          cap: formData.cap
+        });
+      } else if (activeTab === 'loyalty') {
+        await organizationService.updateLoyaltySettings(organization.id, {
+          points_name: formData.points_name,
+          points_per_euro: formData.points_per_euro,
+          reward_threshold: formData.reward_threshold,
+          welcome_bonus: formData.welcome_bonus,
+          points_expiry_months: formData.points_expiry_months,
+          enable_tier_system: formData.enable_tier_system
+        });
+      } else if (activeTab === 'branding') {
+        await organizationService.updateBranding(organization.id, {
+          logo_url: formData.logo_url,
+          primary_color: formData.primary_color,
+          secondary_color: formData.secondary_color
+        });
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+
+      // Refresh organization data without full reload
+      onUpdate();
+    } catch (error: any) {
       console.error('Error saving settings:', error);
+      setSaveError(error.message || 'Errore durante il salvataggio');
+      setTimeout(() => setSaveError(null), 5000);
+    } finally {
       setSaving(false);
     }
   };
@@ -111,32 +156,67 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
       return;
     }
 
+    setSaving(true);
+    setSaveSuccess(false);
+    setSaveError(null);
+
     try {
-      // TODO: Implementare reset su Supabase
-      console.log('Resetting all points for organization:', organization.id);
+      if (!organization?.id) {
+        throw new Error('Organization ID not found');
+      }
+
+      await organizationService.resetAllPoints(organization.id);
 
       setResetConfirmText('');
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+
       onUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error resetting points:', error);
+      setSaveError(error.message || 'Errore durante l\'azzeramento dei punti');
+      setTimeout(() => setSaveError(null), 5000);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleScheduleReset = async () => {
     if (!scheduledResetDate || !scheduledResetTime) {
-      alert('Inserisci data e ora per l\'azzeramento programmato');
+      setSaveError('Inserisci data e ora per l\'azzeramento programmato');
+      setTimeout(() => setSaveError(null), 5000);
       return;
     }
 
     const scheduledDate = new Date(`${scheduledResetDate}T${scheduledResetTime}`);
 
+    if (scheduledDate < new Date()) {
+      setSaveError('La data deve essere nel futuro');
+      setTimeout(() => setSaveError(null), 5000);
+      return;
+    }
+
+    setSaving(true);
+    setSaveSuccess(false);
+    setSaveError(null);
+
     try {
-      // TODO: Implementare schedule su Supabase
-      console.log('Scheduling points reset for:', scheduledDate);
+      if (!organization?.id) {
+        throw new Error('Organization ID not found');
+      }
+
+      await organizationService.schedulePointsReset(organization.id, scheduledDate);
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
 
       onUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error scheduling reset:', error);
+      setSaveError(error.message || 'Errore durante la programmazione dell\'azzeramento');
+      setTimeout(() => setSaveError(null), 5000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -162,6 +242,18 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
             <X size={24} />
           </button>
         </div>
+
+        {/* Success/Error Messages */}
+        {saveSuccess && (
+          <div className="save-notification success">
+            ✅ Modifiche salvate con successo!
+          </div>
+        )}
+        {saveError && (
+          <div className="save-notification error">
+            ❌ {saveError}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="account-settings-tabs">

@@ -366,17 +366,122 @@ export class OrganizationService {
                 organizations (*)
             `)
             .eq('user_id', userId)
-            
+
         if (error) {
             console.error('Failed to get user organizations:', error)
             return []
         }
-        
+
         return data?.map((item: any) => ({
             ...item.organizations,
             userRole: item.role,
             joinedAt: item.joined_at
         })) || []
+    }
+
+    /**
+     * Update organization details
+     */
+    async updateOrganizationDetails(orgId: string, data: any) {
+        const { data: result, error } = await supabase
+            .from('organizations')
+            .update({
+                name: data.name,
+                partita_iva: data.partita_iva,
+                codice_fiscale: data.codice_fiscale,
+                industry: data.industry,
+                team_size: data.team_size,
+                business_email: data.business_email,
+                phone_number: data.phone_number,
+                website: data.website,
+                tagline: data.tagline,
+                address: data.address,
+                city: data.city,
+                province: data.province,
+                cap: data.cap,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orgId)
+            .select()
+            .single()
+
+        if (error) throw error
+        return result
+    }
+
+    /**
+     * Update loyalty settings
+     */
+    async updateLoyaltySettings(orgId: string, settings: any) {
+        const { data, error } = await supabase
+            .from('organizations')
+            .update({
+                points_name: settings.points_name,
+                points_per_euro: settings.points_per_euro,
+                reward_threshold: settings.reward_threshold,
+                welcome_bonus: settings.welcome_bonus,
+                points_expiry_months: settings.points_expiry_months,
+                enable_tier_system: settings.enable_tier_system,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orgId)
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    }
+
+    /**
+     * Update branding
+     */
+    async updateBranding(orgId: string, branding: any) {
+        const { data, error } = await supabase
+            .from('organizations')
+            .update({
+                logo_url: branding.logo_url,
+                primary_color: branding.primary_color,
+                secondary_color: branding.secondary_color,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orgId)
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    }
+
+    /**
+     * Reset all customer points for organization
+     */
+    async resetAllPoints(orgId: string) {
+        const { error } = await supabase
+            .from('customers')
+            .update({ points: 0 })
+            .eq('organization_id', orgId)
+
+        if (error) throw error
+
+        console.log(`✅ Azzerati tutti i punti per organization: ${orgId}`)
+    }
+
+    /**
+     * Schedule points reset
+     */
+    async schedulePointsReset(orgId: string, resetDate: Date) {
+        const { data, error } = await supabase
+            .from('organizations')
+            .update({
+                scheduled_points_reset: resetDate.toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orgId)
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
     }
 }
 
