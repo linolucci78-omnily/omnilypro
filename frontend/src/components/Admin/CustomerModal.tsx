@@ -88,7 +88,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onSave }
             </div>
           )}
 
-          <div className="form-row">
+          <div className="modal-form-content">
+            <div className="form-row">
             <div className="form-group">
               <label htmlFor="first_name">Nome *</label>
               <input
@@ -248,6 +249,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onSave }
                 <span>Consenso SMS</span>
               </label>
             </div>
+          </div>
           </div>
 
           <div className="modal-footer">
