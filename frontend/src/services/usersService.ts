@@ -93,35 +93,18 @@ export class UsersService {
   }
 
   /**
-   * Create new user (requires admin function call)
+   * Create new user
+   * Note: Questo crea solo il record nella tabella users.
+   * L'account auth deve essere creato separatamente o tramite trigger.
    */
   async createUser(userData: CreateUserInput): Promise<SystemUser> {
     try {
-      // Call Supabase Auth Admin API to create user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          data: {
-            role: userData.role
-          }
-        }
-      })
+      // Per ora inseriamo solo nella tabella users
+      // TODO: Implementare creazione account auth tramite Supabase Admin API o Edge Function
 
-      if (authError) {
-        console.error('Error creating auth user:', authError)
-        throw authError
-      }
-
-      if (!authData.user) {
-        throw new Error('User creation failed')
-      }
-
-      // Insert into users table
       const { data, error } = await supabase
         .from('users')
         .insert({
-          id: authData.user.id,
           email: userData.email,
           role: userData.role,
           is_active: true
@@ -130,11 +113,12 @@ export class UsersService {
         .single()
 
       if (error) {
-        console.error('Error inserting user:', error)
+        console.error('Error creating user:', error)
         throw error
       }
 
-      console.log('✅ User created:', userData.email)
+      console.log('✅ User created in database:', userData.email)
+      console.log('⚠️ Note: Account auth deve essere creato manualmente o tramite trigger')
       return data
     } catch (error) {
       console.error('Error in createUser:', error)
