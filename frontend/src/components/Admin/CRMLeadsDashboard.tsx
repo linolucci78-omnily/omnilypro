@@ -20,8 +20,10 @@ import {
   Target
 } from 'lucide-react'
 import { crmLeadsService } from '../../services/crmLeadsService'
-import type { CRMLead, LeadStats } from '../../services/crmLeadsService'
+import type { CRMLead, LeadStats, CRMLeadInput } from '../../services/crmLeadsService'
 import PageLoader from '../UI/PageLoader'
+import LeadModal from './LeadModal'
+import { supabase } from '../../lib/supabase'
 import './CRMLeadsDashboard.css'
 
 const CRMLeadsDashboard: React.FC = () => {
@@ -31,11 +33,26 @@ const CRMLeadsDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStage, setSelectedStage] = useState('all')
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline')
+  const [showLeadModal, setShowLeadModal] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  // Get current user ID
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setCurrentUserId(user.id)
+      }
+    }
+    getCurrentUser()
+  }, [])
 
   // Load leads and stats
   useEffect(() => {
-    loadData()
-  }, [selectedStage, searchTerm])
+    if (currentUserId) {
+      loadData()
+    }
+  }, [selectedStage, searchTerm, currentUserId])
 
   const loadData = async () => {
     try {
@@ -55,6 +72,44 @@ const CRMLeadsDashboard: React.FC = () => {
       console.error('Error loading CRM data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveLead = async (leadData: CRMLeadInput) => {
+    if (!currentUserId) {
+      throw new Error('User not authenticated')
+    }
+
+    try {
+      console.log('💾 Creating new lead...', leadData)
+      const newLead = await crmLeadsService.createLead(leadData, currentUserId)
+      console.log('✅ Lead created:', newLead)
+
+      // Reload data
+      await loadData()
+    } catch (error) {
+      console.error('❌ Error creating lead:', error)
+      throw error
+    }
+  }
+
+  const handleSignContract = async (leadId: string) => {
+    if (!confirm('Sei sicuro di voler firmare il contratto per questo lead? Verrà creato un nuovo customer con stato PENDING in attesa di attivazione.')) {
+      return
+    }
+
+    try {
+      console.log('📝 Signing contract for lead:', leadId)
+      const result = await crmLeadsService.signContract(leadId)
+      console.log('✅ Contract signed! Customer ID:', result.customerId)
+
+      alert(`✅ Contratto firmato!\n\nCustomer ID: ${result.customerId}\n\nIl cliente è ora in stato PENDING e apparirà nella sezione "Clienti da Attivare" dell'admin.`)
+
+      // Reload data
+      await loadData()
+    } catch (error: any) {
+      console.error('❌ Error signing contract:', error)
+      alert(`❌ Errore durante la firma del contratto: ${error.message}`)
     }
   }
 
@@ -132,7 +187,7 @@ const CRMLeadsDashboard: React.FC = () => {
           </p>
         </div>
 
-        <button className="btn-add-lead">
+        <button className="btn-add-lead" onClick={() => setShowLeadModal(true)}>
           <Plus size={18} />
           Nuovo Lead
         </button>
@@ -281,7 +336,10 @@ const CRMLeadsDashboard: React.FC = () => {
                     </div>
 
                     {stage === 'contract_ready' && (
-                      <button className="btn-sign-contract">
+                      <button
+                        className="btn-sign-contract"
+                        onClick={() => handleSignContract(lead.id)}
+                      >
                         <CheckCircle size={16} />
                         Firma Contratto
                       </button>
@@ -391,6 +449,13 @@ const CRMLeadsDashboard: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Lead Modal */}
+      <LeadModal
+        isOpen={showLeadModal}
+        onClose={() => setShowLeadModal(false)}
+        onSave={handleSaveLead}
+      />
     </div>
   )
 }

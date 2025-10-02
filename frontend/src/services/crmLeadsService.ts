@@ -283,6 +283,64 @@ export class CRMLeadsService {
   }
 
   /**
+   * Sign contract - Creates PENDING customer and marks lead as won
+   */
+  async signContract(leadId: string): Promise<{ lead: CRMLead, customerId: string }> {
+    try {
+      // Get lead details
+      const lead = await this.getLead(leadId)
+      if (!lead) {
+        throw new Error('Lead not found')
+      }
+
+      // Create customer with PENDING status
+      // Note: organization_id should be NULL for PENDING customers (not yet activated)
+      const customerData = {
+        name: lead.company_name, // Company name
+        first_name: lead.contact_name.split(' ')[0] || lead.contact_name,
+        last_name: lead.contact_name.split(' ').slice(1).join(' ') || '',
+        email: lead.email || '',
+        phone: lead.phone || null,
+        address: lead.address || null,
+        city: lead.city || null,
+        country: lead.country || null,
+        status: 'pending_activation', // PENDING status
+        is_active: false, // Not active yet
+        total_spent: 0,
+        visits: 0,
+        plan_type: lead.plan_type || null,
+        estimated_monthly_value: lead.estimated_monthly_value,
+        sales_agent_id: lead.sales_agent_id
+      }
+
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .insert(customerData)
+        .select()
+        .single()
+
+      if (customerError) {
+        console.error('Error creating customer:', customerError)
+        throw customerError
+      }
+
+      console.log('✅ Customer created with PENDING status:', customer.id)
+
+      // Mark lead as won and link to customer
+      const updatedLead = await this.markAsWon(leadId, customer.id)
+
+      console.log('🎉 Contract signed! Customer ID:', customer.id)
+      return {
+        lead: updatedLead,
+        customerId: customer.id
+      }
+    } catch (error) {
+      console.error('Error in signContract:', error)
+      throw error
+    }
+  }
+
+  /**
    * Mark lead as lost
    */
   async markAsLost(leadId: string, reason: string): Promise<CRMLead> {

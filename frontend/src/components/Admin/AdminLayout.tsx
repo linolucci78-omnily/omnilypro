@@ -25,7 +25,8 @@ import {
   Smartphone,
   Truck,
   Factory,
-  Target
+  Target,
+  Clock
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -71,6 +72,7 @@ const AdminLayout: React.FC = () => {
       items: [
         { path: '/admin/organizations', icon: Building2, label: 'Aziende' },
         { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
+        { path: '/admin/pending-customers', icon: Clock, label: 'Clienti da Attivare' },
         { path: '/admin/crm', icon: Target, label: 'CRM & Marketing' },
         { path: '/admin/supplier-orders', icon: Factory, label: 'Ordini Fornitori' },
         { path: '/admin/hardware-orders', icon: Truck, label: 'Ordini Hardware' },
