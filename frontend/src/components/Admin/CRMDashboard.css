@@ -232,7 +232,7 @@
 .crm-tabs {
   background: white !important;
   border-bottom: 1px solid #e2e8f0 !important;
-  padding: 1rem 1rem !important;
+  padding: 1rem 2rem !important;
   display: flex !important;
   gap: 0.5rem !important;
   overflow-x: auto !important;
