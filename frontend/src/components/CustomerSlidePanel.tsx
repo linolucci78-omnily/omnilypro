@@ -67,11 +67,15 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
       setLoadingRewards(true);
       try {
+        console.log(`🔍 Caricamento premi per org: ${customer.organization_id}`);
+
         // Calcola tier corrente del cliente
         const currentTier = calculateCustomerTier(customer.points);
+        console.log(`🎯 Tier corrente cliente: ${currentTier.name}, Punti: ${customer.points}`);
 
         // Carica tutti i premi attivi per mostrare anche quelli non disponibili
         const active = await rewardsService.getActive(customer.organization_id);
+        console.log(`📦 Premi attivi trovati:`, active);
         setAllRewards(active);
 
         // Carica premi disponibili in base a punti e tier
@@ -81,6 +85,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           currentTier.name,
           loyaltyTiers
         );
+        console.log(`✅ Premi disponibili trovati:`, available);
         setAvailableRewards(available);
 
         console.log(`✅ Caricati ${active.length} premi totali, ${available.length} disponibili per ${customer.name}`);

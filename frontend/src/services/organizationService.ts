@@ -141,7 +141,12 @@ export class OrganizationService {
             
             // Initialize usage tracking
             await this.initializeUsageTracking(organization.id)
-            
+
+            // Create default rewards in the rewards table
+            if (wizardData.defaultRewards && wizardData.defaultRewards.length > 0) {
+                await this.createDefaultRewards(organization.id, wizardData.defaultRewards)
+            }
+
             return {
                 success: true,
                 organization,
@@ -259,6 +264,46 @@ export class OrganizationService {
         return invites
     }
     
+    /**
+     * Create default rewards from wizard data
+     */
+    async createDefaultRewards(orgId: any, defaultRewards: any[]) {
+        try {
+            console.log(`Creating ${defaultRewards.length} default rewards for organization ${orgId}`)
+
+            const rewardsToInsert = defaultRewards.map((reward: any) => ({
+                organization_id: orgId,
+                name: reward.description || `Premio ${reward.points} punti`,
+                description: reward.description || '',
+                type: reward.type || 'discount',
+                value: reward.value || '0',
+                points_required: parseInt(reward.points) || 100,
+                required_tier: reward.requiredTier || null,
+                stock_quantity: null, // Unlimited
+                is_active: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }))
+
+            const { data, error } = await supabase
+                .from('rewards')
+                .insert(rewardsToInsert)
+                .select()
+
+            if (error) {
+                console.error('Failed to create default rewards:', error)
+                throw error
+            }
+
+            console.log(`✅ Created ${data?.length || 0} default rewards`)
+            return data
+        } catch (error) {
+            console.error('Error creating default rewards:', error)
+            // Don't throw - allow organization creation to continue
+            return []
+        }
+    }
+
     /**
      * Initialize usage tracking for new organization
      */

@@ -15,10 +15,25 @@
   transition: transform 0.3s ease;
   position: relative;
   z-index: 1000;
+  flex-shrink: 0;
 }
 
 .admin-sidebar.closed {
   transform: translateX(-280px);
+}
+
+@media (max-width: 1200px) {
+  .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(-280px);
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
 }
 
 /* Sidebar Header */
@@ -194,6 +209,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden;
 }
 
 /* Top Bar */
@@ -206,6 +222,12 @@
   justify-content: space-between;
   padding: 0 24px;
   flex-shrink: 0;
+}
+
+@media (max-width: 1200px) {
+  .admin-topbar {
+    display: flex;
+  }
 }
 
 .topbar-left {
@@ -329,6 +351,7 @@
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: #f8fafc;
   width: 100%;
   max-width: 100%;
