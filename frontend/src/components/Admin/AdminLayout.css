@@ -394,7 +394,6 @@
 
 /* Base dashboard container - applies to ALL dashboards */
 .admin-dashboard,
-.crm-dashboard,
 .mdm-dashboard,
 .billing-dashboard,
 .security-dashboard,
@@ -402,7 +401,7 @@
 .inventory-dashboard,
 .hardware-orders-dashboard,
 .supplier-orders-dashboard,
-[class*="-dashboard"] {
+[class*="-dashboard"]:not(.crm-dashboard) {
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
@@ -412,9 +411,19 @@
   min-height: 100vh !important;
 }
 
+/* CRM Dashboard - NO PADDING per full-width */
+.crm-dashboard {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  background: #f8fafc !important;
+  min-height: 100vh !important;
+}
+
 @media (min-width: 768px) {
   .admin-dashboard,
-  .crm-dashboard,
   .mdm-dashboard,
   .billing-dashboard,
   .security-dashboard,
@@ -422,14 +431,17 @@
   .inventory-dashboard,
   .hardware-orders-dashboard,
   .supplier-orders-dashboard,
-  [class*="-dashboard"] {
+  [class*="-dashboard"]:not(.crm-dashboard) {
     padding: 1.5rem !important;
+  }
+
+  .crm-dashboard {
+    padding: 0 !important;
   }
 }
 
 @media (min-width: 1024px) {
   .admin-dashboard,
-  .crm-dashboard,
   .mdm-dashboard,
   .billing-dashboard,
   .security-dashboard,
@@ -437,8 +449,12 @@
   .inventory-dashboard,
   .hardware-orders-dashboard,
   .supplier-orders-dashboard,
-  [class*="-dashboard"] {
+  [class*="-dashboard"]:not(.crm-dashboard) {
     padding: 2rem !important;
+  }
+
+  .crm-dashboard {
+    padding: 0 !important;
   }
 }
 
