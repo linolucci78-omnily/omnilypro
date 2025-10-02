@@ -83,6 +83,47 @@ const UsersManagement: React.FC = () => {
     }
   }
 
+  const handleEditUser = async (user: SystemUser) => {
+    const newRole = prompt(
+      `Modifica ruolo per ${user.email}\n\nRuolo attuale: ${getRoleLabel(user.role)}\n\nInserisci nuovo ruolo:\n- super_admin\n- sales_agent\n- account_manager\n- organization_owner\n- organization_staff`,
+      user.role
+    )
+
+    if (!newRole || newRole === user.role) {
+      return
+    }
+
+    const validRoles = ['super_admin', 'sales_agent', 'account_manager', 'organization_owner', 'organization_staff']
+    if (!validRoles.includes(newRole)) {
+      alert('❌ Ruolo non valido!')
+      return
+    }
+
+    try {
+      await usersService.updateUser(user.id, { role: newRole as UserRole })
+      alert(`✅ Ruolo aggiornato a: ${getRoleLabel(newRole as UserRole)}`)
+      await loadData()
+    } catch (error: any) {
+      console.error('Error updating user:', error)
+      alert(`❌ Errore durante l'aggiornamento: ${error.message}`)
+    }
+  }
+
+  const handleSuspendUser = async (user: SystemUser) => {
+    if (!confirm(`Sei sicuro di voler sospendere ${user.email}?\n\nL'utente non potrà più accedere al sistema.`)) {
+      return
+    }
+
+    try {
+      await usersService.suspendUser(user.id)
+      alert(`✅ Utente sospeso: ${user.email}`)
+      await loadData()
+    } catch (error: any) {
+      console.error('Error suspending user:', error)
+      alert(`❌ Errore durante la sospensione: ${error.message}`)
+    }
+  }
+
   const getRoleLabel = (role: UserRole) => {
     const labels: { [key: string]: string } = {
       'super_admin': 'Super Admin',
@@ -287,10 +328,18 @@ const UsersManagement: React.FC = () => {
                       </button>
                     ) : (
                       <>
-                        <button className="action-btn" title="Modifica">
+                        <button
+                          className="action-btn"
+                          title="Modifica"
+                          onClick={() => handleEditUser(user)}
+                        >
                           <Edit2 size={16} />
                         </button>
-                        <button className="action-btn delete" title="Disattiva">
+                        <button
+                          className="action-btn delete"
+                          title="Sospendi"
+                          onClick={() => handleSuspendUser(user)}
+                        >
                           <Trash2 size={16} />
                         </button>
                       </>
