@@ -233,18 +233,23 @@ export class CRMService {
    */
   async createCustomer(organizationId: string, customerData: CustomerInput): Promise<Customer> {
     try {
+      // Map CustomerInput to actual database columns
       const customerToCreate = {
-        ...customerData,
         organization_id: organizationId,
-        tier: 'Bronze',
-        status: 'active',
-        engagement_score: 0,
-        predicted_churn_risk: 0,
+        name: `${customerData.first_name} ${customerData.last_name}`,
+        email: customerData.email,
+        phone: customerData.phone || null,
+        birth_date: customerData.date_of_birth || null,
+        gender: customerData.gender === 'M' ? 'male' : customerData.gender === 'F' ? 'female' : null,
+        address: customerData.city && customerData.country ? `${customerData.city}, ${customerData.country}` : null,
+        tier: 'Bronzo', // Default tier in Italian
+        points: 0, // loyalty_points column
         total_spent: 0,
-        total_orders: 0,
-        avg_order_value: 0,
-        lifetime_value: 0,
-        loyalty_points: 0
+        visits: 0,
+        is_active: true,
+        marketing_consent: customerData.marketing_consent || false,
+        privacy_consent: true, // Required for GDPR
+        notifications_enabled: customerData.email_consent || false
       }
 
       const { data, error } = await supabase
@@ -258,10 +263,10 @@ export class CRMService {
         throw error
       }
 
-      console.log('Customer created successfully:', data.email)
+      console.log('✅ Customer created successfully:', data.email)
       return data
     } catch (error: any) {
-      console.error('Error in CRMService.createCustomer:', error)
+      console.error('❌ Error in CRMService.createCustomer:', error)
       throw error
     }
   }
