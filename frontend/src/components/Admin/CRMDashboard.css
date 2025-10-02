@@ -232,10 +232,11 @@
 .crm-tabs {
   background: white !important;
   border-bottom: 1px solid #e2e8f0 !important;
-  padding: 0 1rem !important;
+  padding: 1rem 1rem !important;
   display: flex !important;
-  gap: 0 !important;
+  gap: 0.5rem !important;
   overflow-x: auto !important;
+  overflow-y: visible !important;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
@@ -243,6 +244,8 @@
   visibility: visible !important;
   position: relative !important;
   z-index: 10 !important;
+  min-height: 80px !important;
+  height: auto !important;
 }
 
 @media (min-width: 768px) {
@@ -290,8 +293,8 @@
 
 @media (min-width: 768px) {
   .crm-tab {
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
+    padding: 1rem 1.5rem !important;
+    font-size: 1rem !important;
   }
 }
 
