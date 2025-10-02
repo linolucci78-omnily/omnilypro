@@ -62,8 +62,11 @@ const Landing: React.FC = () => {
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-logo">
-            <div className="logo-icon">O</div>
-            <span className="logo-text">OMNILY PRO</span>
+            <img
+              src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+              alt="OMNILY PRO"
+              className="logo-image"
+            />
           </div>
           <div className="nav-links">
             <a href="#features">Funzionalità</a>
@@ -673,8 +676,11 @@ const Landing: React.FC = () => {
         <div className="footer-container">
           <div className="footer-brand">
             <div className="footer-logo">
-              <div className="logo-icon">O</div>
-              <span className="logo-text">OMNILY PRO</span>
+              <img
+                src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+                alt="OMNILY PRO"
+                className="logo-image-footer"
+              />
             </div>
             <p>La piattaforma enterprise per la customer loyalty che genera ROI reale.</p>
           </div>

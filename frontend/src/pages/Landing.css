@@ -44,6 +44,12 @@
   font-size: 1.25rem;
 }
 
+.logo-image {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+}
+
 .logo-icon {
   width: 40px;
   height: 40px;
@@ -1235,6 +1241,12 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.logo-image-footer {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .footer-logo .logo-text {
