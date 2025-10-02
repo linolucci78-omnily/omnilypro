@@ -261,34 +261,33 @@
 }
 
 .crm-tab {
-  padding: 1rem 1.5rem !important;
-  background: #64748b !important;
-  border: 2px solid #334155 !important;
-  border-bottom: 3px solid #334155 !important;
-  color: #ffffff !important;
+  padding: 0.75rem 1.25rem !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-bottom: 3px solid transparent !important;
+  color: #64748b !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 0.5rem !important;
   transition: all 0.2s !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   white-space: nowrap !important;
-  font-size: 1rem !important;
+  font-size: 0.95rem !important;
   opacity: 1 !important;
   visibility: visible !important;
   position: relative !important;
   z-index: 11 !important;
   pointer-events: auto !important;
   flex-shrink: 0 !important;
-  margin-right: 0.5rem !important;
-  border-radius: 6px !important;
-  min-width: 100px !important;
+  border-radius: 8px 8px 0 0 !important;
   min-height: 45px !important;
 }
 
 .crm-tab:hover {
-  background: #475569 !important;
+  background: #e2e8f0 !important;
+  color: #1e40af !important;
 }
 
 @media (min-width: 768px) {
@@ -299,13 +298,11 @@
 }
 
 .crm-tab.active {
-  background: var(--omnily-primary) !important;
-  border: 2px solid var(--omnily-primary) !important;
-  border-bottom: 4px solid var(--omnily-primary) !important;
-  color: white !important;
-  font-weight: 700 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3) !important;
+  background: white !important;
+  border: 1px solid #e2e8f0 !important;
+  border-bottom: 3px solid var(--omnily-primary) !important;
+  color: var(--omnily-primary) !important;
+  font-weight: 600 !important;
 }
 
 .crm-content {
