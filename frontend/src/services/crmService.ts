@@ -36,12 +36,11 @@ export interface Customer {
 }
 
 export interface CustomerInput {
-  first_name: string
-  last_name: string
+  company_name: string // Nome Azienda
+  first_name: string // Nome Titolare
+  last_name: string // Cognome Titolare
   email: string
   phone?: string
-  date_of_birth?: string
-  gender?: 'M' | 'F' | 'Other'
   city?: string
   country?: string
   acquisition_channel?: string
@@ -235,16 +234,15 @@ export class CRMService {
     try {
       // Map CustomerInput to actual database columns
       // Note: In CRM context, these are BUSINESS CUSTOMERS (companies buying OMNILYPRO)
-      // Not end-consumers with loyalty points/tiers
+      // company_name = Nome Azienda, name = Nome Titolare completo
       const customerToCreate = {
         organization_id: organizationId,
-        name: `${customerData.first_name} ${customerData.last_name}`,
+        name: customerData.company_name, // Nome Azienda nel campo 'name'
+        first_name: customerData.first_name, // Nome Titolare
+        last_name: customerData.last_name, // Cognome Titolare
         email: customerData.email,
         phone: customerData.phone || null,
-        birth_date: customerData.date_of_birth || null,
-        gender: customerData.gender === 'M' ? 'male' : customerData.gender === 'F' ? 'female' : null,
         address: customerData.city && customerData.country ? `${customerData.city}, ${customerData.country}` : null,
-        // Removed tier and points - not relevant for B2B CRM
         total_spent: 0,
         visits: 0,
         is_active: true,

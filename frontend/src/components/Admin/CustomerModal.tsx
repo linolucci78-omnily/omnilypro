@@ -14,12 +14,11 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onSave }
   const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<CustomerInput>({
+    company_name: '',
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
-    date_of_birth: '',
-    gender: undefined,
     city: '',
     country: '',
     acquisition_channel: '',
@@ -48,12 +47,11 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onSave }
       await onSave(formData)
       // Reset form
       setFormData({
+        company_name: '',
         first_name: '',
         last_name: '',
         email: '',
         phone: '',
-        date_of_birth: '',
-        gender: undefined,
         city: '',
         country: '',
         acquisition_channel: '',
@@ -89,33 +87,46 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onSave }
           )}
 
           <div className="modal-form-content">
-            <div className="form-row">
             <div className="form-group">
-              <label htmlFor="first_name">Nome *</label>
+              <label htmlFor="company_name">Nome Azienda *</label>
               <input
                 type="text"
-                id="first_name"
-                name="first_name"
-                value={formData.first_name}
+                id="company_name"
+                name="company_name"
+                value={formData.company_name}
                 onChange={handleChange}
                 required
-                placeholder="Mario"
+                placeholder="Es. Pizzeria Da Mario"
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="last_name">Cognome *</label>
-              <input
-                type="text"
-                id="last_name"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
-                placeholder="Rossi"
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="first_name">Nome Titolare *</label>
+                <input
+                  type="text"
+                  id="first_name"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Mario"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="last_name">Cognome Titolare *</label>
+                <input
+                  type="text"
+                  id="last_name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Rossi"
+                />
+              </div>
             </div>
-          </div>
 
           <div className="form-row">
             <div className="form-group">
@@ -141,34 +152,6 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onSave }
                 onChange={handleChange}
                 placeholder="+39 333 1234567"
               />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="date_of_birth">Data di nascita</label>
-              <input
-                type="date"
-                id="date_of_birth"
-                name="date_of_birth"
-                value={formData.date_of_birth}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="gender">Sesso</label>
-              <select
-                id="gender"
-                name="gender"
-                value={formData.gender || ''}
-                onChange={handleChange}
-              >
-                <option value="">Seleziona...</option>
-                <option value="M">Maschio</option>
-                <option value="F">Femmina</option>
-                <option value="Other">Altro</option>
-              </select>
             </div>
           </div>
 
