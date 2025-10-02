@@ -179,7 +179,28 @@
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  padding-bottom: 2rem;
+  padding: 0 1rem 2rem 1rem;
+  margin: 0 -2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.pipeline-kanban::-webkit-scrollbar {
+  height: 8px;
+}
+
+.pipeline-kanban::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.pipeline-kanban::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.pipeline-kanban::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .kanban-column {
@@ -484,6 +505,9 @@
 @media (max-width: 1200px) {
   .pipeline-kanban {
     flex-wrap: nowrap;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin: 0 -1rem;
   }
 
   .kanban-column {
@@ -494,6 +518,12 @@
 @media (max-width: 768px) {
   .crm-leads-dashboard {
     padding: 1rem;
+  }
+
+  .pipeline-kanban {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin: 0 -1rem;
   }
 
   .crm-leads-header {
@@ -520,5 +550,9 @@
 
   .leads-table-card {
     overflow-x: auto;
+  }
+
+  .kanban-column {
+    flex: 0 0 260px;
   }
 }
