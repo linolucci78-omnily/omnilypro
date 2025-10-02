@@ -151,7 +151,7 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <><Navbar /><Dashboard /></>
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />

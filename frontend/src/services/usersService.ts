@@ -10,7 +10,7 @@ export interface SystemUser {
   id: string
   email: string
   role: UserRole
-  is_active: boolean
+  status: 'pending' | 'active' | 'suspended' // Stato account
   temp_password?: string // Password temporanea per attivazione
   created_at: string
   updated_at: string
@@ -99,26 +99,36 @@ export class UsersService {
    */
   async createUser(userData: CreateUserInput): Promise<SystemUser> {
     try {
+      // Genera un UUID temporaneo (verrà sostituito durante attivazione)
+      const tempId = crypto.randomUUID()
+
       // Salva temporaneamente la password (verrà usata durante attivazione)
       const { data, error } = await supabase
         .from('users')
         .insert({
+          id: tempId, // ID temporaneo
           email: userData.email,
           role: userData.role,
           is_active: false, // INATTIVO finché non viene attivato
           temp_password: userData.password // Password temporanea per attivazione
         })
         .select()
-        .single()
 
       if (error) {
         console.error('Error creating user:', error)
         throw error
       }
 
-      console.log('✅ User created (INACTIVE):', userData.email)
+      // Se data è un array, prendi il primo elemento
+      const user = Array.isArray(data) ? data[0] : data
+
+      if (!user) {
+        throw new Error('User created but not returned (RLS policy issue)')
+      }
+
+      console.log('✅ User created (INACTIVE) with temp ID:', userData.email)
       console.log('⏳ Waiting for admin activation...')
-      return data
+      return user
     } catch (error) {
       console.error('Error in createUser:', error)
       throw error

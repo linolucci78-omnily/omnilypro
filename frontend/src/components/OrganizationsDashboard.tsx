@@ -8,6 +8,7 @@ import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
+import AccountSettingsPanel from './AccountSettingsPanel'
 import UpgradePrompt from './UpgradePrompt'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -423,6 +424,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   // Card Management Panel states
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
+  const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -1899,7 +1901,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Configurazione Account</h3>
                 <p>Gestisci le impostazioni del tuo account e profilo</p>
-                <button className="btn-primary" onClick={() => setShowLoyaltyTiersPanel(true)}>Configura</button>
+                <button className="btn-primary" onClick={() => setShowAccountSettingsPanel(true)}>Configura</button>
               </div>
               <div className="feature-card">
                 <h3>Fatturazione</h3>
@@ -2094,11 +2096,26 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       {!isPOSMode && (
         <div className="sidebar">
         <div className="sidebar-header">
-          <div className="logo">
-            <div className="logo-icon">O</div>
-            <span className="logo-text">OMNILY PRO</span>
+          {/* Logo Organizzazione */}
+          {currentOrganization?.logo_url ? (
+            <div className="org-logo">
+              <img src={currentOrganization.logo_url} alt={currentOrganization.name} />
+            </div>
+          ) : (
+            <div className="logo">
+              <div className="logo-icon">O</div>
+              <span className="logo-text">OMNILY PRO</span>
+            </div>
+          )}
+
+          {/* Nome Organizzazione */}
+          <div className="org-name">{currentOrganization?.name || 'OMNILY PRO'}</div>
+
+          {/* Operatore Loggato */}
+          <div className="operator-info">
+            <div className="operator-label">Operatore</div>
+            <div className="operator-name">{currentOrganization?.business_email || 'Admin'}</div>
           </div>
-          <div className="merchant-console">MERCHANT CONSOLE</div>
         </div>
 
         <nav className="sidebar-nav">
@@ -2127,6 +2144,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         </nav>
 
         <div className="sidebar-footer">
+          <button className="btn-logout-sidebar" onClick={() => {
+            localStorage.removeItem('supabase.auth.token');
+            window.location.href = '/login';
+          }}>
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
           <div className="version">Version 0.1.0 (48)</div>
         </div>
         </div>
@@ -2142,11 +2166,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <Crown size={14} />
               <span>{(currentOrganization?.plan_type || 'free').toUpperCase()}</span>
             </div>
-          </div>
-          <div className="header-actions">
-            <button className="btn-logout">
-              <LogOut size={36} />
-            </button>
           </div>
         </header>
 
@@ -2218,6 +2237,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         reward={selectedReward}
         isLoading={rewardModalLoading}
         loyaltyTiers={organizations.length > 0 ? organizations[0].loyalty_tiers : []}
+      />
+
+      {/* Account Settings Panel */}
+      <AccountSettingsPanel
+        isOpen={showAccountSettingsPanel}
+        onClose={() => setShowAccountSettingsPanel(false)}
+        organization={currentOrganization}
+        onUpdate={() => {
+          loadOrganizations()
+          setShowAccountSettingsPanel(false)
+        }}
       />
     </div>
   )
