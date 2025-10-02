@@ -124,46 +124,46 @@
 
 /* Form Group */
 .form-group {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 0.625rem;
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.9375rem;
+  display: block !important;
+  margin-bottom: 0.625rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  font-size: 0.9375rem !important;
 }
 
 .form-group input,
 .form-group select {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: all 0.2s;
-  background: #ffffff;
-  color: #1e293b;
+  width: 100% !important;
+  padding: 0.875rem 1rem !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  font-size: 1rem !important;
+  transition: all 0.2s !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
 }
 
 .form-group input::placeholder {
-  color: #9ca3af;
+  color: #9ca3af !important;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-  outline: none;
-  border-color: var(--omnily-primary);
-  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+  outline: none !important;
+  border-color: var(--omnily-primary) !important;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
 }
 
 .form-group input:disabled,
 .form-group select:disabled {
-  background: #f9fafb;
-  cursor: not-allowed;
-  opacity: 0.6;
+  background: #f9fafb !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
 }
 
 /* Form Section */
