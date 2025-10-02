@@ -234,6 +234,8 @@ export class CRMService {
   async createCustomer(organizationId: string, customerData: CustomerInput): Promise<Customer> {
     try {
       // Map CustomerInput to actual database columns
+      // Note: In CRM context, these are BUSINESS CUSTOMERS (companies buying OMNILYPRO)
+      // Not end-consumers with loyalty points/tiers
       const customerToCreate = {
         organization_id: organizationId,
         name: `${customerData.first_name} ${customerData.last_name}`,
@@ -242,8 +244,7 @@ export class CRMService {
         birth_date: customerData.date_of_birth || null,
         gender: customerData.gender === 'M' ? 'male' : customerData.gender === 'F' ? 'female' : null,
         address: customerData.city && customerData.country ? `${customerData.city}, ${customerData.country}` : null,
-        tier: 'Bronzo', // Default tier in Italian
-        points: 0, // loyalty_points column
+        // Removed tier and points - not relevant for B2B CRM
         total_spent: 0,
         visits: 0,
         is_active: true,
