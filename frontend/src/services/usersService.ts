@@ -214,32 +214,40 @@ export class UsersService {
   }
 
   /**
-   * Deactivate user
+   * Suspend user (sospendi account)
    */
-  async deactivateUser(userId: string): Promise<void> {
+  async suspendUser(userId: string): Promise<void> {
     try {
       const { error } = await supabase
         .from('users')
-        .update({ is_active: false })
+        .update({ status: 'suspended' })
         .eq('id', userId)
 
       if (error) {
-        console.error('Error deactivating user:', error)
+        console.error('Error suspending user:', error)
         throw error
       }
 
-      console.log('✅ User deactivated:', userId)
+      console.log('✅ User suspended:', userId)
     } catch (error) {
-      console.error('Error in deactivateUser:', error)
+      console.error('Error in suspendUser:', error)
       throw error
     }
   }
 
   /**
-   * Delete user (soft delete - just deactivate)
+   * Deactivate user (legacy - usa suspendUser)
+   * @deprecated Use suspendUser instead
+   */
+  async deactivateUser(userId: string): Promise<void> {
+    await this.suspendUser(userId)
+  }
+
+  /**
+   * Delete user (soft delete - just suspend)
    */
   async deleteUser(userId: string): Promise<void> {
-    await this.deactivateUser(userId)
+    await this.suspendUser(userId)
   }
 
   /**
