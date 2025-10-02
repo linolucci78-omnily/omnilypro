@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
@@ -428,11 +428,121 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <ShoppingBag size={20} />
             Nuova Vendita
           </button>
-          <button className="customer-slide-panel-action-btn customer-slide-panel-action-btn-tertiary">
+          <button
+            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-tertiary"
+            onClick={() => setShowRewardsSection(!showRewardsSection)}
+          >
             <Gift size={20} />
             Premi
           </button>
         </div>
+
+        {/* Rewards Section - Sezione Premi */}
+        {showRewardsSection && (
+          <div className="customer-slide-panel-rewards-section">
+            <h3>
+              <Gift size={18} />
+              Gestione Premi
+            </h3>
+
+            {/* Two buttons: Riscatta Premio | Premi Riscattati */}
+            <div className="rewards-section-actions">
+              <button
+                className={`rewards-section-btn ${rewardsView === 'redeem' ? 'active' : ''}`}
+                onClick={() => setRewardsView('redeem')}
+              >
+                <Award size={18} />
+                Riscatta Premio
+              </button>
+              <button
+                className={`rewards-section-btn ${rewardsView === 'redeemed' ? 'active' : ''}`}
+                onClick={() => setRewardsView('redeemed')}
+              >
+                <Star size={18} />
+                Premi Riscattati
+              </button>
+            </div>
+
+            {/* Content based on selected view */}
+            <div className="rewards-section-content">
+              {rewardsView === 'redeem' ? (
+                // RISCATTA PREMIO - Lista premi disponibili
+                <div className="rewards-available">
+                  <p className="rewards-section-info">
+                    <Target size={16} />
+                    Hai <strong>{customer.points} punti</strong> disponibili
+                  </p>
+                  <p className="rewards-section-subtitle">
+                    Seleziona un premio da riscattare:
+                  </p>
+
+                  {/* Lista premi disponibili */}
+                  <div className="rewards-list">
+                    {/* TODO: Caricare premi disponibili dal database */}
+                    <div className="reward-item">
+                      <div className="reward-item-header">
+                        <Award size={20} className="reward-icon" />
+                        <div className="reward-info">
+                          <h4>Caffè Gratuito</h4>
+                          <p className="reward-points">100 punti</p>
+                        </div>
+                      </div>
+                      <button className="reward-redeem-btn">
+                        Riscatta
+                      </button>
+                    </div>
+
+                    <div className="reward-item disabled">
+                      <div className="reward-item-header">
+                        <Award size={20} className="reward-icon" />
+                        <div className="reward-info">
+                          <h4>Sconto 10€</h4>
+                          <p className="reward-points">500 punti</p>
+                        </div>
+                      </div>
+                      <button className="reward-redeem-btn" disabled>
+                        Punti Insufficienti
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // PREMI RISCATTATI - Storico premi
+                <div className="rewards-redeemed">
+                  <p className="rewards-section-subtitle">
+                    Storico dei premi riscattati:
+                  </p>
+
+                  {/* Lista premi riscattati */}
+                  <div className="rewards-history-list">
+                    {/* TODO: Caricare storico premi dal database */}
+                    <div className="reward-history-item">
+                      <div className="reward-history-info">
+                        <Sparkles size={18} className="reward-history-icon" />
+                        <div>
+                          <h5>Caffè Gratuito</h5>
+                          <p className="reward-history-date">15/01/2025</p>
+                        </div>
+                      </div>
+                      <span className="reward-history-points">-100 pt</span>
+                    </div>
+
+                    <div className="reward-history-item">
+                      <div className="reward-history-info">
+                        <Sparkles size={18} className="reward-history-icon" />
+                        <div>
+                          <h5>Sconto 5€</h5>
+                          <p className="reward-history-date">10/01/2025</p>
+                        </div>
+                      </div>
+                      <span className="reward-history-points">-200 pt</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Contact Info */}
         <div className="customer-slide-panel-contact">
