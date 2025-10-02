@@ -179,28 +179,30 @@
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  padding: 0 1rem 2rem 1rem;
+  overflow-y: visible;
+  padding: 1rem 2rem 2rem 2rem;
   margin: 0 -2rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  width: calc(100% + 4rem);
 }
 
 .pipeline-kanban::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 
 .pipeline-kanban::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  margin: 0 2rem;
 }
 
 .pipeline-kanban::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: var(--omnily-primary);
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
 }
 
 .pipeline-kanban::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #1e3a8a;
 }
 
 .kanban-column {

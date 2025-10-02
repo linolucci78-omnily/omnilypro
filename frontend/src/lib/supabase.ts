@@ -132,7 +132,7 @@ export interface Customer {
   gender?: 'male' | 'female'
   birth_date?: string
   points: number
-  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Argento' | 'Bronzo'
+  tier: string // Tier dinamico basato sulla configurazione dell'organizzazione
   total_spent: number
   visits: number
   is_active: boolean

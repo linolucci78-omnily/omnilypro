@@ -38,7 +38,7 @@ interface Customer {
   points: number
   totalSpent: number
   visits: number
-  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
+  tier: string // Tier dinamico basato sulla configurazione dell'organizzazione
   isActive: boolean
   organizationId: string
   birthDate?: string

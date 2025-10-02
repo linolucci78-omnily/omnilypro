@@ -951,17 +951,14 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       }
 
       // If no tier matches, return the first tier (lowest threshold)
-      const defaultTier = sortedTiers[sortedTiers.length - 1]?.name || 'Bronze';
+      const defaultTier = sortedTiers[sortedTiers.length - 1]?.name || sortedTiers[0]?.name;
       console.log(`🏆 Using default tier: ${defaultTier}`);
       return defaultTier;
     }
 
-    // Fallback to hardcoded tiers if organization data not available
-    console.log('⚠️ Using fallback hardcoded tiers');
-    if (points >= 500) return 'Platinum';
-    if (points >= 300) return 'Gold';
-    if (points >= 100) return 'Silver';
-    return 'Bronze';
+    // Fallback: if no organization tiers configured, return first available or undefined
+    console.log('⚠️ No organization loyalty tiers configured');
+    return undefined;
   };
 
   const handleSubmit = async () => {
@@ -988,7 +985,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         gender: formData.gender as 'male' | 'female',
         birth_date: formData.birthDate || undefined,
         points: 50,
-        tier: calculateTier(50) as 'Bronze' | 'Silver' | 'Gold' | 'Platinum',
+        tier: calculateTier(50) || 'Base', // Usa il tier dinamico dall'organizzazione o 'Base' come fallback
         total_spent: 0,
         visits: 0,
         is_active: true,
