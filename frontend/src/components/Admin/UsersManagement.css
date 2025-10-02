@@ -272,6 +272,18 @@
   border-color: #dc2626;
 }
 
+.action-btn.activate {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.action-btn.activate:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
 /* Empty State */
 .empty-state {
   display: flex;

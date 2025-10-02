@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3 } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
+import ConfirmModal from './UI/ConfirmModal';
+import ModifyPointsModal from './ModifyPointsModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
@@ -38,6 +40,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const [loadingRewards, setLoadingRewards] = useState(false);
   const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [showModifyPointsModal, setShowModifyPointsModal] = useState(false);
 
   // Carica attività del cliente quando il pannello si apre o cambia cliente
   useEffect(() => {
@@ -202,18 +207,50 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   // Funzione per riscattare un premio
   const handleRedeemReward = async (reward: Reward) => {
     if (!customer) return;
+    setSelectedReward(reward);
+    setShowConfirmModal(true);
+  };
 
-    // Conferma riscatto
-    const confirmed = window.confirm(
-      `Vuoi riscattare "${reward.name}" per ${reward.points_required} punti?\n\n` +
-      `Punti attuali: ${customer.points}\n` +
-      `Punti dopo riscatto: ${customer.points - reward.points_required}`
-    );
+  const handleModifyPoints = async (pointsChange: number, reason: string) => {
+    if (!customer || !onAddPoints) return;
 
-    if (!confirmed) return;
+    setShowModifyPointsModal(false);
+
+    // Usa onAddPoints che gestisce già l'update al database
+    await onAddPoints(customer.id, pointsChange);
+
+    // Registra l'attività con il motivo
+    if (currentOrganization) {
+      await customerActivitiesApi.create({
+        customer_id: customer.id,
+        organization_id: currentOrganization.id,
+        type: pointsChange > 0 ? 'points_added' : 'points_removed',
+        description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
+        metadata: { reason, pointsChange }
+      });
+    }
+
+    // Aggiorna display
+    updateCustomerDisplay();
+
+    // Ricarica attività
+    try {
+      setTimeout(async () => {
+        const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
+        setCustomerActivities(refreshedActivities);
+      }, 500);
+    } catch (error) {
+      console.error('❌ Errore aggiornamento attività:', error);
+    }
+  };
+
+  const confirmRedeemReward = async () => {
+    if (!customer || !selectedReward) return;
+
+    setShowConfirmModal(false);
 
     try {
-      console.log(`🎁 Riscatto premio "${reward.name}" per ${customer.name}...`);
+      console.log(`🎁 Riscatto premio "${selectedReward.name}" per ${customer.name}...`);
 
       // Calcola tier corrente
       const currentTier = calculateCustomerTier(customer.points);
@@ -222,21 +259,17 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       const result = await rewardsService.redeemForCustomer(
         customer.organization_id,
         customer.id,
-        reward.id,
+        selectedReward.id,
         customer.points,
         currentTier.name
       );
 
       if (!result.success) {
-        alert(`❌ Errore: ${result.error}`);
+        console.error(`❌ Errore riscatto: ${result.error}`);
         return;
       }
 
-      alert(
-        `✅ Premio "${reward.name}" riscattato con successo!\n\n` +
-        `Punti scalati: -${reward.points_required}\n` +
-        `Nuovi punti: ${customer.points - reward.points_required}`
-      );
+      console.log(`✅ Premio "${selectedReward.name}" riscattato! Punti scalati: -${selectedReward.points_required}`);
 
       // Chiudi e riapri la sezione per ricaricare i dati
       setShowRewardsSection(false);
@@ -245,9 +278,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       // Aggiorna il customer display se disponibile
       updateCustomerDisplay();
 
+      setSelectedReward(null);
+
     } catch (error) {
       console.error('❌ Errore riscatto premio:', error);
-      alert('❌ Errore durante il riscatto del premio. Riprova.');
+      setSelectedReward(null);
     }
   };
 
@@ -524,26 +559,10 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         <div className="customer-panel-actions">
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-primary"
-            onClick={async () => {
-              onAddPoints?.(customer.id, 10);
-              // Solo ora aggiorniamo il customer display con i nuovi punti
-              updateCustomerDisplay();
-
-              // Ricarica le attività per mostrare l'aggiunta di punti
-              try {
-                // Aspetta un momento per permettere al database di salvare l'attività
-                setTimeout(async () => {
-                  const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
-                  setCustomerActivities(refreshedActivities);
-                  console.log('✅ Attività aggiornate dopo aggiunta punti');
-                }, 1000);
-              } catch (error) {
-                console.error('❌ Errore aggiornamento attività dopo aggiunta punti:', error);
-              }
-            }}
+            onClick={() => setShowModifyPointsModal(true)}
           >
-            <Plus size={20} />
-            Aggiungi Punti
+            <Edit3 size={20} />
+            Modifica Punti
           </button>
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-secondary"
@@ -776,6 +795,29 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         pointsPerEuro={pointsPerEuro}
         loyaltyTiers={loyaltyTiers}
         currentTier={currentTier}
+      />
+
+      {/* Confirm Redeem Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Conferma Riscatto Premio"
+        message={selectedReward ? `Vuoi riscattare "${selectedReward.name}" per ${selectedReward.points_required} punti?\n\nPunti attuali: ${customer?.points}\nPunti dopo riscatto: ${(customer?.points || 0) - selectedReward.points_required}` : ''}
+        confirmText="Riscatta"
+        cancelText="Annulla"
+        type="info"
+        onConfirm={confirmRedeemReward}
+        onCancel={() => {
+          setShowConfirmModal(false);
+          setSelectedReward(null);
+        }}
+      />
+
+      {/* Modify Points Modal */}
+      <ModifyPointsModal
+        isOpen={showModifyPointsModal}
+        customer={customer}
+        onClose={() => setShowModifyPointsModal(false)}
+        onConfirm={handleModifyPoints}
       />
     </>
   );

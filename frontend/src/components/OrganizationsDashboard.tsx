@@ -429,8 +429,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     setSelectedCustomer(customer)
     setIsSlidePanelOpen(true)
 
-    // Incrementa visite quando cliente viene selezionato
-    incrementCustomerVisits(customer.id)
+    // NON incrementare visite qui - solo su vendita/scan fisico
 
     // Registra l'attività visita nel database
     if (currentOrganization) {

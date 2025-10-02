@@ -11,6 +11,7 @@ export interface SystemUser {
   email: string
   role: UserRole
   is_active: boolean
+  temp_password?: string // Password temporanea per attivazione
   created_at: string
   updated_at: string
   last_sign_in_at?: string
@@ -93,21 +94,19 @@ export class UsersService {
   }
 
   /**
-   * Create new user
-   * Note: Questo crea solo il record nella tabella users.
-   * L'account auth deve essere creato separatamente o tramite trigger.
+   * Create new user (INACTIVE - pending activation)
+   * L'admin dovrà poi cliccare "Attiva Account" per creare l'auth e attivarlo
    */
   async createUser(userData: CreateUserInput): Promise<SystemUser> {
     try {
-      // Per ora inseriamo solo nella tabella users
-      // TODO: Implementare creazione account auth tramite Supabase Admin API o Edge Function
-
+      // Salva temporaneamente la password (verrà usata durante attivazione)
       const { data, error } = await supabase
         .from('users')
         .insert({
           email: userData.email,
           role: userData.role,
-          is_active: true
+          is_active: false, // INATTIVO finché non viene attivato
+          temp_password: userData.password // Password temporanea per attivazione
         })
         .select()
         .single()
@@ -117,11 +116,63 @@ export class UsersService {
         throw error
       }
 
-      console.log('✅ User created in database:', userData.email)
-      console.log('⚠️ Note: Account auth deve essere creato manualmente o tramite trigger')
+      console.log('✅ User created (INACTIVE):', userData.email)
+      console.log('⏳ Waiting for admin activation...')
       return data
     } catch (error) {
       console.error('Error in createUser:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Activate user account - Creates Supabase Auth user and activates record
+   */
+  async activateUser(userId: string, email: string, tempPassword: string): Promise<SystemUser> {
+    try {
+      console.log('🚀 Activating user:', email)
+
+      // 1. Create Supabase Auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: tempPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`
+        }
+      })
+
+      if (authError) {
+        console.error('Error creating auth user:', authError)
+        throw authError
+      }
+
+      if (!authData.user) {
+        throw new Error('Auth user creation failed')
+      }
+
+      console.log('✅ Auth user created:', authData.user.id)
+
+      // 2. Update users record - activate and link auth ID
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          id: authData.user.id, // Link auth user ID
+          is_active: true,
+          temp_password: null // Remove temp password
+        })
+        .eq('id', userId)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error activating user record:', error)
+        throw error
+      }
+
+      console.log('✅ User activated successfully:', email)
+      return data
+    } catch (error) {
+      console.error('Error in activateUser:', error)
       throw error
     }
   }

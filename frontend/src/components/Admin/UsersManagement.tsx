@@ -57,6 +57,32 @@ const UsersManagement: React.FC = () => {
     }
   }
 
+  const handleActivateUser = async (user: SystemUser) => {
+    if (!confirm(`Sei sicuro di voler attivare l'account per ${user.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login.`)) {
+      return
+    }
+
+    try {
+      // @ts-ignore - temp_password exists in database but not in type
+      const tempPassword = user.temp_password
+
+      if (!tempPassword) {
+        alert('Errore: Password temporanea non trovata. Ricrea l\'utente.')
+        return
+      }
+
+      await usersService.activateUser(user.id, user.email, tempPassword)
+
+      alert(`✅ Account attivato!\n\nEmail: ${user.email}\n\nL'utente può ora fare login con le credenziali impostate.`)
+
+      // Reload data
+      await loadData()
+    } catch (error: any) {
+      console.error('Error activating user:', error)
+      alert(`❌ Errore durante l'attivazione: ${error.message}`)
+    }
+  }
+
   const getRoleLabel = (role: UserRole) => {
     const labels: { [key: string]: string } = {
       'super_admin': 'Super Admin',
@@ -251,12 +277,24 @@ const UsersManagement: React.FC = () => {
                 </td>
                 <td>
                   <div className="action-buttons">
-                    <button className="action-btn" title="Modifica">
-                      <Edit2 size={16} />
-                    </button>
-                    <button className="action-btn delete" title="Disattiva">
-                      <Trash2 size={16} />
-                    </button>
+                    {!user.is_active ? (
+                      <button
+                        className="action-btn activate"
+                        title="Attiva Account"
+                        onClick={() => handleActivateUser(user)}
+                      >
+                        <UserCheck size={16} />
+                      </button>
+                    ) : (
+                      <>
+                        <button className="action-btn" title="Modifica">
+                          <Edit2 size={16} />
+                        </button>
+                        <button className="action-btn delete" title="Disattiva">
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
