@@ -219,16 +219,17 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     // Usa onAddPoints che gestisce già l'update al database
     await onAddPoints(customer.id, pointsChange);
 
-    // Registra l'attività con il motivo
-    if (currentOrganization) {
-      await customerActivitiesApi.create({
-        customer_id: customer.id,
-        organization_id: currentOrganization.id,
-        type: pointsChange > 0 ? 'points_added' : 'points_removed',
-        description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
-        metadata: { reason, pointsChange }
-      });
-    }
+    // TODO: Registra l'attività con il motivo
+    // if (currentOrganization) {
+    //   await customerActivitiesApi.create({
+    //     customer_id: customer.id,
+    //     organization_id: currentOrganization.id,
+    //     type: 'points_added',
+    //     description: `${pointsChange > 0 ? '+' : ''}${pointsChange} punti - ${reason}`,
+    //     points: pointsChange,
+    //     metadata: { reason, pointsChange }
+    //   });
+    // }
 
     // Aggiorna display
     updateCustomerDisplay();
