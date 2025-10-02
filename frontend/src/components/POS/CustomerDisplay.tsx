@@ -191,7 +191,7 @@ const CustomerDisplay: React.FC = () => {
           <img
             src={organizationLogo || "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"}
             alt={organizationName}
-            style={{ height: '40px', marginBottom: '0.5rem', objectFit: 'contain' }}
+            style={{ height: '60px', marginBottom: '0.5rem', objectFit: 'contain' }}
           />
           <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
             {currentTime.toLocaleTimeString('it-IT')}
