@@ -336,7 +336,8 @@
 }
 
 /* Remove padding for CRM dashboard to use full width */
-.admin-main:has(.crm-dashboard) {
+.admin-main:has(.crm-dashboard),
+.admin-main:has(.crm-leads-dashboard) {
   padding: 0;
 }
 
