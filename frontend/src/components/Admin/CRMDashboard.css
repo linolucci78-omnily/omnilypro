@@ -776,13 +776,32 @@
 }
 
 .crm-filter-dropdown {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  background: white;
-  cursor: pointer;
-  min-width: 140px;
+  padding: 0.75rem 1rem !important;
+  border: 2px solid #d1d5db !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  background: white !important;
+  cursor: pointer !important;
+  min-width: 160px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  transition: all 0.2s !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.crm-filter-dropdown:hover {
+  border-color: #9ca3af !important;
+  background: #f9fafb !important;
+}
+
+.crm-filter-dropdown:focus {
+  outline: none !important;
+  border-color: var(--omnily-primary) !important;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
 }
 
 .crm-add-button {
