@@ -24,6 +24,8 @@ import ConfirmModal from '../UI/ConfirmModal'
 import './UsersManagement.css'
 
 const UsersManagement: React.FC = () => {
+  console.log('🎯 UsersManagement component mounted')
+
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState<SystemUser[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -46,6 +48,7 @@ const UsersManagement: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    console.log('🔄 useEffect triggered - loading data...')
     loadData()
   }, [selectedRole, searchTerm])
 
@@ -63,6 +66,7 @@ const UsersManagement: React.FC = () => {
 
       setUsers(usersData)
       setStats(statsData)
+      console.log('📊 Users loaded:', usersData.length, usersData)
     } catch (error) {
       console.error('Error loading users:', error)
     } finally {
