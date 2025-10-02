@@ -21,6 +21,7 @@ const CustomerDisplay: React.FC = () => {
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [organizationName, setOrganizationName] = useState('OMNILY PRO');
+  const [organizationLogo, setOrganizationLogo] = useState<string | null>(null);
   const [welcomeMessage, setWelcomeMessage] = useState('Il tuo ordine apparirà qui automaticamente');
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState<any>(null);
@@ -44,6 +45,9 @@ const CustomerDisplay: React.FC = () => {
         console.log('👋 Messaggio di benvenuto ricevuto:', event.data);
         if (event.data.organizationName) {
           setOrganizationName(event.data.organizationName);
+        }
+        if (event.data.logoUrl) {
+          setOrganizationLogo(event.data.logoUrl);
         }
         if (event.data.welcomeMessage) {
           setWelcomeMessage(event.data.welcomeMessage);
@@ -185,9 +189,9 @@ const CustomerDisplay: React.FC = () => {
           textAlign: 'center'
         }}>
           <img
-            src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+            src={organizationLogo || "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"}
             alt={organizationName}
-            style={{ height: '40px', marginBottom: '0.5rem' }}
+            style={{ height: '40px', marginBottom: '0.5rem', objectFit: 'contain' }}
           />
           <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
             {currentTime.toLocaleTimeString('it-IT')}
