@@ -488,6 +488,162 @@ export class RewardsService {
       throw error
     }
   }
+
+  /**
+   * Riscatta un premio per un cliente
+   * - Scala i punti dal cliente
+   * - Registra il riscatto nella tabella reward_redemptions
+   * - Aggiorna lo stock del premio se applicabile
+   */
+  async redeemForCustomer(
+    organizationId: string,
+    customerId: string,
+    rewardId: string,
+    customerPoints: number,
+    customerTier: string
+  ): Promise<{success: boolean; redemption?: any; error?: string}> {
+    try {
+      console.log(`🎁 REDEEM: Inizio riscatto premio ${rewardId} per cliente ${customerId}`);
+
+      // 1. Ottieni il premio
+      const reward = await this.getById(rewardId, organizationId);
+      if (!reward) {
+        return { success: false, error: 'Premio non trovato' };
+      }
+
+      if (!reward.is_active) {
+        return { success: false, error: 'Premio non attivo' };
+      }
+
+      // 2. Verifica punti sufficienti
+      if (customerPoints < reward.points_required) {
+        return { success: false, error: 'Punti insufficienti' };
+      }
+
+      // 3. Verifica stock
+      if (reward.stock_quantity !== null && reward.stock_quantity !== undefined && reward.stock_quantity <= 0) {
+        return { success: false, error: 'Premio esaurito' };
+      }
+
+      // 4. Calcola nuovi punti
+      const newPoints = customerPoints - reward.points_required;
+
+      // 5. Aggiorna punti cliente
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({ points: newPoints, updated_at: new Date().toISOString() })
+        .eq('id', customerId)
+        .eq('organization_id', organizationId);
+
+      if (updateError) {
+        console.error('Failed to update customer points:', updateError);
+        return { success: false, error: 'Errore aggiornamento punti cliente' };
+      }
+
+      // 6. Aggiorna stock premio se applicabile
+      if (reward.stock_quantity !== null && reward.stock_quantity !== undefined) {
+        await this.redeemReward(rewardId, organizationId);
+      }
+
+      // 7. Registra riscatto
+      const redemptionData = {
+        organization_id: organizationId,
+        customer_id: customerId,
+        reward_id: rewardId,
+        reward_name: reward.name,
+        reward_type: reward.type,
+        reward_value: String(reward.value),
+        points_spent: reward.points_required,
+        customer_points_before: customerPoints,
+        customer_points_after: newPoints,
+        customer_tier: customerTier,
+        status: 'redeemed',
+        redeemed_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: redemption, error: redemptionError } = await supabase
+        .from('reward_redemptions')
+        .insert(redemptionData)
+        .select()
+        .single();
+
+      if (redemptionError) {
+        console.error('Failed to create redemption record:', redemptionError);
+        // Nota: I punti sono già stati scalati, quindi non possiamo fare rollback completo
+        return { success: false, error: 'Errore registrazione riscatto' };
+      }
+
+      console.log('✅ Premio riscattato con successo!');
+      return { success: true, redemption };
+
+    } catch (error: any) {
+      console.error('Error in RewardsService.redeemForCustomer:', error);
+      return { success: false, error: error.message || 'Errore sconosciuto' };
+    }
+  }
+
+  /**
+   * Ottieni storico riscatti per un cliente
+   */
+  async getRedemptionsByCustomer(customerId: string, organizationId: string, limit: number = 50): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('reward_redemptions')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('organization_id', organizationId)
+        .order('redeemed_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Failed to get customer redemptions:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error: any) {
+      console.error('Error in RewardsService.getRedemptionsByCustomer:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ottieni statistiche riscatti per organizzazione
+   */
+  async getRedemptionStats(organizationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('reward_redemptions')
+        .select('id, points_spent, redeemed_at, status')
+        .eq('organization_id', organizationId);
+
+      if (error) {
+        console.error('Failed to get redemption stats:', error);
+        throw error;
+      }
+
+      const now = new Date();
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+      return {
+        total: data.length,
+        totalPointsSpent: data.reduce((sum, r) => sum + r.points_spent, 0),
+        thisMonth: data.filter(r => new Date(r.redeemed_at) >= monthAgo).length,
+        byStatus: {
+          redeemed: data.filter(r => r.status === 'redeemed').length,
+          used: data.filter(r => r.status === 'used').length,
+          expired: data.filter(r => r.status === 'expired').length,
+          cancelled: data.filter(r => r.status === 'cancelled').length
+        }
+      };
+    } catch (error: any) {
+      console.error('Error in RewardsService.getRedemptionStats:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

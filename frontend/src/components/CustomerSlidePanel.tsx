@@ -36,6 +36,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const [availableRewards, setAvailableRewards] = useState<Reward[]>([]);
   const [allRewards, setAllRewards] = useState<Reward[]>([]);
   const [loadingRewards, setLoadingRewards] = useState(false);
+  const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Carica attività del cliente quando il pannello si apre o cambia cliente
   useEffect(() => {
@@ -93,6 +95,31 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
     loadRewards();
   }, [customer, showRewardsSection, loyaltyTiers]);
+
+  // Carica storico premi riscattati quando si seleziona la vista "redeemed"
+  useEffect(() => {
+    const loadRedemptionHistory = async () => {
+      if (!customer || !showRewardsSection || rewardsView !== 'redeemed') return;
+
+      setLoadingHistory(true);
+      try {
+        const history = await rewardsService.getRedemptionsByCustomer(
+          customer.id,
+          customer.organization_id,
+          20 // Ultime 20 redemptions
+        );
+        setRedemptionHistory(history);
+        console.log(`✅ Caricato storico di ${history.length} premi riscattati per ${customer.name}`);
+      } catch (error) {
+        console.error('❌ Errore caricamento storico:', error);
+        setRedemptionHistory([]);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    loadRedemptionHistory();
+  }, [customer, showRewardsSection, rewardsView]);
 
   if (!customer) return null;
 
@@ -183,17 +210,35 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     try {
       console.log(`🎁 Riscatto premio "${reward.name}" per ${customer.name}...`);
 
-      // TODO: Implementare la logica completa di riscatto:
-      // 1. Scalare i punti dal cliente
-      // 2. Registrare il riscatto nella tabella reward_redemptions
-      // 3. Aggiornare lo stock del premio se applicabile
+      // Calcola tier corrente
+      const currentTier = calculateCustomerTier(customer.points);
 
-      // Per ora mostriamo solo un alert
-      alert(`✅ Premio "${reward.name}" riscattato con successo!\n\nI punti verranno scalati dal tuo account.`);
+      // Chiama API per riscattare il premio
+      const result = await rewardsService.redeemForCustomer(
+        customer.organization_id,
+        customer.id,
+        reward.id,
+        customer.points,
+        currentTier.name
+      );
 
-      // Ricarica i premi
+      if (!result.success) {
+        alert(`❌ Errore: ${result.error}`);
+        return;
+      }
+
+      alert(
+        `✅ Premio "${reward.name}" riscattato con successo!\n\n` +
+        `Punti scalati: -${reward.points_required}\n` +
+        `Nuovi punti: ${customer.points - reward.points_required}`
+      );
+
+      // Chiudi e riapri la sezione per ricaricare i dati
       setShowRewardsSection(false);
       setTimeout(() => setShowRewardsSection(true), 100);
+
+      // Aggiorna il customer display se disponibile
+      updateCustomerDisplay();
 
     } catch (error) {
       console.error('❌ Errore riscatto premio:', error);
@@ -604,28 +649,30 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
                   {/* Lista premi riscattati */}
                   <div className="rewards-history-list">
-                    {/* TODO: Caricare storico premi dal database */}
-                    <div className="reward-history-item">
-                      <div className="reward-history-info">
-                        <Sparkles size={18} className="reward-history-icon" />
-                        <div>
-                          <h5>Caffè Gratuito</h5>
-                          <p className="reward-history-date">15/01/2025</p>
+                    {loadingHistory ? (
+                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Caricamento storico...</p>
+                    ) : redemptionHistory.length === 0 ? (
+                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Nessun premio riscattato ancora</p>
+                    ) : (
+                      redemptionHistory.map(redemption => (
+                        <div key={redemption.id} className="reward-history-item">
+                          <div className="reward-history-info">
+                            <Sparkles size={18} className="reward-history-icon" />
+                            <div>
+                              <h5>{redemption.reward_name}</h5>
+                              <p className="reward-history-date">
+                                {new Date(redemption.redeemed_at).toLocaleDateString('it-IT', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="reward-history-points">-{redemption.points_spent} pt</span>
                         </div>
-                      </div>
-                      <span className="reward-history-points">-100 pt</span>
-                    </div>
-
-                    <div className="reward-history-item">
-                      <div className="reward-history-info">
-                        <Sparkles size={18} className="reward-history-icon" />
-                        <div>
-                          <h5>Sconto 5€</h5>
-                          <p className="reward-history-date">10/01/2025</p>
-                        </div>
-                      </div>
-                      <span className="reward-history-points">-200 pt</span>
-                    </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
