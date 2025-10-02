@@ -34,7 +34,7 @@ interface POSSidebarProps {
   onClose: () => void;
   activeSection: string;
   onSectionChange: (section: string) => void;
-  currentOrganization?: { plan_type?: string } | null;
+  currentOrganization?: { plan_type?: string; logo_url?: string; name?: string } | null;
 }
 
 const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange, currentOrganization }) => {
@@ -156,11 +156,21 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       <div className={`pos-sidebar ${isOpen ? 'pos-sidebar-open' : ''}`}>
         {/* Header Sidebar */}
         <div className="pos-sidebar-header">
-          <img
-            src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
-            alt="OMNILY PRO"
-            className="pos-sidebar-logo"
-          />
+          {currentOrganization?.logo_url ? (
+            <div className="pos-org-logo">
+              <img
+                src={currentOrganization.logo_url}
+                alt={currentOrganization.name || 'Logo'}
+                className="pos-sidebar-logo"
+              />
+            </div>
+          ) : (
+            <img
+              src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+              alt="OMNILY PRO"
+              className="pos-sidebar-logo"
+            />
+          )}
           <div className="pos-sidebar-user">
             <div className="pos-user-email">{user?.email}</div>
             <div className="pos-user-role">POS Operator</div>

@@ -860,6 +860,353 @@ Con il completamento del sistema ZCS e MDM Dashboard, il progetto OMNILY PRO ha 
 
 ---
 
+### ✅ **COMPLETATO 3 Ottobre 2025 - Sistema Upload Logo & UI Sidebar Miglioramenti**
+
+**🎊 MILESTONE RAGGIUNTI:**
+
+#### **🖼️ Sistema Upload Logo Organizzazioni:**
+- ✅ **File Upload da PC**: Implementato caricamento logo diretto da file system locale
+- ✅ **Supabase Storage Integration**: Upload in bucket IMG con folder logos/ dedicato
+- ✅ **RLS Policies**: Create policy per bucket IMG (INSERT/SELECT/UPDATE/DELETE authenticated)
+- ✅ **Validazione File**: Controllo tipo immagine e limite 2MB per sicurezza
+- ✅ **Preview Live**: Anteprima immediata logo caricato prima del salvataggio
+- ✅ **Database Migration**: File 016_add_img_bucket_policies.sql con policy complete
+
+#### **✨ Miglioramenti UI Sidebar Organizzazioni:**
+- ✅ **Logo Sizing**: Incremento dimensioni logo da 60x140px a 120x180px per visibilità
+- ✅ **Focus State Fix**: Cambiato outline focus button sidebar da nero a bianco semitrasparente
+- ✅ **CSS Optimization**: Rimozione filtri CSS che rendevano logo invisibile
+- ✅ **Responsive Layout**: Layout ottimizzato per logo grandi senza overflow
+- ✅ **Important Flags**: Uso !important per forzare dimensioni logo corrette
+
+**📊 Risultati Tecnici:**
+
+#### **Frontend Upload Component (AccountSettingsPanel.tsx):**
+```typescript
+const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+
+  // Validazione tipo e dimensione
+  if (!file.type.startsWith('image/')) {
+    alert('Per favore seleziona un file immagine');
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Il file deve essere inferiore a 2MB');
+    return;
+  }
+
+  // Upload a Supabase Storage
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${organization.id}-${Date.now()}.${fileExt}`;
+  const filePath = `logos/${fileName}`;
+
+  const { data, error } = await supabase.storage
+    .from('IMG')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('IMG')
+    .getPublicUrl(filePath);
+
+  setFormData({ ...formData, logo_url: publicUrl });
+};
+```
+
+#### **Database Migration (016_add_img_bucket_policies.sql):**
+```sql
+-- Allow public SELECT (anyone can view images)
+CREATE POLICY "Public access to IMG bucket"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'IMG');
+
+-- Allow authenticated users to INSERT (upload)
+CREATE POLICY "Authenticated users can upload to IMG"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'IMG');
+
+-- Allow authenticated users to UPDATE/DELETE
+CREATE POLICY "Authenticated users can update IMG files"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'IMG');
+
+CREATE POLICY "Authenticated users can delete IMG files"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'IMG');
+```
+
+#### **CSS Sidebar Improvements (OrganizationsDashboard.css):**
+```css
+.org-logo {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  padding: 0;
+}
+
+.org-logo img {
+  width: 180px !important;
+  height: 120px !important;
+  object-fit: contain !important;
+}
+
+.nav-item {
+  outline: none;
+}
+
+.nav-item:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: -2px;
+}
+```
+
+**🔧 Problemi Risolti:**
+
+1. **RLS Policy Violation**: IMG bucket non aveva policy, impediva upload
+   - Fix: Migration 016 con policy complete per authenticated users
+
+2. **Logo Invisibile**: CSS filter brightness(0) invert(1) rendeva logo bianco
+   - Fix: Rimosso filter, logo ora visibile correttamente
+
+3. **Logo Troppo Piccolo**: Dimensioni 60x140px insufficienti per leggibilità
+   - Fix: Aumentato a 120x180px con !important per forzare dimensioni
+
+4. **Focus Outline Nero**: Border nero antiestetico quando si clicca menu
+   - Fix: Outline bianco semitrasparente rgba(255, 255, 255, 0.5)
+
+**🎯 Business Impact:**
+- **Brand Identity**: Organizzazioni possono caricare logo custom per branding
+- **Self-Service Setup**: Configurazione autonoma logo senza supporto tecnico
+- **Professional Look**: UI sidebar migliorata con logo grandi e focus states eleganti
+- **Storage Organization**: Logo organizzati in folder dedicato IMG/logos/
+
+**📈 UX Improvements:**
+- Upload logo intuitivo con drag & drop styled button
+- Validazione file con feedback immediato utente
+- Preview live logo prima del salvataggio
+- Hint dimensioni e formati supportati
+- Alert di conferma post-upload
+
+**📊 Commit References:**
+- Storage Policies: Commit 016_add_img_bucket_policies.sql migration
+- Logo Upload: Commit implementazione handleLogoUpload in AccountSettingsPanel
+- CSS Fixes: Commit 40cc7f6 - Logo sizing e focus state improvements
+- Final Push: Commit con tutte le modifiche integrate
+
+#### **👥 Sistema Gestione Utenti Admin Dashboard:**
+- ✅ **Dashboard Gestione Utenti**: Interfaccia completa per creazione e gestione utenti organizzazione
+- ✅ **Workflow Attivazione 2-Step**: Sistema invio email + conferma attivazione account
+- ✅ **Form Creazione Utenti**: Form completo con validazione ruoli (admin, manager, cashier)
+- ✅ **Modal Azioni Utente**: Modal professionale per modifica ruolo, sospensione, eliminazione
+- ✅ **Tabella Utenti Responsive**: Colonne azioni con larghezza minima per evitare tagli
+- ✅ **Servizio Utenti**: userService con metodi CRUD completi (create, suspend, delete, updateRole)
+- ✅ **Database Integration**: Integrazione completa con tabella `users` e gestione `auth_id`
+
+#### **🏢 Sistema CRM Avanzato per B2B:**
+- ✅ **CRM Leads Dashboard**: Dashboard completa gestione lead aziendali
+- ✅ **Pipeline Kanban**: Sistema drag & drop lead attraverso stati (New, Contacted, Qualified, Won, Lost)
+- ✅ **Modal Cliente B2B**: Form creazione cliente adattato per aziende con titolare
+- ✅ **Database CRM**: Tabelle `crm_leads` e `crm_customers` con servizi dedicati
+- ✅ **Statistiche Real-time**: Card metriche con conversion rate, lead value, follow-ups
+- ✅ **Responsive Layout**: Pipeline scroll orizzontale ottimizzato per desktop wide
+- ✅ **Tab Navigation**: Overview, Clienti, Segmenti, Campagne, Analytics
+
+#### **🎨 UI/UX Admin Area Improvements:**
+- ✅ **Redesign Login Page**: Split-screen moderna con illustrazione e gradiente brand
+- ✅ **Unified Design System**: Colori uniformi blu (#2563eb) per tutto l'admin area
+- ✅ **PageLoader Elegante**: Sostituiti tutti gli spinner con loader professionale con logo
+- ✅ **Full-Width Dashboards**: Rimosso navbar e padding per massimizzare spazio utilizzabile
+- ✅ **Responsive Grids**: Auto-fit minmax per adattamento fluido a tutte le risoluzioni
+- ✅ **Focus States**: Outline e transizioni professionali su tutti gli elementi interattivi
+
+**📊 Risultati Tecnici Admin:**
+
+#### **User Management Service (userService.ts):**
+```typescript
+export const userService = {
+  async createUser(userData: CreateUserData) {
+    // Step 1: Crea utente in tabella users
+    const { data: user, error } = await supabase
+      .from('users')
+      .insert({
+        email: userData.email,
+        full_name: userData.full_name,
+        role: userData.role,
+        organization_id: userData.organization_id,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    // Step 2: Invia email attivazione account
+    await this.sendActivationEmail(user.id, userData.email);
+
+    return user;
+  },
+
+  async suspendUser(userId: string) {
+    return await supabase
+      .from('users')
+      .update({ status: 'suspended' })
+      .eq('id', userId);
+  },
+
+  async updateUserRole(userId: string, newRole: string) {
+    return await supabase
+      .from('users')
+      .update({ role: newRole })
+      .eq('id', userId);
+  }
+};
+```
+
+#### **CRM Service (crmService.ts):**
+```typescript
+export const crmService = {
+  async createLead(leadData: CreateLeadData) {
+    return await supabase
+      .from('crm_leads')
+      .insert({
+        company_name: leadData.company_name,
+        contact_name: leadData.contact_name,
+        email: leadData.email,
+        phone: leadData.phone,
+        status: 'new',
+        source: leadData.source,
+        estimated_value: leadData.estimated_value
+      })
+      .select()
+      .single();
+  },
+
+  async updateLeadStatus(leadId: string, newStatus: string) {
+    return await supabase
+      .from('crm_leads')
+      .update({ status: newStatus })
+      .eq('id', leadId);
+  },
+
+  async convertLeadToCustomer(leadId: string) {
+    // 1. Get lead data
+    const { data: lead } = await supabase
+      .from('crm_leads')
+      .select('*')
+      .eq('id', leadId)
+      .single();
+
+    // 2. Create customer
+    const { data: customer } = await supabase
+      .from('crm_customers')
+      .insert({
+        company_name: lead.company_name,
+        contact_name: lead.contact_name,
+        email: lead.email,
+        phone: lead.phone,
+        status: 'active'
+      })
+      .select()
+      .single();
+
+    // 3. Update lead status
+    await this.updateLeadStatus(leadId, 'won');
+
+    return customer;
+  }
+};
+```
+
+#### **Admin Login Redesign (LoginForm.css):**
+```css
+.login-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 3rem;
+}
+
+.login-illustration-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 3rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+```
+
+**🔧 Problemi Risolti Admin:**
+
+1. **Gestione Utenti Mancante**: Nessun modo per creare utenti organizzazione
+   - Fix: Dashboard completa con form, tabella, modal azioni
+
+2. **CRM Non Funzionante**: Database vuoto, nessuna integrazione reale
+   - Fix: Tabelle CRM, servizi completi, pipeline Kanban funzionante
+
+3. **Spinner Brutti**: Loading states inconsistenti e antiestetici
+   - Fix: PageLoader uniforme con logo OMNILY PRO e animazioni smooth
+
+4. **Layout Ristretto**: Navbar e padding sprecavano spazio prezioso
+   - Fix: Full-width dashboards, rimosso navbar admin, zero padding
+
+5. **Colori Caotici**: Mix di rosso, blu, verde senza coerenza
+   - Fix: Unified design system blu (#2563eb) per tutta l'admin area
+
+6. **Login Brutto**: Form semplice senza branding
+   - Fix: Split-screen moderna con illustrazione e gradiente professionale
+
+**🎯 Business Impact Admin:**
+- **User Onboarding**: Admin possono creare utenti e invitare team members
+- **B2B Sales Pipeline**: Sistema CRM completo per gestione lead aziendali
+- **Professional Branding**: Admin area con design coerente e professionale
+- **Operational Efficiency**: Dashboard ottimizzati per produttività massima
+
+**📈 Admin UX Improvements:**
+- Workflow attivazione utenti con email automatiche
+- Kanban pipeline drag & drop per gestione lead visuale
+- Modal azioni utente con conferme e validazioni
+- Loading states eleganti con logo brand
+- Responsive layout per schermi wide desktop
+
+**📊 Commit References Admin:**
+- User Management: Commit ceea8a6 - Gestione utenti con workflow 2-step
+- CRM Implementation: Commit 5cbcc90 - CRM completo con database reale
+- Login Redesign: Commit e5dd7df - Login moderna professionale
+- Design System: Commit d7fed8a - Unified OMNILY Pro design system
+- PageLoader: Commit 09eb0e4 - Sostituzione spinner con PageLoader elegante
+- Full-Width: Commit 7489a40 - Dashboard admin senza limitazioni larghezza
+
+**📅 Prossimo Step (4 Ottobre 2025):** Sistema admin completo con gestione utenti, CRM, e UI professionale. Focus su testing workflow email attivazione e integrazione pipeline CRM con notifiche
+
+---
+
 ### ✅ **COMPLETATO 23 Settembre 2025 - QR Scanner ZXing & Menu POS Completo**
 
 **🎊 MILESTONE RAGGIUNTI:**
