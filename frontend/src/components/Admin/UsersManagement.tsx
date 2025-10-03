@@ -78,12 +78,15 @@ const UsersManagement: React.FC = () => {
     if (!selectedUser) return
 
     try {
-      // @ts-ignore - temp_password exists in database but not in type
+      console.log('🔍 Selected user:', selectedUser)
       const tempPassword = selectedUser.temp_password
 
       if (!tempPassword) {
+        console.error('❌ temp_password non trovato:', selectedUser)
         setErrorMessage('Password temporanea non trovata. Ricrea l\'utente.')
         setShowErrorMessage(true)
+        setShowConfirmActivate(false)
+        setSelectedUser(null)
         return
       }
 
@@ -91,6 +94,8 @@ const UsersManagement: React.FC = () => {
 
       setSuccessMessage(`Account attivato con successo! ${selectedUser.email} può ora accedere al sistema.`)
       setShowSuccessMessage(true)
+      setShowConfirmActivate(false)
+      setSelectedUser(null)
 
       // Reload data
       await loadData()
@@ -98,6 +103,8 @@ const UsersManagement: React.FC = () => {
       console.error('Error activating user:', error)
       setErrorMessage(error.message || 'Errore durante l\'attivazione dell\'account')
       setShowErrorMessage(true)
+      setShowConfirmActivate(false)
+      setSelectedUser(null)
     }
   }
 
@@ -404,7 +411,7 @@ const UsersManagement: React.FC = () => {
       <ConfirmModal
         isOpen={showConfirmActivate}
         title="Attiva Account"
-        message={`Sei sicuro di voler attivare l'account per ${selectedUser?.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login con le credenziali impostate.`}
+        message={`Sei sicuro di voler attivare l'account per ${selectedUser?.full_name || selectedUser?.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login con le credenziali impostate.`}
         confirmText="Attiva Account"
         cancelText="Annulla"
         type="info"
