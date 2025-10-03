@@ -1236,6 +1236,12 @@
   max-width: 300px;
 }
 
+.footer-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
 .footer-logo {
   display: flex;
   align-items: center;
