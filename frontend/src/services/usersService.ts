@@ -169,6 +169,7 @@ export class UsersService {
         .update({
           id: authData.user.id, // Link auth user ID
           is_active: true,
+          status: 'active',
           temp_password: null // Remove temp password
         })
         .eq('id', userId)
