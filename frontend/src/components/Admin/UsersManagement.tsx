@@ -411,7 +411,7 @@ const UsersManagement: React.FC = () => {
       <ConfirmModal
         isOpen={showConfirmActivate}
         title="Attiva Account"
-        message={`Sei sicuro di voler attivare l'account per ${selectedUser?.full_name || selectedUser?.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login con le credenziali impostate.`}
+        message={`Sei sicuro di voler attivare l'account per ${selectedUser?.email}?\n\nVerrà creato l'account Supabase Auth e l'utente potrà fare login con le credenziali impostate.`}
         confirmText="Attiva Account"
         cancelText="Annulla"
         type="info"
