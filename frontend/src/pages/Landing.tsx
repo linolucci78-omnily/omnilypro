@@ -398,23 +398,26 @@ const Landing: React.FC = () => {
           <div className="pricing-cards">
             <div className="pricing-card-enhanced">
               <div className="pricing-header">
-                <h3>Starter</h3>
+                <h3>Basic</h3>
                 <div className="pricing-price-large">
                   <span className="price-currency">€</span>
-                  <span className="price-amount">0</span>
-                  <span className="price-period">/30 giorni</span>
+                  <span className="price-amount">49</span>
+                  <span className="price-period">/mese</span>
                 </div>
-                <p className="pricing-desc">Perfetto per testare la piattaforma</p>
+                <p className="pricing-desc">Il Negozio Smart - Setup €299 una tantum</p>
               </div>
               <ul className="pricing-features-enhanced">
+                <li><CheckCircle size={18} /> POS Z108 completo incluso</li>
                 <li><CheckCircle size={18} /> Fino a 500 clienti</li>
-                <li><CheckCircle size={18} /> 3 campagne loyalty</li>
+                <li><CheckCircle size={18} /> 100 tessere NFC personalizzate</li>
+                <li><CheckCircle size={18} /> Stampa scontrini automatica</li>
+                <li><CheckCircle size={18} /> AI Customer segmentation</li>
+                <li><CheckCircle size={18} /> Email & SMS automation</li>
                 <li><CheckCircle size={18} /> Dashboard analytics</li>
-                <li><CheckCircle size={18} /> Email support</li>
-                <li><CheckCircle size={18} /> Branding base</li>
+                <li><CheckCircle size={18} /> Email support 24h</li>
               </ul>
               <Link to="/login" className="pricing-button outline">
-                Inizia Gratis
+                Inizia Ora
               </Link>
             </div>
 
@@ -424,23 +427,23 @@ const Landing: React.FC = () => {
                 Più Popolare
               </div>
               <div className="pricing-header">
-                <h3>Professional</h3>
+                <h3>Pro</h3>
                 <div className="pricing-price-large">
                   <span className="price-currency">€</span>
-                  <span className="price-amount">299</span>
+                  <span className="price-amount">99</span>
                   <span className="price-period">/mese</span>
                 </div>
-                <p className="pricing-desc">Per aziende che vogliono crescere</p>
+                <p className="pricing-desc">Il Business Digitale AI-Powered - Setup €299</p>
               </div>
               <ul className="pricing-features-enhanced">
-                <li><CheckCircle size={18} /> Fino a 10.000 clienti</li>
-                <li><CheckCircle size={18} /> Campagne illimitate</li>
-                <li><CheckCircle size={18} /> Analytics avanzate + AI</li>
+                <li><CheckCircle size={18} /> Tutto del Basic +</li>
+                <li><CheckCircle size={18} /> Gift Cards & Referral</li>
+                <li><CheckCircle size={18} /> WhatsApp Business integration</li>
+                <li><CheckCircle size={18} /> AI Marketing automation</li>
+                <li><CheckCircle size={18} /> AI Revenue optimization</li>
+                <li><CheckCircle size={18} /> Gestione fino a 3 sedi</li>
                 <li><CheckCircle size={18} /> API & Webhook completi</li>
-                <li><CheckCircle size={18} /> Support prioritario (4h)</li>
-                <li><CheckCircle size={18} /> White-label completo</li>
-                <li><CheckCircle size={18} /> Multi-location</li>
-                <li><CheckCircle size={18} /> Automazioni marketing</li>
+                <li><CheckCircle size={18} /> Support telefono 4h</li>
               </ul>
               <Link to="/login" className="pricing-button primary">
                 Inizia Subito
@@ -452,19 +455,21 @@ const Landing: React.FC = () => {
               <div className="pricing-header">
                 <h3>Enterprise</h3>
                 <div className="pricing-price-large">
-                  <span className="price-amount">Custom</span>
+                  <span className="price-currency">€</span>
+                  <span className="price-amount">199</span>
+                  <span className="price-period">/mese</span>
                 </div>
-                <p className="pricing-desc">Soluzioni su misura per grandi aziende</p>
+                <p className="pricing-desc">L'Ecosistema Business Completo AI - Setup €299</p>
               </div>
               <ul className="pricing-features-enhanced">
-                <li><CheckCircle size={18} /> Clienti illimitati</li>
-                <li><CheckCircle size={18} /> Multi-tenant completo</li>
-                <li><CheckCircle size={18} /> SLA 99.99% garantito</li>
+                <li><CheckCircle size={18} /> Tutto del Pro +</li>
+                <li><CheckCircle size={18} /> AI Custom model training</li>
+                <li><CheckCircle size={18} /> White label completo</li>
+                <li><CheckCircle size={18} /> E-commerce integrato</li>
+                <li><CheckCircle size={18} /> Multi-location illimitato</li>
                 <li><CheckCircle size={18} /> Account manager dedicato</li>
-                <li><CheckCircle size={18} /> Onboarding personalizzato</li>
-                <li><CheckCircle size={18} /> Support 24/7</li>
-                <li><CheckCircle size={18} /> Infrastructure dedicata</li>
-                <li><CheckCircle size={18} /> Contratti personalizzati</li>
+                <li><CheckCircle size={18} /> Support priority 1h</li>
+                <li><CheckCircle size={18} /> SLA 99.9% uptime</li>
               </ul>
               <button className="pricing-button outline">
                 <Phone size={18} />
