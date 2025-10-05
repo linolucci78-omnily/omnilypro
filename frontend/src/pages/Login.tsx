@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getAdminPermissions, AdminRole } from '../utils/adminPermissions';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
 const Login: React.FC = () => {
@@ -12,7 +13,7 @@ const Login: React.FC = () => {
   const [message, setMessage] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
 
-  const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin, loading: authLoading } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin, userRole, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,20 +30,20 @@ const Login: React.FC = () => {
 
     // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect
     if (user && !authLoading) {
-      // CORREZIONE: Super admin va al dashboard admin, altri al dashboard normale
       let redirectPath = '/dashboard'; // Default per utenti normali
 
-      // Se è super admin, vai al dashboard admin
-      if (isSuperAdmin) {
-        redirectPath = '/admin';
-        console.log('🔐 Super admin login redirect to /admin');
+      // Se è un admin OMNILY PRO (super_admin, sales_agent, account_manager)
+      if (isSuperAdmin || userRole) {
+        const permissions = getAdminPermissions(userRole as AdminRole);
+        redirectPath = permissions.defaultRoute;
+        console.log('🔐 Admin login redirect:', { userRole, redirectPath });
       }
       // Se è modalità POS, vai al dashboard aziendale
       else if (isPosMode) {
         redirectPath = '/dashboard'; // Dashboard aziendale per POS
       }
 
-      console.log('🔐 Login redirect:', { isSuperAdmin, redirectPath, authLoading });
+      console.log('🔐 Login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading });
 
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });

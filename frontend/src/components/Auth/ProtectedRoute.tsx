@@ -1,6 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { canAccessRoute, AdminRole } from '../../utils/adminPermissions'
 import PageLoader from '../UI/PageLoader'
 
 interface ProtectedRouteProps {
@@ -32,6 +33,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       return <Navigate to="/login?posomnily=true" state={{ from: location }} replace />
     }
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // Controlla permessi per rotte admin
+  if (location.pathname.startsWith('/admin')) {
+    const hasAccess = canAccessRoute(userRole as AdminRole, location.pathname)
+
+    if (!hasAccess) {
+      console.log('🚫 Access denied to', location.pathname, 'for role', userRole)
+      // Redirect alla rotta di default per il ruolo
+      const { getAdminPermissions } = require('../../utils/adminPermissions')
+      const permissions = getAdminPermissions(userRole as AdminRole)
+      return <Navigate to={permissions.defaultRoute} replace />
+    }
   }
 
   return <>{children}</>
