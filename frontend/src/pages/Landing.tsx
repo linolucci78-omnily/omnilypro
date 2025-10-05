@@ -102,8 +102,8 @@ const Landing: React.FC = () => {
             </h1>
 
             <p className="hero-description">
-              OMNILY PRO è la piattaforma SaaS enterprise che trasforma i tuoi clienti in fan fedeli.
-              ROI garantito, setup in 24 ore, zero rischio con 30 giorni di prova gratuita.
+              OMNILY PRO è l'ecosistema completo Hardware + Software + AI che trasforma i tuoi clienti in fan fedeli.
+              Lettore NFC, stampante termica, loyalty integrato. ROI garantito, setup in 24 ore.
             </p>
 
             <div className="hero-cta">
@@ -342,13 +342,13 @@ const Landing: React.FC = () => {
               <div className="feature-icon-large">
                 <Smartphone size={40} />
               </div>
-              <h3>Omnichannel Experience</h3>
-              <p>POS, e-commerce, app mobile e web portal integrati per un'esperienza cliente seamless su tutti i touchpoint.</p>
+              <h3>Ecosistema Hardware Integrato</h3>
+              <p>Hardware Z108 professionale con lettore NFC, stampante termica, scanner QR e touchscreen integrati in un unico dispositivo all-in-one.</p>
               <ul className="feature-benefits">
-                <li><Check size={16} /> POS integration nativa</li>
-                <li><Check size={16} /> E-commerce plugins</li>
-                <li><Check size={16} /> Mobile app SDK</li>
-                <li><Check size={16} /> Web portal white-label</li>
+                <li><Check size={16} /> Lettore NFC tessere loyalty</li>
+                <li><Check size={16} /> Stampante termica integrata</li>
+                <li><Check size={16} /> Scanner QR e barcode</li>
+                <li><Check size={16} /> Touchscreen 7" HD</li>
               </ul>
             </div>
 
@@ -407,14 +407,14 @@ const Landing: React.FC = () => {
                 <p className="pricing-desc">Il Negozio Smart - Setup €299 una tantum</p>
               </div>
               <ul className="pricing-features-enhanced">
-                <li><CheckCircle size={18} /> POS Z108 completo incluso</li>
-                <li><CheckCircle size={18} /> Fino a 500 clienti</li>
-                <li><CheckCircle size={18} /> 100 tessere NFC personalizzate</li>
-                <li><CheckCircle size={18} /> Stampa scontrini automatica</li>
+                <li><CheckCircle size={18} /> Ecosistema Hardware Completo Z108</li>
+                <li><CheckCircle size={18} /> Lettore NFC + Stampante Termica</li>
+                <li><CheckCircle size={18} /> 100 tessere NFC brandizzate</li>
+                <li><CheckCircle size={18} /> Fino a 500 clienti attivi</li>
+                <li><CheckCircle size={18} /> Sistema Loyalty integrato</li>
                 <li><CheckCircle size={18} /> AI Customer segmentation</li>
                 <li><CheckCircle size={18} /> Email & SMS automation</li>
-                <li><CheckCircle size={18} /> Dashboard analytics</li>
-                <li><CheckCircle size={18} /> Email support 24h</li>
+                <li><CheckCircle size={18} /> Dashboard analytics real-time</li>
               </ul>
               <Link to="/login" className="pricing-button outline">
                 Inizia Ora
@@ -687,7 +687,7 @@ const Landing: React.FC = () => {
                 className="logo-image-footer"
               />
             </div>
-            <p>La piattaforma enterprise per la customer loyalty che genera ROI reale.</p>
+            <p>L'ecosistema completo Hardware + Software + AI per la customer loyalty che genera ROI reale.</p>
           </div>
 
           <div className="footer-links">
