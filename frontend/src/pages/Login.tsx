@@ -48,7 +48,7 @@ const Login: React.FC = () => {
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location, isPosMode, isSuperAdmin, authLoading]);
+  }, [user, navigate, location, isPosMode, isSuperAdmin, userRole, authLoading]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
