@@ -41,8 +41,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 Checking user role for:', userId)
 
     try {
-      // Add timeout to prevent infinite loading
-      console.log('🔐 Starting role query...')
+      // PRIMA: Controlla nella tabella users (per admin OMNILY PRO)
+      console.log('🔐 Checking users table...')
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role, status')
+        .eq('id', userId)
+        .single()
+
+      console.log('🔐 Users table result:', userData, 'Error:', userError)
+
+      // Se trovato nella tabella users, usa quel ruolo
+      if (userData && userData.role) {
+        console.log('🔐 Admin OMNILY PRO found with role:', userData.role)
+        setUserRole(userData.role)
+        setIsSuperAdmin(userData.role === 'super_admin')
+        return
+      }
+
+      // SECONDA: Se non trovato in users, controlla organization_users
+      console.log('🔐 Checking organization_users table...')
 
       const queryPromise = supabase
         .from('organization_users')
@@ -58,13 +76,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timeoutPromise
       ]) as any
 
-      console.log('🔐 Query completed. All user roles:', allRoles, 'Error:', allError)
+      console.log('🔐 Organization roles:', allRoles, 'Error:', allError)
 
       // Check specifically for super admin
       const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
 
       if (superAdminRole) {
-        console.log('🔐 Super admin found!', superAdminRole)
+        console.log('🔐 Super admin found in organization_users!', superAdminRole)
         setUserRole('super_admin')
         setIsSuperAdmin(true)
         return
@@ -73,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If no super admin, use first role found
       if (allRoles && allRoles.length > 0) {
         const firstRole = allRoles[0]
-        console.log('🔐 Regular role found:', firstRole.role)
+        console.log('🔐 Organization role found:', firstRole.role)
         setUserRole(firstRole.role)
         setIsSuperAdmin(firstRole.role === 'super_admin')
       } else {
