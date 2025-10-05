@@ -42,22 +42,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // PRIMA: Controlla nella tabella users (per admin OMNILY PRO)
-      console.log('🔐 Checking users table...')
+      console.log('🔐 Checking users table for userId:', userId)
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('role, status')
+        .select('role, status, email')
         .eq('id', userId)
         .single()
 
-      console.log('🔐 Users table result:', userData, 'Error:', userError)
+      console.log('🔐 Users table result:', {
+        data: userData,
+        error: userError,
+        errorDetails: userError?.message,
+        errorCode: userError?.code
+      })
 
       // Se trovato nella tabella users, usa quel ruolo
-      if (userData && userData.role) {
-        console.log('🔐 Admin OMNILY PRO found with role:', userData.role)
+      if (userData && userData.role && !userError) {
+        console.log('✅ Admin OMNILY PRO found with role:', userData.role, 'Email:', userData.email)
         setUserRole(userData.role)
         setIsSuperAdmin(userData.role === 'super_admin')
         return
       }
+
+      console.log('⚠️ Not found in users table, checking organization_users...')
 
       // SECONDA: Se non trovato in users, controlla organization_users
       console.log('🔐 Checking organization_users table...')
