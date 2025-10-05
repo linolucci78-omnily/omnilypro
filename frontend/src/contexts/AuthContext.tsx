@@ -43,25 +43,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // PRIMA: Controlla nella tabella users (per admin OMNILY PRO)
       console.log('🔐 Checking users table for userId:', userId)
-      const { data: userData, error: userError } = await supabase
+
+      const usersQueryPromise = supabase
         .from('users')
         .select('role, status, email')
         .eq('id', userId)
         .single()
 
-      console.log('🔐 Users table result:', {
-        data: userData,
-        error: userError,
-        errorDetails: userError?.message,
-        errorCode: userError?.code
-      })
+      const usersTimeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Users query timeout after 3s')), 3000)
+      )
 
-      // Se trovato nella tabella users, usa quel ruolo
-      if (userData && userData.role && !userError) {
-        console.log('✅ Admin OMNILY PRO found with role:', userData.role, 'Email:', userData.email)
-        setUserRole(userData.role)
-        setIsSuperAdmin(userData.role === 'super_admin')
-        return
+      try {
+        const { data: userData, error: userError } = await Promise.race([
+          usersQueryPromise,
+          usersTimeoutPromise
+        ]) as any
+
+        console.log('🔐 Users table result:', {
+          data: userData,
+          error: userError,
+          errorDetails: userError?.message,
+          errorCode: userError?.code
+        })
+
+        // Se trovato nella tabella users, usa quel ruolo
+        if (userData && userData.role && !userError) {
+          console.log('✅ Admin OMNILY PRO found with role:', userData.role, 'Email:', userData.email)
+          setUserRole(userData.role)
+          setIsSuperAdmin(userData.role === 'super_admin')
+          return
+        }
+      } catch (usersErr) {
+        console.log('⚠️ Users table query timeout or error:', usersErr)
       }
 
       console.log('⚠️ Not found in users table, checking organization_users...')
