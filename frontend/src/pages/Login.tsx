@@ -29,7 +29,14 @@ const Login: React.FC = () => {
     }
 
     // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect
+    // Per admin, aspetta anche che userRole sia stato caricato
     if (user && !authLoading) {
+      // Se isSuperAdmin è true ma userRole è ancora null, aspetta
+      if (isSuperAdmin && !userRole) {
+        console.log('🔐 Waiting for userRole to be loaded...');
+        return;
+      }
+
       let redirectPath = '/dashboard'; // Default per utenti normali
 
       // Se è un admin OMNILY PRO (super_admin, sales_agent, account_manager)
