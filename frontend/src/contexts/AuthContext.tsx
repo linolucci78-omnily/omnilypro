@@ -91,8 +91,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If timeout or other error, set defaults but stop loading
       setUserRole(null)
       setIsSuperAdmin(false)
-
-      // Don't stay in loading state forever
+    } finally {
+      // Always stop loading at the end
       setLoading(false)
     }
   }
@@ -105,9 +105,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (session?.user) {
         await checkUserRole(session.user.id)
+      } else {
+        setLoading(false)
       }
-
-      setLoading(false)
     })
 
     // Listen for auth changes
