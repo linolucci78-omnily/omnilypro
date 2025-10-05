@@ -60,11 +60,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
   if (!isOpen) return null
 
   const roles = [
-    { value: 'super_admin', label: 'Super Admin', description: 'Accesso completo a tutto il sistema' },
-    { value: 'sales_agent', label: 'Agente Vendite', description: 'Accesso solo al CRM e gestione lead' },
-    { value: 'account_manager', label: 'Account Manager', description: 'Gestione clienti esistenti e supporto' },
-    { value: 'organization_owner', label: 'Proprietario Organizzazione', description: 'Accesso alla propria organizzazione' },
-    { value: 'organization_staff', label: 'Staff Organizzazione', description: 'Permessi limitati nell\'organizzazione' }
+    { value: 'super_admin', label: 'Super Admin', description: 'Accesso completo a tutto il sistema OMNILY PRO' },
+    { value: 'sales_agent', label: 'Agente Vendite', description: 'Accesso solo al CRM e gestione lead/vendite' },
+    { value: 'account_manager', label: 'Account Manager', description: 'Gestione clienti esistenti, supporto e analytics' }
   ]
 
   const selectedRoleInfo = roles.find(r => r.value === formData.role)
@@ -199,26 +197,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
                       </ul>
                     )}
 
-                    {formData.role === 'organization_owner' && (
-                      <ul>
-                        <li>✓ Dashboard propria organizzazione</li>
-                        <li>✓ Gestione clienti loyalty</li>
-                        <li>✓ Campagne marketing</li>
-                        <li>✓ Analytics organizzazione</li>
-                        <li>✗ Accesso altre organizzazioni</li>
-                        <li>✗ Sezioni amministrative</li>
-                      </ul>
-                    )}
-
-                    {formData.role === 'organization_staff' && (
-                      <ul>
-                        <li>✓ Dashboard organizzazione (limitato)</li>
-                        <li>✓ Visualizzazione clienti</li>
-                        <li>✗ Modifica configurazioni</li>
-                        <li>✗ Gestione utenti org</li>
-                        <li>✗ Accesso amministrativo</li>
-                      </ul>
-                    )}
                   </div>
                 </div>
               )}

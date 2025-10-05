@@ -142,9 +142,7 @@ const UsersManagement: React.FC = () => {
     const labels: { [key: string]: string } = {
       'super_admin': 'Super Admin',
       'sales_agent': 'Agente Vendite',
-      'account_manager': 'Account Manager',
-      'organization_owner': 'Proprietario Org',
-      'organization_staff': 'Staff Org'
+      'account_manager': 'Account Manager'
     }
     return labels[role] || role
   }
@@ -153,9 +151,7 @@ const UsersManagement: React.FC = () => {
     const colors: { [key: string]: string } = {
       'super_admin': '#dc2626',
       'sales_agent': '#3b82f6',
-      'account_manager': '#8b5cf6',
-      'organization_owner': '#059669',
-      'organization_staff': '#64748b'
+      'account_manager': '#8b5cf6'
     }
     return colors[role] || '#64748b'
   }
@@ -263,8 +259,6 @@ const UsersManagement: React.FC = () => {
           <option value="super_admin">Super Admin</option>
           <option value="sales_agent">Agente Vendite</option>
           <option value="account_manager">Account Manager</option>
-          <option value="organization_owner">Proprietario Org</option>
-          <option value="organization_staff">Staff Org</option>
         </select>
       </div>
 
