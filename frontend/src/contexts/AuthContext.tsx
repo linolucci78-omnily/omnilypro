@@ -41,8 +41,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 Checking user role for:', userId)
 
     try {
-      // Controlla organization_users
-      console.log('🔐 Starting role query...')
+      // STEP 1: Check users table (Admin OMNILY PRO: super_admin, sales_agent, account_manager)
+      console.log('🔐 Checking users table...')
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role, status, email')
+        .eq('id', userId)
+        .maybeSingle() // Use maybeSingle to avoid error if not found
+
+      console.log('🔐 Users table result:', { data: userData, error: userError })
+
+      // If found in users table with active status, use that role
+      if (userData && userData.role && userData.status === 'active') {
+        console.log('✅ Admin OMNILY PRO found:', userData.role, userData.email)
+        setUserRole(userData.role)
+        setIsSuperAdmin(userData.role === 'super_admin')
+        return
+      }
+
+      // STEP 2: Check organization_users table (Organization owners/staff)
+      console.log('🔐 Checking organization_users table...')
 
       const queryPromise = supabase
         .from('organization_users')
@@ -58,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timeoutPromise
       ]) as any
 
-      console.log('🔐 Query completed. All user roles:', allRoles, 'Error:', allError)
+      console.log('🔐 Organization_users result:', allRoles, 'Error:', allError)
 
       // Check specifically for super admin
       const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
