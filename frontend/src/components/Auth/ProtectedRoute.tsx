@@ -35,8 +35,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // Controlla permessi per rotte admin
-  if (location.pathname.startsWith('/admin')) {
+  // Controlla permessi per rotte admin (solo dopo che il ruolo è stato caricato)
+  if (location.pathname.startsWith('/admin') && !loading) {
+    // Se isSuperAdmin è true, permetti sempre l'accesso
+    if (isSuperAdmin) {
+      return <>{children}</>
+    }
+
     const hasAccess = canAccessRoute(userRole as AdminRole, location.pathname)
 
     if (!hasAccess) {
