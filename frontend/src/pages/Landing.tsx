@@ -112,10 +112,10 @@ const Landing: React.FC = () => {
                 Inizia Gratis 30 Giorni
                 <ArrowRight size={20} />
               </Link>
-              <button className="btn-hero-secondary">
-                <Play size={18} />
-                Guarda Demo (2 min)
-              </button>
+              <Link to="/login" className="btn-hero-secondary">
+                <BarChart3 size={18} />
+                Vedi Dashboard
+              </Link>
             </div>
 
             <div className="hero-trust">
@@ -234,6 +234,95 @@ const Landing: React.FC = () => {
           <div className="stat-box-large">
             <div className="stat-number">99.9%</div>
             <div className="stat-text">Uptime Garantito</div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="how-it-works-section">
+        <div className="how-it-works-container">
+          <div className="section-header-center">
+            <div className="section-badge">
+              <Rocket size={16} />
+              <span>Semplice e Veloce</span>
+            </div>
+            <h2>Come Funziona OMNILY PRO</h2>
+            <p>Dalla registrazione al primo cliente fidelizzato in meno di 24 ore</p>
+          </div>
+
+          <div className="steps-grid">
+            <div className="step-card">
+              <div className="step-number">1</div>
+              <div className="step-icon">
+                <Rocket size={48} />
+              </div>
+              <h3>Registrati in 2 Minuti</h3>
+              <p>Crea il tuo account gratuito, nessuna carta di credito richiesta. Accesso immediato a tutte le funzionalità PRO per 30 giorni.</p>
+              <div className="step-time">
+                <Clock size={16} />
+                <span>2 minuti</span>
+              </div>
+            </div>
+
+            <div className="step-arrow">
+              <ArrowRight size={32} />
+            </div>
+
+            <div className="step-card">
+              <div className="step-number">2</div>
+              <div className="step-icon">
+                <Building2 size={48} />
+              </div>
+              <h3>Configura il Tuo Brand</h3>
+              <p>Wizard guidato per impostare logo, colori, programma punti e livelli fedeltà. Il nostro team ti supporta nell'onboarding completo.</p>
+              <div className="step-time">
+                <Clock size={16} />
+                <span>15 minuti</span>
+              </div>
+            </div>
+
+            <div className="step-arrow">
+              <ArrowRight size={32} />
+            </div>
+
+            <div className="step-card">
+              <div className="step-number">3</div>
+              <div className="step-icon">
+                <Zap size={48} />
+              </div>
+              <h3>Lancia e Inizia</h3>
+              <p>Attiva il sistema, integra con il tuo POS o e-commerce, stampa le prime tessere NFC e inizia a raccogliere dati clienti subito.</p>
+              <div className="step-time">
+                <Clock size={16} />
+                <span>1 ora</span>
+              </div>
+            </div>
+
+            <div className="step-arrow">
+              <ArrowRight size={32} />
+            </div>
+
+            <div className="step-card">
+              <div className="step-number">4</div>
+              <div className="step-icon">
+                <BarChart3 size={48} />
+              </div>
+              <h3>Analizza e Ottimizza</h3>
+              <p>Dashboard real-time con AI per segmentazione automatica, campagne personalizzate e analytics predittive. ROI visibile dalla prima settimana.</p>
+              <div className="step-time">
+                <Clock size={16} />
+                <span>Continuo</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="how-it-works-cta">
+            <Link to="/login" className="btn-primary-large">
+              <Rocket size={20} />
+              Inizia Ora Gratis
+              <ArrowRight size={20} />
+            </Link>
+            <p className="cta-subtitle">Setup completo in meno di 24 ore • Nessun rischio</p>
           </div>
         </div>
       </section>
