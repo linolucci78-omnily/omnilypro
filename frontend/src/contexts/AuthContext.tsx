@@ -41,47 +41,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 Checking user role for:', userId)
 
     try {
-      // PRIMA: Controlla nella tabella users (per admin OMNILY PRO)
-      console.log('🔐 Checking users table for userId:', userId)
-
-      const usersQueryPromise = supabase
-        .from('users')
-        .select('role, status, email')
-        .eq('id', userId)
-        .single()
-
-      const usersTimeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Users query timeout after 3s')), 3000)
-      )
-
-      try {
-        const { data: userData, error: userError } = await Promise.race([
-          usersQueryPromise,
-          usersTimeoutPromise
-        ]) as any
-
-        console.log('🔐 Users table result:', {
-          data: userData,
-          error: userError,
-          errorDetails: userError?.message,
-          errorCode: userError?.code
-        })
-
-        // Se trovato nella tabella users, usa quel ruolo
-        if (userData && userData.role && !userError) {
-          console.log('✅ Admin OMNILY PRO found with role:', userData.role, 'Email:', userData.email)
-          setUserRole(userData.role)
-          setIsSuperAdmin(userData.role === 'super_admin')
-          return
-        }
-      } catch (usersErr) {
-        console.log('⚠️ Users table query timeout or error:', usersErr)
-      }
-
-      console.log('⚠️ Not found in users table, checking organization_users...')
-
-      // SECONDA: Se non trovato in users, controlla organization_users
-      console.log('🔐 Checking organization_users table...')
+      // Controlla organization_users
+      console.log('🔐 Starting role query...')
 
       const queryPromise = supabase
         .from('organization_users')
@@ -97,13 +58,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timeoutPromise
       ]) as any
 
-      console.log('🔐 Organization roles:', allRoles, 'Error:', allError)
+      console.log('🔐 Query completed. All user roles:', allRoles, 'Error:', allError)
 
       // Check specifically for super admin
       const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
 
       if (superAdminRole) {
-        console.log('🔐 Super admin found in organization_users!', superAdminRole)
+        console.log('🔐 Super admin found!', superAdminRole)
         setUserRole('super_admin')
         setIsSuperAdmin(true)
         return
@@ -112,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If no super admin, use first role found
       if (allRoles && allRoles.length > 0) {
         const firstRole = allRoles[0]
-        console.log('🔐 Organization role found:', firstRole.role)
+        console.log('🔐 Regular role found:', firstRole.role)
         setUserRole(firstRole.role)
         setIsSuperAdmin(firstRole.role === 'super_admin')
       } else {
