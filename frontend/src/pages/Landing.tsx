@@ -48,7 +48,7 @@ const Landing: React.FC = () => {
     },
     {
       q: 'Posso integrare OMNILY con i miei sistemi esistenti?',
-      a: 'Sì! Offriamo API REST complete, webhook real-time e integrazioni native con i principali POS, e-commerce (Shopify, WooCommerce), CRM e email marketing tools.'
+      a: 'Sì! Offriamo API REST complete, webhook real-time e integrazioni native con sistemi e-commerce (Shopify, WooCommerce), CRM e email marketing tools.'
     },
     {
       q: 'Cosa succede se supero il limite di clienti?',
@@ -291,7 +291,7 @@ const Landing: React.FC = () => {
                 <Zap size={48} />
               </div>
               <h3>Lancia e Inizia</h3>
-              <p>Attiva il sistema, integra con il tuo POS o e-commerce, stampa le prime tessere NFC e inizia a raccogliere dati clienti subito.</p>
+              <p>Attiva il sistema, integra con il tuo e-commerce, stampa le prime tessere NFC e inizia a raccogliere dati clienti subito.</p>
               <div className="step-time">
                 <Clock size={16} />
                 <span>1 ora</span>

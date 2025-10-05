@@ -119,13 +119,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(session?.user ?? null)
 
       if (session?.user) {
+        // checkUserRole già chiama setLoading(false) nel finally block
         await checkUserRole(session.user.id)
       } else {
         setUserRole(null)
         setIsSuperAdmin(false)
+        setLoading(false)
       }
 
-      setLoading(false)
+      // NON chiamare setLoading(false) qui perché checkUserRole lo fa già
     })
 
     return () => subscription.unsubscribe()

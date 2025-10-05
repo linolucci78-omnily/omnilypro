@@ -31,26 +31,35 @@ const Login: React.FC = () => {
     // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect
     // Per admin, aspetta anche che userRole sia stato caricato
     if (user && !authLoading) {
-      // Se isSuperAdmin è true ma userRole è ancora null, aspetta
-      if (isSuperAdmin && !userRole) {
-        console.log('🔐 Waiting for userRole to be loaded...');
+      console.log('🔐 Login useEffect triggered:', {
+        user: !!user,
+        authLoading,
+        isSuperAdmin,
+        userRole,
+        isPosMode
+      });
+
+      // CRITICAL: Aspetta sempre che userRole sia caricato, tranne in modalità POS
+      if (!userRole && !isPosMode) {
+        console.log('🔐 ⏳ Waiting for userRole to be loaded before redirect...');
         return;
       }
 
       let redirectPath = '/dashboard'; // Default per utenti normali
 
       // Se è un admin OMNILY PRO (super_admin, sales_agent, account_manager)
-      if (isSuperAdmin || userRole) {
+      if (userRole) {
         const permissions = getAdminPermissions(userRole as AdminRole);
         redirectPath = permissions.defaultRoute;
-        console.log('🔐 Admin login redirect:', { userRole, redirectPath });
+        console.log('🔐 ✅ Admin login redirect:', { userRole, redirectPath, permissions });
       }
       // Se è modalità POS, vai al dashboard aziendale
       else if (isPosMode) {
         redirectPath = '/dashboard'; // Dashboard aziendale per POS
+        console.log('🔐 📱 POS mode redirect:', { redirectPath });
       }
 
-      console.log('🔐 Login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading });
+      console.log('🔐 🚀 Final login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading });
 
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
       navigate(from, { replace: true });

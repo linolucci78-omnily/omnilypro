@@ -35,8 +35,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // Controlla permessi per rotte admin (solo dopo che il ruolo è stato caricato)
-  if (location.pathname.startsWith('/admin') && !loading) {
+  // Controlla permessi per rotte admin
+  if (location.pathname.startsWith('/admin')) {
+    // CRITICAL: Se userRole è ancora null, significa che stiamo ancora caricando
+    // Aspetta che il ruolo sia caricato prima di controllare i permessi
+    if (userRole === null && !loading) {
+      console.log('🔐 ⏳ Waiting for userRole to load before checking admin permissions...')
+      return <PageLoader message="Caricamento permessi..." size="large" />
+    }
+
     // Se isSuperAdmin è true, permetti sempre l'accesso
     if (isSuperAdmin) {
       return <>{children}</>
