@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getAdminPermissions, AdminRole } from '../utils/adminPermissions';
+import { getAdminPermissions, type AdminRole } from '../utils/adminPermissions';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
 const Login: React.FC = () => {

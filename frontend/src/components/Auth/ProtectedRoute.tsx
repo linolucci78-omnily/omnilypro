@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { canAccessRoute, AdminRole } from '../../utils/adminPermissions'
+import { canAccessRoute, type AdminRole } from '../../utils/adminPermissions'
 import PageLoader from '../UI/PageLoader'
 
 interface ProtectedRouteProps {
