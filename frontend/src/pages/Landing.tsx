@@ -4,13 +4,14 @@ import {
   Rocket, Building2, Shield, BarChart3, Zap, Users, TrendingUp, Award,
   CheckCircle, ArrowRight, Play, Star, ChevronDown, Sparkles, Target,
   Globe, Lock, Smartphone, RefreshCw, MessageSquare, Clock, Check,
-  TrendingDown, Percent, DollarSign, ShoppingCart, Mail, Phone
+  TrendingDown, Percent, DollarSign, ShoppingCart, Mail, Phone, Menu, X
 } from 'lucide-react'
 import './Landing.css'
 
 const Landing: React.FC = () => {
   const [activeTab, setActiveTab] = useState('retail')
   const [faqOpen, setFaqOpen] = useState<number | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Animated counter effect
   const [counters, setCounters] = useState({ companies: 0, transactions: 0, retention: 0 })
@@ -81,7 +82,24 @@ const Landing: React.FC = () => {
               <ArrowRight size={16} />
             </Link>
           </div>
+          <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="mobile-menu">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)}>Funzionalità</a>
+            <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>Prezzi</a>
+            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)}>Clienti</a>
+            <a href="#faq" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <Link to="/login" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Accedi</Link>
+            <Link to="/login" className="mobile-menu-cta" onClick={() => setMobileMenuOpen(false)}>
+              Inizia Gratis
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section - Enhanced */}
