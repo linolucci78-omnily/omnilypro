@@ -37,7 +37,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    
+
     // WebView support
     implementation 'androidx.webkit:webkit:1.4.0'
 
@@ -48,7 +48,14 @@ dependencies {
 
     // ZCS SDK dependencies - SmartPos 1.9.8 (same as demo)
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    
+
+    // MDM Integration - HTTP Client for Supabase API
+    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // Work Manager for background tasks
+    implementation 'androidx.work:work-runtime:2.8.1'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
