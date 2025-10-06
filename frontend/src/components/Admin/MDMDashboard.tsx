@@ -22,11 +22,19 @@ import {
   Search,
   Plus,
   Printer,
-  Monitor
+  Monitor,
+  Package,
+  Activity,
+  Key,
+  Store
 } from 'lucide-react'
 import './AdminLayout.css'
 import './MDMDashboard.css'
 import PrintTemplateManager from './PrintTemplateManager'
+import AppRepositoryManager from './AppRepositoryManager'
+import ActivityLogsViewer from './ActivityLogsViewer'
+import TokenSetupViewer from './TokenSetupViewer'
+import StoreConfigManager from './StoreConfigManager'
 import PageLoader from '../UI/PageLoader'
 
 interface Device {
@@ -75,7 +83,7 @@ const MDMDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
-  const [activeTab, setActiveTab] = useState<'devices' | 'print'>('devices')
+  const [activeTab, setActiveTab] = useState<'devices' | 'print' | 'apps' | 'logs' | 'tokens' | 'stores'>('devices')
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
@@ -408,7 +416,14 @@ const MDMDashboard: React.FC = () => {
             className={`tab ${activeTab === 'devices' ? 'active' : ''}`}
           >
             <Monitor size={18} />
-            Gestione Dispositivi
+            Dispositivi
+          </button>
+          <button
+            onClick={() => setActiveTab('apps')}
+            className={`tab ${activeTab === 'apps' ? 'active' : ''}`}
+          >
+            <Package size={18} />
+            Repository App
           </button>
           <button
             onClick={() => setActiveTab('print')}
@@ -416,6 +431,27 @@ const MDMDashboard: React.FC = () => {
           >
             <Printer size={18} />
             Template Stampa
+          </button>
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
+          >
+            <Activity size={18} />
+            Activity Logs
+          </button>
+          <button
+            onClick={() => setActiveTab('tokens')}
+            className={`tab ${activeTab === 'tokens' ? 'active' : ''}`}
+          >
+            <Key size={18} />
+            Setup Tokens
+          </button>
+          <button
+            onClick={() => setActiveTab('stores')}
+            className={`tab ${activeTab === 'stores' ? 'active' : ''}`}
+          >
+            <Store size={18} />
+            Config Store
           </button>
         </div>
       </div>
@@ -1161,9 +1197,29 @@ const MDMDashboard: React.FC = () => {
         </>
       )}
 
+      {/* App Repository Tab */}
+      {activeTab === 'apps' && (
+        <AppRepositoryManager />
+      )}
+
       {/* Print Templates Tab */}
       {activeTab === 'print' && (
         <PrintTemplateManager organizationId={undefined} />
+      )}
+
+      {/* Activity Logs Tab */}
+      {activeTab === 'logs' && (
+        <ActivityLogsViewer />
+      )}
+
+      {/* Setup Tokens Tab */}
+      {activeTab === 'tokens' && (
+        <TokenSetupViewer />
+      )}
+
+      {/* Store Config Tab */}
+      {activeTab === 'stores' && (
+        <StoreConfigManager />
       )}
 
       {/* Toast Notifications */}
