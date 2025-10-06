@@ -6,9 +6,9 @@ package com.omnilypro.pos.mdm;
  */
 public class MdmConfig {
 
-    // TODO: Sostituisci con le tue credenziali Supabase
-    public static final String SUPABASE_URL = "https://your-project.supabase.co";
-    public static final String SUPABASE_ANON_KEY = "your-anon-key";
+    // Credenziali Supabase OMNILY PRO
+    public static final String SUPABASE_URL = "https://sjvatdnvewohvswfrdiv.supabase.co";
+    public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZzd2ZyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM0ODUsImV4cCI6MjA3MjMxOTQ4NX0.310-1eBrnWxaDYVJ2QeEhx9xmqVljTBqSDArLMjFiMk";
 
     // Intervalli di polling (millisecondi)
     public static final long HEARTBEAT_INTERVAL_MS = 30000; // 30 secondi

@@ -64,6 +64,8 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.google.zxing.BarcodeFormat;
 
+import com.omnilypro.pos.mdm.MdmManager;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -125,6 +127,12 @@ public class MainActivityFinal extends AppCompatActivity {
         setupNFC();
         setupWebView();
         setupCustomerDisplay();
+
+        // Inizializza sistema MDM
+        Log.i(TAG, "Initializing MDM system...");
+        MdmManager.getInstance(this).initialize();
+        Log.i(TAG, "MDM system initialized successfully");
+
         loadInitialUrl();
     }
 
