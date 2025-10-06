@@ -26,7 +26,11 @@ import {
   Package,
   Activity,
   Key,
-  Store
+  Store,
+  Bell,
+  Calendar,
+  Zap,
+  Send
 } from 'lucide-react'
 import './AdminLayout.css'
 import './MDMDashboard.css'
@@ -35,6 +39,10 @@ import AppRepositoryManager from './AppRepositoryManager'
 import ActivityLogsViewer from './ActivityLogsViewer'
 import TokenSetupViewer from './TokenSetupViewer'
 import StoreConfigManager from './StoreConfigManager'
+import CommandScheduler from './CommandScheduler'
+import AlertsSystem from './AlertsSystem'
+import BulkOperations from './BulkOperations'
+import AppPushUpdate from './AppPushUpdate'
 import PageLoader from '../UI/PageLoader'
 
 interface Device {
@@ -83,7 +91,7 @@ const MDMDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
-  const [activeTab, setActiveTab] = useState<'devices' | 'print' | 'apps' | 'logs' | 'tokens' | 'stores'>('devices')
+  const [activeTab, setActiveTab] = useState<'devices' | 'scheduler' | 'alerts' | 'bulk' | 'push' | 'print' | 'apps' | 'logs' | 'tokens' | 'stores'>('devices')
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
@@ -417,6 +425,34 @@ const MDMDashboard: React.FC = () => {
           >
             <Monitor size={18} />
             Dispositivi
+          </button>
+          <button
+            onClick={() => setActiveTab('scheduler')}
+            className={`tab ${activeTab === 'scheduler' ? 'active' : ''}`}
+          >
+            <Calendar size={18} />
+            Scheduler
+          </button>
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className={`tab ${activeTab === 'alerts' ? 'active' : ''}`}
+          >
+            <Bell size={18} />
+            Alert
+          </button>
+          <button
+            onClick={() => setActiveTab('bulk')}
+            className={`tab ${activeTab === 'bulk' ? 'active' : ''}`}
+          >
+            <Zap size={18} />
+            Bulk Ops
+          </button>
+          <button
+            onClick={() => setActiveTab('push')}
+            className={`tab ${activeTab === 'push' ? 'active' : ''}`}
+          >
+            <Send size={18} />
+            App Push
           </button>
           <button
             onClick={() => setActiveTab('apps')}
@@ -1195,6 +1231,26 @@ const MDMDashboard: React.FC = () => {
         </div>
       )}
         </>
+      )}
+
+      {/* Command Scheduler Tab */}
+      {activeTab === 'scheduler' && (
+        <CommandScheduler />
+      )}
+
+      {/* Alerts System Tab */}
+      {activeTab === 'alerts' && (
+        <AlertsSystem />
+      )}
+
+      {/* Bulk Operations Tab */}
+      {activeTab === 'bulk' && (
+        <BulkOperations />
+      )}
+
+      {/* App Push Update Tab */}
+      {activeTab === 'push' && (
+        <AppPushUpdate />
       )}
 
       {/* App Repository Tab */}
