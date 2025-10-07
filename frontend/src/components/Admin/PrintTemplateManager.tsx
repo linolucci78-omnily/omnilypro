@@ -188,6 +188,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   }
 
   const testPrint = async () => {
+    console.log('TEST STAMPA CHIAMATO', selectedTemplate ? 'template OK' : 'NESSUN TEMPLATE')
+
     if (!selectedTemplate) {
       showWarning('Seleziona un template da testare')
       return
@@ -208,21 +210,27 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       }
 
       const printService = createPrintService(printConfig)
+      console.log('PrintService creato, inizializzo...')
+
       const initialized = await printService.initialize()
+      console.log('Stampante inizializzata:', initialized)
 
       if (!initialized) {
         showError('Impossibile inizializzare la stampante')
         return
       }
 
+      console.log('Invio stampa test...')
       const success = await printService.printTestReceipt()
+      console.log('Risultato stampa:', success)
+
       if (success) {
         showSuccess('Stampa di test completata')
       } else {
         showError('Errore durante la stampa di test')
       }
     } catch (error) {
-      console.error('Test print error:', error)
+      console.error('ERRORE Test print:', error)
       showError('Errore durante la stampa di test')
     } finally {
       setIsTesting(false)
