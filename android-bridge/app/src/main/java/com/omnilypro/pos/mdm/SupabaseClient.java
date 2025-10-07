@@ -6,6 +6,10 @@ import com.google.gson.JsonObject;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,6 +23,9 @@ public class SupabaseClient {
     private final Gson gson;
     private final String supabaseUrl;
     private final String apiKey;
+
+    // Device UUID cache for logging
+    private static String cachedDeviceUuid = null;
 
     private SupabaseClient() {
         this.supabaseUrl = MdmConfig.SUPABASE_URL;
@@ -164,12 +171,24 @@ public class SupabaseClient {
     public void logActivity(String activityType, String title, String description, boolean success, Callback callback) {
         String url = supabaseUrl + MdmConfig.LOGS_ENDPOINT;
 
+        // Timestamp ISO 8601 per Supabase
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = sdf.format(new Date());
+
         JsonObject data = new JsonObject();
         data.addProperty("activity_type", activityType);
         data.addProperty("activity_title", title);
         data.addProperty("activity_description", description);
         data.addProperty("success", success);
-        data.addProperty("created_at", System.currentTimeMillis());
+        data.addProperty("created_at", timestamp);
+
+        // Aggiungi device_id se disponibile (necessario per RLS)
+        if (cachedDeviceUuid != null) {
+            data.addProperty("device_id", cachedDeviceUuid);
+        } else {
+            Log.w(TAG, "⚠️  logActivity: device UUID not set, log may be rejected by RLS");
+        }
 
         RequestBody body = RequestBody.create(
                 data.toString(),
@@ -182,9 +201,18 @@ public class SupabaseClient {
                 .addHeader("apikey", apiKey)
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
                 .build();
 
         httpClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * Set device UUID per logging attività
+     */
+    public static void setDeviceUuid(String deviceUuid) {
+        cachedDeviceUuid = deviceUuid;
+        Log.d(TAG, "Device UUID set for activity logging: " + deviceUuid);
     }
 
     /**

@@ -72,6 +72,7 @@ public class MdmManager {
                 fetchDeviceUuid();
             } else {
                 CommandPollingWorker.setDeviceId(deviceId);
+                SupabaseClient.setDeviceUuid(deviceId);
                 startBackgroundWorkers();
 
                 // POLLING IMMEDIATO - non aspettare WorkManager
@@ -167,6 +168,7 @@ public class MdmManager {
                 Log.e(TAG, "Failed to fetch device UUID", e);
                 // Fallback: usa android_id
                 CommandPollingWorker.setDeviceId(androidId);
+                SupabaseClient.setDeviceUuid(androidId);
                 startBackgroundWorkers();
             }
 
@@ -185,18 +187,22 @@ public class MdmManager {
                             Log.i(TAG, "✅ Fetched device UUID: " + deviceUuid);
                             saveDeviceId(deviceUuid);
                             CommandPollingWorker.setDeviceId(deviceUuid);
+                SupabaseClient.setDeviceUuid(deviceUuid);
                             showDeviceIdToast(deviceUuid);
                         } else {
                             Log.w(TAG, "No device found, using android_id");
                             CommandPollingWorker.setDeviceId(androidId);
+                SupabaseClient.setDeviceUuid(androidId);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing device response", e);
                         CommandPollingWorker.setDeviceId(androidId);
+                SupabaseClient.setDeviceUuid(androidId);
                     }
                 } else {
                     Log.w(TAG, "Device fetch failed: " + response.code());
                     CommandPollingWorker.setDeviceId(androidId);
+                SupabaseClient.setDeviceUuid(androidId);
                 }
                 startBackgroundWorkers();
 
@@ -252,6 +258,7 @@ public class MdmManager {
                             saveDeviceId(deviceUuid);
                             markDeviceAsRegistered();
                             CommandPollingWorker.setDeviceId(deviceUuid);
+                SupabaseClient.setDeviceUuid(deviceUuid);
                             showDeviceIdToast(deviceUuid);
                             startBackgroundWorkers();
 
