@@ -63,6 +63,7 @@ interface Device {
   current_app_package: string
   latitude: number
   longitude: number
+  location_accuracy_meters?: number
   language: string
   created_at: string
 
