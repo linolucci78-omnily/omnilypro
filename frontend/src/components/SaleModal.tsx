@@ -10,6 +10,8 @@ interface SaleModalProps {
   pointsPerEuro?: number; // Configurazione dinamica punti per euro
   loyaltyTiers?: any[]; // Tiers di fedeltà per calcoli dinamici
   currentTier?: any; // Tier corrente del cliente
+  bonusCategories?: any[]; // Categorie prodotti con moltiplicatori
+  pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
 }
 
 const SaleModal: React.FC<SaleModalProps> = ({
@@ -19,23 +21,34 @@ const SaleModal: React.FC<SaleModalProps> = ({
   onConfirm,
   pointsPerEuro = 1, // Default a 1 punto per euro se non specificato
   loyaltyTiers = [], // Default array vuoto se non specificato
-  currentTier = { multiplier: 1 } // Default moltiplicatore 1x se non specificato
+  currentTier = { multiplier: 1 }, // Default moltiplicatore 1x se non specificato
+  bonusCategories = [], // Default array vuoto se non specificato
+  pointsName = 'Punti' // Default "Punti" se non specificato
 }) => {
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  // Calcola punti guadagnati basato sulla configurazione dell'organizzazione e tier - ottimizzato
+  // Calcola punti guadagnati basato sulla configurazione dell'organizzazione, tier e categoria
   useEffect(() => {
     const numAmount = parseFloat(amount) || 0;
     const basePoints = numAmount * pointsPerEuro; // Punti base
     const tierMultiplier = currentTier?.multiplier || 1; // Moltiplicatore del tier
-    const finalPoints = Math.floor(basePoints * tierMultiplier); // Punti finali con moltiplicatore
 
-    console.log(`💰 Calcolo punti: €${numAmount} × ${pointsPerEuro} × ${tierMultiplier} (${currentTier?.name || 'Default'}) = ${finalPoints} punti`);
+    // Trova moltiplicatore categoria se selezionata
+    let categoryMultiplier = 1;
+    if (selectedCategory && bonusCategories.length > 0) {
+      const category = bonusCategories.find(c => c.category === selectedCategory);
+      categoryMultiplier = category ? parseFloat(category.multiplier) : 1;
+    }
+
+    const finalPoints = Math.floor(basePoints * tierMultiplier * categoryMultiplier); // Punti finali con tutti i moltiplicatori
+
+    console.log(`💰 Calcolo punti: €${numAmount} × ${pointsPerEuro} × ${tierMultiplier} (${currentTier?.name || 'Default'}) × ${categoryMultiplier} (${selectedCategory || 'Nessuna'}) = ${finalPoints} punti`);
 
     // Aggiorna solo se i punti sono davvero cambiati
     setPointsEarned(prevPoints => prevPoints !== finalPoints ? finalPoints : prevPoints);
-  }, [amount, pointsPerEuro, currentTier]);
+  }, [amount, pointsPerEuro, currentTier, selectedCategory, bonusCategories]);
 
   // Funzione per suono "ka-ching" celebrativo - DISABILITATA TEMPORANEAMENTE
   const playCelebrationSound = () => {
@@ -190,12 +203,32 @@ const SaleModal: React.FC<SaleModalProps> = ({
             </div>
           </div>
 
+          {/* Categoria Prodotto (opzionale) */}
+          {bonusCategories && bonusCategories.length > 0 && (
+            <div className="category-input-section">
+              <label htmlFor="category">Categoria Prodotto (opzionale)</label>
+              <select
+                id="category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="category-select"
+              >
+                <option value="">Nessuna categoria</option>
+                {bonusCategories.map((cat, index) => (
+                  <option key={index} value={cat.category}>
+                    {cat.category} ({cat.multiplier}x {pointsName.toLowerCase()})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="points-summary">
             <div className="points-row">
               <div className="points-icon">
                 <Target size={20} />
               </div>
-              <span className="points-label">Punti Attuali</span>
+              <span className="points-label">{pointsName} Attuali</span>
               <span className="points-value">{customer.points}</span>
             </div>
 
@@ -203,7 +236,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
               <div className="points-icon">
                 <Award size={20} />
               </div>
-              <span className="points-label">Punti Guadagnati</span>
+              <span className="points-label">{pointsName} Guadagnati</span>
               <span className="points-value">+{pointsEarned}</span>
             </div>
 
@@ -212,7 +245,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 <Target size={20} />
               </div>
               <span className="points-label">Ora Hai</span>
-              <span className="points-value">{newTotalPoints} punti</span>
+              <span className="points-value">{newTotalPoints} {pointsName.toLowerCase()}</span>
             </div>
           </div>
 

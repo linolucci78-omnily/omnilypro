@@ -10,13 +10,15 @@ interface ModifyPointsModalProps {
   } | null;
   onClose: () => void;
   onConfirm: (points: number, reason: string) => void;
+  pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
 }
 
 const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
   isOpen,
   customer,
   onClose,
-  onConfirm
+  onConfirm,
+  pointsName = 'Punti'
 }) => {
   const [pointsChange, setPointsChange] = useState<number>(0);
   const [reason, setReason] = useState<string>('');
@@ -27,7 +29,7 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
 
   const handleConfirm = () => {
     if (pointsChange === 0) {
-      setErrorMessage('Devi inserire un valore diverso da zero per modificare i punti');
+      setErrorMessage(`Devi inserire un valore diverso da zero per modificare i ${pointsName.toLowerCase()}`);
       setShowErrorModal(true);
       return;
     }
@@ -79,7 +81,7 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
             fontWeight: '600',
             color: '#111827'
           }}>
-            Modifica Punti - {customer.name}
+            Modifica {pointsName} - {customer.name}
           </h3>
           <button
             onClick={onClose}
@@ -110,7 +112,7 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
-              Punti Attuali
+              {pointsName} Attuali
             </div>
             <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827' }}>
               {customer.points}
@@ -126,7 +128,7 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
               color: '#374151',
               marginBottom: '8px'
             }}>
-              Modifica Punti
+              Modifica {pointsName}
             </label>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <button
@@ -191,7 +193,7 @@ const ModifyPointsModal: React.FC<ModifyPointsModalProps> = ({
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
-              Nuovi Punti
+              Nuovi {pointsName}
             </div>
             <div style={{ fontSize: '32px', fontWeight: '700', color: pointsChange > 0 ? '#10b981' : pointsChange < 0 ? '#ef4444' : '#111827' }}>
               {newPoints}

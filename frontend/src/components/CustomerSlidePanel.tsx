@@ -19,6 +19,8 @@ interface CustomerSlidePanelProps {
   onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string}>;
   pointsPerEuro?: number; // Configurazione dinamica punti per euro dall'organizzazione
   loyaltyTiers?: any[]; // Tiers di fedeltà per calcolo moltiplicatori dinamici
+  bonusCategories?: any[]; // Categorie prodotti con moltiplicatori bonus
+  pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -28,7 +30,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   onAddPoints,
   onNewTransaction,
   pointsPerEuro = 1, // Default a 1 punto per euro se non specificato
-  loyaltyTiers = [] // Default array vuoto se non specificato
+  loyaltyTiers = [], // Default array vuoto se non specificato
+  bonusCategories = [], // Default array vuoto se non specificato
+  pointsName = 'Punti' // Default "Punti" se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showRewardsSection, setShowRewardsSection] = useState(false);
@@ -550,7 +554,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               <Award size={24} />
             </div>
             <div className="customer-slide-panel-stat-number">{customer.points}</div>
-            <div className="customer-slide-panel-stat-label">Punti</div>
+            <div className="customer-slide-panel-stat-label">{pointsName}</div>
           </div>
           <div className="customer-slide-panel-stat-item">
             <div className="customer-slide-panel-stat-icon">
@@ -575,7 +579,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             onClick={() => setShowModifyPointsModal(true)}
           >
             <Edit3 size={20} />
-            Modifica Punti
+            Modifica {pointsName}
           </button>
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-secondary"
@@ -626,7 +630,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                 <div className="rewards-available">
                   <p className="rewards-section-info">
                     <Target size={16} />
-                    Hai <strong>{customer.points} punti</strong> disponibili
+                    Hai <strong>{customer.points} {pointsName.toLowerCase()}</strong> disponibili
                   </p>
                   <p className="rewards-section-subtitle">
                     Seleziona un premio da riscattare:
@@ -652,7 +656,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                               <Award size={20} className="reward-icon" />
                               <div className="reward-info">
                                 <h4>{reward.name}</h4>
-                                <p className="reward-points">{reward.points_required} punti</p>
+                                <p className="reward-points">{reward.points_required} {pointsName.toLowerCase()}</p>
                                 {reward.required_tier && (
                                   <p className="reward-tier-requirement" style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
                                     Richiede: {reward.required_tier}
@@ -668,7 +672,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                               {!isAvailable && reward.required_tier
                                 ? `Richiede ${reward.required_tier}`
                                 : !canRedeem
-                                ? 'Punti Insufficienti'
+                                ? `${pointsName} Insufficienti`
                                 : 'Riscatta'}
                             </button>
                           </div>
@@ -808,13 +812,15 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         pointsPerEuro={pointsPerEuro}
         loyaltyTiers={loyaltyTiers}
         currentTier={currentTier}
+        bonusCategories={bonusCategories}
+        pointsName={pointsName}
       />
 
       {/* Confirm Redeem Modal */}
       <ConfirmModal
         isOpen={showConfirmModal}
         title="Conferma Riscatto Premio"
-        message={selectedReward ? `Vuoi riscattare "${selectedReward.name}" per ${selectedReward.points_required} punti?\n\nPunti attuali: ${customer?.points}\nPunti dopo riscatto: ${(customer?.points || 0) - selectedReward.points_required}` : ''}
+        message={selectedReward ? `Vuoi riscattare "${selectedReward.name}" per ${selectedReward.points_required} ${pointsName.toLowerCase()}?\n\n${pointsName} attuali: ${customer?.points}\n${pointsName} dopo riscatto: ${(customer?.points || 0) - selectedReward.points_required}` : ''}
         confirmText="Riscatta"
         cancelText="Annulla"
         type="info"
@@ -831,6 +837,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         customer={customer}
         onClose={() => setShowModifyPointsModal(false)}
         onConfirm={handleModifyPoints}
+        pointsName={pointsName}
       />
     </>
   );

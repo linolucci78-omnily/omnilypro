@@ -1389,7 +1389,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         <div className="reward-details">
                           <div className="reward-points">
                             <Target size={16} />
-                            <strong>{reward.points_required} punti</strong>
+                            <strong>{reward.points_required} {(currentOrganization?.points_name || 'Punti').toLowerCase()}</strong>
                           </div>
                           {reward.required_tier && (
                             <div className="reward-tier">
@@ -1458,25 +1458,54 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
             {currentOrganization?.product_categories && Array.isArray(currentOrganization.product_categories) && currentOrganization.product_categories.length > 0 ? (
               <div className="cards-grid">
-                {currentOrganization.product_categories.map((category, index) => (
-                  <div key={index} className="feature-card category-card">
-                    <div className="category-header" style={{ borderColor: category.color }}>
-                      <Package size={20} style={{ color: category.color }} />
-                      <h3>{category.name}</h3>
-                    </div>
-                    {category.description && (
-                      <div className="category-description">
-                        {category.description}
+                {currentOrganization.product_categories.map((category: any, index: number) => {
+                  // Gestisce sia stringhe che oggetti
+                  const categoryName = typeof category === 'string' ? category : category.name
+                  const categoryDescription = typeof category === 'object' ? category.description : null
+                  const categoryColor = typeof category === 'object' ? category.color : '#3b82f6'
+
+                  return (
+                    <div key={index} className="feature-card category-card">
+                      <div className="category-header" style={{ borderColor: categoryColor }}>
+                        <Package size={20} style={{ color: categoryColor }} />
+                        <h3>{categoryName}</h3>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {categoryDescription && (
+                        <div className="category-description">
+                          {categoryDescription}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <div className="empty-state">
                 <Package size={48} />
                 <h3>Nessuna categoria configurata</h3>
                 <p>Le categorie prodotti vengono configurate durante la creazione dell'organizzazione tramite wizard.</p>
+              </div>
+            )}
+
+            {/* Bonus Categories */}
+            {currentOrganization?.bonus_categories && Array.isArray(currentOrganization.bonus_categories) && currentOrganization.bonus_categories.length > 0 && (
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Moltiplicatori Punti per Categoria</h3>
+                <div className="cards-grid">
+                  {currentOrganization.bonus_categories.map((bonus: any, index: number) => (
+                    <div key={index} className="feature-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <Package size={16} style={{ display: 'inline-block', marginRight: '0.5rem' }} />
+                          <strong>{bonus.category}</strong>
+                        </div>
+                        <div style={{ fontSize: '1.5rem', color: '#3b82f6', fontWeight: 'bold' }}>
+                          {bonus.multiplier}x
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -2186,6 +2215,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onNewTransaction={handleNewTransaction}
         pointsPerEuro={currentOrganization?.points_per_euro || 1}
         loyaltyTiers={currentOrganization?.loyalty_tiers || []}
+        bonusCategories={currentOrganization?.bonus_categories || []}
+        pointsName={currentOrganization?.points_name || 'Punti'}
       />
 
       {/* Card Management Panel */}
@@ -2242,6 +2273,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         reward={selectedReward}
         isLoading={rewardModalLoading}
         loyaltyTiers={organizations.length > 0 ? organizations[0].loyalty_tiers : []}
+        pointsName={currentOrganization?.points_name || 'Punti'}
       />
 
       {/* Account Settings Panel */}

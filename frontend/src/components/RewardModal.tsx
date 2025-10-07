@@ -9,6 +9,7 @@ interface RewardModalProps {
   reward?: RewardData | null;
   isLoading?: boolean;
   loyaltyTiers?: any[]; // Livelli di fedeltà dall'organizzazione
+  pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
 }
 
 export interface RewardData {
@@ -40,7 +41,8 @@ const RewardModal: React.FC<RewardModalProps> = ({
   onSave,
   reward,
   isLoading = false,
-  loyaltyTiers = []
+  loyaltyTiers = [],
+  pointsName = 'Punti'
 }) => {
   const [formData, setFormData] = useState<RewardData>({
     name: '',
@@ -155,7 +157,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
     }
 
     if (formData.points_required < 1) {
-      newErrors.points_required = 'Punti richiesti devono essere maggiori di 0';
+      newErrors.points_required = `${pointsName} richiesti devono essere maggiori di 0`;
     }
 
     if (formData.valid_from && formData.valid_until) {
@@ -296,7 +298,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
               <div className="form-group">
                 <label className="form-label">
                   <Target size={16} />
-                  Punti Richiesti *
+                  {pointsName} Richiesti *
                 </label>
                 <input
                   type="number"
@@ -329,7 +331,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
                         disabled={isLoading}
                       />
                       <span className="checkbox-text">
-                        Richiede livello di fedeltà oltre ai punti
+                        Richiede livello di fedeltà oltre ai {pointsName.toLowerCase()}
                       </span>
                     </label>
                   </div>
@@ -345,7 +347,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
                       >
                         {loyaltyTiers.map((tier: any) => (
                           <option key={tier.name} value={tier.name}>
-                            {tier.name} ({tier.threshold}+ punti)
+                            {tier.name} ({tier.threshold}+ {pointsName.toLowerCase()})
                           </option>
                         ))}
                       </select>
