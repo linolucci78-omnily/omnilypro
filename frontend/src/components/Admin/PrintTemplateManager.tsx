@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Printer, Save, TestTube, Upload, Download, Settings } from 'lucide-react'
-import { createPrintService, type PrintConfig, type Receipt } from '../../services/printService'
+import { createPrintService, type PrintConfig } from '../../services/printService'
 import { useToast } from '../../hooks/useToast'
 import { supabase } from '../../lib/supabase'
 import ReceiptDemo from './ReceiptDemo'
@@ -37,6 +37,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   const [organizations, setOrganizations] = useState<{id: string, name: string}[]>([])
   const { showSuccess, showError, showWarning } = useToast()
 
+  const [defaultOrgId, setDefaultOrgId] = useState<string>('')
+
   const defaultTemplate: PrintTemplate = {
     name: 'Template Standard',
     store_name: 'Il Mio Negozio',
@@ -47,7 +49,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
     font_size_normal: 24,
     font_size_large: 32,
     print_density: 3,
-    organization_id: organizationId || '',
+    organization_id: organizationId || defaultOrgId,
     is_default: true
   }
 
@@ -55,10 +57,28 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
 
   useEffect(() => {
     loadTemplates()
+    checkUserPermissions()
     if (!organizationId) {
       loadOrganizations()
     }
   }, [organizationId])
+
+  const checkUserPermissions = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: orgUsers } = await supabase
+        .from('organization_users')
+        .select('org_id, role, organizations(name)')
+        .eq('user_id', user?.id)
+
+      // Imposta la prima organizzazione come default se non è specificata
+      if (!organizationId && orgUsers && orgUsers.length > 0) {
+        setDefaultOrgId(orgUsers[0].org_id)
+      }
+    } catch (error) {
+      console.error('Error checking permissions:', error)
+    }
+  }
 
   const loadOrganizations = async () => {
     try {
@@ -106,7 +126,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
 
   const saveTemplate = async () => {
     if (!formData.name || !formData.store_name || !formData.organization_id) {
-      showWarning('Compila i campi obbligatori')
+      showWarning('Compila i campi obbligatori (Nome Template, Nome Negozio, Organizzazione)')
       return
     }
 
@@ -148,9 +168,10 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
             font_size_normal: formData.font_size_normal,
             font_size_large: formData.font_size_large,
             print_density: formData.print_density,
-            organization_id: organizationId,
+            organization_id: formData.organization_id,
             is_default: formData.is_default
           }])
+          .select()
 
         if (error) throw error
         showSuccess('Template creato con successo')
@@ -158,9 +179,9 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
 
       setIsEditing(false)
       await loadTemplates()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving template:', error)
-      showError('Errore nel salvataggio del template')
+      showError(`Errore: ${error?.message || 'Errore nel salvataggio del template'}`)
     } finally {
       setIsLoading(false)
     }
@@ -286,9 +307,10 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
           <div style={{ marginBottom: '12px' }}>
             <button
               onClick={() => {
+                const orgId = organizationId || defaultOrgId || (organizations.length > 0 ? organizations[0].id : '')
                 setFormData({
                   ...defaultTemplate,
-                  organization_id: organizationId || (organizations.length > 0 ? organizations[0].id : '')
+                  organization_id: orgId
                 })
                 setSelectedTemplate(null)
                 setIsEditing(true)
@@ -503,7 +525,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -523,7 +546,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                       border: '1px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      backgroundColor: isEditing ? 'white' : '#f9fafb'
+                      backgroundColor: isEditing ? 'white' : '#f9fafb',
+                      color: '#111827'
                     }}
                   >
                     <option value="">Seleziona organizzazione...</option>
@@ -551,7 +575,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -571,7 +596,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -591,7 +617,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -611,7 +638,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -660,7 +688,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -680,7 +709,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -700,7 +730,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 />
               </div>
@@ -719,7 +750,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: isEditing ? 'white' : '#f9fafb'
+                    backgroundColor: isEditing ? 'white' : '#f9fafb',
+                    color: '#111827'
                   }}
                 >
                   <option value={1}>Leggera</option>
