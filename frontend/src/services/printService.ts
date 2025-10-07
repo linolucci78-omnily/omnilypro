@@ -40,11 +40,16 @@ export class ZCSPrintService {
 
   async initialize(): Promise<boolean> {
     try {
+      console.log('Controllo bridge Android...')
+      console.log('window.OmnilyPOS esiste?', typeof window !== 'undefined' && !!(window as any).OmnilyPOS)
+
       // Check if Android bridge is available
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        console.log('Bridge trovato, chiamo initPrinter...')
         // Initialize printer via Android bridge
         return new Promise((resolve) => {
           (window as any).omnilyPrinterInitHandler = (result: any) => {
+            console.log('Risposta da initPrinter:', result)
             if (result.success) {
               this.isInitialized = true
               resolve(true)
@@ -58,6 +63,7 @@ export class ZCSPrintService {
           (window as any).OmnilyPOS.initPrinter('omnilyPrinterInitHandler')
         })
       }
+      console.error('Bridge NON trovato!')
       throw new Error('Android POS bridge not available')
     } catch (error) {
       console.error('Failed to initialize printer:', error)
