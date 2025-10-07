@@ -3,6 +3,9 @@ package com.omnilypro.pos.mdm;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
@@ -11,6 +14,7 @@ import android.os.StatFs;
 import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
+import androidx.core.app.ActivityCompat;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -58,6 +62,7 @@ public class HeartbeatWorker extends Worker {
         int batteryLevel = getBatteryLevel(context);
         String wifiSsid = getWifiSSID(context);
         float storageFreeGb = getStorageFreeGB();
+        Location location = getLastKnownLocation(context);
 
         // Timestamp ISO 8601 per Supabase
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
@@ -73,6 +78,17 @@ public class HeartbeatWorker extends Worker {
         deviceData.addProperty("storage_free_gb", storageFreeGb);
         deviceData.addProperty("device_model", Build.MODEL);
         deviceData.addProperty("updated_at", timestamp);
+
+        // Aggiungi coordinate GPS se disponibili
+        if (location != null) {
+            deviceData.addProperty("latitude", location.getLatitude());
+            deviceData.addProperty("longitude", location.getLongitude());
+            deviceData.addProperty("location_accuracy_meters", (int) location.getAccuracy());
+            deviceData.addProperty("location_updated_at", timestamp);
+            Log.d(TAG, "GPS coordinates: " + location.getLatitude() + ", " + location.getLongitude());
+        } else {
+            Log.w(TAG, "No GPS location available");
+        }
 
         Log.d(TAG, "Sending heartbeat for device: " + androidId);
         Log.d(TAG, "Payload: " + deviceData.toString());
@@ -150,6 +166,47 @@ public class HeartbeatWorker extends Worker {
         } catch (Exception e) {
             Log.e(TAG, "Error getting storage", e);
             return 0;
+        }
+    }
+
+    /**
+     * Ottieni ultima posizione GPS conosciuta
+     */
+    private Location getLastKnownLocation(Context context) {
+        try {
+            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            if (locationManager == null) {
+                Log.w(TAG, "LocationManager not available");
+                return null;
+            }
+
+            // Controlla permessi GPS
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "GPS permission not granted");
+                return null;
+            }
+
+            // Prova a ottenere posizione da GPS
+            Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (gpsLocation != null) {
+                Log.d(TAG, "GPS location found: " + gpsLocation.getLatitude() + ", " + gpsLocation.getLongitude());
+                return gpsLocation;
+            }
+
+            // Fallback a Network provider (WiFi/Cell tower)
+            Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if (networkLocation != null) {
+                Log.d(TAG, "Network location found: " + networkLocation.getLatitude() + ", " + networkLocation.getLongitude());
+                return networkLocation;
+            }
+
+            Log.w(TAG, "No location available from any provider");
+            return null;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting GPS location", e);
+            return null;
         }
     }
 }
