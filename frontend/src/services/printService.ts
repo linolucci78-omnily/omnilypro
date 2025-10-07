@@ -42,6 +42,7 @@ export class ZCSPrintService {
     try {
       console.log('Controllo bridge Android...')
       console.log('window.OmnilyPOS esiste?', typeof window !== 'undefined' && !!(window as any).OmnilyPOS)
+      console.log('window keys:', typeof window !== 'undefined' ? Object.keys(window).filter(k => k.toLowerCase().includes('omni') || k.toLowerCase().includes('pos') || k.toLowerCase().includes('android')) : [])
 
       // Check if Android bridge is available
       if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
