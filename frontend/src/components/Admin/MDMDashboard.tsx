@@ -30,7 +30,9 @@ import {
   Bell,
   Calendar,
   Zap,
-  Send
+  Send,
+  Map,
+  Grid
 } from 'lucide-react'
 import './AdminLayout.css'
 import './MDMDashboard.css'
@@ -44,6 +46,7 @@ import AlertsSystem from './AlertsSystem'
 import BulkOperations from './BulkOperations'
 import AppPushUpdate from './AppPushUpdate'
 import PageLoader from '../UI/PageLoader'
+import DeviceMap from './DeviceMap'
 
 interface Device {
   id: string
@@ -92,6 +95,7 @@ const MDMDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
   const [activeTab, setActiveTab] = useState<'devices' | 'scheduler' | 'alerts' | 'bulk' | 'push' | 'print' | 'apps' | 'logs' | 'tokens' | 'stores'>('devices')
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid')
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
@@ -560,19 +564,75 @@ const MDMDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra ricerca */}
-      <div className="search-bar">
-        <Search size={20} />
-        <input
-          type="text"
-          placeholder="Cerca dispositivo, negozio o organizzazione..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      {/* Barra ricerca e toggle vista */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+        <div className="search-bar" style={{ flex: 1, marginBottom: 0 }}>
+          <Search size={20} />
+          <input
+            type="text"
+            placeholder="Cerca dispositivo, negozio o organizzazione..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '4px', background: 'white', border: '1px solid #d1d5db', borderRadius: '8px', padding: '4px' }}>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              border: 'none',
+              borderRadius: '6px',
+              background: viewMode === 'grid' ? '#3b82f6' : 'transparent',
+              color: viewMode === 'grid' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 0.2s'
+            }}
+          >
+            <Grid size={16} />
+            Griglia
+          </button>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`view-toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              border: 'none',
+              borderRadius: '6px',
+              background: viewMode === 'map' ? '#3b82f6' : 'transparent',
+              color: viewMode === 'map' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 0.2s'
+            }}
+          >
+            <Map size={16} />
+            Mappa
+          </button>
+        </div>
       </div>
 
-      {/* Lista dispositivi */}
-      <div className="devices-grid">
+      {/* Vista Mappa */}
+      {viewMode === 'map' && (
+        <DeviceMap
+          devices={filteredDevices}
+          onDeviceSelect={(device) => setSelectedDevice(device)}
+        />
+      )}
+
+      {/* Vista Griglia */}
+      {viewMode === 'grid' && (
+        <div className="devices-grid">
         {filteredDevices.map(device => (
           <div
             key={device.id}
@@ -668,14 +728,15 @@ const MDMDashboard: React.FC = () => {
             )}
           </div>
         ))}
-      </div>
 
-      {filteredDevices.length === 0 && (
-        <div className="no-devices">
-          <Smartphone size={48} />
-          <h3>Nessun dispositivo trovato</h3>
-          <p>Non ci sono dispositivi che corrispondono ai criteri di ricerca.</p>
-        </div>
+        {filteredDevices.length === 0 && (
+          <div className="no-devices">
+            <Smartphone size={48} />
+            <h3>Nessun dispositivo trovato</h3>
+            <p>Non ci sono dispositivi che corrispondono ai criteri di ricerca.</p>
+          </div>
+        )}
+      </div>
       )}
 
       {/* Device Detail Modal */}

@@ -4,6 +4,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.app.Presentation;
+import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -32,6 +35,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.RenderProcessGoneDetail;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -65,6 +69,7 @@ import com.google.zxing.integration.android.IntentResult;
 import com.google.zxing.BarcodeFormat;
 
 import com.omnilypro.pos.mdm.MdmManager;
+import com.omnilypro.pos.mdm.MyDeviceAdminReceiver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +100,11 @@ public class MainActivityFinal extends AppCompatActivity {
 
     // QR Code scanning
     private String currentQRCallback;
+
+    // MDM - Device Admin
+    private DevicePolicyManager mDevicePolicyManager;
+    private ComponentName mAdminComponent;
+    private BroadcastReceiver mdmCommandReceiver;
 
     private static final int REQUEST_PERMISSIONS_CODE = 101;
     private static final int FILE_CHOOSER_REQUEST_CODE = 102;
@@ -128,10 +138,16 @@ public class MainActivityFinal extends AppCompatActivity {
         setupWebView();
         setupCustomerDisplay();
 
+        // Inizializza Device Admin per MDM
+        setupDeviceAdmin();
+
         // Inizializza sistema MDM
         Log.i(TAG, "Initializing MDM system...");
         MdmManager.getInstance(this).initialize();
         Log.i(TAG, "MDM system initialized successfully");
+
+        // Registra BroadcastReceiver per comandi MDM
+        registerMdmCommandReceiver();
 
         loadInitialUrl();
     }
@@ -583,6 +599,29 @@ public class MainActivityFinal extends AppCompatActivity {
 
                 view.evaluateJavascript(javascript, null);
                 setContentView(webView);
+            }
+
+            @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                // Callback nativo Android per rilevare crash del processo renderer WebView
+                Log.e(TAG, "🚨 ========== RENDER PROCESS GONE ==========");
+                Log.e(TAG, "🚨 WebView renderer process crashed!");
+                Log.e(TAG, "🚨 Crash: " + detail.didCrash());
+                Log.e(TAG, "🚨 Priority at exit: " + detail.rendererPriorityAtExit());
+                Log.e(TAG, "🚨 Triggering automatic recovery...");
+
+                // Distruggi il WebView corrotto
+                if (view != null) {
+                    view.destroy();
+                }
+
+                // Triggera recovery automatico tramite WebViewRecoveryActivity
+                Intent recoveryIntent = new Intent(MainActivityFinal.this, WebViewRecoveryActivity.class);
+                recoveryIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(recoveryIntent);
+                finish();
+
+                return true; // Indica che abbiamo gestito il crash
             }
         });
     }
@@ -1446,9 +1485,127 @@ public class MainActivityFinal extends AppCompatActivity {
         }
     }
 
+    // ============================================================================
+    // MDM - Device Admin Setup
+    // ============================================================================
+
+    private void setupDeviceAdmin() {
+        try {
+            mDevicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+            mAdminComponent = new ComponentName(this, MyDeviceAdminReceiver.class);
+
+            if (mDevicePolicyManager != null) {
+                boolean isAdmin = mDevicePolicyManager.isAdminActive(mAdminComponent);
+                boolean isDeviceOwner = mDevicePolicyManager.isDeviceOwnerApp(getPackageName());
+
+                Log.i(TAG, "📱 Device Admin Status:");
+                Log.i(TAG, "   - Is Admin: " + isAdmin);
+                Log.i(TAG, "   - Is Device Owner: " + isDeviceOwner);
+
+                if (isDeviceOwner) {
+                    Log.i(TAG, "✅ App is Device Owner - Full MDM capabilities enabled");
+
+                    // Abilita Lock Task Mode per Kiosk
+                    String[] packages = {getPackageName()};
+                    mDevicePolicyManager.setLockTaskPackages(mAdminComponent, packages);
+                    Log.i(TAG, "✅ Lock Task packages set for Kiosk Mode");
+                } else if (isAdmin) {
+                    Log.w(TAG, "⚠️ App is Device Admin but NOT Device Owner - Limited capabilities");
+                } else {
+                    Log.w(TAG, "⚠️ App is NOT Device Admin - MDM features will be limited");
+                    Log.w(TAG, "💡 To enable full MDM, set app as Device Owner via ADB:");
+                    Log.w(TAG, "   adb shell dpm set-device-owner com.omnilypro.pos/.mdm.MyDeviceAdminReceiver");
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error setting up Device Admin", e);
+        }
+    }
+
+    private void registerMdmCommandReceiver() {
+        mdmCommandReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                Log.i(TAG, "🎯 MDM Command received: " + action);
+
+                if ("com.omnilypro.pos.KIOSK_MODE".equals(action)) {
+                    boolean enabled = intent.getBooleanExtra("enabled", false);
+                    handleKioskMode(enabled);
+                } else if ("com.omnilypro.pos.SYNC_CONFIG".equals(action)) {
+                    handleSyncConfig();
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.omnilypro.pos.KIOSK_MODE");
+        filter.addAction("com.omnilypro.pos.SYNC_CONFIG");
+        registerReceiver(mdmCommandReceiver, filter);
+
+        Log.i(TAG, "✅ MDM Command Receiver registered");
+    }
+
+    private void handleKioskMode(boolean enable) {
+        if (mDevicePolicyManager == null || mAdminComponent == null) {
+            Log.e(TAG, "❌ DevicePolicyManager not initialized");
+            return;
+        }
+
+        if (!mDevicePolicyManager.isDeviceOwnerApp(getPackageName())) {
+            Log.w(TAG, "⚠️ Cannot enable Kiosk Mode - App is not Device Owner");
+            Toast.makeText(this, "Kiosk Mode requires Device Owner privileges", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        try {
+            if (enable) {
+                Log.i(TAG, "🔒 Entering KIOSK MODE (Lock Task)...");
+                startLockTask();
+                Toast.makeText(this, "🔒 KIOSK MODE ATTIVATA", Toast.LENGTH_LONG).show();
+                Log.i(TAG, "✅ Kiosk Mode ENABLED");
+            } else {
+                Log.i(TAG, "🔓 Exiting KIOSK MODE...");
+                stopLockTask();
+                Toast.makeText(this, "🔓 KIOSK MODE DISATTIVATA", Toast.LENGTH_LONG).show();
+                Log.i(TAG, "✅ Kiosk Mode DISABLED");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error toggling Kiosk Mode", e);
+            Toast.makeText(this, "Errore Kiosk Mode: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void handleSyncConfig() {
+        Log.i(TAG, "🔄 Syncing configuration from server...");
+        Toast.makeText(this, "🔄 Sincronizzazione configurazione...", Toast.LENGTH_SHORT).show();
+
+        // TODO: Implementare sync configurazioni da Supabase
+        // Per ora reload del WebView per forzare refresh
+        if (webView != null) {
+            runOnUiThread(() -> {
+                webView.reload();
+                Log.i(TAG, "✅ WebView reloaded for config sync");
+            });
+        }
+    }
+
+    // ============================================================================
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // Deregistra BroadcastReceiver MDM
+        if (mdmCommandReceiver != null) {
+            try {
+                unregisterReceiver(mdmCommandReceiver);
+                Log.d(TAG, "MDM command receiver unregistered");
+            } catch (Exception e) {
+                Log.e(TAG, "Error unregistering MDM receiver", e);
+            }
+        }
+
         if (customerPresentation != null) {
             customerPresentation.dismiss();
         }

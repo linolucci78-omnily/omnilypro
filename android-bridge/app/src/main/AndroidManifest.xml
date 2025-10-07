@@ -39,6 +39,14 @@
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
 
+        <!-- Disable WebView multiprocess to avoid sandbox crashes -->
+        <meta-data
+            android:name="android.webkit.WebView.EnableSafeBrowsing"
+            android:value="false" />
+        <meta-data
+            android:name="android.webkit.WebView.MetricsOptOut"
+            android:value="true" />
+
         <activity
             android:name=".MainActivityFinal"
             android:exported="true"
@@ -53,6 +61,13 @@
             <!-- NFC Intent Filters REMOVED for on-demand NFC only -->
         </activity>
 
+        <!-- WebView Recovery Activity - Auto-fix per WebView corrotti -->
+        <activity
+            android:name=".WebViewRecoveryActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.Dialog" />
+
         <!-- ZXing QR Scanner Activity with portrait orientation -->
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
@@ -63,5 +78,20 @@
             tools:replace="android:screenOrientation" />
 
         <!-- NFC Tech List REMOVED for on-demand NFC only -->
+
+        <!-- Device Admin Receiver per MDM - Device Owner -->
+        <receiver
+            android:name=".mdm.MyDeviceAdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policy" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />
+                <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

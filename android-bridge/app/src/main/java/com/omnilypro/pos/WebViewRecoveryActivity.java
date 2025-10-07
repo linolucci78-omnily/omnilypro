@@ -18,7 +18,7 @@ public class WebViewRecoveryActivity extends Activity {
     private static final String KEY_LAST_RECOVERY = "last_recovery_time";
     private static final String KEY_RECOVERY_COUNT = "recovery_count";
     private static final long RECOVERY_WINDOW_MS = 300000; // 5 minuti
-    private static final int MAX_AUTO_RECOVERIES = 3;
+    private static final int MAX_AUTO_RECOVERIES = 10; // Aumentato da 3 a 10 tentativi
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +68,11 @@ public class WebViewRecoveryActivity extends Activity {
             }
 
             // Cancella directory WebView
-            java.io.File dataDir = getApplicationInfo().dataDir;
-            deleteDir(new java.io.File(dataDir, "app_webview"));
-            deleteDir(new java.io.File(dataDir, "cache/webview"));
-            deleteDir(new java.io.File(dataDir, "app_chrome"));
-            deleteDir(new java.io.File(dataDir, "app_webview/Service Worker"));
+            String dataDirPath = getApplicationInfo().dataDir;
+            deleteDir(new java.io.File(dataDirPath, "app_webview"));
+            deleteDir(new java.io.File(dataDirPath, "cache/webview"));
+            deleteDir(new java.io.File(dataDirPath, "app_chrome"));
+            deleteDir(new java.io.File(dataDirPath, "app_webview/Service Worker"));
 
             Log.i(TAG, "✅ WebView data cleared successfully");
         } catch (Exception e) {
@@ -90,13 +90,25 @@ public class WebViewRecoveryActivity extends Activity {
     private void showManualRecoveryDialog() {
         new AlertDialog.Builder(this)
             .setTitle("Reset Richiesto")
-            .setMessage("L'app necessita di un reset per funzionare correttamente.\n\n" +
-                    "Operazioni da eseguire:\n" +
-                    "1. Chiudi questa app\n" +
-                    "2. Vai in Impostazioni → App → Android System WebView\n" +
-                    "3. Cancella Cache e Dati\n" +
-                    "4. Riapri l'app")
-            .setPositiveButton("OK", (dialog, which) -> finish())
+            .setMessage("L'app necessita di un reset completo per funzionare.\n\n" +
+                    "Premi 'Reset Automatico' per provare nuovamente la pulizia.")
+            .setPositiveButton("Reset Automatico", (dialog, which) -> {
+                // Reset contatore e riprova
+                SharedPreferences prefs = getSharedPreferences(RECOVERY_PREFS, MODE_PRIVATE);
+                prefs.edit().clear().apply();
+                performAutoRecovery(prefs, 0, System.currentTimeMillis());
+            })
+            .setNegativeButton("Reset Manuale", (dialog, which) -> {
+                // Mostra istruzioni manuali
+                new AlertDialog.Builder(this)
+                    .setTitle("Istruzioni Reset Manuale")
+                    .setMessage("1. Chiudi questa app\n" +
+                            "2. Vai in Impostazioni → App → Android System WebView\n" +
+                            "3. Cancella Cache e Dati\n" +
+                            "4. Riapri l'app")
+                    .setPositiveButton("OK", (d, w) -> finish())
+                    .show();
+            })
             .setCancelable(false)
             .show();
     }

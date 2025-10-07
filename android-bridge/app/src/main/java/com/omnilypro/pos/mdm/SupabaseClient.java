@@ -89,7 +89,12 @@ public class SupabaseClient {
 
         JsonObject data = new JsonObject();
         data.addProperty("status", status);
-        data.addProperty("completed_at", System.currentTimeMillis());
+
+        // Timestamp ISO 8601 per Supabase (come per heartbeat)
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US);
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        String timestamp = sdf.format(new java.util.Date());
+        data.addProperty("completed_at", timestamp);
 
         if (resultData != null) {
             data.addProperty("result_data", resultData);
@@ -109,6 +114,22 @@ public class SupabaseClient {
                 .addHeader("apikey", apiKey)
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
+                .build();
+
+        httpClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * Get device by android_id (GET)
+     */
+    public void getDeviceByAndroidId(String androidId, Callback callback) {
+        String url = supabaseUrl + MdmConfig.DEVICES_ENDPOINT + "?android_id=eq." + androidId;
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
 
         httpClient.newCall(request).enqueue(callback);
@@ -162,6 +183,49 @@ public class SupabaseClient {
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
                 .build();
+
+        httpClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * Aggiorna posizione GPS dispositivo (PATCH)
+     */
+    public void updateDeviceLocation(String deviceId, double latitude, double longitude, float accuracy, long timestamp, Callback callback) {
+        String url = supabaseUrl + MdmConfig.DEVICES_ENDPOINT + "?id=eq." + deviceId;
+
+        JsonObject locationData = new JsonObject();
+
+        // Crea oggetto GPS con coordinate
+        JsonObject gpsData = new JsonObject();
+        gpsData.addProperty("latitude", latitude);
+        gpsData.addProperty("longitude", longitude);
+        gpsData.addProperty("accuracy", accuracy);
+        gpsData.addProperty("timestamp", timestamp);
+
+        // Timestamp ISO 8601 per last_location_update
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US);
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        String isoTimestamp = sdf.format(new java.util.Date(timestamp));
+
+        locationData.add("last_location", gpsData);
+        locationData.addProperty("last_location_update", isoTimestamp);
+
+        RequestBody body = RequestBody.create(
+                locationData.toString(),
+                MediaType.parse("application/json")
+        );
+
+        Request request = new Request.Builder()
+                .url(url)
+                .patch(body)
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=representation")
+                .build();
+
+        Log.d(TAG, "📍 Updating device location: " + url);
+        Log.d(TAG, "📍 Location data: " + locationData.toString());
 
         httpClient.newCall(request).enqueue(callback);
     }

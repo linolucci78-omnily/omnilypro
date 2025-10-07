@@ -19,6 +19,10 @@ import androidx.work.WorkerParameters;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -55,15 +59,23 @@ public class HeartbeatWorker extends Worker {
         String wifiSsid = getWifiSSID(context);
         float storageFreeGb = getStorageFreeGB();
 
+        // Timestamp ISO 8601 per Supabase
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = sdf.format(new Date());
+
         // Crea JSON payload
         JsonObject deviceData = new JsonObject();
         deviceData.addProperty("status", MdmConfig.STATUS_ONLINE);
-        deviceData.addProperty("last_seen", System.currentTimeMillis());
+        deviceData.addProperty("last_seen", timestamp);
         deviceData.addProperty("battery_level", batteryLevel);
         deviceData.addProperty("wifi_ssid", wifiSsid);
         deviceData.addProperty("storage_free_gb", storageFreeGb);
         deviceData.addProperty("device_model", Build.MODEL);
-        deviceData.addProperty("updated_at", System.currentTimeMillis());
+        deviceData.addProperty("updated_at", timestamp);
+
+        Log.d(TAG, "Sending heartbeat for device: " + androidId);
+        Log.d(TAG, "Payload: " + deviceData.toString());
 
         // Invia a Supabase
         SupabaseClient.getInstance().updateDeviceStatus(androidId, deviceData, new Callback() {
@@ -75,9 +87,11 @@ public class HeartbeatWorker extends Worker {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    Log.d(TAG, "Heartbeat sent successfully");
+                    String responseBody = response.body() != null ? response.body().string() : "no body";
+                    Log.d(TAG, "Heartbeat sent successfully - Response: " + responseBody);
                 } else {
-                    Log.w(TAG, "Heartbeat failed: " + response.code());
+                    String errorBody = response.body() != null ? response.body().string() : "no body";
+                    Log.w(TAG, "Heartbeat failed: " + response.code() + " - " + errorBody);
                 }
                 response.close();
             }

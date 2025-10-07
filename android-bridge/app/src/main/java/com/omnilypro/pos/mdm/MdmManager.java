@@ -34,6 +34,11 @@ public class MdmManager {
     private final Context context;
     private final SharedPreferences prefs;
 
+    // Handler per polling continuo ogni 1 minuto
+    private android.os.Handler pollingHandler;
+    private Runnable pollingRunnable;
+    private static final long POLLING_INTERVAL_MS = 60000; // 1 minuto
+
     private MdmManager(Context context) {
         this.context = context.getApplicationContext();
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -51,14 +56,28 @@ public class MdmManager {
      * Registra dispositivo e avvia worker background
      */
     public void initialize() {
-        Log.i(TAG, "Initializing MDM system...");
+        Log.i(TAG, "🚀 ========== MDM INITIALIZATION START ==========");
 
         // Controlla se dispositivo è già registrato
         if (isDeviceRegistered()) {
-            Log.d(TAG, "Device already registered");
             String deviceId = getDeviceId();
-            CommandPollingWorker.setDeviceId(deviceId);
-            startBackgroundWorkers();
+            Log.i(TAG, "✅ Device already registered with ID: " + deviceId);
+
+            // Mostra Device ID con Toast
+            showDeviceIdToast(deviceId);
+
+            // Se il deviceId è un android_id (non un UUID), dobbiamo recuperare l'UUID reale
+            if (deviceId != null && !deviceId.contains("-")) {
+                Log.d(TAG, "Device ID is android_id, fetching UUID...");
+                fetchDeviceUuid();
+            } else {
+                CommandPollingWorker.setDeviceId(deviceId);
+                startBackgroundWorkers();
+
+                // POLLING IMMEDIATO - non aspettare WorkManager
+                Log.i(TAG, "🔥 Starting IMMEDIATE command poll...");
+                performImmediateCommandPoll();
+            }
         } else {
             Log.d(TAG, "Device not registered, registering now...");
             registerDevice();
@@ -66,7 +85,133 @@ public class MdmManager {
     }
 
     /**
+     * Esegue polling comandi IMMEDIATAMENTE senza aspettare WorkManager
+     */
+    private void performImmediateCommandPoll() {
+        new Thread(() -> {
+            try {
+                String deviceId = getDeviceId();
+                if (deviceId == null) {
+                    Log.e(TAG, "❌ Cannot poll commands - Device ID is null");
+                    return;
+                }
+
+                Log.i(TAG, "🔍 Immediate polling for device: " + deviceId);
+
+                SupabaseClient.getInstance().getPendingCommands(deviceId, new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.e(TAG, "❌ Immediate poll FAILED: " + e.getMessage(), e);
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.isSuccessful() && response.body() != null) {
+                            String responseData = response.body().string();
+                            Log.i(TAG, "✅ Immediate poll SUCCESS - Response: " + responseData);
+
+                            try {
+                                com.google.gson.JsonArray commands = new com.google.gson.Gson()
+                                    .fromJson(responseData, com.google.gson.JsonArray.class);
+                                Log.i(TAG, "📋 Found " + commands.size() + " pending commands");
+
+                                if (commands.size() > 0) {
+                                    Log.i(TAG, "🎯 Commands found! Triggering CommandPollingWorker...");
+                                    // Triggera il worker per eseguire i comandi
+                                    androidx.work.OneTimeWorkRequest commandWork =
+                                        new androidx.work.OneTimeWorkRequest.Builder(CommandPollingWorker.class).build();
+                                    androidx.work.WorkManager.getInstance(context).enqueue(commandWork);
+                                } else {
+                                    Log.i(TAG, "📭 No pending commands found");
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "❌ Error parsing commands response", e);
+                            }
+                        } else {
+                            Log.w(TAG, "⚠️ Immediate poll response NOT successful: " + response.code());
+                        }
+                        response.close();
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Exception in immediate poll", e);
+            }
+        }).start();
+    }
+
+    /**
+     * Mostra Toast con Device ID
+     */
+    private void showDeviceIdToast(String deviceId) {
+        android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        mainHandler.post(() -> {
+            android.widget.Toast.makeText(
+                context,
+                "MDM Device ID: " + (deviceId != null ? deviceId.substring(0, Math.min(8, deviceId.length())) + "..." : "NULL"),
+                android.widget.Toast.LENGTH_LONG
+            ).show();
+        });
+    }
+
+    private void fetchDeviceUuid() {
+        String androidId = Settings.Secure.getString(
+                context.getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        // Query device per ottenere UUID
+        SupabaseClient.getInstance().getDeviceByAndroidId(androidId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, "Failed to fetch device UUID", e);
+                // Fallback: usa android_id
+                CommandPollingWorker.setDeviceId(androidId);
+                startBackgroundWorkers();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Device fetch response: " + responseBody);
+
+                    try {
+                        com.google.gson.JsonArray jsonArray = new com.google.gson.Gson().fromJson(responseBody, com.google.gson.JsonArray.class);
+                        if (jsonArray.size() > 0) {
+                            com.google.gson.JsonObject deviceObj = jsonArray.get(0).getAsJsonObject();
+                            String deviceUuid = deviceObj.get("id").getAsString();
+
+                            Log.i(TAG, "✅ Fetched device UUID: " + deviceUuid);
+                            saveDeviceId(deviceUuid);
+                            CommandPollingWorker.setDeviceId(deviceUuid);
+                            showDeviceIdToast(deviceUuid);
+                        } else {
+                            Log.w(TAG, "No device found, using android_id");
+                            CommandPollingWorker.setDeviceId(androidId);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing device response", e);
+                        CommandPollingWorker.setDeviceId(androidId);
+                    }
+                } else {
+                    Log.w(TAG, "Device fetch failed: " + response.code());
+                    CommandPollingWorker.setDeviceId(androidId);
+                }
+                startBackgroundWorkers();
+
+                // POLLING IMMEDIATO dopo aver settato il device ID
+                Log.i(TAG, "🔥 Starting IMMEDIATE command poll after device ID fetch...");
+                performImmediateCommandPoll();
+
+                response.close();
+            }
+        });
+    }
+
+    /**
      * Registra dispositivo su backend
+     * Prima controlla se esiste, poi fa UPDATE invece di INSERT
      */
     private void registerDevice() {
         String androidId = Settings.Secure.getString(
@@ -74,35 +219,57 @@ public class MdmManager {
                 Settings.Secure.ANDROID_ID
         );
 
+        // Tentativo di UPDATE (il device potrebbe già esistere nel database)
         JsonObject deviceData = new JsonObject();
-        deviceData.addProperty("android_id", androidId);
-        deviceData.addProperty("name", "POS-" + androidId.substring(0, 8));
-        deviceData.addProperty("device_model", android.os.Build.MODEL);
         deviceData.addProperty("status", MdmConfig.STATUS_ONLINE);
+        deviceData.addProperty("last_seen", System.currentTimeMillis());
+        deviceData.addProperty("device_model", android.os.Build.MODEL);
         deviceData.addProperty("language", "it_IT");
 
-        SupabaseClient.getInstance().registerDevice(deviceData, new Callback() {
+        SupabaseClient.getInstance().updateDeviceStatus(androidId, deviceData, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Log.e(TAG, "Failed to register device", e);
+                Log.e(TAG, "❌ Failed to update device status", e);
+                // Se fallisce, prova a recuperare l'UUID con una GET
+                Log.i(TAG, "🔄 Attempting to fetch device UUID with GET...");
+                fetchDeviceUuid();
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
-                    Log.d(TAG, "Device registered: " + responseData);
+                    String responseBody = response.body().string();
+                    Log.i(TAG, "✅ Device update response: " + responseBody);
 
-                    // TODO: Parse response e salvare device_id
-                    // Per ora usiamo android_id come device_id
-                    saveDeviceId(androidId);
-                    markDeviceAsRegistered();
-                    CommandPollingWorker.setDeviceId(androidId);
+                    try {
+                        // Parse response per ottenere UUID del device
+                        com.google.gson.JsonArray jsonArray = new com.google.gson.Gson().fromJson(responseBody, com.google.gson.JsonArray.class);
+                        if (jsonArray.size() > 0) {
+                            com.google.gson.JsonObject deviceObj = jsonArray.get(0).getAsJsonObject();
+                            String deviceUuid = deviceObj.get("id").getAsString();
 
-                    // Avvia background workers
-                    startBackgroundWorkers();
+                            Log.i(TAG, "✅ Device registered with UUID: " + deviceUuid);
+                            saveDeviceId(deviceUuid);
+                            markDeviceAsRegistered();
+                            CommandPollingWorker.setDeviceId(deviceUuid);
+                            showDeviceIdToast(deviceUuid);
+                            startBackgroundWorkers();
+
+                            // POLLING IMMEDIATO dopo registrazione
+                            Log.i(TAG, "🔥 Starting IMMEDIATE command poll after registration...");
+                            performImmediateCommandPoll();
+                        } else {
+                            Log.w(TAG, "⚠️ Empty response, fetching device UUID...");
+                            fetchDeviceUuid();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "❌ Error parsing device response", e);
+                        fetchDeviceUuid();
+                    }
                 } else {
-                    Log.w(TAG, "Registration failed: " + response.code());
+                    Log.w(TAG, "⚠️ Registration failed: " + response.code() + " - Fetching UUID...");
+                    // Se fallisce (es. 400), prova a recuperare l'UUID esistente
+                    fetchDeviceUuid();
                 }
                 response.close();
             }
@@ -114,6 +281,9 @@ public class MdmManager {
      */
     private void startBackgroundWorkers() {
         Log.i(TAG, "Starting background workers...");
+
+        // NUOVO: Polling continuo ogni 1 minuto usando Handler (bypassa limite 15min di Android)
+        startContinuousPolling();
 
         WorkManager workManager = WorkManager.getInstance(context);
 
@@ -161,8 +331,45 @@ public class MdmManager {
      */
     public void stopWorkers() {
         Log.i(TAG, "Stopping MDM workers...");
+        stopContinuousPolling();
         WorkManager.getInstance(context).cancelAllWorkByTag("mdm_heartbeat");
         WorkManager.getInstance(context).cancelAllWorkByTag("mdm_commands");
+    }
+
+    /**
+     * Avvia polling continuo ogni 1 minuto usando Handler
+     */
+    private void startContinuousPolling() {
+        if (pollingHandler == null) {
+            pollingHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        }
+
+        pollingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, "🔄 Continuous polling tick (every 1 minute)");
+                performImmediateCommandPoll();
+
+                // Ri-schedula per il prossimo minuto
+                if (pollingHandler != null) {
+                    pollingHandler.postDelayed(this, POLLING_INTERVAL_MS);
+                }
+            }
+        };
+
+        // Avvia il primo polling dopo 1 minuto
+        pollingHandler.postDelayed(pollingRunnable, POLLING_INTERVAL_MS);
+        Log.i(TAG, "✅ Continuous polling started (interval: 1 minute)");
+    }
+
+    /**
+     * Ferma polling continuo
+     */
+    private void stopContinuousPolling() {
+        if (pollingHandler != null && pollingRunnable != null) {
+            pollingHandler.removeCallbacks(pollingRunnable);
+            Log.i(TAG, "❌ Continuous polling stopped");
+        }
     }
 
     // ============================================================================
@@ -186,6 +393,14 @@ public class MdmManager {
     }
 
     /**
+     * Forza polling manuale dei comandi (per testing/debug)
+     */
+    public void forceCommandPoll() {
+        Log.i(TAG, "🔧 MANUAL command poll triggered");
+        performImmediateCommandPoll();
+    }
+
+    /**
      * Reset registrazione (per testing)
      */
     public void resetRegistration() {
@@ -195,5 +410,12 @@ public class MdmManager {
                 .apply();
         stopWorkers();
         Log.i(TAG, "Device registration reset");
+    }
+
+    /**
+     * Ottieni Device ID corrente
+     */
+    public String getCurrentDeviceId() {
+        return getDeviceId();
     }
 }
