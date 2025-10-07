@@ -815,25 +815,63 @@ const MDMDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {selectedDevice.latitude && selectedDevice.longitude && (
+                {selectedDevice.latitude && selectedDevice.longitude ? (
                   <div className="detail-group">
-                    <h4>Posizione GPS</h4>
+                    <h4>📍 Posizione GPS</h4>
                     <div className="detail-row">
-                      <span>Coordinate:</span>
-                      <span className="mono">
-                        {selectedDevice.latitude.toFixed(6)}, {selectedDevice.longitude.toFixed(6)}
-                      </span>
+                      <span>Latitudine:</span>
+                      <span className="mono">{selectedDevice.latitude.toFixed(6)}°</span>
                     </div>
-                    <button
-                      className="action-btn secondary"
-                      onClick={() => {
-                        const url = `https://www.google.com/maps?q=${selectedDevice.latitude},${selectedDevice.longitude}`
-                        window.open(url, '_blank')
-                      }}
-                    >
-                      <MapPin size={14} />
-                      Vedi su Mappa
-                    </button>
+                    <div className="detail-row">
+                      <span>Longitudine:</span>
+                      <span className="mono">{selectedDevice.longitude.toFixed(6)}°</span>
+                    </div>
+                    <div className="detail-row">
+                      <span>Precisione:</span>
+                      <span>{selectedDevice.location_accuracy_meters ? `±${selectedDevice.location_accuracy_meters}m` : 'N/A'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span>Indirizzo approssimativo:</span>
+                      <span>{selectedDevice.store_location}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                      <button
+                        className="action-btn secondary"
+                        onClick={() => {
+                          const url = `https://www.google.com/maps?q=${selectedDevice.latitude},${selectedDevice.longitude}`
+                          window.open(url, '_blank')
+                        }}
+                        style={{ flex: 1 }}
+                      >
+                        <MapPin size={14} />
+                        Google Maps
+                      </button>
+                      <button
+                        className="action-btn secondary"
+                        onClick={() => {
+                          const url = `https://www.openstreetmap.org/?mlat=${selectedDevice.latitude}&mlon=${selectedDevice.longitude}&zoom=16`
+                          window.open(url, '_blank')
+                        }}
+                        style={{ flex: 1 }}
+                      >
+                        <MapPin size={14} />
+                        OpenStreetMap
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="detail-group">
+                    <h4>📍 Posizione GPS</h4>
+                    <div style={{
+                      padding: '12px',
+                      background: '#fef3c7',
+                      border: '1px solid #f59e0b',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      color: '#92400e'
+                    }}>
+                      ⚠️ Nessuna posizione GPS disponibile. Il dispositivo deve inviare le coordinate.
+                    </div>
                   </div>
                 )}
               </div>
