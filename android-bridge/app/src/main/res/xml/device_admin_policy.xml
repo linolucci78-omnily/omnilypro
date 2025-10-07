@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies>
+        <!-- Permesso per forzare lock del dispositivo -->
+        <force-lock />
+
+        <!-- Permesso per wipe dei dati (factory reset) -->
+        <wipe-data />
+
+        <!-- Permesso per reset password -->
+        <reset-password />
+
+        <!-- Permesso per limitare password -->
+        <limit-password />
+
+        <!-- Permesso per watchdog (monitoring app) -->
+        <watch-login />
+
+        <!-- Permesso per disabilitare camera -->
+        <disable-camera />
+
+        <!-- Permesso per criptare storage -->
+        <encrypted-storage />
+
+        <!-- Permesso per disabilitare keyguard features -->
+        <disable-keyguard-features />
+    </uses-policies>
+</device-admin>

@@ -645,6 +645,19 @@ const MDMDashboard: React.FC = () => {
                 <Download size={14} />
                 QR Setup
               </button>
+
+              <button
+                className="action-btn danger"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  sendCommand(device.id, 'kiosk_off')
+                }}
+                disabled={device.status === 'offline'}
+                title="Forza uscita da Kiosk Mode (usa questo se il dispositivo è bloccato)"
+              >
+                <Unlock size={14} />
+                Force Unlock
+              </button>
             </div>
 
             {device.kiosk_mode_active && (
@@ -784,6 +797,16 @@ const MDMDashboard: React.FC = () => {
                 >
                   {selectedDevice.kiosk_mode_active ? <Unlock size={16} /> : <Lock size={16} />}
                   {selectedDevice.kiosk_mode_active ? 'Disattiva Kiosk' : 'Attiva Kiosk'}
+                </button>
+
+                <button
+                  className="action-btn danger"
+                  onClick={() => sendCommand(selectedDevice.id, 'kiosk_off')}
+                  disabled={selectedDevice.status === 'offline'}
+                  title="Forza uscita da Kiosk Mode anche se lo stato è incorretto"
+                >
+                  <Unlock size={16} />
+                  Force Unlock 🆘
                 </button>
 
                 <button
