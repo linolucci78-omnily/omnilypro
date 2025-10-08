@@ -1182,8 +1182,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   <tbody>
                     {customersLoading ? (
                       <tr>
-                        <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
-                          <div className="loading-spinner">Caricamento clienti...</div>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: '3rem' }}>
+                          <div className="loading-bar-container">
+                            <div className="loading-bar-label">Caricamento clienti...</div>
+                            <div className="loading-bar-track">
+                              <div className="loading-bar-fill"></div>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     ) : filteredCustomers.length === 0 ? (
@@ -1350,9 +1355,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               </div>
 
               {rewardsLoading ? (
-                <div className="loading-state">
-                  <div className="spinner"></div>
-                  <p>Caricamento premi...</p>
+                <div className="loading-bar-container" style={{ padding: '3rem 0' }}>
+                  <div className="loading-bar-label">Caricamento premi...</div>
+                  <div className="loading-bar-track">
+                    <div className="loading-bar-fill"></div>
+                  </div>
                 </div>
               ) : rewards.length > 0 ? (
                 <div className="cards-grid">
@@ -2138,7 +2145,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
-  if (loading) return <div className="loading">Caricamento...</div>
+  if (loading) return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: '2rem'
+    }}>
+      <div className="loading-bar-container" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="loading-bar-label">Caricamento dashboard...</div>
+        <div className="loading-bar-track">
+          <div className="loading-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+  )
   if (error) return <div className="error">Errore: {error}</div>
 
   return (
