@@ -1628,8 +1628,8 @@ public class MainActivityFinal extends AppCompatActivity {
                         if (bitmap != null) {
                             Log.d(TAG, "Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
 
-                            // Resize logo to fit thermal printer (max width 200px for better compatibility)
-                            int maxWidth = 200;
+                            // Resize logo to fit thermal printer (max width 384px - full width for 58mm printer)
+                            int maxWidth = 384;
                             if (bitmap.getWidth() > maxWidth) {
                                 float ratio = (float) maxWidth / bitmap.getWidth();
                                 int newHeight = (int) (bitmap.getHeight() * ratio);
