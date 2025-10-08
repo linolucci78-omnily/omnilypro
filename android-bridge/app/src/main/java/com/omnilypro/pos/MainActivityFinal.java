@@ -98,6 +98,10 @@ public class MainActivityFinal extends AppCompatActivity {
     private String[][] nfcTechLists;
     private OmnilyPOSBridge bridge;
 
+    // Bridge re-injection handler for SPA navigation
+    private android.os.Handler bridgeHandler;
+    private Runnable bridgeInjector;
+
     // QR Code scanning
     private String currentQRCallback;
 
@@ -527,7 +531,42 @@ public class MainActivityFinal extends AppCompatActivity {
         bridge = new OmnilyPOSBridge();
         webView.addJavascriptInterface(bridge, "OmnilyPOS");
 
-        Log.d(TAG, "🔧 Bridge CREATED with BEEP method!");
+        Log.i(TAG, "🔧 Bridge CREATED with BEEP method!");
+
+        // Setup periodic bridge re-injection for SPA navigation
+        bridgeHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        bridgeInjector = new Runnable() {
+            @Override
+            public void run() {
+                // Re-inject bridge to ensure it's always available
+                try {
+                    webView.removeJavascriptInterface("OmnilyPOS");
+                    webView.addJavascriptInterface(bridge, "OmnilyPOS");
+
+                    // Force verification in JavaScript context
+                    webView.evaluateJavascript(
+                        "(function() {" +
+                        "  console.log('🔧 Bridge verification from Android:', typeof window.OmnilyPOS);" +
+                        "  if (typeof window.OmnilyPOS === 'undefined') {" +
+                        "    console.error('❌ Bridge NOT visible in JS context!');" +
+                        "  } else {" +
+                        "    console.log('✅ Bridge IS visible in JS context!');" +
+                        "  }" +
+                        "})()",
+                        null
+                    );
+
+                    Log.i(TAG, "🔄 Bridge re-injected (periodic)");
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Error re-injecting bridge: " + e.getMessage());
+                }
+                // Re-schedule every 3 seconds
+                bridgeHandler.postDelayed(this, 3000);
+            }
+        };
+        // Start periodic injection
+        bridgeHandler.postDelayed(bridgeInjector, 3000);
+        Log.i(TAG, "✅ Periodic bridge re-injection started (every 3s)");
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -585,6 +624,13 @@ public class MainActivityFinal extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 Log.d(TAG, "Page finished loading: " + url);
+
+                // Re-inject bridge ogni volta per SPA navigation
+                Log.d(TAG, "🔧 Re-injecting bridge for SPA compatibility...");
+                view.removeJavascriptInterface("OmnilyPOS");
+                bridge = new OmnilyPOSBridge();
+                view.addJavascriptInterface(bridge, "OmnilyPOS");
+                Log.d(TAG, "✅ Bridge re-injected!");
 
                 // Inject bridge detection (without beep test)
                 String javascript = "javascript:(function() {" +
@@ -919,7 +965,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -1485,6 +1531,117 @@ public class MainActivityFinal extends AppCompatActivity {
             }
             return sb.toString();
         }
+
+        @JavascriptInterface
+        public void testPrinter() {
+            Log.d(TAG, "testPrinter called");
+
+            new Thread(() -> {
+                try {
+                    if (mPrinter == null) {
+                        Log.e(TAG, "Printer not initialized");
+                        runOnUiThread(() -> showToast("Stampante non inizializzata"));
+                        return;
+                    }
+
+                    // Simple test print
+                    PrnStrFormat centerFormat = new PrnStrFormat();
+                    centerFormat.setTextSize(24);
+                    centerFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+                    centerFormat.setStyle(PrnTextStyle.BOLD);
+
+                    PrnStrFormat normalFormat = new PrnStrFormat();
+                    normalFormat.setTextSize(20);
+                    normalFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+
+                    mPrinter.setPrintAppendString("\n", normalFormat);
+                    mPrinter.setPrintAppendString("=== TEST STAMPANTE ===\n", centerFormat);
+                    mPrinter.setPrintAppendString("\n", normalFormat);
+                    mPrinter.setPrintAppendString("OMNILY PRO POS System\n", normalFormat);
+                    mPrinter.setPrintAppendString("Test stampante eseguito con successo\n", normalFormat);
+                    mPrinter.setPrintAppendString("\n", normalFormat);
+                    mPrinter.setPrintAppendString(new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date()) + "\n", normalFormat);
+                    mPrinter.setPrintAppendString("\n\n\n", normalFormat);
+
+                    int printStatus = mPrinter.setPrintStart();
+                    if (printStatus == SdkResult.SDK_OK) {
+                        Thread.sleep(2000);
+                        mPrinter.openPrnCutter((byte) 1);
+                        Log.d(TAG, "Test print completed successfully");
+                        runOnUiThread(() -> showToast("Test stampante completato"));
+                    } else {
+                        Log.e(TAG, "Test print failed with status: " + printStatus);
+                        runOnUiThread(() -> showToast("Test stampante fallito"));
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error in test print", e);
+                    runOnUiThread(() -> showToast("Errore test stampante: " + e.getMessage()));
+                }
+            }).start();
+        }
+
+        @JavascriptInterface
+        public String getNetworkInfo() {
+            Log.d(TAG, "getNetworkInfo called");
+
+            try {
+                android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+                JSONObject networkInfo = new JSONObject();
+
+                if (activeNetwork != null && activeNetwork.isConnected()) {
+                    networkInfo.put("connected", true);
+                    networkInfo.put("type", activeNetwork.getTypeName()); // WIFI or MOBILE
+
+                    // Try to get IP address
+                    try {
+                        java.net.InetAddress inetAddress = java.net.InetAddress.getLocalHost();
+                        networkInfo.put("ip", inetAddress.getHostAddress());
+                    } catch (Exception e) {
+                        // Try alternative method for IP
+                        try {
+                            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+                            while (interfaces.hasMoreElements()) {
+                                java.net.NetworkInterface networkInterface = interfaces.nextElement();
+                                java.util.Enumeration<java.net.InetAddress> addresses = networkInterface.getInetAddresses();
+                                while (addresses.hasMoreElements()) {
+                                    java.net.InetAddress addr = addresses.nextElement();
+                                    if (!addr.isLoopbackAddress() && addr instanceof java.net.Inet4Address) {
+                                        networkInfo.put("ip", addr.getHostAddress());
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Failed to get IP address", ex);
+                            networkInfo.put("ip", "N/A");
+                        }
+                    }
+                } else {
+                    networkInfo.put("connected", false);
+                    networkInfo.put("type", "None");
+                    networkInfo.put("ip", "N/A");
+                }
+
+                String result = networkInfo.toString();
+                Log.d(TAG, "getNetworkInfo returning: " + result);
+                return result;
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting network info", e);
+                try {
+                    JSONObject errorInfo = new JSONObject();
+                    errorInfo.put("connected", false);
+                    errorInfo.put("type", "Error");
+                    errorInfo.put("ip", "N/A");
+                    errorInfo.put("error", e.getMessage());
+                    return errorInfo.toString();
+                } catch (JSONException jsonE) {
+                    return "{\"connected\":false,\"type\":\"Error\",\"ip\":\"N/A\"}";
+                }
+            }
+        }
     }
 
     // ============================================================================
@@ -1597,6 +1754,12 @@ public class MainActivityFinal extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // Stop periodic bridge re-injection
+        if (bridgeHandler != null && bridgeInjector != null) {
+            bridgeHandler.removeCallbacks(bridgeInjector);
+            Log.d(TAG, "🛑 Periodic bridge re-injection stopped");
+        }
 
         // Deregistra BroadcastReceiver MDM
         if (mdmCommandReceiver != null) {

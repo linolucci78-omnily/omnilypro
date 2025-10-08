@@ -984,15 +984,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       }
 
       // Check EMV/PinPad
-      if (bridge.processPayment) {
+      if (bridge.inputAmount || bridge.inputAmountAsync) {
         setHardwareStatus(prev => ({
           ...prev,
-          emv: { status: 'available', message: 'Terminale pagamenti disponibile' }
+          emv: { status: 'available', message: 'PinPad disponibile' }
         }));
       } else {
         setHardwareStatus(prev => ({
           ...prev,
-          emv: { status: 'unavailable', message: 'Terminale pagamenti non disponibile' }
+          emv: { status: 'unavailable', message: 'PinPad non disponibile' }
         }));
       }
 
@@ -1900,8 +1900,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'Non specificato'}<br />
                     <strong>Connessione:</strong> {currentOrganization?.pos_connection || 'Non specificata'}
                   </p>
-                  <span className={`status-badge ${currentOrganization?.pos_enabled ? 'connected' : 'disconnected'}`}>
-                    {currentOrganization?.pos_enabled ? 'POS Abilitato' : 'POS Disabilitato'}
+                  <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
+                    {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
                   </span>
                 </div>
               </div>
