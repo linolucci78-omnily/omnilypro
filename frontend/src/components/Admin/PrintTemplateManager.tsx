@@ -38,6 +38,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   const [devices, setDevices] = useState<any[]>([])
   const [showDeviceModal, setShowDeviceModal] = useState(false)
   const [sendingToPOS, setSendingToPOS] = useState(false)
+  const [currentReceiptData, setCurrentReceiptData] = useState<any>(null)
   const { showSuccess, showError, showWarning } = useToast()
 
   const [defaultOrgId, setDefaultOrgId] = useState<string>('')
@@ -125,6 +126,11 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       return
     }
 
+    if (!currentReceiptData) {
+      showWarning('Dati dello scontrino non disponibili')
+      return
+    }
+
     setSendingToPOS(true)
     try {
       const { error } = await supabase
@@ -133,7 +139,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
           device_id: deviceId,
           command_type: 'test_print',
           payload: {
-            template: selectedTemplate
+            template: selectedTemplate,
+            receiptData: currentReceiptData // Dati dello scontrino modificati dall'utente
           },
           status: 'pending'
         })
@@ -873,6 +880,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
             fontSizeLarge: selectedTemplate.font_size_large,
             printDensity: selectedTemplate.print_density
           }}
+          onReceiptDataChange={setCurrentReceiptData}
         />
       )}
 

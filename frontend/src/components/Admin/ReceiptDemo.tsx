@@ -5,9 +5,10 @@ import { useToast } from '../../hooks/useToast'
 
 interface ReceiptDemoProps {
   printConfig: PrintConfig
+  onReceiptDataChange?: (data: ReceiptData) => void
 }
 
-const ReceiptDemo: React.FC<ReceiptDemoProps> = ({ printConfig }) => {
+const ReceiptDemo: React.FC<ReceiptDemoProps> = ({ printConfig, onReceiptDataChange }) => {
   const [isTesting, setIsTesting] = useState(false)
   const [receiptData, setReceiptData] = useState<ReceiptData>({
     receiptNumber: `R${Date.now().toString().slice(-6)}`,
@@ -41,6 +42,13 @@ const ReceiptDemo: React.FC<ReceiptDemoProps> = ({ printConfig }) => {
     loyaltyCard: 'LY12345678'
   })
   const { showSuccess, showError } = useToast()
+
+  // Notify parent component when receipt data changes
+  React.useEffect(() => {
+    if (onReceiptDataChange) {
+      onReceiptDataChange(receiptData)
+    }
+  }, [receiptData, onReceiptDataChange])
 
   const handlePrintReceipt = async () => {
     setIsTesting(true)

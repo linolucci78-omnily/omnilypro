@@ -450,6 +450,13 @@ public class CommandPollingWorker extends Worker {
             Log.i(TAG, "   Tax: " + storeTax);
             Log.i(TAG, "   Has logo: " + (logoBase64 != null && !logoBase64.isEmpty()));
 
+            // Extract receipt data (dynamic data from ReceiptDemo)
+            String receiptDataJson = null;
+            if (payload.has("receiptData")) {
+                receiptDataJson = payload.getAsJsonObject("receiptData").toString();
+                Log.i(TAG, "📋 Receipt data found: " + receiptDataJson);
+            }
+
             // Send broadcast to MainActivity to print
             Intent intent = new Intent("com.omnilypro.pos.ACTION_TEST_PRINT");
             intent.putExtra("store_name", storeName);
@@ -459,9 +466,12 @@ public class CommandPollingWorker extends Worker {
             if (logoBase64 != null) {
                 intent.putExtra("logo_base64", logoBase64);
             }
+            if (receiptDataJson != null) {
+                intent.putExtra("receipt_data_json", receiptDataJson);
+            }
             getApplicationContext().sendBroadcast(intent);
 
-            Log.i(TAG, "✅ Test print broadcast sent");
+            Log.i(TAG, "✅ Test print broadcast sent with dynamic receipt data");
             return true;
 
         } catch (Exception e) {

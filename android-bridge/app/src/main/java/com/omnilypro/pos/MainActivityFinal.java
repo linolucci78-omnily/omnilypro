@@ -1581,10 +1581,10 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         /**
-         * Print demo receipt exactly like ReceiptDemo preview (called by MDM commands)
+         * Print dynamic receipt with data from ReceiptDemo (called by MDM commands)
          */
-        public boolean printTestTemplate(String storeName, String storeAddress, String storePhone, String storeTax, String logoBase64) {
-            Log.d(TAG, "printTestTemplate - printing demo receipt like ReceiptDemo");
+        public boolean printDynamicReceipt(String storeName, String storeAddress, String storePhone, String storeTax, String logoBase64, String receiptDataJson) {
+            Log.d(TAG, "printDynamicReceipt - printing with dynamic data from MDM");
 
             try {
                 if (mPrinter == null) {
@@ -1653,42 +1653,92 @@ public class MainActivityFinal extends AppCompatActivity {
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
 
-                // Receipt info
-                String timestamp = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
+                // Parse receipt data from JSON
                 String receiptNumber = "R" + String.format("%06d", System.currentTimeMillis() % 1000000);
+                String timestamp = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
+                String cashierName = "Marco Rossi";
+                String loyaltyCard = null;
+                String paymentMethod = "Contanti";
+                Integer customerPoints = null;
+                double subtotal = 0;
+                double tax = 0;
+                double total = 0;
+
+                if (receiptDataJson != null && !receiptDataJson.isEmpty()) {
+                    try {
+                        org.json.JSONObject receiptData = new org.json.JSONObject(receiptDataJson);
+
+                        receiptNumber = receiptData.optString("receiptNumber", receiptNumber);
+                        cashierName = receiptData.optString("cashierName", cashierName);
+                        loyaltyCard = receiptData.optString("loyaltyCard", null);
+                        paymentMethod = receiptData.optString("paymentMethod", paymentMethod);
+                        if (receiptData.has("customerPoints")) {
+                            customerPoints = receiptData.getInt("customerPoints");
+                        }
+                        subtotal = receiptData.optDouble("subtotal", 0);
+                        tax = receiptData.optDouble("tax", 0);
+                        total = receiptData.optDouble("total", 0);
+
+                        Log.d(TAG, "Parsed receipt data: " + receiptNumber + ", " + cashierName + ", total: " + total);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing receipt JSON", e);
+                    }
+                }
+
+                // Receipt info
                 mPrinter.setPrintAppendString("Scontrino: " + receiptNumber + "\n", normalFormat);
                 mPrinter.setPrintAppendString("Data: " + timestamp + "\n", normalFormat);
-                mPrinter.setPrintAppendString("Cassiere: Marco Rossi\n", normalFormat);
-                mPrinter.setPrintAppendString("Carta: LY12345678\n", normalFormat);
+                mPrinter.setPrintAppendString("Cassiere: " + cashierName + "\n", normalFormat);
+                if (loyaltyCard != null && !loyaltyCard.isEmpty()) {
+                    mPrinter.setPrintAppendString("Carta: " + loyaltyCard + "\n", normalFormat);
+                }
 
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
 
-                // Items (like in ReceiptDemo)
-                mPrinter.setPrintAppendString("2x Caffe Espresso\n", normalFormat);
-                mPrinter.setPrintAppendString("                        EUR 3.00\n", normalFormat);
-                mPrinter.setPrintAppendString("  (EUR 1.50 cad.)\n", smallFormat);
+                // Items (dynamic from JSON)
+                if (receiptDataJson != null && !receiptDataJson.isEmpty()) {
+                    try {
+                        org.json.JSONObject receiptData = new org.json.JSONObject(receiptDataJson);
+                        org.json.JSONArray items = receiptData.optJSONArray("items");
 
-                mPrinter.setPrintAppendString("1x Cornetto alla Crema\n", normalFormat);
-                mPrinter.setPrintAppendString("                        EUR 2.50\n", normalFormat);
+                        if (items != null) {
+                            for (int i = 0; i < items.length(); i++) {
+                                org.json.JSONObject item = items.getJSONObject(i);
+                                int quantity = item.optInt("quantity", 1);
+                                String name = item.optString("name", "Prodotto");
+                                double price = item.optDouble("price", 0);
+                                double itemTotal = item.optDouble("total", 0);
 
-                mPrinter.setPrintAppendString("1x Cappuccino\n", normalFormat);
-                mPrinter.setPrintAppendString("                        EUR 2.00\n", normalFormat);
+                                mPrinter.setPrintAppendString(quantity + "x " + name + "\n", normalFormat);
+                                mPrinter.setPrintAppendString(String.format("                        EUR %.2f\n", itemTotal), normalFormat);
+
+                                if (quantity > 1) {
+                                    mPrinter.setPrintAppendString(String.format("  (EUR %.2f cad.)\n", price), smallFormat);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error printing items", e);
+                    }
+                }
 
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
 
                 // Totals
-                mPrinter.setPrintAppendString("Subtotale:              EUR 7.50\n", normalFormat);
-                mPrinter.setPrintAppendString("IVA 22%:                EUR 1.65\n", normalFormat);
-                mPrinter.setPrintAppendString("TOTALE:                 EUR 9.15\n", boldFormat);
+                mPrinter.setPrintAppendString(String.format("Subtotale:              EUR %.2f\n", subtotal), normalFormat);
+                mPrinter.setPrintAppendString(String.format("IVA 22%%:                EUR %.2f\n", tax), normalFormat);
+                mPrinter.setPrintAppendString(String.format("TOTALE:                 EUR %.2f\n", total), boldFormat);
 
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
 
                 // Payment info
-                mPrinter.setPrintAppendString("Pagamento: Contanti\n", normalFormat);
-                mPrinter.setPrintAppendString("Punti guadagnati: 9\n", normalFormat);
+                mPrinter.setPrintAppendString("Pagamento: " + paymentMethod + "\n", normalFormat);
+                if (customerPoints != null) {
+                    mPrinter.setPrintAppendString("Punti guadagnati: " + customerPoints + "\n", normalFormat);
+                }
 
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
@@ -1885,7 +1935,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
     private void handleTestPrint(Intent intent) {
         Log.i(TAG, "🖨️ Handling test print command from MDM...");
-        Toast.makeText(this, "🖨️ Stampa test scontrino in corso...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "🖨️ Stampa scontrino in corso...", Toast.LENGTH_SHORT).show();
 
         try {
             // Extract print template data from intent
@@ -1894,6 +1944,7 @@ public class MainActivityFinal extends AppCompatActivity {
             String storePhone = intent.getStringExtra("store_phone");
             String storeTax = intent.getStringExtra("store_tax");
             String logoBase64 = intent.getStringExtra("logo_base64");
+            String receiptDataJson = intent.getStringExtra("receipt_data_json");
 
             Log.i(TAG, "📋 Template data received:");
             Log.i(TAG, "   Store: " + storeName);
@@ -1901,19 +1952,22 @@ public class MainActivityFinal extends AppCompatActivity {
             Log.i(TAG, "   Phone: " + storePhone);
             Log.i(TAG, "   Tax: " + storeTax);
             Log.i(TAG, "   Has logo: " + (logoBase64 != null && !logoBase64.isEmpty()));
+            Log.i(TAG, "   Has receipt data: " + (receiptDataJson != null));
 
             // Execute print in background thread
             if (bridge != null && mPrinter != null) {
                 mExecutor.submit(() -> {
-                    boolean success = bridge.printTestTemplate(storeName, storeAddress, storePhone, storeTax, logoBase64);
+                    boolean success = bridge.printDynamicReceipt(
+                        storeName, storeAddress, storePhone, storeTax, logoBase64, receiptDataJson
+                    );
 
                     runOnUiThread(() -> {
                         if (success) {
-                            Toast.makeText(this, "✅ Stampa test completata con successo", Toast.LENGTH_LONG).show();
-                            Log.i(TAG, "✅ Test print completed successfully");
+                            Toast.makeText(this, "✅ Stampa scontrino completata", Toast.LENGTH_LONG).show();
+                            Log.i(TAG, "✅ Dynamic receipt print completed");
                         } else {
-                            Toast.makeText(this, "❌ Errore durante la stampa test", Toast.LENGTH_LONG).show();
-                            Log.e(TAG, "❌ Test print failed");
+                            Toast.makeText(this, "❌ Errore durante la stampa", Toast.LENGTH_LONG).show();
+                            Log.e(TAG, "❌ Dynamic receipt print failed");
                         }
                     });
                 });
