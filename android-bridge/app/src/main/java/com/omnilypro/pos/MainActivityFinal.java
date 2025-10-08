@@ -1720,8 +1720,17 @@ public class MainActivityFinal extends AppCompatActivity {
                                 double price = item.optDouble("price", 0);
                                 double itemTotal = item.optDouble("total", 0);
 
-                                mPrinter.setPrintAppendString(quantity + "x " + name + "\n", normalFormat);
-                                mPrinter.setPrintAppendString(String.format("                        EUR %.2f\n", itemTotal), normalFormat);
+                                // Format: "2x Caffè Espresso      EUR 3.00"
+                                String itemName = quantity + "x " + name;
+                                String priceStr = String.format("EUR %.2f", itemTotal);
+
+                                // Pad to align price right (32 chars total width)
+                                int lineWidth = 32;
+                                int padding = lineWidth - itemName.length() - priceStr.length();
+                                if (padding < 1) padding = 1;
+
+                                String line = itemName + " ".repeat(padding) + priceStr + "\n";
+                                mPrinter.setPrintAppendString(line, normalFormat);
 
                                 if (quantity > 1) {
                                     mPrinter.setPrintAppendString(String.format("  (EUR %.2f cad.)\n", price), smallFormat);
@@ -1736,10 +1745,26 @@ public class MainActivityFinal extends AppCompatActivity {
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
 
-                // Totals
-                mPrinter.setPrintAppendString(String.format("Subtotale:              EUR %.2f\n", subtotal), normalFormat);
-                mPrinter.setPrintAppendString(String.format("IVA 22%%:                EUR %.2f\n", tax), normalFormat);
-                mPrinter.setPrintAppendString(String.format("TOTALE:                 EUR %.2f\n", total), boldFormat);
+                // Totals with dynamic padding
+                int lineWidth = 32;
+
+                String subtotalLabel = "Subtotale:";
+                String subtotalValue = String.format("EUR %.2f", subtotal);
+                int subtotalPadding = lineWidth - subtotalLabel.length() - subtotalValue.length();
+                if (subtotalPadding < 1) subtotalPadding = 1;
+                mPrinter.setPrintAppendString(subtotalLabel + " ".repeat(subtotalPadding) + subtotalValue + "\n", normalFormat);
+
+                String taxLabel = "IVA 22%:";
+                String taxValue = String.format("EUR %.2f", tax);
+                int taxPadding = lineWidth - taxLabel.length() - taxValue.length();
+                if (taxPadding < 1) taxPadding = 1;
+                mPrinter.setPrintAppendString(taxLabel + " ".repeat(taxPadding) + taxValue + "\n", normalFormat);
+
+                String totalLabel = "TOTALE:";
+                String totalValue = String.format("EUR %.2f", total);
+                int totalPadding = lineWidth - totalLabel.length() - totalValue.length();
+                if (totalPadding < 1) totalPadding = 1;
+                mPrinter.setPrintAppendString(totalLabel + " ".repeat(totalPadding) + totalValue + "\n", boldFormat);
 
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
