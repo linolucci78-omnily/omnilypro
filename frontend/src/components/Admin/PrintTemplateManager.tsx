@@ -142,6 +142,12 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       }
 
       console.log('📋 Sending receipt data to POS:', serializedReceiptData)
+      console.log('🎨 Template data:', {
+        name: selectedTemplate.name,
+        store_name: selectedTemplate.store_name,
+        has_logo: !!selectedTemplate.logo_base64,
+        logo_length: selectedTemplate.logo_base64?.length || 0
+      })
 
       const { error } = await supabase
         .from('device_commands')
