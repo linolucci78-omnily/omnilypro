@@ -1615,8 +1615,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 boldFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
                 boldFormat.setStyle(PrnTextStyle.BOLD);
 
-                // Print logo if present (TEMPORARILY DISABLED FOR TESTING)
-                if (false && logoBase64 != null && !logoBase64.isEmpty()) {
+                // Print logo if present
+                if (logoBase64 != null && !logoBase64.isEmpty()) {
                     try {
                         String base64Image = logoBase64;
                         if (base64Image.contains(",")) {
@@ -1626,35 +1626,30 @@ public class MainActivityFinal extends AppCompatActivity {
                         android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
                         if (bitmap != null) {
-                            Log.d(TAG, "Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                            Log.d(TAG, "🖼️ Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight() + ", Config: " + bitmap.getConfig());
 
-                            // Resize logo to fit thermal printer (max width 300px)
-                            int maxWidth = 300;
+                            // Resize logo to fit thermal printer (try 250px)
+                            int maxWidth = 250;
                             if (bitmap.getWidth() > maxWidth) {
                                 float ratio = (float) maxWidth / bitmap.getWidth();
                                 int newHeight = (int) (bitmap.getHeight() * ratio);
-                                bitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
-                                Log.d(TAG, "Logo resized to: " + maxWidth + "x" + newHeight);
+                                android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
+                                Log.d(TAG, "🔧 Logo resized from " + bitmap.getWidth() + "x" + bitmap.getHeight() + " to " + maxWidth + "x" + newHeight);
+                                bitmap = resizedBitmap;
                             }
 
-                            // Convert to grayscale/monochrome for thermal printer
-                            android.graphics.Bitmap grayscaleBitmap = android.graphics.Bitmap.createBitmap(
-                                bitmap.getWidth(), bitmap.getHeight(), android.graphics.Bitmap.Config.ARGB_8888
-                            );
-                            android.graphics.Canvas canvas = new android.graphics.Canvas(grayscaleBitmap);
-                            android.graphics.Paint paint = new android.graphics.Paint();
-                            android.graphics.ColorMatrix colorMatrix = new android.graphics.ColorMatrix();
-                            colorMatrix.setSaturation(0); // Convert to grayscale
-                            android.graphics.ColorMatrixColorFilter filter = new android.graphics.ColorMatrixColorFilter(colorMatrix);
-                            paint.setColorFilter(filter);
-                            canvas.drawBitmap(bitmap, 0, 0, paint);
+                            Log.d(TAG, "📐 Final bitmap size before print: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                            Log.d(TAG, "📄 Bitmap bytes: " + bitmap.getByteCount());
 
-                            Log.d(TAG, "Logo converted to grayscale");
+                            // Try WITHOUT grayscale conversion first
+                            mPrinter.setPrintAppendString("\n", normalFormat);
+                            int result = mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
+                            mPrinter.setPrintAppendString("\n", normalFormat);
 
-                            mPrinter.setPrintAppendString("\n", normalFormat);
-                            mPrinter.setPrintAppendBitmap(grayscaleBitmap, Alignment.ALIGN_CENTER);
-                            mPrinter.setPrintAppendString("\n", normalFormat);
-                            Log.d(TAG, "Logo printed successfully");
+                            Log.d(TAG, "✅ setPrintAppendBitmap result: " + result);
+                            Log.d(TAG, "🖨️ Logo print command sent");
+                        } else {
+                            Log.e(TAG, "❌ Bitmap is null after decode!");
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error printing logo", e);
