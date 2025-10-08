@@ -4,7 +4,7 @@ import type { Organization, Customer, Reward } from '../lib/supabase'
 import { rewardsService } from '../services/rewardsService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
@@ -89,6 +89,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     network: { status: 'checking' as 'online' | 'offline' | 'checking', ip: 'Verifica in corso...', type: 'Verifica in corso...' },
     emv: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: 'Verifica in corso...' }
   })
+
+  // Matrix Monitor logs
+  const [matrixLogs, setMatrixLogs] = useState<string[]>([])
+  const addMatrixLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    setMatrixLogs(prev => [...prev.slice(-19), `[${timestamp}] ${message}`]) // Keep last 20 logs
+  }
 
   // Confirm Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -989,10 +996,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const checkHardwareStatus = async () => {
     console.log('🔍 Checking hardware status...');
     console.log('🏢 Current organization:', currentOrganization);
+    addMatrixLog('🔍 Avvio verifica hardware...');
 
     // Check Bridge Android
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
+      addMatrixLog('✅ Bridge Android trovato');
 
       setHardwareStatus(prev => ({
         ...prev,
@@ -1041,11 +1050,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Check Network
       if (bridge.getNetworkInfo) {
         try {
+          addMatrixLog('📡 Richiesta info network...');
           const networkInfo = bridge.getNetworkInfo();
           console.log('📡 Raw network info:', networkInfo);
+          addMatrixLog(`📡 Raw: ${JSON.stringify(networkInfo)}`);
 
           const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
           console.log('📡 Parsed network info:', info);
+          addMatrixLog(`✅ IP: ${info.ip} | Tipo: ${info.type}`);
 
           setHardwareStatus(prev => ({
             ...prev,
@@ -1055,6 +1067,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               type: info.type || 'Non specificato'
             }
           }));
+          addMatrixLog('✅ Network status aggiornato');
         } catch (error) {
           console.error('📡 Error getting network info:', error);
           setHardwareStatus(prev => ({
@@ -1979,6 +1992,27 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* Matrix Monitor */}
+            <div className="matrix-monitor">
+              <div className="matrix-header">
+                <Terminal size={20} />
+                <h3>Monitor Sistema</h3>
+                <button className="btn-clear-logs" onClick={() => setMatrixLogs([])}>
+                  <Trash2 size={16} />
+                  Pulisci
+                </button>
+              </div>
+              <div className="matrix-logs">
+                {matrixLogs.length === 0 ? (
+                  <div className="matrix-empty">In attesa di eventi...</div>
+                ) : (
+                  matrixLogs.map((log, index) => (
+                    <div key={index} className="matrix-log-line">{log}</div>
+                  ))
+                )}
               </div>
             </div>
           </div>

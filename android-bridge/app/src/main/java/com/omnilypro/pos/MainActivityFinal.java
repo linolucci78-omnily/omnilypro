@@ -1580,6 +1580,107 @@ public class MainActivityFinal extends AppCompatActivity {
             }).start();
         }
 
+        /**
+         * Print test template with store info (called by MDM commands)
+         */
+        public boolean printTestTemplate(String storeName, String storeAddress, String storePhone, String storeTax, String logoBase64) {
+            Log.d(TAG, "printTestTemplate called for store: " + storeName);
+
+            try {
+                if (mPrinter == null) {
+                    Log.e(TAG, "Printer not initialized");
+                    return false;
+                }
+
+                // Format configurations
+                PrnStrFormat headerFormat = new PrnStrFormat();
+                headerFormat.setTextSize(28);
+                headerFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+                headerFormat.setStyle(PrnTextStyle.BOLD);
+
+                PrnStrFormat normalFormat = new PrnStrFormat();
+                normalFormat.setTextSize(22);
+                normalFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+
+                PrnStrFormat boldFormat = new PrnStrFormat();
+                boldFormat.setTextSize(24);
+                boldFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+                boldFormat.setStyle(PrnTextStyle.BOLD);
+
+                // Print logo if present
+                if (logoBase64 != null && !logoBase64.isEmpty()) {
+                    try {
+                        // Decode base64 to bitmap
+                        String base64Image = logoBase64;
+                        if (base64Image.contains(",")) {
+                            base64Image = base64Image.split(",")[1];
+                        }
+                        byte[] decodedString = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+                        if (bitmap != null) {
+                            mPrinter.setPrintAppendString("\n", normalFormat);
+                            mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
+                            mPrinter.setPrintAppendString("\n", normalFormat);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error printing logo", e);
+                    }
+                }
+
+                // Print store header
+                mPrinter.setPrintAppendString("\n", normalFormat);
+                if (storeName != null && !storeName.isEmpty()) {
+                    mPrinter.setPrintAppendString(storeName + "\n", headerFormat);
+                }
+
+                if (storeAddress != null && !storeAddress.isEmpty()) {
+                    mPrinter.setPrintAppendString(storeAddress + "\n", normalFormat);
+                }
+
+                if (storePhone != null && !storePhone.isEmpty()) {
+                    mPrinter.setPrintAppendString(storePhone + "\n", normalFormat);
+                }
+
+                if (storeTax != null && !storeTax.isEmpty()) {
+                    mPrinter.setPrintAppendString("P.IVA: " + storeTax + "\n", normalFormat);
+                }
+
+                // Separator
+                mPrinter.setPrintAppendString("========================================\n", normalFormat);
+
+                // Test message
+                mPrinter.setPrintAppendString("\n", normalFormat);
+                mPrinter.setPrintAppendString("TEST STAMPA TEMPLATE\n", boldFormat);
+                mPrinter.setPrintAppendString("\n", normalFormat);
+                mPrinter.setPrintAppendString("Template caricato e configurato\n", normalFormat);
+                mPrinter.setPrintAppendString("correttamente dal sistema MDM\n", normalFormat);
+                mPrinter.setPrintAppendString("\n", normalFormat);
+
+                // Timestamp
+                String timestamp = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
+                mPrinter.setPrintAppendString("Data/Ora: " + timestamp + "\n", normalFormat);
+                mPrinter.setPrintAppendString("\n", normalFormat);
+                mPrinter.setPrintAppendString("Powered by OMNILY PRO\n", normalFormat);
+                mPrinter.setPrintAppendString("\n\n\n", normalFormat);
+
+                // Start printing
+                int printStatus = mPrinter.setPrintStart();
+                if (printStatus == SdkResult.SDK_OK) {
+                    Thread.sleep(2000);
+                    mPrinter.openPrnCutter((byte) 1);
+                    Log.d(TAG, "Test template printed successfully");
+                    return true;
+                } else {
+                    Log.e(TAG, "Test template print failed with status: " + printStatus);
+                    return false;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error printing test template", e);
+                return false;
+            }
+        }
+
         @JavascriptInterface
         public String getNetworkInfo() {
             Log.d(TAG, "getNetworkInfo called");
@@ -1594,30 +1695,26 @@ public class MainActivityFinal extends AppCompatActivity {
                     networkInfo.put("connected", true);
                     networkInfo.put("type", activeNetwork.getTypeName()); // WIFI or MOBILE
 
-                    // Try to get IP address
+                    // Get real IP address using NetworkInterface (getLocalHost returns 127.0.0.1 on Android)
+                    String ipAddress = "N/A";
                     try {
-                        java.net.InetAddress inetAddress = java.net.InetAddress.getLocalHost();
-                        networkInfo.put("ip", inetAddress.getHostAddress());
-                    } catch (Exception e) {
-                        // Try alternative method for IP
-                        try {
-                            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
-                            while (interfaces.hasMoreElements()) {
-                                java.net.NetworkInterface networkInterface = interfaces.nextElement();
-                                java.util.Enumeration<java.net.InetAddress> addresses = networkInterface.getInetAddresses();
-                                while (addresses.hasMoreElements()) {
-                                    java.net.InetAddress addr = addresses.nextElement();
-                                    if (!addr.isLoopbackAddress() && addr instanceof java.net.Inet4Address) {
-                                        networkInfo.put("ip", addr.getHostAddress());
-                                        break;
-                                    }
+                        java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+                        while (interfaces.hasMoreElements()) {
+                            java.net.NetworkInterface networkInterface = interfaces.nextElement();
+                            java.util.Enumeration<java.net.InetAddress> addresses = networkInterface.getInetAddresses();
+                            while (addresses.hasMoreElements()) {
+                                java.net.InetAddress addr = addresses.nextElement();
+                                if (!addr.isLoopbackAddress() && addr instanceof java.net.Inet4Address) {
+                                    ipAddress = addr.getHostAddress();
+                                    break;
                                 }
                             }
-                        } catch (Exception ex) {
-                            Log.e(TAG, "Failed to get IP address", ex);
-                            networkInfo.put("ip", "N/A");
+                            if (!ipAddress.equals("N/A")) break;
                         }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to get IP address", e);
                     }
+                    networkInfo.put("ip", ipAddress);
                 } else {
                     networkInfo.put("connected", false);
                     networkInfo.put("type", "None");

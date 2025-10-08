@@ -232,6 +232,47 @@ const MDMDashboard: React.FC = () => {
     }
   }
 
+  const sendTestPrintCommand = async (deviceId: string, organizationId: string) => {
+    try {
+      // Load print template for the organization
+      const { data: template, error: templateError } = await supabase
+        .from('print_templates')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('is_default', true)
+        .single()
+
+      if (templateError || !template) {
+        // Try to get any template for this organization
+        const { data: anyTemplate, error: anyError } = await supabase
+          .from('print_templates')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .limit(1)
+          .single()
+
+        if (anyError || !anyTemplate) {
+          showError('Nessun template di stampa trovato per questa organizzazione')
+          return
+        }
+
+        // Use the first template found
+        await sendCommand(deviceId, 'test_print', {
+          template: anyTemplate
+        })
+        return
+      }
+
+      // Send test print command with template data
+      await sendCommand(deviceId, 'test_print', {
+        template: template
+      })
+    } catch (error) {
+      console.error('Error sending test print command:', error)
+      showError('Errore durante l\'invio del comando di test stampa')
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'online': return <CheckCircle className="status-icon online" size={16} />

@@ -155,6 +155,11 @@ public class CommandPollingWorker extends Worker {
                     success = executeLocate();
                     break;
 
+                case MdmConfig.CMD_TEST_PRINT:
+                    JsonObject printPayload = command.has("payload") ? command.getAsJsonObject("payload") : null;
+                    success = executeTestPrint(printPayload);
+                    break;
+
                 default:
                     errorMessage = "Unknown command type: " + commandType;
                     Log.w(TAG, errorMessage);
