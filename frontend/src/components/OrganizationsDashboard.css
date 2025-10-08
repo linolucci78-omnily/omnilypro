@@ -4683,6 +4683,45 @@ input:checked + .slider:before {
   flex: 1;
 }
 
+.matrix-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-toggle-monitor {
+  padding: 0.5rem 1rem;
+  border: 1px solid;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle-monitor.active {
+  background: #003300;
+  border-color: #00ff00;
+  color: #00ff00;
+}
+
+.btn-toggle-monitor.active:hover {
+  background: #005500;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.btn-toggle-monitor.inactive {
+  background: #330000;
+  border-color: #ff3333;
+  color: #ff3333;
+}
+
+.btn-toggle-monitor.inactive:hover {
+  background: #550000;
+  box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+}
+
 .btn-clear-logs {
   display: flex;
   align-items: center;

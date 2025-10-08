@@ -92,11 +92,30 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Matrix Monitor logs
   const [matrixLogs, setMatrixLogs] = useState<string[]>([])
+  const [monitorEnabled, setMonitorEnabled] = useState(true)
   const matrixLogsRef = React.useRef<HTMLDivElement>(null)
+  const logCountRef = React.useRef({ count: 0, lastReset: Date.now() })
+
   const addMatrixLog = (message: string) => {
+    if (!monitorEnabled) return; // Skip if monitor disabled
+
+    // Throttling: max 10 logs per second
+    const now = Date.now();
+    if (now - logCountRef.current.lastReset > 1000) {
+      logCountRef.current.count = 0;
+      logCountRef.current.lastReset = now;
+    }
+    if (logCountRef.current.count >= 10) {
+      return; // Skip this log, too many in 1 second
+    }
+    logCountRef.current.count++;
+
+    // Truncate long messages
+    const truncatedMessage = message.length > 500 ? message.substring(0, 500) + '...[TRONCATO]' : message;
+
     const timestamp = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as any)
     setMatrixLogs(prev => {
-      const newLogs = [...prev.slice(-99), `[${timestamp}] ${message}`] // Keep last 100 logs
+      const newLogs = [...prev.slice(-99), `[${timestamp}] ${truncatedMessage}`] // Keep last 100 logs
       // Auto-scroll to bottom
       setTimeout(() => {
         if (matrixLogsRef.current) {
@@ -2088,10 +2107,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="matrix-header">
                 <Terminal size={20} />
                 <h3>Monitor Sistema</h3>
-                <button className="btn-clear-logs" onClick={() => setMatrixLogs([])}>
-                  <Trash2 size={16} />
-                  Pulisci
-                </button>
+                <div className="matrix-controls">
+                  <button
+                    className={`btn-toggle-monitor ${monitorEnabled ? 'active' : 'inactive'}`}
+                    onClick={() => setMonitorEnabled(!monitorEnabled)}
+                  >
+                    {monitorEnabled ? '● ON' : '○ OFF'}
+                  </button>
+                  <button className="btn-clear-logs" onClick={() => setMatrixLogs([])}>
+                    <Trash2 size={16} />
+                    Pulisci
+                  </button>
+                </div>
               </div>
               <div className="matrix-logs" ref={matrixLogsRef}>
                 {matrixLogs.length === 0 ? (
