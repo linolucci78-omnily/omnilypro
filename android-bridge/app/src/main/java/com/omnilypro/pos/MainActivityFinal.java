@@ -1626,9 +1626,19 @@ public class MainActivityFinal extends AppCompatActivity {
                         android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
                         if (bitmap != null) {
+                            // Resize logo to fit thermal printer (max width 300px)
+                            int maxWidth = 300;
+                            if (bitmap.getWidth() > maxWidth) {
+                                float ratio = (float) maxWidth / bitmap.getWidth();
+                                int newHeight = (int) (bitmap.getHeight() * ratio);
+                                bitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
+                                Log.d(TAG, "Logo resized to: " + maxWidth + "x" + newHeight);
+                            }
+
                             mPrinter.setPrintAppendString("\n", normalFormat);
                             mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
                             mPrinter.setPrintAppendString("\n", normalFormat);
+                            Log.d(TAG, "Logo printed successfully");
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error printing logo", e);
