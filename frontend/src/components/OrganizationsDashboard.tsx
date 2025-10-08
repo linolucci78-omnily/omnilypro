@@ -1172,6 +1172,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   useEffect(() => {
     if (activeSection !== 'pos-integration') return;
 
+    // Anti-recursion flag
+    let isLogging = false;
+
     // Save original console methods
     const originalLog = console.log;
     const originalError = console.error;
@@ -1181,29 +1184,57 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     // Override console.log
     console.log = (...args: any[]) => {
       originalLog(...args); // Keep original behavior
-      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-      addMatrixLog(`[LOG] ${message}`);
+      if (!isLogging) {
+        isLogging = true;
+        try {
+          const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+          addMatrixLog(`[LOG] ${message}`);
+        } finally {
+          isLogging = false;
+        }
+      }
     };
 
     // Override console.error
     console.error = (...args: any[]) => {
       originalError(...args);
-      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-      addMatrixLog(`[ERROR] ${message}`);
+      if (!isLogging) {
+        isLogging = true;
+        try {
+          const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+          addMatrixLog(`[ERROR] ${message}`);
+        } finally {
+          isLogging = false;
+        }
+      }
     };
 
     // Override console.warn
     console.warn = (...args: any[]) => {
       originalWarn(...args);
-      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-      addMatrixLog(`[WARN] ${message}`);
+      if (!isLogging) {
+        isLogging = true;
+        try {
+          const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+          addMatrixLog(`[WARN] ${message}`);
+        } finally {
+          isLogging = false;
+        }
+      }
     };
 
     // Override console.info
     console.info = (...args: any[]) => {
       originalInfo(...args);
-      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-      addMatrixLog(`[INFO] ${message}`);
+      if (!isLogging) {
+        isLogging = true;
+        try {
+          const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+          addMatrixLog(`[INFO] ${message}`);
+        } finally {
+          isLogging = false;
+        }
+      }
     };
 
     // Restore original console methods when leaving section or unmounting
