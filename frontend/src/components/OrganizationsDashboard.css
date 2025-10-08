@@ -4731,6 +4731,24 @@ input:checked + .slider:before {
   margin-bottom: 0.25rem;
   animation: matrixFlicker 0.1s;
   text-shadow: 0 0 5px rgba(0, 255, 0, 0.7);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Different colors for different log types */
+.matrix-log-error {
+  color: #ff3333 !important;
+  text-shadow: 0 0 5px rgba(255, 51, 51, 0.7) !important;
+}
+
+.matrix-log-warn {
+  color: #ffaa00 !important;
+  text-shadow: 0 0 5px rgba(255, 170, 0, 0.7) !important;
+}
+
+.matrix-log-info {
+  color: #00ccff !important;
+  text-shadow: 0 0 5px rgba(0, 204, 255, 0.7) !important;
 }
 
 .matrix-empty {

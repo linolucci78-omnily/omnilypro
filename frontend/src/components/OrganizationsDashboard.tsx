@@ -92,9 +92,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Matrix Monitor logs
   const [matrixLogs, setMatrixLogs] = useState<string[]>([])
+  const matrixLogsRef = React.useRef<HTMLDivElement>(null)
   const addMatrixLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as any)
-    setMatrixLogs(prev => [...prev.slice(-99), `[${timestamp}] ${message}`]) // Keep last 100 logs
+    setMatrixLogs(prev => {
+      const newLogs = [...prev.slice(-99), `[${timestamp}] ${message}`] // Keep last 100 logs
+      // Auto-scroll to bottom
+      setTimeout(() => {
+        if (matrixLogsRef.current) {
+          matrixLogsRef.current.scrollTop = matrixLogsRef.current.scrollHeight
+        }
+      }, 0)
+      return newLogs
+    })
   }
 
   // Confirm Modal state
@@ -2052,13 +2062,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   Pulisci
                 </button>
               </div>
-              <div className="matrix-logs">
+              <div className="matrix-logs" ref={matrixLogsRef}>
                 {matrixLogs.length === 0 ? (
                   <div className="matrix-empty">In attesa di eventi...</div>
                 ) : (
-                  matrixLogs.map((log, index) => (
-                    <div key={index} className="matrix-log-line">{log}</div>
-                  ))
+                  matrixLogs.map((log, index) => {
+                    const logClass = log.includes('[ERROR]') ? 'matrix-log-error' :
+                                     log.includes('[WARN]') ? 'matrix-log-warn' :
+                                     log.includes('[INFO]') ? 'matrix-log-info' :
+                                     'matrix-log-line';
+                    return <div key={index} className={`matrix-log-line ${logClass}`}>{log}</div>
+                  })
                 )}
               </div>
             </div>
