@@ -1643,10 +1643,10 @@ public class MainActivityFinal extends AppCompatActivity {
 
                             // Try WITHOUT grayscale conversion first
                             mPrinter.setPrintAppendString("\n", normalFormat);
-                            int result = mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
+                            mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
                             mPrinter.setPrintAppendString("\n", normalFormat);
 
-                            Log.d(TAG, "✅ setPrintAppendBitmap result: " + result);
+                            Log.d(TAG, "✅ setPrintAppendBitmap called successfully");
                             Log.d(TAG, "🖨️ Logo print command sent");
                         } else {
                             Log.e(TAG, "❌ Bitmap is null after decode!");
