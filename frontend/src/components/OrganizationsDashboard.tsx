@@ -1187,9 +1187,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }, [activeSection]);
 
-  // Intercept ALL console logs when in pos-integration section
+  // Intercept ALL console logs when in pos-integration section AND monitor is enabled
   useEffect(() => {
-    if (activeSection !== 'pos-integration') return;
+    if (activeSection !== 'pos-integration' || !monitorEnabled) return;
 
     // Anti-recursion flag
     let isLogging = false;
@@ -1207,7 +1207,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         isLogging = true;
         try {
           const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-          addMatrixLog(`[LOG] ${message}`);
+          // Skip CLEANUP logs to prevent infinite loops
+          if (!message.includes('🧹 CLEANUP')) {
+            addMatrixLog(`[LOG] ${message}`);
+          }
         } finally {
           isLogging = false;
         }
@@ -1263,7 +1266,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       console.warn = originalWarn;
       console.info = originalInfo;
     };
-  }, [activeSection]);
+  }, [activeSection, monitorEnabled]); // Re-run when monitor is toggled
 
   // Function to check if user can access a section
   const checkSectionAccess = (sectionId: string, featureName: string) => {
