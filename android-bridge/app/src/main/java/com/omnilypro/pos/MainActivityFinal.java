@@ -1628,8 +1628,8 @@ public class MainActivityFinal extends AppCompatActivity {
                         if (bitmap != null) {
                             Log.d(TAG, "Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
 
-                            // Resize logo to fit thermal printer (max width 384px - full width for 58mm printer)
-                            int maxWidth = 384;
+                            // Resize logo to fit thermal printer (max width 300px)
+                            int maxWidth = 300;
                             if (bitmap.getWidth() > maxWidth) {
                                 float ratio = (float) maxWidth / bitmap.getWidth();
                                 int newHeight = (int) (bitmap.getHeight() * ratio);
@@ -1745,7 +1745,13 @@ public class MainActivityFinal extends AppCompatActivity {
                                 int padding = lineWidth - itemName.length() - priceStr.length();
                                 if (padding < 1) padding = 1;
 
-                                String line = itemName + " ".repeat(padding) + priceStr + "\n";
+                                // Build padding string (compatible with Java 8)
+                                StringBuilder paddingBuilder = new StringBuilder(padding);
+                                for (int p = 0; p < padding; p++) {
+                                    paddingBuilder.append(' ');
+                                }
+
+                                String line = itemName + paddingBuilder.toString() + priceStr + "\n";
                                 mPrinter.setPrintAppendString(line, normalFormat);
 
                                 if (quantity > 1) {
@@ -1764,23 +1770,32 @@ public class MainActivityFinal extends AppCompatActivity {
                 // Totals with dynamic padding
                 int lineWidth = 32;
 
+                // Subtotale
                 String subtotalLabel = "Subtotale:";
                 String subtotalValue = String.format("EUR %.2f", subtotal);
                 int subtotalPadding = lineWidth - subtotalLabel.length() - subtotalValue.length();
                 if (subtotalPadding < 1) subtotalPadding = 1;
-                mPrinter.setPrintAppendString(subtotalLabel + " ".repeat(subtotalPadding) + subtotalValue + "\n", normalFormat);
+                StringBuilder subtotalPad = new StringBuilder(subtotalPadding);
+                for (int p = 0; p < subtotalPadding; p++) subtotalPad.append(' ');
+                mPrinter.setPrintAppendString(subtotalLabel + subtotalPad.toString() + subtotalValue + "\n", normalFormat);
 
+                // IVA
                 String taxLabel = "IVA 22%:";
                 String taxValue = String.format("EUR %.2f", tax);
                 int taxPadding = lineWidth - taxLabel.length() - taxValue.length();
                 if (taxPadding < 1) taxPadding = 1;
-                mPrinter.setPrintAppendString(taxLabel + " ".repeat(taxPadding) + taxValue + "\n", normalFormat);
+                StringBuilder taxPad = new StringBuilder(taxPadding);
+                for (int p = 0; p < taxPadding; p++) taxPad.append(' ');
+                mPrinter.setPrintAppendString(taxLabel + taxPad.toString() + taxValue + "\n", normalFormat);
 
+                // TOTALE
                 String totalLabel = "TOTALE:";
                 String totalValue = String.format("EUR %.2f", total);
                 int totalPadding = lineWidth - totalLabel.length() - totalValue.length();
                 if (totalPadding < 1) totalPadding = 1;
-                mPrinter.setPrintAppendString(totalLabel + " ".repeat(totalPadding) + totalValue + "\n", boldFormat);
+                StringBuilder totalPad = new StringBuilder(totalPadding);
+                for (int p = 0; p < totalPadding; p++) totalPad.append(' ');
+                mPrinter.setPrintAppendString(totalLabel + totalPad.toString() + totalValue + "\n", boldFormat);
 
                 // Separator
                 mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
