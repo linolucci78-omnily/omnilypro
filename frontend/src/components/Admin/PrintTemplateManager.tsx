@@ -35,6 +35,9 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   const [isLoading, setIsLoading] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [organizations, setOrganizations] = useState<{id: string, name: string}[]>([])
+  const [devices, setDevices] = useState<any[]>([])
+  const [showDeviceModal, setShowDeviceModal] = useState(false)
+  const [sendingToPOS, setSendingToPOS] = useState(false)
   const { showSuccess, showError, showWarning } = useToast()
 
   const [defaultOrgId, setDefaultOrgId] = useState<string>('')
@@ -58,6 +61,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   useEffect(() => {
     loadTemplates()
     checkUserPermissions()
+    loadDevices()
     if (!organizationId) {
       loadOrganizations()
     }
@@ -91,6 +95,58 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       setOrganizations(data || [])
     } catch (error) {
       console.error('Error loading organizations:', error)
+    }
+  }
+
+  const loadDevices = async () => {
+    try {
+      let query = supabase
+        .from('devices')
+        .select('id, name, store_location, status, organization_id, organizations(name)')
+        .order('name')
+
+      // If organizationId is provided, filter devices by organization
+      if (organizationId) {
+        query = query.eq('organization_id', organizationId)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+      setDevices(data || [])
+    } catch (error) {
+      console.error('Error loading devices:', error)
+    }
+  }
+
+  const sendTestPrintToPOS = async (deviceId: string) => {
+    if (!selectedTemplate) {
+      showWarning('Seleziona un template prima di inviare la stampa')
+      return
+    }
+
+    setSendingToPOS(true)
+    try {
+      const { error } = await supabase
+        .from('device_commands')
+        .insert({
+          device_id: deviceId,
+          command_type: 'test_print',
+          payload: {
+            template: selectedTemplate
+          },
+          status: 'pending'
+        })
+
+      if (error) throw error
+
+      showSuccess('Comando di stampa inviato al POS')
+      setShowDeviceModal(false)
+    } catch (error) {
+      console.error('Error sending test print to POS:', error)
+      showError('Errore durante l\'invio del comando al POS')
+    } finally {
+      setSendingToPOS(false)
     }
   }
 
@@ -469,7 +525,23 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     }}
                   >
                     <TestTube size={14} style={{ marginRight: '4px' }} />
-                    {isTesting ? 'Stampa...' : 'Test'}
+                    {isTesting ? 'Stampa...' : 'Test Browser'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeviceModal(true)}
+                    disabled={!selectedTemplate || devices.length === 0}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: (!selectedTemplate || devices.length === 0) ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: (!selectedTemplate || devices.length === 0) ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <Printer size={14} style={{ marginRight: '4px' }} />
+                    Stampa Scontrino su POS
                   </button>
                 </>
               )}
@@ -802,6 +874,158 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
             printDensity: selectedTemplate.print_density
           }}
         />
+      )}
+
+      {/* Device Selection Modal */}
+      {showDeviceModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setShowDeviceModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflow: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+                🖨️ Seleziona Dispositivo POS
+              </h3>
+              <button
+                onClick={() => setShowDeviceModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #3b82f6' }}>
+              <p style={{ margin: 0, fontSize: '14px', color: '#1e40af' }}>
+                📋 <strong>Template:</strong> {selectedTemplate?.name}
+              </p>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#3b82f6' }}>
+                {selectedTemplate?.store_name}
+              </p>
+            </div>
+
+            {devices.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                color: '#6b7280'
+              }}>
+                <Printer size={48} style={{ marginBottom: '12px', opacity: 0.3 }} />
+                <p style={{ margin: 0, fontSize: '14px' }}>
+                  Nessun dispositivo disponibile per questa organizzazione
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {devices.map((device) => (
+                  <button
+                    key={device.id}
+                    onClick={() => sendTestPrintToPOS(device.id)}
+                    disabled={sendingToPOS || device.status === 'offline'}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '16px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      backgroundColor: device.status === 'offline' ? '#f9fafb' : 'white',
+                      cursor: (sendingToPOS || device.status === 'offline') ? 'not-allowed' : 'pointer',
+                      opacity: device.status === 'offline' ? 0.5 : 1,
+                      transition: 'all 0.2s',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (device.status !== 'offline' && !sendingToPOS) {
+                        e.currentTarget.style.backgroundColor = '#f3f4f6'
+                        e.currentTarget.style.borderColor = '#3b82f6'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (device.status !== 'offline') {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.borderColor = '#e5e7eb'
+                      }
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '600', fontSize: '14px', color: '#111827', marginBottom: '4px' }}>
+                        {device.name}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                        📍 {device.store_location}
+                        {device.organizations && (
+                          <span style={{ marginLeft: '8px', color: '#9ca3af' }}>
+                            • {device.organizations.name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      backgroundColor: device.status === 'online' ? '#d1fae5' : '#fee2e2',
+                      color: device.status === 'online' ? '#065f46' : '#991b1b'
+                    }}>
+                      {device.status === 'online' ? '🟢 Online' : '🔴 Offline'}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDeviceModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  color: '#374151',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
