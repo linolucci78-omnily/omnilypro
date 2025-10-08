@@ -4,7 +4,7 @@ import type { Organization, Customer, Reward } from '../lib/supabase'
 import { rewardsService } from '../services/rewardsService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2 } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
@@ -1888,7 +1888,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       case 'communications':
         return (
           <div className="section-content">
-            <h2>Comunicazioni</h2>
+            <div className="section-header">
+              <Gift size={24} />
+              <h2>Comunicazioni</h2>
+              <p>Gestisci comunicazioni e messaggi con i tuoi clienti</p>
+            </div>
             <div className="cards-grid">
               <div className="feature-card">
                 <h3>Email Marketing</h3>
@@ -1907,7 +1911,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       case 'campaigns':
         return (
           <div className="section-content">
-            <h2>Campagne Marketing</h2>
+            <div className="section-header">
+              <Megaphone size={24} />
+              <h2>Campagne Marketing</h2>
+              <p>Crea e gestisci campagne promozionali per i tuoi clienti</p>
+            </div>
             <div className="cards-grid">
               <div className="feature-card">
                 <h3>Campagne Attive</h3>
@@ -1926,8 +1934,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       case 'settings':
         return (
           <div className="section-content">
-            <h2>Impostazioni</h2>
-            
+            <div className="section-header">
+              <Settings size={24} />
+              <h2>Impostazioni</h2>
+              <p>Configura e personalizza le impostazioni del tuo account</p>
+            </div>
+
             <div className="cards-grid">
               <div className="feature-card">
                 <h3>Configurazione Account</h3>
@@ -1956,7 +1968,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       case 'support':
         return (
           <div className="section-content">
-            <h2>Aiuto & Supporto</h2>
+            <div className="section-header">
+              <HelpCircle size={24} />
+              <h2>Aiuto & Supporto</h2>
+              <p>Trova assistenza e risposte alle tue domande</p>
+            </div>
             <div className="cards-grid">
               <div className="feature-card">
                 <h3>Centro Assistenza</h3>
