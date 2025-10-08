@@ -953,9 +953,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     // Check Bridge Android
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
-      console.log('✅ Bridge found:', bridge);
-      console.log('🔧 Available methods:', bridge.getAvailableMethods?.());
-      console.log('📦 Bridge version:', bridge.getBridgeVersion?.());
+
+      // Debug con toast
+      if (bridge.showToast && currentOrganization) {
+        bridge.showToast(`Org: ${currentOrganization.name || 'NULL'}`);
+      }
 
       setHardwareStatus(prev => ({
         ...prev,
@@ -1004,13 +1006,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Check Network
       if (bridge.getNetworkInfo) {
         try {
-          console.log('🌐 Calling getNetworkInfo...');
           const networkInfo = bridge.getNetworkInfo();
-          console.log('🌐 getNetworkInfo raw result:', networkInfo);
-          console.log('🌐 getNetworkInfo type:', typeof networkInfo);
-
           const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
-          console.log('🌐 Parsed network info:', info);
+
+          // Debug con toast
+          if (bridge.showToast) {
+            bridge.showToast(`Network: ${info.type} IP: ${info.ip}`);
+          }
 
           setHardwareStatus(prev => ({
             ...prev,
@@ -1020,16 +1022,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               type: info.type || 'N/A'
             }
           }));
-          console.log('🌐 Network status set:', info.connected ? 'online' : 'offline', 'IP:', info.ip, 'Type:', info.type);
         } catch (error) {
-          console.error('🌐 Error getting network info:', error);
+          if (bridge.showToast) {
+            bridge.showToast(`Error getting network: ${error}`);
+          }
           setHardwareStatus(prev => ({
             ...prev,
             network: { status: 'offline', ip: 'N/A', type: 'N/A' }
           }));
         }
       } else {
-        console.log('🌐 getNetworkInfo not available in bridge');
+        if (bridge.showToast) {
+          bridge.showToast('getNetworkInfo not available');
+        }
         setHardwareStatus(prev => ({
           ...prev,
           network: { status: 'offline', ip: 'N/A', type: 'N/A' }
