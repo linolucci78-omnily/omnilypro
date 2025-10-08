@@ -92,7 +92,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Matrix Monitor logs
   const [matrixLogs, setMatrixLogs] = useState<string[]>([])
-  const [monitorEnabled, setMonitorEnabled] = useState(true)
+  const [monitorEnabled, setMonitorEnabled] = useState(false) // Start OFF by default - activate only when needed
   const matrixLogsRef = React.useRef<HTMLDivElement>(null)
   const logCountRef = React.useRef({ count: 0, lastReset: Date.now() })
 
