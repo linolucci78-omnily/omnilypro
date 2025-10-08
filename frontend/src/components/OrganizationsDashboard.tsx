@@ -1009,7 +1009,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       case 'stamps':
         return (
           <div className="section-content">
-            <h2>Gestione Tessere Punti</h2>
+            <div className="section-header">
+              <Target size={24} />
+              <h2>Gestione Tessere Punti</h2>
+              <p>Crea, personalizza e gestisci le tessere punti per i tuoi clienti</p>
+            </div>
             <div className="cards-grid">
               <div className="feature-card">
                 <h3>Configura Tessere</h3>
