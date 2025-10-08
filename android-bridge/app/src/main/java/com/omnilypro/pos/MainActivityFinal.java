@@ -1615,8 +1615,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 boldFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
                 boldFormat.setStyle(PrnTextStyle.BOLD);
 
-                // Print logo if present
-                if (logoBase64 != null && !logoBase64.isEmpty()) {
+                // Print logo if present (TEMPORARILY DISABLED FOR TESTING)
+                if (false && logoBase64 != null && !logoBase64.isEmpty()) {
                     try {
                         String base64Image = logoBase64;
                         if (base64Image.contains(",")) {

@@ -157,17 +157,17 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
 
       if (error) throw error
 
+      setSendingToPOS(false)
       showSuccess('Comando di stampa inviato al POS')
 
       // Delay modal close to show toast
       setTimeout(() => {
         setShowDeviceModal(false)
-      }, 1500)
+      }, 2000)
     } catch (error) {
       console.error('Error sending test print to POS:', error)
-      showError('Errore durante l\'invio del comando al POS')
-    } finally {
       setSendingToPOS(false)
+      showError('Errore durante l\'invio del comando al POS')
     }
   }
 
