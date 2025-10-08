@@ -83,11 +83,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Hardware monitoring state
   const [hardwareStatus, setHardwareStatus] = useState({
-    bridge: { status: 'checking' as 'connected' | 'disconnected' | 'checking', message: '' },
-    printer: { status: 'checking' as 'ready' | 'error' | 'offline' | 'checking', message: '' },
-    nfc: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: '' },
-    network: { status: 'checking' as 'online' | 'offline' | 'checking', ip: '', type: '' },
-    emv: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: '' }
+    bridge: { status: 'checking' as 'connected' | 'disconnected' | 'checking', message: 'Verifica in corso...' },
+    printer: { status: 'checking' as 'ready' | 'error' | 'offline' | 'checking', message: 'Verifica in corso...' },
+    nfc: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: 'Verifica in corso...' },
+    network: { status: 'checking' as 'online' | 'offline' | 'checking', ip: 'Verifica in corso...', type: 'Verifica in corso...' },
+    emv: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: 'Verifica in corso...' }
   })
 
   // Confirm Modal state
