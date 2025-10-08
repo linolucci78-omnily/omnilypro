@@ -1790,6 +1790,8 @@ public class MainActivityFinal extends AppCompatActivity {
                     handleKioskMode(enabled);
                 } else if ("com.omnilypro.pos.SYNC_CONFIG".equals(action)) {
                     handleSyncConfig();
+                } else if ("com.omnilypro.pos.ACTION_TEST_PRINT".equals(action)) {
+                    handleTestPrint(intent);
                 }
             }
         };
@@ -1797,6 +1799,7 @@ public class MainActivityFinal extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.omnilypro.pos.KIOSK_MODE");
         filter.addAction("com.omnilypro.pos.SYNC_CONFIG");
+        filter.addAction("com.omnilypro.pos.ACTION_TEST_PRINT");
         registerReceiver(mdmCommandReceiver, filter);
 
         Log.i(TAG, "✅ MDM Command Receiver registered");
@@ -1843,6 +1846,51 @@ public class MainActivityFinal extends AppCompatActivity {
                 webView.reload();
                 Log.i(TAG, "✅ WebView reloaded for config sync");
             });
+        }
+    }
+
+    private void handleTestPrint(Intent intent) {
+        Log.i(TAG, "🖨️ Handling test print command from MDM...");
+        Toast.makeText(this, "🖨️ Stampa test scontrino in corso...", Toast.LENGTH_SHORT).show();
+
+        try {
+            // Extract print template data from intent
+            String storeName = intent.getStringExtra("store_name");
+            String storeAddress = intent.getStringExtra("store_address");
+            String storePhone = intent.getStringExtra("store_phone");
+            String storeTax = intent.getStringExtra("store_tax");
+            String logoBase64 = intent.getStringExtra("logo_base64");
+
+            Log.i(TAG, "📋 Template data received:");
+            Log.i(TAG, "   Store: " + storeName);
+            Log.i(TAG, "   Address: " + storeAddress);
+            Log.i(TAG, "   Phone: " + storePhone);
+            Log.i(TAG, "   Tax: " + storeTax);
+            Log.i(TAG, "   Has logo: " + (logoBase64 != null && !logoBase64.isEmpty()));
+
+            // Execute print in background thread
+            if (bridge != null && mPrinter != null) {
+                mExecutor.submit(() -> {
+                    boolean success = bridge.printTestTemplate(storeName, storeAddress, storePhone, storeTax, logoBase64);
+
+                    runOnUiThread(() -> {
+                        if (success) {
+                            Toast.makeText(this, "✅ Stampa test completata con successo", Toast.LENGTH_LONG).show();
+                            Log.i(TAG, "✅ Test print completed successfully");
+                        } else {
+                            Toast.makeText(this, "❌ Errore durante la stampa test", Toast.LENGTH_LONG).show();
+                            Log.e(TAG, "❌ Test print failed");
+                        }
+                    });
+                });
+            } else {
+                Log.e(TAG, "❌ Bridge or Printer not initialized");
+                Toast.makeText(this, "❌ Stampante non disponibile", Toast.LENGTH_LONG).show();
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error handling test print", e);
+            Toast.makeText(this, "❌ Errore stampa: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
