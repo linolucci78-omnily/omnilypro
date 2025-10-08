@@ -11,6 +11,7 @@ import CardManagementPanel from './CardManagementPanel'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import UpgradePrompt from './UpgradePrompt'
+import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
@@ -88,6 +89,37 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     network: { status: 'checking' as 'online' | 'offline' | 'checking', ip: '', type: '' },
     emv: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: '' }
   })
+
+  // Confirm Modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmModalConfig, setConfirmModalConfig] = useState({
+    title: '',
+    message: '',
+    confirmText: 'OK',
+    cancelText: 'Chiudi',
+    onConfirm: () => {},
+    type: 'info' as 'warning' | 'danger' | 'info'
+  })
+
+  // Helper function to show confirm modal
+  const showModal = (config: {
+    title?: string
+    message: string
+    confirmText?: string
+    cancelText?: string
+    onConfirm?: () => void
+    type?: 'warning' | 'danger' | 'info'
+  }) => {
+    setConfirmModalConfig({
+      title: config.title || 'Informazione',
+      message: config.message,
+      confirmText: config.confirmText || 'OK',
+      cancelText: config.cancelText || 'Chiudi',
+      onConfirm: config.onConfirm || (() => setShowConfirmModal(false)),
+      type: config.type || 'info'
+    })
+    setShowConfirmModal(true)
+  }
 
   // FORCE RESET NFC STATE on component mount to prevent stuck states
   useEffect(() => {
@@ -937,11 +969,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         bridge.readQRCode('omnilyQRResultHandler');
       } else {
         console.log('❌ readQRCode non disponibile nel bridge');
-        alert('Scanner QR non disponibile. Funzionalità non ancora implementata nel dispositivo.');
+        showModal({
+          title: 'Scanner QR Non Disponibile',
+          message: 'Scanner QR non disponibile. Funzionalità non ancora implementata nel dispositivo.',
+          type: 'warning'
+        });
       }
     } else {
       console.log('❌ Bridge Android non disponibile');
-      alert('Bridge Android non disponibile. Usa solo da dispositivo POS.');
+      showModal({
+        title: 'Bridge Non Disponibile',
+        message: 'Bridge Android non disponibile. Usa solo da dispositivo POS.',
+        type: 'danger'
+      });
     }
   };
 
@@ -953,11 +993,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     // Check Bridge Android
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
-
-      // Debug con toast
-      if (bridge.showToast && currentOrganization) {
-        bridge.showToast(`Org: ${currentOrganization.name || 'NULL'}`);
-      }
 
       setHardwareStatus(prev => ({
         ...prev,
@@ -1007,37 +1042,31 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       if (bridge.getNetworkInfo) {
         try {
           const networkInfo = bridge.getNetworkInfo();
-          const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
+          console.log('📡 Raw network info:', networkInfo);
 
-          // Debug con toast
-          if (bridge.showToast) {
-            bridge.showToast(`Network: ${info.type} IP: ${info.ip}`);
-          }
+          const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
+          console.log('📡 Parsed network info:', info);
 
           setHardwareStatus(prev => ({
             ...prev,
             network: {
-              status: info.connected ? 'online' : 'offline',
-              ip: info.ip || 'N/A',
-              type: info.type || 'N/A'
+              status: info.connected !== false ? 'online' : 'offline',
+              ip: info.ip || 'Non disponibile',
+              type: info.type || 'Non specificato'
             }
           }));
         } catch (error) {
-          if (bridge.showToast) {
-            bridge.showToast(`Error getting network: ${error}`);
-          }
+          console.error('📡 Error getting network info:', error);
           setHardwareStatus(prev => ({
             ...prev,
-            network: { status: 'offline', ip: 'N/A', type: 'N/A' }
+            network: { status: 'offline', ip: 'Errore', type: 'Errore' }
           }));
         }
       } else {
-        if (bridge.showToast) {
-          bridge.showToast('getNetworkInfo not available');
-        }
+        console.log('📡 getNetworkInfo not available in bridge');
         setHardwareStatus(prev => ({
           ...prev,
-          network: { status: 'offline', ip: 'N/A', type: 'N/A' }
+          network: { status: 'offline', ip: 'Non disponibile', type: 'Funzione mancante' }
         }));
       }
     } else {
@@ -1058,12 +1087,24 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       if (bridge.testPrinter) {
         console.log('🖨️ Testing printer...');
         bridge.testPrinter();
-        alert('Test stampante inviato. Controlla la stampa.');
+        showModal({
+          title: 'Test Stampante',
+          message: 'Test stampante inviato. Controlla la stampa.',
+          type: 'info'
+        });
       } else {
-        alert('Funzione test stampante non disponibile nel bridge.');
+        showModal({
+          title: 'Stampante Non Disponibile',
+          message: 'Funzione test stampante non disponibile nel bridge.',
+          type: 'warning'
+        });
       }
     } else {
-      alert('Bridge Android non disponibile.');
+      showModal({
+        title: 'Bridge Non Disponibile',
+        message: 'Bridge Android non disponibile.',
+        type: 'danger'
+      });
     }
   };
 
@@ -1072,13 +1113,28 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       const bridge = (window as any).OmnilyPOS;
       if (bridge.readNFCCard) {
         console.log('📱 Testing NFC reader...');
-        alert('Avvicina una tessera NFC al lettore...');
-        handleNFCRead();
+        showModal({
+          title: 'Test Lettore NFC',
+          message: 'Avvicina una tessera NFC al lettore...',
+          type: 'info',
+          onConfirm: () => {
+            setShowConfirmModal(false);
+            handleNFCRead();
+          }
+        });
       } else {
-        alert('Lettore NFC non disponibile nel bridge.');
+        showModal({
+          title: 'Lettore NFC Non Disponibile',
+          message: 'Lettore NFC non disponibile nel bridge.',
+          type: 'warning'
+        });
       }
     } else {
-      alert('Bridge Android non disponibile.');
+      showModal({
+        title: 'Bridge Non Disponibile',
+        message: 'Bridge Android non disponibile.',
+        type: 'danger'
+      });
     }
   };
 
@@ -1915,9 +1971,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 </div>
                 <div className="hardware-status-info">
                   <p className="status-message">
-                    <strong>Organizzazione:</strong> {currentOrganization?.name || 'N/A'}<br />
-                    <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'Non specificato'}<br />
-                    <strong>Connessione:</strong> {currentOrganization?.pos_connection || 'Non specificata'}
+                    <strong>Organizzazione:</strong> {currentOrganization?.name || 'Caricamento...'}<br />
+                    <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'OMNILY POS Standard'}<br />
+                    <strong>Tipo:</strong> {currentOrganization?.pos_connection || 'Android Terminal'}
                   </p>
                   <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
                     {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
@@ -2568,7 +2624,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onUpgrade={(plan) => {
           console.log('Upgrade to:', plan)
           // TODO: Implement actual upgrade logic
-          alert(`Upgrade a ${plan} non ancora implementato`)
+          showModal({
+            title: 'Upgrade Piano',
+            message: `Upgrade a ${plan} non ancora implementato`,
+            type: 'info'
+          })
         }}
       />
 
@@ -2592,6 +2652,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           fetchOrganizations()
           setShowAccountSettingsPanel(false)
         }}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title={confirmModalConfig.title}
+        message={confirmModalConfig.message}
+        confirmText={confirmModalConfig.confirmText}
+        cancelText={confirmModalConfig.cancelText}
+        onConfirm={confirmModalConfig.onConfirm}
+        onCancel={() => setShowConfirmModal(false)}
+        type={confirmModalConfig.type}
       />
     </div>
   )
