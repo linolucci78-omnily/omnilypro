@@ -948,16 +948,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   // Hardware monitoring functions
   const checkHardwareStatus = async () => {
     console.log('🔍 Checking hardware status...');
+    console.log('🏢 Current organization:', currentOrganization);
 
     // Check Bridge Android
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+      console.log('✅ Bridge found:', bridge);
+      console.log('🔧 Available methods:', bridge.getAvailableMethods?.());
+      console.log('📦 Bridge version:', bridge.getBridgeVersion?.());
+
       setHardwareStatus(prev => ({
         ...prev,
         bridge: { status: 'connected', message: 'Bridge Android connesso' }
       }));
 
       // Check NFC
-      const bridge = (window as any).OmnilyPOS;
       if (bridge.readNFCCard) {
         setHardwareStatus(prev => ({
           ...prev,
@@ -999,26 +1004,35 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       // Check Network
       if (bridge.getNetworkInfo) {
         try {
+          console.log('🌐 Calling getNetworkInfo...');
           const networkInfo = bridge.getNetworkInfo();
+          console.log('🌐 getNetworkInfo raw result:', networkInfo);
+          console.log('🌐 getNetworkInfo type:', typeof networkInfo);
+
           const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
+          console.log('🌐 Parsed network info:', info);
+
           setHardwareStatus(prev => ({
             ...prev,
             network: {
-              status: 'online',
+              status: info.connected ? 'online' : 'offline',
               ip: info.ip || 'N/A',
               type: info.type || 'N/A'
             }
           }));
+          console.log('🌐 Network status set:', info.connected ? 'online' : 'offline', 'IP:', info.ip, 'Type:', info.type);
         } catch (error) {
+          console.error('🌐 Error getting network info:', error);
           setHardwareStatus(prev => ({
             ...prev,
-            network: { status: 'online', ip: 'N/A', type: 'N/A' }
+            network: { status: 'offline', ip: 'N/A', type: 'N/A' }
           }));
         }
       } else {
+        console.log('🌐 getNetworkInfo not available in bridge');
         setHardwareStatus(prev => ({
           ...prev,
-          network: { status: 'online', ip: 'N/A', type: 'N/A' }
+          network: { status: 'offline', ip: 'N/A', type: 'N/A' }
         }));
       }
     } else {
