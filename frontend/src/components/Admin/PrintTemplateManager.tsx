@@ -133,6 +133,16 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
 
     setSendingToPOS(true)
     try {
+      // Serialize receipt data to ensure Date objects are converted to strings
+      const serializedReceiptData = {
+        ...currentReceiptData,
+        timestamp: currentReceiptData.timestamp instanceof Date
+          ? currentReceiptData.timestamp.toISOString()
+          : currentReceiptData.timestamp
+      }
+
+      console.log('📋 Sending receipt data to POS:', serializedReceiptData)
+
       const { error } = await supabase
         .from('device_commands')
         .insert({
@@ -140,7 +150,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
           command_type: 'test_print',
           payload: {
             template: selectedTemplate,
-            receiptData: currentReceiptData // Dati dello scontrino modificati dall'utente
+            receiptData: serializedReceiptData
           },
           status: 'pending'
         })

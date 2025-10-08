@@ -93,8 +93,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   // Matrix Monitor logs
   const [matrixLogs, setMatrixLogs] = useState<string[]>([])
   const addMatrixLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    setMatrixLogs(prev => [...prev.slice(-19), `[${timestamp}] ${message}`]) // Keep last 20 logs
+    const timestamp = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as any)
+    setMatrixLogs(prev => [...prev.slice(-99), `[${timestamp}] ${message}`]) // Keep last 100 logs
   }
 
   // Confirm Modal state
@@ -1156,6 +1156,53 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     if (activeSection === 'pos-integration') {
       checkHardwareStatus();
     }
+  }, [activeSection]);
+
+  // Intercept ALL console logs when in pos-integration section
+  useEffect(() => {
+    if (activeSection !== 'pos-integration') return;
+
+    // Save original console methods
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+    const originalInfo = console.info;
+
+    // Override console.log
+    console.log = (...args: any[]) => {
+      originalLog(...args); // Keep original behavior
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+      addMatrixLog(`[LOG] ${message}`);
+    };
+
+    // Override console.error
+    console.error = (...args: any[]) => {
+      originalError(...args);
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+      addMatrixLog(`[ERROR] ${message}`);
+    };
+
+    // Override console.warn
+    console.warn = (...args: any[]) => {
+      originalWarn(...args);
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+      addMatrixLog(`[WARN] ${message}`);
+    };
+
+    // Override console.info
+    console.info = (...args: any[]) => {
+      originalInfo(...args);
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+      addMatrixLog(`[INFO] ${message}`);
+    };
+
+    // Restore original console methods when leaving section or unmounting
+    return () => {
+      console.log = originalLog;
+      console.error = originalError;
+      console.warn = originalWarn;
+      console.info = originalInfo;
+    };
   }, [activeSection]);
 
   // Function to check if user can access a section
