@@ -4442,3 +4442,211 @@ input:checked + .slider:before {
     transform: translateX(200%);
   }
 }
+
+/* ========== HARDWARE MONITORING PANEL ========== */
+.hardware-monitoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.hardware-status-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hardware-status-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Status-based border colors */
+.hardware-status-card.connected,
+.hardware-status-card.available,
+.hardware-status-card.ready,
+.hardware-status-card.online {
+  border-color: #10b981;
+}
+
+.hardware-status-card.disconnected,
+.hardware-status-card.unavailable,
+.hardware-status-card.offline,
+.hardware-status-card.error {
+  border-color: #ef4444;
+}
+
+.hardware-status-card.checking {
+  border-color: #f59e0b;
+}
+
+.hardware-status-card.system-info {
+  border-color: #6366f1;
+}
+
+.hardware-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.hardware-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.hardware-card-header h3 {
+  flex: 1;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.status-indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-indicator.connected,
+.status-indicator.available,
+.status-indicator.ready,
+.status-indicator.online {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.status-indicator.disconnected,
+.status-indicator.unavailable,
+.status-indicator.offline,
+.status-indicator.error {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.status-indicator.checking {
+  background: #fef3c7;
+  color: #f59e0b;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.hardware-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-message {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.status-message strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: flex-start;
+}
+
+.status-badge.connected,
+.status-badge.available,
+.status-badge.ready,
+.status-badge.online {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-badge.disconnected,
+.status-badge.unavailable,
+.status-badge.offline,
+.status-badge.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.checking {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.btn-test {
+  margin-top: auto;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.btn-test:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-test:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-test:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #9ca3af;
+  box-shadow: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hardware-monitoring-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -4,7 +4,7 @@ import type { Organization, Customer, Reward } from '../lib/supabase'
 import { rewardsService } from '../services/rewardsService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
@@ -79,6 +79,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showRewardModal, setShowRewardModal] = useState(false)
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null)
   const [rewardModalLoading, setRewardModalLoading] = useState(false)
+
+  // Hardware monitoring state
+  const [hardwareStatus, setHardwareStatus] = useState({
+    bridge: { status: 'checking' as 'connected' | 'disconnected' | 'checking', message: '' },
+    printer: { status: 'checking' as 'ready' | 'error' | 'offline' | 'checking', message: '' },
+    nfc: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: '' },
+    network: { status: 'checking' as 'online' | 'offline' | 'checking', ip: '', type: '' },
+    emv: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: '' }
+  })
 
   // FORCE RESET NFC STATE on component mount to prevent stuck states
   useEffect(() => {
@@ -936,6 +945,131 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   };
 
+  // Hardware monitoring functions
+  const checkHardwareStatus = async () => {
+    console.log('🔍 Checking hardware status...');
+
+    // Check Bridge Android
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      setHardwareStatus(prev => ({
+        ...prev,
+        bridge: { status: 'connected', message: 'Bridge Android connesso' }
+      }));
+
+      // Check NFC
+      const bridge = (window as any).OmnilyPOS;
+      if (bridge.readNFCCard) {
+        setHardwareStatus(prev => ({
+          ...prev,
+          nfc: { status: 'available', message: 'Lettore NFC disponibile' }
+        }));
+      } else {
+        setHardwareStatus(prev => ({
+          ...prev,
+          nfc: { status: 'unavailable', message: 'Lettore NFC non disponibile' }
+        }));
+      }
+
+      // Check Printer
+      if (bridge.printReceipt || bridge.testPrinter) {
+        setHardwareStatus(prev => ({
+          ...prev,
+          printer: { status: 'ready', message: 'Stampante pronta' }
+        }));
+      } else {
+        setHardwareStatus(prev => ({
+          ...prev,
+          printer: { status: 'offline', message: 'Stampante non disponibile' }
+        }));
+      }
+
+      // Check EMV/PinPad
+      if (bridge.processPayment) {
+        setHardwareStatus(prev => ({
+          ...prev,
+          emv: { status: 'available', message: 'Terminale pagamenti disponibile' }
+        }));
+      } else {
+        setHardwareStatus(prev => ({
+          ...prev,
+          emv: { status: 'unavailable', message: 'Terminale pagamenti non disponibile' }
+        }));
+      }
+
+      // Check Network
+      if (bridge.getNetworkInfo) {
+        try {
+          const networkInfo = bridge.getNetworkInfo();
+          const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
+          setHardwareStatus(prev => ({
+            ...prev,
+            network: {
+              status: 'online',
+              ip: info.ip || 'N/A',
+              type: info.type || 'N/A'
+            }
+          }));
+        } catch (error) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            network: { status: 'online', ip: 'N/A', type: 'N/A' }
+          }));
+        }
+      } else {
+        setHardwareStatus(prev => ({
+          ...prev,
+          network: { status: 'online', ip: 'N/A', type: 'N/A' }
+        }));
+      }
+    } else {
+      // Bridge not available
+      setHardwareStatus({
+        bridge: { status: 'disconnected', message: 'Bridge Android non disponibile' },
+        printer: { status: 'offline', message: 'Non disponibile' },
+        nfc: { status: 'unavailable', message: 'Non disponibile' },
+        network: { status: 'offline', ip: '', type: '' },
+        emv: { status: 'unavailable', message: 'Non disponibile' }
+      });
+    }
+  };
+
+  const testPrinter = () => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+      if (bridge.testPrinter) {
+        console.log('🖨️ Testing printer...');
+        bridge.testPrinter();
+        alert('Test stampante inviato. Controlla la stampa.');
+      } else {
+        alert('Funzione test stampante non disponibile nel bridge.');
+      }
+    } else {
+      alert('Bridge Android non disponibile.');
+    }
+  };
+
+  const testNFC = () => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+      if (bridge.readNFCCard) {
+        console.log('📱 Testing NFC reader...');
+        alert('Avvicina una tessera NFC al lettore...');
+        handleNFCRead();
+      } else {
+        alert('Lettore NFC non disponibile nel bridge.');
+      }
+    } else {
+      alert('Bridge Android non disponibile.');
+    }
+  };
+
+  // Check hardware status when entering pos-integration section
+  useEffect(() => {
+    if (activeSection === 'pos-integration') {
+      checkHardwareStatus();
+    }
+  }, [activeSection]);
+
   // Function to check if user can access a section
   const checkSectionAccess = (sectionId: string, featureName: string) => {
     const userPlan = currentOrganization?.plan_type || 'free'
@@ -1614,49 +1748,161 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return (
           <div className="section-content">
             <div className="section-header">
-              <Zap size={24} />
-              <h2>Integrazione POS</h2>
-              <p>Configurazione hardware POS dal wizard</p>
+              <Activity size={24} />
+              <h2>Stato POS</h2>
+              <p>Monitoraggio in tempo reale dello stato hardware e connessioni</p>
             </div>
 
-            <div className="pos-config-grid">
-              <div className="pos-card">
-                <div className="pos-header">
-                  <Building2 size={20} />
-                  <h3>Stato POS</h3>
+            <div className="hardware-monitoring-grid">
+              {/* Bridge Android Status */}
+              <div className={`hardware-status-card ${hardwareStatus.bridge.status}`}>
+                <div className="hardware-card-header">
+                  <div className="hardware-icon">
+                    <Zap size={24} />
+                  </div>
+                  <h3>Bridge Android</h3>
+                  <div className={`status-indicator ${hardwareStatus.bridge.status}`}>
+                    {hardwareStatus.bridge.status === 'connected' && <CheckCircle2 size={20} />}
+                    {hardwareStatus.bridge.status === 'disconnected' && <XCircle size={20} />}
+                    {hardwareStatus.bridge.status === 'checking' && <AlertTriangle size={20} />}
+                  </div>
                 </div>
-                <div className="pos-status">
-                  {currentOrganization?.pos_enabled ? (
-                    <span className="status-active">✅ POS Abilitato</span>
-                  ) : (
-                    <span className="status-inactive">❌ POS Disabilitato</span>
-                  )}
+                <div className="hardware-status-info">
+                  <p className="status-message">{hardwareStatus.bridge.message || 'Verifica in corso...'}</p>
+                  <span className={`status-badge ${hardwareStatus.bridge.status}`}>
+                    {hardwareStatus.bridge.status === 'connected' && 'Connesso'}
+                    {hardwareStatus.bridge.status === 'disconnected' && 'Disconnesso'}
+                    {hardwareStatus.bridge.status === 'checking' && 'Verifica...'}
+                  </span>
                 </div>
-                <div className="pos-details">
-                  <div><strong>Modello:</strong> {currentOrganization?.pos_model || 'Non specificato'}</div>
-                  <div><strong>Connessione:</strong> {currentOrganization?.pos_connection || 'Non specificata'}</div>
+                <button className="btn-test" onClick={checkHardwareStatus}>
+                  <RefreshCw size={16} />
+                  Aggiorna
+                </button>
+              </div>
+
+              {/* Network Status */}
+              <div className={`hardware-status-card ${hardwareStatus.network.status}`}>
+                <div className="hardware-card-header">
+                  <div className="hardware-icon">
+                    <Wifi size={24} />
+                  </div>
+                  <h3>Connessione</h3>
+                  <div className={`status-indicator ${hardwareStatus.network.status}`}>
+                    {hardwareStatus.network.status === 'online' && <CheckCircle2 size={20} />}
+                    {hardwareStatus.network.status === 'offline' && <XCircle size={20} />}
+                    {hardwareStatus.network.status === 'checking' && <AlertTriangle size={20} />}
+                  </div>
+                </div>
+                <div className="hardware-status-info">
+                  <p className="status-message">
+                    <strong>IP:</strong> {hardwareStatus.network.ip || 'N/A'}<br />
+                    <strong>Tipo:</strong> {hardwareStatus.network.type || 'N/A'}
+                  </p>
+                  <span className={`status-badge ${hardwareStatus.network.status}`}>
+                    {hardwareStatus.network.status === 'online' && 'Online'}
+                    {hardwareStatus.network.status === 'offline' && 'Offline'}
+                    {hardwareStatus.network.status === 'checking' && 'Verifica...'}
+                  </span>
                 </div>
               </div>
 
-              <div className="features-card">
-                <h3>Funzionalità Abilitate</h3>
-                <div className="features-list">
-                  <div className={`feature-item ${currentOrganization?.enable_receipt_print ? 'enabled' : 'disabled'}`}>
-                    <span>🖨️ Stampa ricevute</span>
-                    <span>{currentOrganization?.enable_receipt_print ? 'Abilitata' : 'Disabilitata'}</span>
+              {/* Printer Status */}
+              <div className={`hardware-status-card ${hardwareStatus.printer.status}`}>
+                <div className="hardware-card-header">
+                  <div className="hardware-icon">
+                    <Printer size={24} />
                   </div>
-                  <div className={`feature-item ${currentOrganization?.enable_nfc ? 'enabled' : 'disabled'}`}>
-                    <span>📱 NFC</span>
-                    <span>{currentOrganization?.enable_nfc ? 'Abilitato' : 'Disabilitato'}</span>
+                  <h3>Stampante</h3>
+                  <div className={`status-indicator ${hardwareStatus.printer.status}`}>
+                    {hardwareStatus.printer.status === 'ready' && <CheckCircle2 size={20} />}
+                    {hardwareStatus.printer.status === 'error' && <XCircle size={20} />}
+                    {hardwareStatus.printer.status === 'offline' && <XCircle size={20} />}
+                    {hardwareStatus.printer.status === 'checking' && <AlertTriangle size={20} />}
                   </div>
-                  <div className={`feature-item ${currentOrganization?.enable_emv ? 'enabled' : 'disabled'}`}>
-                    <span>💳 EMV</span>
-                    <span>{currentOrganization?.enable_emv ? 'Abilitato' : 'Disabilitato'}</span>
+                </div>
+                <div className="hardware-status-info">
+                  <p className="status-message">{hardwareStatus.printer.message || 'Verifica in corso...'}</p>
+                  <span className={`status-badge ${hardwareStatus.printer.status}`}>
+                    {hardwareStatus.printer.status === 'ready' && 'Pronta'}
+                    {hardwareStatus.printer.status === 'error' && 'Errore'}
+                    {hardwareStatus.printer.status === 'offline' && 'Offline'}
+                    {hardwareStatus.printer.status === 'checking' && 'Verifica...'}
+                  </span>
+                </div>
+                <button className="btn-test" onClick={testPrinter} disabled={hardwareStatus.printer.status !== 'ready'}>
+                  <Printer size={16} />
+                  Test Stampa
+                </button>
+              </div>
+
+              {/* NFC Reader Status */}
+              <div className={`hardware-status-card ${hardwareStatus.nfc.status}`}>
+                <div className="hardware-card-header">
+                  <div className="hardware-icon">
+                    <Smartphone size={24} />
                   </div>
-                  <div className={`feature-item ${currentOrganization?.enable_pinpad ? 'enabled' : 'disabled'}`}>
-                    <span>🔢 PinPad</span>
-                    <span>{currentOrganization?.enable_pinpad ? 'Abilitato' : 'Disabilitato'}</span>
+                  <h3>Lettore NFC</h3>
+                  <div className={`status-indicator ${hardwareStatus.nfc.status}`}>
+                    {hardwareStatus.nfc.status === 'available' && <CheckCircle2 size={20} />}
+                    {hardwareStatus.nfc.status === 'unavailable' && <XCircle size={20} />}
+                    {hardwareStatus.nfc.status === 'checking' && <AlertTriangle size={20} />}
                   </div>
+                </div>
+                <div className="hardware-status-info">
+                  <p className="status-message">{hardwareStatus.nfc.message || 'Verifica in corso...'}</p>
+                  <span className={`status-badge ${hardwareStatus.nfc.status}`}>
+                    {hardwareStatus.nfc.status === 'available' && 'Disponibile'}
+                    {hardwareStatus.nfc.status === 'unavailable' && 'Non disponibile'}
+                    {hardwareStatus.nfc.status === 'checking' && 'Verifica...'}
+                  </span>
+                </div>
+                <button className="btn-test" onClick={testNFC} disabled={hardwareStatus.nfc.status !== 'available'}>
+                  <Smartphone size={16} />
+                  Test NFC
+                </button>
+              </div>
+
+              {/* EMV/PinPad Status */}
+              <div className={`hardware-status-card ${hardwareStatus.emv.status}`}>
+                <div className="hardware-card-header">
+                  <div className="hardware-icon">
+                    <CreditCard size={24} />
+                  </div>
+                  <h3>Terminale Pagamenti</h3>
+                  <div className={`status-indicator ${hardwareStatus.emv.status}`}>
+                    {hardwareStatus.emv.status === 'available' && <CheckCircle2 size={20} />}
+                    {hardwareStatus.emv.status === 'unavailable' && <XCircle size={20} />}
+                    {hardwareStatus.emv.status === 'checking' && <AlertTriangle size={20} />}
+                  </div>
+                </div>
+                <div className="hardware-status-info">
+                  <p className="status-message">{hardwareStatus.emv.message || 'Verifica in corso...'}</p>
+                  <span className={`status-badge ${hardwareStatus.emv.status}`}>
+                    {hardwareStatus.emv.status === 'available' && 'Disponibile'}
+                    {hardwareStatus.emv.status === 'unavailable' && 'Non disponibile'}
+                    {hardwareStatus.emv.status === 'checking' && 'Verifica...'}
+                  </span>
+                </div>
+              </div>
+
+              {/* System Info */}
+              <div className="hardware-status-card system-info">
+                <div className="hardware-card-header">
+                  <div className="hardware-icon">
+                    <Building2 size={24} />
+                  </div>
+                  <h3>Informazioni Sistema</h3>
+                </div>
+                <div className="hardware-status-info">
+                  <p className="status-message">
+                    <strong>Organizzazione:</strong> {currentOrganization?.name || 'N/A'}<br />
+                    <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'Non specificato'}<br />
+                    <strong>Connessione:</strong> {currentOrganization?.pos_connection || 'Non specificata'}
+                  </p>
+                  <span className={`status-badge ${currentOrganization?.pos_enabled ? 'connected' : 'disconnected'}`}>
+                    {currentOrganization?.pos_enabled ? 'POS Abilitato' : 'POS Disabilitato'}
+                  </span>
                 </div>
               </div>
             </div>
