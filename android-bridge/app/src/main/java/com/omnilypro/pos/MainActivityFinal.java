@@ -1581,10 +1581,10 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         /**
-         * Print test template with store info (called by MDM commands)
+         * Print demo receipt exactly like ReceiptDemo preview (called by MDM commands)
          */
         public boolean printTestTemplate(String storeName, String storeAddress, String storePhone, String storeTax, String logoBase64) {
-            Log.d(TAG, "printTestTemplate called for store: " + storeName);
+            Log.d(TAG, "printTestTemplate - printing demo receipt like ReceiptDemo");
 
             try {
                 if (mPrinter == null) {
@@ -1600,17 +1600,24 @@ public class MainActivityFinal extends AppCompatActivity {
 
                 PrnStrFormat normalFormat = new PrnStrFormat();
                 normalFormat.setTextSize(22);
-                normalFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+                normalFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
+
+                PrnStrFormat centerFormat = new PrnStrFormat();
+                centerFormat.setTextSize(22);
+                centerFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+
+                PrnStrFormat smallFormat = new PrnStrFormat();
+                smallFormat.setTextSize(18);
+                smallFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
 
                 PrnStrFormat boldFormat = new PrnStrFormat();
-                boldFormat.setTextSize(24);
-                boldFormat.setAli(Layout.Alignment.ALIGN_CENTER);
+                boldFormat.setTextSize(26);
+                boldFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
                 boldFormat.setStyle(PrnTextStyle.BOLD);
 
                 // Print logo if present
                 if (logoBase64 != null && !logoBase64.isEmpty()) {
                     try {
-                        // Decode base64 to bitmap
                         String base64Image = logoBase64;
                         if (base64Image.contains(",")) {
                             base64Image = base64Image.split(",")[1];
@@ -1628,55 +1635,82 @@ public class MainActivityFinal extends AppCompatActivity {
                     }
                 }
 
-                // Print store header
-                mPrinter.setPrintAppendString("\n", normalFormat);
+                // Store header (centered)
+                mPrinter.setPrintAppendString("\n", centerFormat);
                 if (storeName != null && !storeName.isEmpty()) {
                     mPrinter.setPrintAppendString(storeName + "\n", headerFormat);
                 }
-
                 if (storeAddress != null && !storeAddress.isEmpty()) {
-                    mPrinter.setPrintAppendString(storeAddress + "\n", normalFormat);
+                    mPrinter.setPrintAppendString(storeAddress + "\n", centerFormat);
                 }
-
                 if (storePhone != null && !storePhone.isEmpty()) {
-                    mPrinter.setPrintAppendString(storePhone + "\n", normalFormat);
+                    mPrinter.setPrintAppendString(storePhone + "\n", centerFormat);
                 }
-
                 if (storeTax != null && !storeTax.isEmpty()) {
-                    mPrinter.setPrintAppendString("P.IVA: " + storeTax + "\n", normalFormat);
+                    mPrinter.setPrintAppendString("P.IVA: " + storeTax + "\n", centerFormat);
                 }
 
                 // Separator
-                mPrinter.setPrintAppendString("========================================\n", normalFormat);
+                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
 
-                // Test message
-                mPrinter.setPrintAppendString("\n", normalFormat);
-                mPrinter.setPrintAppendString("TEST STAMPA TEMPLATE\n", boldFormat);
-                mPrinter.setPrintAppendString("\n", normalFormat);
-                mPrinter.setPrintAppendString("Template caricato e configurato\n", normalFormat);
-                mPrinter.setPrintAppendString("correttamente dal sistema MDM\n", normalFormat);
-                mPrinter.setPrintAppendString("\n", normalFormat);
-
-                // Timestamp
+                // Receipt info
                 String timestamp = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
-                mPrinter.setPrintAppendString("Data/Ora: " + timestamp + "\n", normalFormat);
-                mPrinter.setPrintAppendString("\n", normalFormat);
-                mPrinter.setPrintAppendString("Powered by OMNILY PRO\n", normalFormat);
-                mPrinter.setPrintAppendString("\n\n\n", normalFormat);
+                String receiptNumber = "R" + String.format("%06d", System.currentTimeMillis() % 1000000);
+                mPrinter.setPrintAppendString("Scontrino: " + receiptNumber + "\n", normalFormat);
+                mPrinter.setPrintAppendString("Data: " + timestamp + "\n", normalFormat);
+                mPrinter.setPrintAppendString("Cassiere: Marco Rossi\n", normalFormat);
+                mPrinter.setPrintAppendString("Carta: LY12345678\n", normalFormat);
+
+                // Separator
+                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
+
+                // Items (like in ReceiptDemo)
+                mPrinter.setPrintAppendString("2x Caffe Espresso\n", normalFormat);
+                mPrinter.setPrintAppendString("                        EUR 3.00\n", normalFormat);
+                mPrinter.setPrintAppendString("  (EUR 1.50 cad.)\n", smallFormat);
+
+                mPrinter.setPrintAppendString("1x Cornetto alla Crema\n", normalFormat);
+                mPrinter.setPrintAppendString("                        EUR 2.50\n", normalFormat);
+
+                mPrinter.setPrintAppendString("1x Cappuccino\n", normalFormat);
+                mPrinter.setPrintAppendString("                        EUR 2.00\n", normalFormat);
+
+                // Separator
+                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
+
+                // Totals
+                mPrinter.setPrintAppendString("Subtotale:              EUR 7.50\n", normalFormat);
+                mPrinter.setPrintAppendString("IVA 22%:                EUR 1.65\n", normalFormat);
+                mPrinter.setPrintAppendString("TOTALE:                 EUR 9.15\n", boldFormat);
+
+                // Separator
+                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
+
+                // Payment info
+                mPrinter.setPrintAppendString("Pagamento: Contanti\n", normalFormat);
+                mPrinter.setPrintAppendString("Punti guadagnati: 9\n", normalFormat);
+
+                // Separator
+                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
+
+                // Footer (centered)
+                mPrinter.setPrintAppendString("Grazie per la visita!\n", centerFormat);
+                mPrinter.setPrintAppendString("Powered by OMNILY PRO\n", centerFormat);
+                mPrinter.setPrintAppendString("\n\n\n", centerFormat);
 
                 // Start printing
                 int printStatus = mPrinter.setPrintStart();
                 if (printStatus == SdkResult.SDK_OK) {
                     Thread.sleep(2000);
                     mPrinter.openPrnCutter((byte) 1);
-                    Log.d(TAG, "Test template printed successfully");
+                    Log.d(TAG, "Demo receipt printed successfully");
                     return true;
                 } else {
-                    Log.e(TAG, "Test template print failed with status: " + printStatus);
+                    Log.e(TAG, "Demo receipt print failed with status: " + printStatus);
                     return false;
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error printing test template", e);
+                Log.e(TAG, "Error printing demo receipt", e);
                 return false;
             }
         }
