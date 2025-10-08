@@ -1626,8 +1626,10 @@ public class MainActivityFinal extends AppCompatActivity {
                         android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
                         if (bitmap != null) {
-                            // Resize logo to fit thermal printer (max width 300px)
-                            int maxWidth = 300;
+                            Log.d(TAG, "Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+
+                            // Resize logo to fit thermal printer (max width 200px for better compatibility)
+                            int maxWidth = 200;
                             if (bitmap.getWidth() > maxWidth) {
                                 float ratio = (float) maxWidth / bitmap.getWidth();
                                 int newHeight = (int) (bitmap.getHeight() * ratio);
@@ -1635,8 +1637,22 @@ public class MainActivityFinal extends AppCompatActivity {
                                 Log.d(TAG, "Logo resized to: " + maxWidth + "x" + newHeight);
                             }
 
+                            // Convert to grayscale/monochrome for thermal printer
+                            android.graphics.Bitmap grayscaleBitmap = android.graphics.Bitmap.createBitmap(
+                                bitmap.getWidth(), bitmap.getHeight(), android.graphics.Bitmap.Config.ARGB_8888
+                            );
+                            android.graphics.Canvas canvas = new android.graphics.Canvas(grayscaleBitmap);
+                            android.graphics.Paint paint = new android.graphics.Paint();
+                            android.graphics.ColorMatrix colorMatrix = new android.graphics.ColorMatrix();
+                            colorMatrix.setSaturation(0); // Convert to grayscale
+                            android.graphics.ColorMatrixColorFilter filter = new android.graphics.ColorMatrixColorFilter(colorMatrix);
+                            paint.setColorFilter(filter);
+                            canvas.drawBitmap(bitmap, 0, 0, paint);
+
+                            Log.d(TAG, "Logo converted to grayscale");
+
                             mPrinter.setPrintAppendString("\n", normalFormat);
-                            mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
+                            mPrinter.setPrintAppendBitmap(grayscaleBitmap, Alignment.ALIGN_CENTER);
                             mPrinter.setPrintAppendString("\n", normalFormat);
                             Log.d(TAG, "Logo printed successfully");
                         }
