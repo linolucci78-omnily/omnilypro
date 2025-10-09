@@ -1373,7 +1373,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         addMatrixLog(`❌ Errore bridge generale: ${error}`);
         setHardwareStatus(prev => ({
           ...prev,
-          bridge: { status: 'disconnected', message: 'Errore comunicazione bridge' }
+          bridge: { status: 'disconnected', message: 'Errore comunicazione bridge', version: undefined }
         }));
       }
     } else {
