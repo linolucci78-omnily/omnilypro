@@ -1027,7 +1027,24 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const checkHardwareStatus = async () => {
     console.log('🔍 Checking hardware status...');
     console.log('🏢 Current organization:', currentOrganization);
-    addMatrixLog('🔍 Avvio verifica hardware...');
+    
+    const timestamp = new Date().toLocaleTimeString();
+    addMatrixLog(`🔍 Avvio verifica hardware... [${timestamp}]`);
+    addMatrixLog(`🌐 Window object available: ${typeof window !== 'undefined'}`);
+    addMatrixLog(`📱 POS Mode: ${isPOSMode}`);
+
+    // Debug window object availability
+    if (typeof window !== 'undefined') {
+      addMatrixLog(`🔍 Window.OmnilyPOS exists: ${!!(window as any).OmnilyPOS}`);
+      
+      // List all available window properties related to bridge
+      const windowKeys = Object.keys(window).filter(key => 
+        key.toLowerCase().includes('omnily') || 
+        key.toLowerCase().includes('bridge') ||
+        key.toLowerCase().includes('pos')
+      );
+      addMatrixLog(`🔍 Window keys with omnily/bridge/pos: [${windowKeys.join(', ')}]`);
+    }
 
     // Wait a bit for bridge to be fully ready
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -1231,13 +1248,38 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       }
     } else {
       // Bridge not available
-      setHardwareStatus({
-        bridge: { status: 'disconnected', message: 'Bridge Android non disponibile' },
-        printer: { status: 'offline', message: 'Non disponibile' },
-        nfc: { status: 'unavailable', message: 'Non disponibile' },
-        network: { status: 'offline', ip: '', type: '' },
-        emv: { status: 'unavailable', message: 'Non disponibile' }
-      });
+      addMatrixLog('❌ Bridge OmnilyPOS non trovato in window object');
+      
+      // Se siamo in modalità sviluppo o test, mostra dati di esempio
+      if (isPOSMode || window.location.hostname === 'localhost' || window.location.hostname.includes('vercel')) {
+        addMatrixLog('🧪 Modalità TEST: Caricamento dati hardware simulati...');
+        
+        setHardwareStatus({
+          bridge: { status: 'disconnected', message: 'Bridge Android non disponibile (Modalità TEST)' },
+          printer: { status: 'error', message: 'Simulazione - Non connessa' },
+          nfc: { status: 'unavailable', message: 'Simulazione - Non disponibile' },
+          network: { status: 'online', ip: '192.168.1.100', type: 'WiFi (Simulato)' },
+          emv: { status: 'unavailable', message: 'Simulazione - Non disponibile' }
+        });
+        
+        addMatrixLog('📱 TEST: Bridge status simulato caricato');
+        addMatrixLog('📡 TEST: Network status simulato (192.168.1.100)');
+        addMatrixLog('🖨️ TEST: Printer status simulato (errore)');
+        addMatrixLog('📱 TEST: NFC status simulato (non disponibile)');
+        addMatrixLog('💳 TEST: EMV status simulato (non disponibile)');
+        
+      } else {
+        // Produzione senza bridge
+        setHardwareStatus({
+          bridge: { status: 'disconnected', message: 'Bridge Android non disponibile' },
+          printer: { status: 'offline', message: 'Non disponibile' },
+          nfc: { status: 'unavailable', message: 'Non disponibile' },
+          network: { status: 'offline', ip: '', type: '' },
+          emv: { status: 'unavailable', message: 'Non disponibile' }
+        });
+        
+        addMatrixLog('🚫 PROD: Hardware non disponibile - serve dispositivo POS');
+      }
     }
 
     // Log completion senza popup fastidiosi
