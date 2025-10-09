@@ -27,3 +27,6 @@
   # IDE
   .vscode/
   .idea/
+
+  # APK files (dev builds)
+  *.apk
