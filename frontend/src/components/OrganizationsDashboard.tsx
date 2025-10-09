@@ -1063,11 +1063,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       addMatrixLog(`🚀 Using injected hardware data from Android (${injectedData.timestamp})`);
       
       try {
-        const hardwareInfo = typeof injectedData.hardware === 'string' 
-          ? JSON.parse(injectedData.hardware) 
+        const hardwareInfo = typeof injectedData.hardware === 'string'
+          ? JSON.parse(injectedData.hardware)
           : injectedData.hardware;
-          
+
         addMatrixLog('✅ Parsing injected hardware data...');
+        addMatrixLog(`📦 Injected hardware keys: ${Object.keys(hardwareInfo).join(', ')}`);
         
         // Update all hardware status from injected data
         if (hardwareInfo.bridge) {
@@ -1084,6 +1085,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
         // Update system info from injected data
         if (hardwareInfo.system) {
+          console.log('📱 Injected system data:', hardwareInfo.system);
+          addMatrixLog(`📱 Injected system: manufacturer=${hardwareInfo.system.manufacturer}, model=${hardwareInfo.system.model}, android=${hardwareInfo.system.android_version}`);
           setHardwareStatus(prev => ({
             ...prev,
             system: {
@@ -1093,7 +1096,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               sdkVersion: hardwareInfo.system.sdk_version
             }
           }));
-          addMatrixLog(`📱 System: ${hardwareInfo.system.manufacturer} ${hardwareInfo.system.model}`);
+          addMatrixLog(`✅ System saved from injected data`);
+        } else {
+          addMatrixLog(`⚠️ No system data in injected hardware info`);
         }
         
         if (hardwareInfo.network) {
@@ -1236,15 +1241,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
             // Update printer status
             if (info.printer) {
+              console.log('🖨️ Printer data from bridge:', JSON.stringify(info.printer));
+              addMatrixLog(`🖨️ Printer data: ${JSON.stringify(info.printer)}`);
               setHardwareStatus(prev => ({
                 ...prev,
                 printer: {
                   status: info.printer.status || 'checking',
                   message: info.printer.message || 'Verifica in corso...',
-                  model: info.printer.model
+                  model: info.printer.model || info.printer.name || info.printer.deviceName
                 }
               }));
-              addMatrixLog(`🖨️ Printer: ${info.printer.status} - ${info.printer.message}`);
+              addMatrixLog(`🖨️ Printer: ${info.printer.status} - ${info.printer.message}${info.printer.model ? ` (${info.printer.model})` : ''}`);
             }
 
             // Update NFC status
@@ -1284,6 +1291,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             const info = typeof systemInfo === 'string' ? JSON.parse(systemInfo) : systemInfo;
             
             console.log('💻 System info:', info);
+            console.log('💻 System info keys:', Object.keys(info));
+            addMatrixLog(`📱 System info raw: ${JSON.stringify(info)}`);
             addMatrixLog(`📱 Sistema: ${info.manufacturer} ${info.model}`);
             addMatrixLog(`🤖 Android: ${info.android_version} (SDK ${info.sdk_version})`);
 
@@ -1297,6 +1306,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 sdkVersion: info.sdk_version
               }
             }));
+
+            addMatrixLog(`✅ System data saved: manufacturer=${info.manufacturer}, model=${info.model}`);
 
             if (info.model && info.manufacturer) {
               addMatrixLog(`🏷️ POS Model: ${info.manufacturer} ${info.model}`);
