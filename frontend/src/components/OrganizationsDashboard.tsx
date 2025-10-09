@@ -1327,7 +1327,50 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         } else {
           // Fallback: usa metodi esistenti se getHardwareInfo/getSystemInfo non esistono
           addMatrixLog('⚠️ Metodi getHardwareInfo/getSystemInfo non disponibili - uso fallback');
-          
+
+          // Extract system info from User Agent as fallback
+          console.log('🔍 FALLBACK: Extracting system info from User Agent...');
+          const userAgent = navigator.userAgent;
+          console.log('📱 User Agent:', userAgent);
+          addMatrixLog(`📱 User Agent: ${userAgent}`);
+
+          // Parse User Agent for Android device info
+          // Example: "Mozilla/5.0 (Linux; Android 7.1; Sunmi V2 Pro)"
+          const androidMatch = userAgent.match(/Android\s+([\d.]+)/);
+          const deviceMatch = userAgent.match(/;\s*([^;)]+)\s*\)/);
+
+          if (androidMatch || deviceMatch) {
+            const androidVersion = androidMatch ? androidMatch[1] : undefined;
+            const deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
+
+            // Try to split manufacturer and model
+            let manufacturer = undefined;
+            let model = undefined;
+            if (deviceName) {
+              const parts = deviceName.split(/\s+/);
+              if (parts.length > 1) {
+                manufacturer = parts[0];
+                model = parts.slice(1).join(' ');
+              } else {
+                model = deviceName;
+              }
+            }
+
+            console.log('💻 Parsed from UA - manufacturer:', manufacturer, 'model:', model, 'android:', androidVersion);
+
+            setHardwareStatus(prev => ({
+              ...prev,
+              system: {
+                manufacturer: manufacturer,
+                model: model,
+                androidVersion: androidVersion,
+                sdkVersion: undefined
+              }
+            }));
+
+            addMatrixLog(`✅ System from UA: ${manufacturer || 'Unknown'} ${model || 'Unknown'}, Android ${androidVersion || 'Unknown'}`);
+          }
+
           // Check hardware usando metodi singoli
           if (bridge.readNFCCard) {
             setHardwareStatus(prev => ({
