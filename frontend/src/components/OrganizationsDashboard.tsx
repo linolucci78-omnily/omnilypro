@@ -1323,6 +1323,46 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           } catch (error) {
             console.error('❌ Error parsing system info:', error);
             addMatrixLog(`❌ Errore parsing system: ${error}`);
+
+            // FALLBACK: Use User Agent if getSystemInfo fails
+            console.log('🔍 FALLBACK after error: Extracting system info from User Agent...');
+            const userAgent = navigator.userAgent;
+            console.log('📱 User Agent:', userAgent);
+            addMatrixLog(`📱 User Agent fallback: ${userAgent}`);
+
+            const androidMatch = userAgent.match(/Android\s+([\d.]+)/);
+            const deviceMatch = userAgent.match(/;\s*([^;)]+)\s*\)/);
+
+            if (androidMatch || deviceMatch) {
+              const androidVersion = androidMatch ? androidMatch[1] : undefined;
+              const deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
+
+              let manufacturer = undefined;
+              let model = undefined;
+              if (deviceName) {
+                const parts = deviceName.split(/\s+/);
+                if (parts.length > 1) {
+                  manufacturer = parts[0];
+                  model = parts.slice(1).join(' ');
+                } else {
+                  model = deviceName;
+                }
+              }
+
+              console.log('💻 Parsed from UA (error fallback):', manufacturer, model, androidVersion);
+
+              setHardwareStatus(prev => ({
+                ...prev,
+                system: {
+                  manufacturer: manufacturer,
+                  model: model,
+                  androidVersion: androidVersion,
+                  sdkVersion: undefined
+                }
+              }));
+
+              addMatrixLog(`✅ System from UA fallback: ${manufacturer || 'Unknown'} ${model || 'Unknown'}, Android ${androidVersion || 'Unknown'}`);
+            }
           }
         } else {
           // Fallback: usa metodi esistenti se getHardwareInfo/getSystemInfo non esistono
