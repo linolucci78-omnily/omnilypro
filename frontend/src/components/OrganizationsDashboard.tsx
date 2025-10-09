@@ -1058,18 +1058,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     addMatrixLog(`📱 POS Mode: ${isPOSMode}`);
 
     // First try to use injected hardware data from Android
+    console.log('🔍 Checking for __OMNILY_HARDWARE_DATA__:', !!(window as any).__OMNILY_HARDWARE_DATA__);
+
     if (typeof window !== 'undefined' && (window as any).__OMNILY_HARDWARE_DATA__) {
       const injectedData = (window as any).__OMNILY_HARDWARE_DATA__;
+      console.log('🚀 Found injected data, timestamp:', injectedData.timestamp);
       addMatrixLog(`🚀 Using injected hardware data from Android (${injectedData.timestamp})`);
-      
+
       try {
         const hardwareInfo = typeof injectedData.hardware === 'string'
           ? JSON.parse(injectedData.hardware)
           : injectedData.hardware;
 
+        console.log('📦 Injected hardware structure:', JSON.stringify(Object.keys(hardwareInfo)));
         addMatrixLog('✅ Parsing injected hardware data...');
         addMatrixLog(`📦 Injected hardware keys: ${Object.keys(hardwareInfo).join(', ')}`);
-        
+
         // Update all hardware status from injected data
         if (hardwareInfo.bridge) {
           setHardwareStatus(prev => ({
@@ -1285,12 +1289,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }
 
         // Get system info for the info tab
+        console.log('🔍 Checking for bridge.getSystemInfo:', !!bridge.getSystemInfo);
         if (bridge.getSystemInfo) {
           try {
+            console.log('📞 Calling bridge.getSystemInfo()...');
             const systemInfo = bridge.getSystemInfo();
+            console.log('📥 Raw systemInfo type:', typeof systemInfo);
             const info = typeof systemInfo === 'string' ? JSON.parse(systemInfo) : systemInfo;
-            
-            console.log('💻 System info:', info);
+
+            console.log('💻 System info parsed:', JSON.stringify(info));
             console.log('💻 System info keys:', Object.keys(info));
             addMatrixLog(`📱 System info raw: ${JSON.stringify(info)}`);
             addMatrixLog(`📱 Sistema: ${info.manufacturer} ${info.model}`);
