@@ -39,6 +39,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   const [showDeviceModal, setShowDeviceModal] = useState(false)
   const [sendingToPOS, setSendingToPOS] = useState(false)
   const [currentReceiptData, setCurrentReceiptData] = useState<any>(null)
+  const [logoRefreshKey, setLogoRefreshKey] = useState<number>(0)
   const { showSuccess, showError, showWarning } = useToast()
 
   const [defaultOrgId, setDefaultOrgId] = useState<string>('')
@@ -337,9 +338,9 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       return
     }
 
-    if (file.size > 100 * 1024) { // 100KB limit
+    if (file.size > 200 * 1024) { // 200KB limit (increased for better quality)
       console.log('❌ LOGO UPLOAD - File too large:', file.size, 'bytes')
-      showError('Il file deve essere inferiore a 100KB')
+      showError('Il file deve essere inferiore a 200KB')
       return
     }
 
@@ -400,6 +401,10 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
             console.log('💾 LOGO PROCESSING - New formData logo_base64 length:', newData.logo_base64?.length || 0)
             return newData
           })
+          
+          // Force refresh of logo preview
+          setLogoRefreshKey(Date.now())
+          console.log('🔄 LOGO PROCESSING - Forced logo refresh key update')
           
           console.log('✅ LOGO PROCESSING - State updated, showing success message')
           showSuccess(`Logo caricato e ottimizzato (${Math.round(width)}x${Math.round(height)}px) - Base64: ${optimizedBase64.length} chars`)
@@ -832,7 +837,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                   <div style={{ marginTop: '8px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <img
-                        key={`logo-view-${formData.logo_base64?.length || 0}-${Date.now()}`}
+                        key={`logo-view-${logoRefreshKey}-${formData.logo_base64?.length || 0}`}
                         src={formData.logo_base64}
                         alt="Logo attuale"
                         style={{ 
@@ -908,7 +913,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                       <div style={{ marginTop: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                           <img
-                            key={`logo-${formData.logo_base64?.length || 0}-${Date.now()}`}
+                            key={`logo-preview-${logoRefreshKey}-${formData.logo_base64?.length || 0}`}
                             src={formData.logo_base64}
                             alt="Logo preview"
                             style={{ 
