@@ -965,7 +965,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAppVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -975,6 +975,21 @@ public class MainActivityFinal extends AppCompatActivity {
             String version = "4.3.0-pinpad-input-" + System.currentTimeMillis();
             Log.d(TAG, "getBridgeVersion called - returning: " + version);
             return version;
+        }
+
+        @JavascriptInterface
+        public String getAppVersion() {
+            Log.d(TAG, "getAppVersion called");
+            try {
+                android.content.pm.PackageInfo pInfo = getPackageManager()
+                    .getPackageInfo(getPackageName(), 0);
+                String version = pInfo.versionName;
+                Log.d(TAG, "getAppVersion returning: " + version);
+                return version;
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting app version: " + e.getMessage());
+                return "N/A";
+            }
         }
 
         @JavascriptInterface
