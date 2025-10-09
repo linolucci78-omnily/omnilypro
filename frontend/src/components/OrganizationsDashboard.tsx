@@ -43,7 +43,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [loading, setLoading] = useState(true)
   const [customersLoading, setCustomersLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState(externalActiveSection || 'dashboard')
+  const [activeSection, setActiveSection] = useState(
+    isPOSMode ? 'pos-integration' : (externalActiveSection || 'dashboard')
+  )
 
   // Sync with external activeSection changes (from POS menu)
   useEffect(() => {
@@ -1240,6 +1242,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
     // Log completion senza popup fastidiosi
     addMatrixLog('✅ Check hardware completato - risultati disponibili nei tab');
+    console.log('🔧 Hardware check completed at:', new Date().toISOString());
   };
 
   const testPrinter = () => {
@@ -2855,16 +2858,59 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         </div>
       )}
 
+      {/* POS Mode - Hardware Test Panel */}
+      {isPOSMode && (
+        <div className="pos-hardware-panel">
+          <div className="pos-panel-header">
+            <div className="pos-logo">
+              <div className="logo-icon">🔧</div>
+              <span className="logo-text">OMNILY POS - TEST HARDWARE</span>
+            </div>
+            <div className="pos-org-name">{currentOrganization?.name || 'OMNILY PRO'}</div>
+          </div>
+          
+          <div className="pos-nav-tabs">
+            <button
+              className={`pos-nav-tab ${activeSection === 'pos-integration' ? 'active' : ''}`}
+              onClick={() => handleSectionChange('pos-integration')}
+            >
+              <Activity size={20} />
+              <span>Stato Hardware</span>
+            </button>
+            <button
+              className={`pos-nav-tab ${activeSection === 'stamps' ? 'active' : ''}`}
+              onClick={() => handleSectionChange('stamps')}
+            >
+              <Target size={20} />
+              <span>Test Tessere</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="main-content">
-        <header className="main-header">
+        <header className={`main-header ${isPOSMode ? 'pos-header' : ''}`}>
           <div className="header-title">
-            <BarChart3 size={24} />
-            <span>OMNILY PRO - Dashboard</span>
-            <div className="current-plan-badge">
-              <Crown size={14} />
-              <span>{(currentOrganization?.plan_type || 'free').toUpperCase()}</span>
-            </div>
+            {isPOSMode ? (
+              <>
+                <Activity size={24} />
+                <span>OMNILY POS - Test & Diagnostica</span>
+                <div className="current-status-badge">
+                  <Zap size={14} />
+                  <span>MODALITÀ TEST</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <BarChart3 size={24} />
+                <span>OMNILY PRO - Dashboard</span>
+                <div className="current-plan-badge">
+                  <Crown size={14} />
+                  <span>{(currentOrganization?.plan_type || 'free').toUpperCase()}</span>
+                </div>
+              </>
+            )}
           </div>
         </header>
 
