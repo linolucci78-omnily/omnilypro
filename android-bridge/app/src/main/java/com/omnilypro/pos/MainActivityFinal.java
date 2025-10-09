@@ -543,7 +543,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     webView.removeJavascriptInterface("OmnilyPOS");
                     webView.addJavascriptInterface(bridge, "OmnilyPOS");
 
-                    // Force verification in JavaScript context
+                    // Force verification AND hardware check in JavaScript context
                     webView.evaluateJavascript(
                         "(function() {" +
                         "  console.log('🔧 Bridge verification from Android:', typeof window.OmnilyPOS);" +
@@ -551,6 +551,20 @@ public class MainActivityFinal extends AppCompatActivity {
                         "    console.error('❌ Bridge NOT visible in JS context!');" +
                         "  } else {" +
                         "    console.log('✅ Bridge IS visible in JS context!');" +
+                        "    console.log('🔧 Available bridge methods:', Object.keys(window.OmnilyPOS));" +
+                        "    " +
+                        "    // Force trigger hardware check if on POS page" +
+                        "    if (window.location.search.includes('posomnily=true')) {" +
+                        "      console.log('📱 POS MODE: Triggering hardware check from Android...');" +
+                        "      setTimeout(() => {" +
+                        "        if (window.checkHardwareStatus && typeof window.checkHardwareStatus === 'function') {" +
+                        "          console.log('🔧 Calling checkHardwareStatus from Android bridge...');" +
+                        "          window.checkHardwareStatus();" +
+                        "        } else {" +
+                        "          console.log('⚠️ checkHardwareStatus not found in window object');" +
+                        "        }" +
+                        "      }, 2000);" +
+                        "    }" +
                         "  }" +
                         "})()",
                         null
