@@ -32,7 +32,6 @@ public class MdmConfig {
     public static final String CMD_UPDATE_APP = "update_app";
     public static final String CMD_SYNC_CONFIG = "sync_config";
     public static final String CMD_LOCATE = "locate";
-    public static final String CMD_TEST_PRINT = "test_print";
 
     // Command status
     public static final String CMD_STATUS_PENDING = "pending";

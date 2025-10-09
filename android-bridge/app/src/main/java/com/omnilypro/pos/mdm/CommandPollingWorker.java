@@ -155,11 +155,6 @@ public class CommandPollingWorker extends Worker {
                     success = executeLocate();
                     break;
 
-                case MdmConfig.CMD_TEST_PRINT:
-                    JsonObject printPayload = command.has("payload") ? command.getAsJsonObject("payload") : null;
-                    success = executeTestPrint(printPayload);
-                    break;
-
                 default:
                     errorMessage = "Unknown command type: " + commandType;
                     Log.w(TAG, errorMessage);
@@ -415,67 +410,6 @@ public class CommandPollingWorker extends Worker {
 
         } catch (Exception e) {
             Log.e(TAG, "❌ Locate failed", e);
-            return false;
-        }
-    }
-
-    private boolean executeTestPrint(JsonObject payload) {
-        try {
-            Log.i(TAG, "🖨️ Executing test print command...");
-
-            if (payload == null) {
-                Log.e(TAG, "❌ Test print payload is null");
-                return false;
-            }
-
-            // Extract template data from payload
-            JsonObject template = payload.has("template") ? payload.getAsJsonObject("template") : null;
-            if (template == null) {
-                Log.e(TAG, "❌ Template data not found in payload");
-                return false;
-            }
-
-            // Extract template fields
-            String storeName = template.has("store_name") ? template.get("store_name").getAsString() : "";
-            String storeAddress = template.has("store_address") ? template.get("store_address").getAsString() : "";
-            String storePhone = template.has("store_phone") ? template.get("store_phone").getAsString() : "";
-            String storeTax = template.has("store_tax") ? template.get("store_tax").getAsString() : "";
-            String logoBase64 = template.has("logo_base64") && !template.get("logo_base64").isJsonNull()
-                ? template.get("logo_base64").getAsString() : null;
-
-            Log.i(TAG, "📋 Template data extracted:");
-            Log.i(TAG, "   Store: " + storeName);
-            Log.i(TAG, "   Address: " + storeAddress);
-            Log.i(TAG, "   Phone: " + storePhone);
-            Log.i(TAG, "   Tax: " + storeTax);
-            Log.i(TAG, "   Has logo: " + (logoBase64 != null && !logoBase64.isEmpty()));
-
-            // Extract receipt data (dynamic data from ReceiptDemo)
-            String receiptDataJson = null;
-            if (payload.has("receiptData")) {
-                receiptDataJson = payload.getAsJsonObject("receiptData").toString();
-                Log.i(TAG, "📋 Receipt data found: " + receiptDataJson);
-            }
-
-            // Send broadcast to MainActivity to print
-            Intent intent = new Intent("com.omnilypro.pos.ACTION_TEST_PRINT");
-            intent.putExtra("store_name", storeName);
-            intent.putExtra("store_address", storeAddress);
-            intent.putExtra("store_phone", storePhone);
-            intent.putExtra("store_tax", storeTax);
-            if (logoBase64 != null) {
-                intent.putExtra("logo_base64", logoBase64);
-            }
-            if (receiptDataJson != null) {
-                intent.putExtra("receipt_data_json", receiptDataJson);
-            }
-            getApplicationContext().sendBroadcast(intent);
-
-            Log.i(TAG, "✅ Test print broadcast sent with dynamic receipt data");
-            return true;
-
-        } catch (Exception e) {
-            Log.e(TAG, "❌ Test print failed", e);
             return false;
         }
     }

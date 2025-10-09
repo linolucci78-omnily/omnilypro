@@ -10,8 +10,8 @@ android {
         applicationId "com.omnilypro.pos"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 14
-        versionName "1.6.0-HARDWARE-TABS-WITH-LOGO-FIX"
+        versionCode 2
+        versionName "1.1.0"
     }
 
     buildTypes {

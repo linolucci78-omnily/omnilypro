@@ -363,8 +363,16 @@ public class MainActivityFinal extends AppCompatActivity {
             // Reset callback
             bridge.currentNFCCallback = null;
 
-            // Note: Beep will be handled by JavaScript after receiving NFC data
-            Log.d(TAG, "NFC read completed - beep handled by JavaScript");
+            // Play success beep
+            runOnUiThread(() -> {
+                try {
+                    android.media.ToneGenerator toneGen = new android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 100);
+                    toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150);
+                    toneGen.release();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error playing beep", e);
+                }
+            });
 
             Log.d(TAG, "NFC card read successfully, NFC disabled");
 
@@ -464,8 +472,16 @@ public class MainActivityFinal extends AppCompatActivity {
                 jsonResult.put("format", qrFormat);
                 jsonResult.put("qrCode", qrContent); // Alias for compatibility
 
-                // Note: Beep will be handled by JavaScript after receiving QR data
-                Log.d(TAG, "QR code read completed - beep handled by JavaScript");
+                // Play success beep
+                runOnUiThread(() -> {
+                    try {
+                        android.media.ToneGenerator toneGen = new android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 100);
+                        toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150);
+                        toneGen.release();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error playing beep", e);
+                    }
+                });
             }
 
             // Send result to JavaScript
@@ -523,19 +539,11 @@ public class MainActivityFinal extends AppCompatActivity {
             @Override
             public void run() {
                 // Re-inject bridge to ensure it's always available
-                // BUT SKIP if NFC is currently reading (to avoid interrupting NFC operations)
                 try {
-                    boolean nfcReading = (bridge != null && bridge.isNFCReading);
-                    
-                    if (nfcReading) {
-                        Log.i(TAG, "⏸️ NFC reading in progress - hardware data only (no bridge touch)");
-                    } else {
-                        Log.i(TAG, "🔄 Safe to re-inject bridge (NFC not reading)");
-                        webView.removeJavascriptInterface("OmnilyPOS");
-                        webView.addJavascriptInterface(bridge, "OmnilyPOS");
-                    }
+                    webView.removeJavascriptInterface("OmnilyPOS");
+                    webView.addJavascriptInterface(bridge, "OmnilyPOS");
 
-                    // Force hardware data injection directly into window object
+                    // Force verification in JavaScript context
                     webView.evaluateJavascript(
                         "(function() {" +
                         "  console.log('🔧 Bridge verification from Android:', typeof window.OmnilyPOS);" +
@@ -543,41 +551,6 @@ public class MainActivityFinal extends AppCompatActivity {
                         "    console.error('❌ Bridge NOT visible in JS context!');" +
                         "  } else {" +
                         "    console.log('✅ Bridge IS visible in JS context!');" +
-                        "    console.log('🔧 Available bridge methods:', Object.keys(window.OmnilyPOS));" +
-                        "    " +
-                        "    // Direct hardware data injection for POS mode" +
-                        "    if (window.location.search.includes('posomnily=true')) {" +
-                        "      console.log('📱 POS MODE: Injecting hardware data directly...');" +
-                        "      " +
-                        "      try {" +
-                        "        var hardwareInfo = window.OmnilyPOS.getHardwareInfo();" +
-                        "        var systemInfo = window.OmnilyPOS.getSystemInfo();" +
-                        "        " +
-                        "        console.log('🔧 Raw hardware info:', hardwareInfo);" +
-                        "        console.log('📱 Raw system info:', systemInfo);" +
-                        "        " +
-                        "        // Inject into window for React to pick up" +
-                        "        window.__OMNILY_HARDWARE_DATA__ = {" +
-                        "          timestamp: Date.now()," +
-                        "          hardware: hardwareInfo," +
-                        "          system: systemInfo," +
-                        "          status: 'loaded'" +
-                        "        };" +
-                        "        " +
-                        "        console.log('✅ Hardware data injected into window.__OMNILY_HARDWARE_DATA__');" +
-                        "        " +
-                        "        // Try to trigger React update" +
-                        "        if (window.dispatchEvent) {" +
-                        "          window.dispatchEvent(new CustomEvent('omnily-hardware-ready', {" +
-                        "            detail: window.__OMNILY_HARDWARE_DATA__" +
-                        "          }));" +
-                        "          console.log('📡 Dispatched omnily-hardware-ready event');" +
-                        "        }" +
-                        "        " +
-                        "      } catch(e) {" +
-                        "        console.error('❌ Error getting hardware info:', e);" +
-                        "      }" +
-                        "    }" +
                         "  }" +
                         "})()",
                         null
@@ -659,56 +632,12 @@ public class MainActivityFinal extends AppCompatActivity {
                 view.addJavascriptInterface(bridge, "OmnilyPOS");
                 Log.d(TAG, "✅ Bridge re-injected!");
 
-                // IMMEDIATE hardware data injection for POS mode
-                String immediateInjection = "javascript:(function() {" +
+                // Inject bridge detection (without beep test)
+                String javascript = "javascript:(function() {" +
                     "console.log('🔧 BRIDGE DETECTION: Checking window.OmnilyPOS...');" +
                     "if (window.OmnilyPOS) {" +
                         "console.log('✅ Bridge found:', Object.keys(window.OmnilyPOS));" +
                         "console.log('✅ Bridge available and ready');" +
-                        
-                        // IMMEDIATE hardware data injection for POS mode
-                        "if (window.location.search.includes('posomnily=true')) {" +
-                          "console.log('📱 POS MODE DETECTED: Immediate hardware data injection!');" +
-                          "try {" +
-                            "var hardwareInfo = window.OmnilyPOS.getHardwareInfo();" +
-                            "var systemInfo = window.OmnilyPOS.getSystemInfo();" +
-                            "console.log('🔧 IMMEDIATE Hardware info:', hardwareInfo);" +
-                            "console.log('📱 IMMEDIATE System info:', systemInfo);" +
-                            
-                            // Force inject into window immediately
-                            "window.__OMNILY_HARDWARE_DATA__ = {" +
-                              "timestamp: Date.now()," +
-                              "hardware: hardwareInfo," +
-                              "system: systemInfo," +
-                              "status: 'loaded-immediate'," +
-                              "source: 'onPageFinished'" +
-                            "};" +
-                            
-                            "console.log('✅ IMMEDIATE hardware data injected:', window.__OMNILY_HARDWARE_DATA__);" +
-                            
-                            // Force dispatch event immediately
-                            "if (window.dispatchEvent) {" +
-                              "window.dispatchEvent(new CustomEvent('omnily-hardware-ready', {" +
-                                "detail: window.__OMNILY_HARDWARE_DATA__" +
-                              "}));" +
-                              "console.log('📡 IMMEDIATE omnily-hardware-ready event dispatched');" +
-                            "}" +
-                            
-                            // Also try to update React state directly if components exist
-                            "setTimeout(function() {" +
-                              "if (window.dispatchEvent) {" +
-                                "window.dispatchEvent(new CustomEvent('omnily-hardware-ready', {" +
-                                  "detail: window.__OMNILY_HARDWARE_DATA__" +
-                                "}));" +
-                                "console.log('📡 DELAYED omnily-hardware-ready event dispatched (1s)');" +
-                              "}" +
-                            "}, 1000);" +
-                            
-                          "} catch(e) {" +
-                            "console.error('❌ IMMEDIATE hardware injection error:', e);" +
-                          "}" +
-                        "}" +
-                        
                     "} else {" +
                         "console.log('❌ Bridge NOT found');" +
                     "}" +
@@ -716,7 +645,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     "console.log('🔍 URL Search:', window.location.search);" +
                 "})()";
 
-                view.evaluateJavascript(immediateInjection, null);
+                view.evaluateJavascript(javascript, null);
                 setContentView(webView);
             }
 
@@ -725,15 +654,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 // Callback nativo Android per rilevare crash del processo renderer WebView
                 Log.e(TAG, "🚨 ========== RENDER PROCESS GONE ==========");
                 Log.e(TAG, "🚨 WebView renderer process crashed!");
-                
-                // Check API level for advanced crash details
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    Log.e(TAG, "🚨 Crash: " + detail.didCrash());
-                    Log.e(TAG, "🚨 Priority at exit: " + detail.rendererPriorityAtExit());
-                } else {
-                    Log.e(TAG, "🚨 Crash details not available (API < 26)");
-                }
-                
+                Log.e(TAG, "🚨 Crash: " + detail.didCrash());
+                Log.e(TAG, "🚨 Priority at exit: " + detail.rendererPriorityAtExit());
                 Log.e(TAG, "🚨 Triggering automatic recovery...");
 
                 // Distruggi il WebView corrotto
@@ -832,14 +754,10 @@ public class MainActivityFinal extends AppCompatActivity {
             // Salva il callback per quando il tag viene rilevato
             currentNFCCallback = callbackName;
 
-            // ✅ CRITICAL: Set isNFCReading BEFORE enableNFCReading to prevent race condition
-            // with periodic bridge re-injector (runs every 3s)
-            isNFCReading = true;
-            Log.d(TAG, "NFC reading flag set to true");
-
             // Enable NFC only when needed
             enableNFCReading();
 
+            isNFCReading = true;
             Log.d(TAG, "NFC enabled and ready for card reading");
 
             showToast("Present NFC card to reader... Press again to cancel");
@@ -1047,7 +965,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAvailableMethods,getHardwareInfo,getSystemInfo";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -1662,385 +1580,6 @@ public class MainActivityFinal extends AppCompatActivity {
             }).start();
         }
 
-        /**
-         * Print dynamic receipt with data from ReceiptDemo (called by MDM commands)
-         */
-        public boolean printDynamicReceipt(String storeName, String storeAddress, String storePhone, String storeTax, String logoBase64, String receiptDataJson) {
-            Log.d(TAG, "printDynamicReceipt - printing with dynamic data from MDM");
-
-            try {
-                if (mPrinter == null) {
-                    Log.e(TAG, "Printer not initialized");
-                    return false;
-                }
-
-                // Format configurations
-                PrnStrFormat headerFormat = new PrnStrFormat();
-                headerFormat.setTextSize(28);
-                headerFormat.setAli(Layout.Alignment.ALIGN_CENTER);
-                headerFormat.setStyle(PrnTextStyle.BOLD);
-
-                PrnStrFormat normalFormat = new PrnStrFormat();
-                normalFormat.setTextSize(22);
-                normalFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
-
-                PrnStrFormat centerFormat = new PrnStrFormat();
-                centerFormat.setTextSize(22);
-                centerFormat.setAli(Layout.Alignment.ALIGN_CENTER);
-
-                PrnStrFormat smallFormat = new PrnStrFormat();
-                smallFormat.setTextSize(18);
-                smallFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
-
-                PrnStrFormat boldFormat = new PrnStrFormat();
-                boldFormat.setTextSize(26);
-                boldFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
-                boldFormat.setStyle(PrnTextStyle.BOLD);
-
-                // Print logo if present
-                if (logoBase64 != null && !logoBase64.isEmpty()) {
-                    try {
-                        Log.d(TAG, "🔍 Original Base64 length: " + logoBase64.length());
-                        Log.d(TAG, "🔍 Base64 starts with: " + logoBase64.substring(0, Math.min(50, logoBase64.length())));
-                        
-                        String base64Image = logoBase64;
-                        if (base64Image.contains(",")) {
-                            String[] parts = base64Image.split(",");
-                            Log.d(TAG, "🔍 Base64 header: " + parts[0]);
-                            base64Image = parts[1];
-                        }
-                        
-                        Log.d(TAG, "🔍 Clean Base64 length: " + base64Image.length());
-                        
-                        byte[] decodedString = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
-                        Log.d(TAG, "🔍 Decoded bytes length: " + decodedString.length);
-                        
-                        // Add bitmap options to debug decoding issues
-                        android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-                        android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length, options);
-                        
-                        Log.d(TAG, "🖼️ Image info - Width: " + options.outWidth + ", Height: " + options.outHeight);
-                        Log.d(TAG, "🖼️ Image MIME type: " + options.outMimeType);
-                        
-                        // Now decode the actual bitmap
-                        options.inJustDecodeBounds = false;
-                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length, options);
-                        
-                        if (bitmap == null) {
-                            Log.e(TAG, "❌ BitmapFactory.decodeByteArray returned NULL!");
-                            Log.e(TAG, "❌ Base64 length: " + base64Image.length());
-                            Log.e(TAG, "❌ Decoded bytes: " + decodedString.length);
-                            Log.e(TAG, "❌ First 50 chars of base64: " + base64Image.substring(0, Math.min(50, base64Image.length())));
-                            Log.e(TAG, "❌ MIME type detected: " + options.outMimeType);
-                            Log.e(TAG, "❌ Image dimensions detected: " + options.outWidth + "x" + options.outHeight);
-                        } else {
-                            Log.d(TAG, "✅ Bitmap decoded successfully!");
-                            Log.d(TAG, "📐 Original bitmap size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-                            Log.d(TAG, "🖼️ Bitmap config: " + bitmap.getConfig());
-                            Log.d(TAG, "💾 Bitmap byte count: " + bitmap.getByteCount());
-                            
-                            // CRITICAL CHECK: Is the bitmap too small?
-                            if (bitmap.getWidth() <= 2 || bitmap.getHeight() <= 2) {
-                                Log.e(TAG, "🚨 PROBLEMA TROVATO! Bitmap troppo piccolo: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-                                Log.e(TAG, "🚨 Questo spiega il 'puntone nero' - il logo è 1x1 o 2x2 pixel!");
-                                Log.e(TAG, "🚨 SOLUZIONE: Ricarica un logo più grande (almeno 50x50px) nella dashboard");
-                                // Don't print this tiny bitmap
-                                bitmap = null;
-                            }
-                        }
-
-                        if (bitmap != null) {
-                            Log.d(TAG, "🖼️ Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight() + ", Config: " + bitmap.getConfig());
-                            
-                            // DEBUG: Check if bitmap is actually valid
-                            Log.d(TAG, "🔍 Bitmap isRecycled: " + bitmap.isRecycled());
-                            Log.d(TAG, "🔍 Bitmap hasAlpha: " + bitmap.hasAlpha());
-                            Log.d(TAG, "🔍 Bitmap density: " + bitmap.getDensity());
-                            
-                            // DEBUG: Sample some pixels to see if image has content
-                            if (bitmap.getWidth() > 0 && bitmap.getHeight() > 0) {
-                                int centerPixel = bitmap.getPixel(bitmap.getWidth()/2, bitmap.getHeight()/2);
-                                int topLeftPixel = bitmap.getPixel(0, 0);
-                                int bottomRightPixel = bitmap.getPixel(bitmap.getWidth()-1, bitmap.getHeight()-1);
-                                
-                                Log.d(TAG, "🔍 Center pixel: " + Integer.toHexString(centerPixel));
-                                Log.d(TAG, "🔍 TopLeft pixel: " + Integer.toHexString(topLeftPixel));
-                                Log.d(TAG, "🔍 BottomRight pixel: " + Integer.toHexString(bottomRightPixel));
-                            }
-
-                            // FIXED: Follow ZCS SDK pattern - max 384px width for thermal printer
-                            int maxWidth = 384; // ZCS SDK standard for thermal printers
-                            int minWidth = 100; // Increased minimum for better visibility
-                            int optimalWidth = 250; // Bigger optimal size for better visibility
-                            
-                            // Smart scaling logic
-                            if (bitmap.getWidth() < minWidth) {
-                                // Very small logos: scale up significantly for better visibility
-                                float ratio = (float) optimalWidth / bitmap.getWidth();
-                                int newHeight = (int) (bitmap.getHeight() * ratio);
-                                android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, optimalWidth, newHeight, true);
-                                Log.d(TAG, "🔧 Logo scaled UP from " + bitmap.getWidth() + "x" + bitmap.getHeight() + " to " + optimalWidth + "x" + newHeight);
-                                bitmap = resizedBitmap;
-                            } else if (bitmap.getWidth() > maxWidth) {
-                                // Large logos: scale down to max
-                                float ratio = (float) maxWidth / bitmap.getWidth();
-                                int newHeight = (int) (bitmap.getHeight() * ratio);
-                                android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
-                                Log.d(TAG, "🔧 Logo scaled DOWN from " + bitmap.getWidth() + "x" + bitmap.getHeight() + " to " + maxWidth + "x" + newHeight);
-                                bitmap = resizedBitmap;
-                            } else {
-                                // Size is OK, just log it
-                                Log.d(TAG, "📏 Logo size OK: " + bitmap.getWidth() + "x" + bitmap.getHeight() + " (no scaling needed)");
-                            }
-                            
-                            // Additional check for height (avoid too tall logos)
-                            int maxHeight = 200; // Increased max height for better logo visibility
-                            if (bitmap.getHeight() > maxHeight) {
-                                float ratio = (float) maxHeight / bitmap.getHeight();
-                                int newWidth = (int) (bitmap.getWidth() * ratio);
-                                android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, newWidth, maxHeight, true);
-                                Log.d(TAG, "📏 Logo height reduced from " + bitmap.getHeight() + " to " + maxHeight + "px");
-                                bitmap = resizedBitmap;
-                            }
-
-                            Log.d(TAG, "📐 Final logo size BEFORE transparency fix: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-                            Log.d(TAG, "📄 Bitmap config: " + bitmap.getConfig());
-                            Log.d(TAG, "📄 Bitmap bytes: " + bitmap.getByteCount());
-
-                            // FIXED: Convert to MONOCHROME for thermal printer compatibility
-                            Log.d(TAG, "🎨 Converting to MONOCHROME for thermal printer...");
-                            
-                            // Create monochrome bitmap (black & white only)
-                            android.graphics.Bitmap monoBitmap = android.graphics.Bitmap.createBitmap(
-                                bitmap.getWidth(), bitmap.getHeight(), android.graphics.Bitmap.Config.RGB_565);
-                            android.graphics.Canvas monoCanvas = new android.graphics.Canvas(monoBitmap);
-                            
-                            // White background
-                            monoCanvas.drawColor(android.graphics.Color.WHITE);
-                            
-                            // Convert to grayscale and apply threshold
-                            android.graphics.Paint paint = new android.graphics.Paint();
-                            android.graphics.ColorMatrix colorMatrix = new android.graphics.ColorMatrix();
-                            colorMatrix.setSaturation(0); // Remove color (grayscale)
-                            android.graphics.ColorMatrixColorFilter filter = new android.graphics.ColorMatrixColorFilter(colorMatrix);
-                            paint.setColorFilter(filter);
-                            
-                            monoCanvas.drawBitmap(bitmap, 0, 0, paint);
-                            bitmap = monoBitmap;
-                            Log.d(TAG, "✅ Converted to monochrome thermal-friendly format");
-
-                            Log.d(TAG, "📐 Final logo size AFTER transparency fix: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-                            Log.d(TAG, "🖨️ Attempting bitmap print with white background...");
-                            
-
-                            
-                            // FIXED: Follow ZCS Demo pattern - check printer status first
-                            int printStatus = mPrinter.getPrinterStatus();
-                            Log.d(TAG, "Printer status: " + printStatus);
-                            
-                            if (printStatus != SdkResult.SDK_PRN_STATUS_PAPEROUT) {
-                                Log.d(TAG, "Printer ready, adding bitmap...");
-                                
-                                // Print the logo with proper thermal formatting
-                                mPrinter.setPrintAppendString("\n", normalFormat);
-                                mPrinter.setPrintAppendBitmap(bitmap, Layout.Alignment.ALIGN_CENTER);
-                                mPrinter.setPrintAppendString("\n", normalFormat);
-                                
-                                // CRITICAL: Start the print job (this was missing!)
-                                int startResult = mPrinter.setPrintStart();
-                                Log.d(TAG, "Print start result: " + startResult);
-                                
-                                if (startResult == SdkResult.SDK_OK) {
-                                    Log.d(TAG, "Print job started successfully!");
-                                } else {
-                                    Log.e(TAG, "Print start failed: " + startResult);
-                                }
-                            } else {
-                                Log.e(TAG, "Printer paper out or error: " + printStatus);
-                            }
-                            
-
-                        } else {
-                            Log.e(TAG, "❌ Bitmap is null after decode - logo Base64 is corrupted!");
-                            Log.e(TAG, "❌ Skipping logo print - check logo format in dashboard");
-                            // Don't create fallback - just skip logo printing
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error printing logo", e);
-                    }
-                }
-
-                // Store header (centered)
-                mPrinter.setPrintAppendString("\n", centerFormat);
-                if (storeName != null && !storeName.isEmpty()) {
-                    mPrinter.setPrintAppendString(storeName + "\n", headerFormat);
-                }
-                if (storeAddress != null && !storeAddress.isEmpty()) {
-                    mPrinter.setPrintAppendString(storeAddress + "\n", centerFormat);
-                }
-                if (storePhone != null && !storePhone.isEmpty()) {
-                    mPrinter.setPrintAppendString(storePhone + "\n", centerFormat);
-                }
-                if (storeTax != null && !storeTax.isEmpty()) {
-                    mPrinter.setPrintAppendString("P.IVA: " + storeTax + "\n", centerFormat);
-                }
-
-                // Separator
-                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
-
-                // Parse receipt data from JSON
-                String receiptNumber = "R" + String.format("%06d", System.currentTimeMillis() % 1000000);
-                String timestamp = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
-                String cashierName = "Marco Rossi";
-                String loyaltyCard = null;
-                String paymentMethod = "Contanti";
-                Integer customerPoints = null;
-                double subtotal = 0;
-                double tax = 0;
-                double total = 0;
-
-                if (receiptDataJson != null && !receiptDataJson.isEmpty()) {
-                    try {
-                        org.json.JSONObject receiptData = new org.json.JSONObject(receiptDataJson);
-
-                        receiptNumber = receiptData.optString("receiptNumber", receiptNumber);
-                        cashierName = receiptData.optString("cashierName", cashierName);
-                        loyaltyCard = receiptData.optString("loyaltyCard", null);
-                        paymentMethod = receiptData.optString("paymentMethod", paymentMethod);
-                        if (receiptData.has("customerPoints")) {
-                            customerPoints = receiptData.getInt("customerPoints");
-                        }
-                        subtotal = receiptData.optDouble("subtotal", 0);
-                        tax = receiptData.optDouble("tax", 0);
-                        total = receiptData.optDouble("total", 0);
-
-                        Log.d(TAG, "Parsed receipt data: " + receiptNumber + ", " + cashierName + ", total: " + total);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error parsing receipt JSON", e);
-                    }
-                }
-
-                // Receipt info
-                mPrinter.setPrintAppendString("Scontrino: " + receiptNumber + "\n", normalFormat);
-                mPrinter.setPrintAppendString("Data: " + timestamp + "\n", normalFormat);
-                mPrinter.setPrintAppendString("Cassiere: " + cashierName + "\n", normalFormat);
-                if (loyaltyCard != null && !loyaltyCard.isEmpty()) {
-                    mPrinter.setPrintAppendString("Carta: " + loyaltyCard + "\n", normalFormat);
-                }
-
-                // Separator
-                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
-
-                // Items (dynamic from JSON)
-                if (receiptDataJson != null && !receiptDataJson.isEmpty()) {
-                    try {
-                        org.json.JSONObject receiptData = new org.json.JSONObject(receiptDataJson);
-                        org.json.JSONArray items = receiptData.optJSONArray("items");
-
-                        if (items != null) {
-                            for (int i = 0; i < items.length(); i++) {
-                                org.json.JSONObject item = items.getJSONObject(i);
-                                int quantity = item.optInt("quantity", 1);
-                                String name = item.optString("name", "Prodotto");
-                                double price = item.optDouble("price", 0);
-                                double itemTotal = item.optDouble("total", 0);
-
-                                // Format: "2x Caffè Espresso      EUR 3.00"
-                                String itemName = quantity + "x " + name;
-                                String priceStr = String.format("EUR %.2f", itemTotal);
-
-                                // Pad to align price right (32 chars total width)
-                                int lineWidth = 32;
-                                int padding = lineWidth - itemName.length() - priceStr.length();
-                                if (padding < 1) padding = 1;
-
-                                // Build padding string (compatible with Java 8)
-                                StringBuilder paddingBuilder = new StringBuilder(padding);
-                                for (int p = 0; p < padding; p++) {
-                                    paddingBuilder.append(' ');
-                                }
-
-                                String line = itemName + paddingBuilder.toString() + priceStr + "\n";
-                                mPrinter.setPrintAppendString(line, normalFormat);
-
-                                if (quantity > 1) {
-                                    mPrinter.setPrintAppendString(String.format("  (EUR %.2f cad.)\n", price), smallFormat);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error printing items", e);
-                    }
-                }
-
-                // Separator
-                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
-
-                // Totals with dynamic padding
-                int lineWidth = 32;
-
-                // Subtotale
-                String subtotalLabel = "Subtotale:";
-                String subtotalValue = String.format("EUR %.2f", subtotal);
-                int subtotalPadding = lineWidth - subtotalLabel.length() - subtotalValue.length();
-                if (subtotalPadding < 1) subtotalPadding = 1;
-                StringBuilder subtotalPad = new StringBuilder(subtotalPadding);
-                for (int p = 0; p < subtotalPadding; p++) subtotalPad.append(' ');
-                mPrinter.setPrintAppendString(subtotalLabel + subtotalPad.toString() + subtotalValue + "\n", normalFormat);
-
-                // IVA
-                String taxLabel = "IVA 22%:";
-                String taxValue = String.format("EUR %.2f", tax);
-                int taxPadding = lineWidth - taxLabel.length() - taxValue.length();
-                if (taxPadding < 1) taxPadding = 1;
-                StringBuilder taxPad = new StringBuilder(taxPadding);
-                for (int p = 0; p < taxPadding; p++) taxPad.append(' ');
-                mPrinter.setPrintAppendString(taxLabel + taxPad.toString() + taxValue + "\n", normalFormat);
-
-                // TOTALE
-                String totalLabel = "TOTALE:";
-                String totalValue = String.format("EUR %.2f", total);
-                int totalPadding = lineWidth - totalLabel.length() - totalValue.length();
-                if (totalPadding < 1) totalPadding = 1;
-                StringBuilder totalPad = new StringBuilder(totalPadding);
-                for (int p = 0; p < totalPadding; p++) totalPad.append(' ');
-                mPrinter.setPrintAppendString(totalLabel + totalPad.toString() + totalValue + "\n", boldFormat);
-
-                // Separator
-                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
-
-                // Payment info
-                mPrinter.setPrintAppendString("Pagamento: " + paymentMethod + "\n", normalFormat);
-                if (customerPoints != null) {
-                    mPrinter.setPrintAppendString("Punti guadagnati: " + customerPoints + "\n", normalFormat);
-                }
-
-                // Separator
-                mPrinter.setPrintAppendString("--------------------------------\n", normalFormat);
-
-                // Footer (centered)
-                mPrinter.setPrintAppendString("Grazie per la visita!\n", centerFormat);
-                mPrinter.setPrintAppendString("Powered by OMNILY PRO\n", centerFormat);
-                mPrinter.setPrintAppendString("\n\n\n", centerFormat);
-
-                // Start printing
-                int printStatus = mPrinter.setPrintStart();
-                if (printStatus == SdkResult.SDK_OK) {
-                    Thread.sleep(2000);
-                    mPrinter.openPrnCutter((byte) 1);
-                    Log.d(TAG, "Demo receipt printed successfully");
-                    return true;
-                } else {
-                    Log.e(TAG, "Demo receipt print failed with status: " + printStatus);
-                    return false;
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error printing demo receipt", e);
-                return false;
-            }
-        }
-
         @JavascriptInterface
         public String getNetworkInfo() {
             Log.d(TAG, "getNetworkInfo called");
@@ -2055,26 +1594,30 @@ public class MainActivityFinal extends AppCompatActivity {
                     networkInfo.put("connected", true);
                     networkInfo.put("type", activeNetwork.getTypeName()); // WIFI or MOBILE
 
-                    // Get real IP address using NetworkInterface (getLocalHost returns 127.0.0.1 on Android)
-                    String ipAddress = "N/A";
+                    // Try to get IP address
                     try {
-                        java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
-                        while (interfaces.hasMoreElements()) {
-                            java.net.NetworkInterface networkInterface = interfaces.nextElement();
-                            java.util.Enumeration<java.net.InetAddress> addresses = networkInterface.getInetAddresses();
-                            while (addresses.hasMoreElements()) {
-                                java.net.InetAddress addr = addresses.nextElement();
-                                if (!addr.isLoopbackAddress() && addr instanceof java.net.Inet4Address) {
-                                    ipAddress = addr.getHostAddress();
-                                    break;
+                        java.net.InetAddress inetAddress = java.net.InetAddress.getLocalHost();
+                        networkInfo.put("ip", inetAddress.getHostAddress());
+                    } catch (Exception e) {
+                        // Try alternative method for IP
+                        try {
+                            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+                            while (interfaces.hasMoreElements()) {
+                                java.net.NetworkInterface networkInterface = interfaces.nextElement();
+                                java.util.Enumeration<java.net.InetAddress> addresses = networkInterface.getInetAddresses();
+                                while (addresses.hasMoreElements()) {
+                                    java.net.InetAddress addr = addresses.nextElement();
+                                    if (!addr.isLoopbackAddress() && addr instanceof java.net.Inet4Address) {
+                                        networkInfo.put("ip", addr.getHostAddress());
+                                        break;
+                                    }
                                 }
                             }
-                            if (!ipAddress.equals("N/A")) break;
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Failed to get IP address", ex);
+                            networkInfo.put("ip", "N/A");
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to get IP address", e);
                     }
-                    networkInfo.put("ip", ipAddress);
                 } else {
                     networkInfo.put("connected", false);
                     networkInfo.put("type", "None");
@@ -2099,125 +1642,6 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             }
         }
-
-        // ============================================================================
-        // HARDWARE STATUS METHODS - per Integrazione POS Dashboard
-        // ============================================================================
-
-        @JavascriptInterface
-        public String getHardwareInfo() {
-            Log.d(TAG, "getHardwareInfo called");
-            
-            try {
-                JSONObject hardwareInfo = new JSONObject();
-                
-                // Bridge Android version
-                hardwareInfo.put("bridge_version", "4.3.0-hardware-monitor");
-                hardwareInfo.put("bridge_status", "connected");
-                
-                // Network info
-                JSONObject networkObj = new JSONObject(getNetworkInfo());
-                hardwareInfo.put("network", networkObj);
-                
-                // Printer status
-                JSONObject printerObj = new JSONObject();
-                if (mPrinter != null) {
-                    try {
-                        int printerStatus = mPrinter.getPrinterStatus();
-                        printerObj.put("status", printerStatus == com.zcs.sdk.SdkResult.SDK_OK ? "ready" : "error");
-                        printerObj.put("message", printerStatus == com.zcs.sdk.SdkResult.SDK_OK ? "Stampante pronta" : "Errore stampante: " + printerStatus);
-                    } catch (Exception e) {
-                        printerObj.put("status", "error");
-                        printerObj.put("message", "Errore controllo stampante: " + e.getMessage());
-                    }
-                } else {
-                    printerObj.put("status", "offline");
-                    printerObj.put("message", "Stampante non inizializzata");
-                }
-                hardwareInfo.put("printer", printerObj);
-                
-                // NFC status
-                JSONObject nfcObj = new JSONObject();
-                if (nfcAdapter != null) {
-                    boolean nfcEnabled = nfcAdapter.isEnabled();
-                    nfcObj.put("status", nfcEnabled ? "available" : "unavailable");
-                    nfcObj.put("message", nfcEnabled ? "Lettore NFC disponibile" : "NFC disabilitato");
-                } else {
-                    nfcObj.put("status", "unavailable");
-                    nfcObj.put("message", "Hardware NFC non presente");
-                }
-                hardwareInfo.put("nfc", nfcObj);
-                
-                // EMV/PinPad status
-                JSONObject emvObj = new JSONObject();
-                if (mPinPadManager != null) {
-                    emvObj.put("status", "available");
-                    emvObj.put("message", "Terminale pagamenti disponibile");
-                } else {
-                    emvObj.put("status", "unavailable");
-                    emvObj.put("message", "Terminale pagamenti non disponibile");
-                }
-                hardwareInfo.put("emv", emvObj);
-                
-                String result = hardwareInfo.toString();
-                Log.d(TAG, "getHardwareInfo returning: " + result);
-                return result;
-                
-            } catch (Exception e) {
-                Log.e(TAG, "Error getting hardware info", e);
-                return "{\"error\":\"" + e.getMessage() + "\"}";
-            }
-        }
-        
-        @JavascriptInterface
-        public String getSystemInfo() {
-            Log.d(TAG, "getSystemInfo called");
-            
-            try {
-                JSONObject systemInfo = new JSONObject();
-                
-                // Device model info
-                systemInfo.put("model", android.os.Build.MODEL);
-                systemInfo.put("manufacturer", android.os.Build.MANUFACTURER);
-                systemInfo.put("device", android.os.Build.DEVICE);
-                systemInfo.put("brand", android.os.Build.BRAND);
-                systemInfo.put("hardware", android.os.Build.HARDWARE);
-                
-                // Android version
-                systemInfo.put("android_version", android.os.Build.VERSION.RELEASE);
-                systemInfo.put("sdk_version", android.os.Build.VERSION.SDK_INT);
-                
-                // App info
-                try {
-                    android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                    systemInfo.put("app_version", pInfo.versionName);
-                    systemInfo.put("app_version_code", pInfo.versionCode);
-                } catch (android.content.pm.PackageManager.NameNotFoundException e) {
-                    systemInfo.put("app_version", "Unknown");
-                    systemInfo.put("app_version_code", 0);
-                }
-                
-                // Screen info
-                android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                JSONObject screenObj = new JSONObject();
-                screenObj.put("width_px", displayMetrics.widthPixels);
-                screenObj.put("height_px", displayMetrics.heightPixels);
-                screenObj.put("density", displayMetrics.density);
-                screenObj.put("dpi", displayMetrics.densityDpi);
-                systemInfo.put("screen", screenObj);
-                
-                String result = systemInfo.toString();
-                Log.d(TAG, "getSystemInfo returning: " + result);
-                return result;
-                
-            } catch (Exception e) {
-                Log.e(TAG, "Error getting system info", e);
-                return "{\"error\":\"" + e.getMessage() + "\"}";
-            }
-        }
-
-
     }
 
     // ============================================================================
@@ -2269,8 +1693,6 @@ public class MainActivityFinal extends AppCompatActivity {
                     handleKioskMode(enabled);
                 } else if ("com.omnilypro.pos.SYNC_CONFIG".equals(action)) {
                     handleSyncConfig();
-                } else if ("com.omnilypro.pos.ACTION_TEST_PRINT".equals(action)) {
-                    handleTestPrint(intent);
                 }
             }
         };
@@ -2278,7 +1700,6 @@ public class MainActivityFinal extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.omnilypro.pos.KIOSK_MODE");
         filter.addAction("com.omnilypro.pos.SYNC_CONFIG");
-        filter.addAction("com.omnilypro.pos.ACTION_TEST_PRINT");
         registerReceiver(mdmCommandReceiver, filter);
 
         Log.i(TAG, "✅ MDM Command Receiver registered");
@@ -2325,55 +1746,6 @@ public class MainActivityFinal extends AppCompatActivity {
                 webView.reload();
                 Log.i(TAG, "✅ WebView reloaded for config sync");
             });
-        }
-    }
-
-    private void handleTestPrint(Intent intent) {
-        Log.i(TAG, "🖨️ Handling test print command from MDM...");
-        Toast.makeText(this, "🖨️ Stampa scontrino in corso...", Toast.LENGTH_SHORT).show();
-
-        try {
-            // Extract print template data from intent
-            String storeName = intent.getStringExtra("store_name");
-            String storeAddress = intent.getStringExtra("store_address");
-            String storePhone = intent.getStringExtra("store_phone");
-            String storeTax = intent.getStringExtra("store_tax");
-            String logoBase64 = intent.getStringExtra("logo_base64");
-            String receiptDataJson = intent.getStringExtra("receipt_data_json");
-
-            Log.i(TAG, "📋 Template data received:");
-            Log.i(TAG, "   Store: " + storeName);
-            Log.i(TAG, "   Address: " + storeAddress);
-            Log.i(TAG, "   Phone: " + storePhone);
-            Log.i(TAG, "   Tax: " + storeTax);
-            Log.i(TAG, "   Has logo: " + (logoBase64 != null && !logoBase64.isEmpty()));
-            Log.i(TAG, "   Has receipt data: " + (receiptDataJson != null));
-
-            // Execute print in background thread
-            if (bridge != null && mPrinter != null) {
-                mExecutor.submit(() -> {
-                    boolean success = bridge.printDynamicReceipt(
-                        storeName, storeAddress, storePhone, storeTax, logoBase64, receiptDataJson
-                    );
-
-                    runOnUiThread(() -> {
-                        if (success) {
-                            Toast.makeText(this, "✅ Stampa scontrino completata", Toast.LENGTH_LONG).show();
-                            Log.i(TAG, "✅ Dynamic receipt print completed");
-                        } else {
-                            Toast.makeText(this, "❌ Errore durante la stampa", Toast.LENGTH_LONG).show();
-                            Log.e(TAG, "❌ Dynamic receipt print failed");
-                        }
-                    });
-                });
-            } else {
-                Log.e(TAG, "❌ Bridge or Printer not initialized");
-                Toast.makeText(this, "❌ Stampante non disponibile", Toast.LENGTH_LONG).show();
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "❌ Error handling test print", e);
-            Toast.makeText(this, "❌ Errore stampa: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
