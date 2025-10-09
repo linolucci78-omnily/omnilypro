@@ -94,7 +94,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Matrix Monitor logs
   const [matrixLogs, setMatrixLogs] = useState<string[]>([])
-  const [monitorEnabled, setMonitorEnabled] = useState(false) // Start OFF by default - activate only when needed
+  const [monitorEnabled, setMonitorEnabled] = useState(isPOSMode) // Auto-enable in POS mode
   const matrixLogsRef = React.useRef<HTMLDivElement>(null)
   const logCountRef = React.useRef({ count: 0, lastReset: Date.now() })
 
@@ -1308,6 +1308,39 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       checkHardwareStatus();
     }
   }, [activeSection]);
+
+  // Auto-trigger hardware check in POS mode
+  useEffect(() => {
+    if (isPOSMode && activeSection === 'pos-integration') {
+      console.log('🔧 POS Mode: Initializing hardware monitoring...');
+      
+      // Immediate check
+      const immediateCheck = () => {
+        console.log('🔧 POS Mode: Immediate hardware check...');
+        checkHardwareStatus();
+      };
+      
+      // Delayed check to ensure bridge is ready
+      const delayedCheck = setTimeout(() => {
+        console.log('🔧 POS Mode: Delayed hardware check (1s)...');
+        checkHardwareStatus();
+      }, 1000);
+      
+      // Periodic check every 5 seconds
+      const periodicCheck = setInterval(() => {
+        console.log('🔧 POS Mode: Periodic hardware check...');
+        checkHardwareStatus();
+      }, 5000);
+      
+      // Run immediate check
+      immediateCheck();
+      
+      return () => {
+        clearTimeout(delayedCheck);
+        clearInterval(periodicCheck);
+      };
+    }
+  }, [isPOSMode, activeSection]);
 
   // Intercept ALL console logs when in pos-integration section AND monitor is enabled
   useEffect(() => {
