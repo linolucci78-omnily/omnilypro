@@ -654,8 +654,15 @@ public class MainActivityFinal extends AppCompatActivity {
                 // Callback nativo Android per rilevare crash del processo renderer WebView
                 Log.e(TAG, "🚨 ========== RENDER PROCESS GONE ==========");
                 Log.e(TAG, "🚨 WebView renderer process crashed!");
-                Log.e(TAG, "🚨 Crash: " + detail.didCrash());
-                Log.e(TAG, "🚨 Priority at exit: " + detail.rendererPriorityAtExit());
+                
+                // Check API level for advanced crash details
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    Log.e(TAG, "🚨 Crash: " + detail.didCrash());
+                    Log.e(TAG, "🚨 Priority at exit: " + detail.rendererPriorityAtExit());
+                } else {
+                    Log.e(TAG, "🚨 Crash details not available (API < 26)");
+                }
+                
                 Log.e(TAG, "🚨 Triggering automatic recovery...");
 
                 // Distruggi il WebView corrotto
@@ -1628,25 +1635,46 @@ public class MainActivityFinal extends AppCompatActivity {
                         if (bitmap != null) {
                             Log.d(TAG, "🖼️ Original logo size: " + bitmap.getWidth() + "x" + bitmap.getHeight() + ", Config: " + bitmap.getConfig());
 
-                            // Resize logo to fit thermal printer (try 250px)
-                            int maxWidth = 250;
-                            if (bitmap.getWidth() > maxWidth) {
+                            // FIXED: Increase logo size for thermal printer (384px for 58mm paper)
+                            int maxWidth = 300; // Increased from 250 to 300
+                            int minWidth = 100; // Ensure minimum size
+                            
+                            // Calculate optimal size
+                            if (bitmap.getWidth() < minWidth) {
+                                // If too small, scale up
+                                float ratio = (float) minWidth / bitmap.getWidth();
+                                int newHeight = (int) (bitmap.getHeight() * ratio);
+                                android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, minWidth, newHeight, true);
+                                Log.d(TAG, "🔧 Logo scaled UP from " + bitmap.getWidth() + "x" + bitmap.getHeight() + " to " + minWidth + "x" + newHeight);
+                                bitmap = resizedBitmap;
+                            } else if (bitmap.getWidth() > maxWidth) {
+                                // If too large, scale down
                                 float ratio = (float) maxWidth / bitmap.getWidth();
                                 int newHeight = (int) (bitmap.getHeight() * ratio);
                                 android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
-                                Log.d(TAG, "🔧 Logo resized from " + bitmap.getWidth() + "x" + bitmap.getHeight() + " to " + maxWidth + "x" + newHeight);
+                                Log.d(TAG, "🔧 Logo scaled DOWN from " + bitmap.getWidth() + "x" + bitmap.getHeight() + " to " + maxWidth + "x" + newHeight);
                                 bitmap = resizedBitmap;
                             }
 
-                            Log.d(TAG, "📐 Final bitmap size before print: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-                            Log.d(TAG, "📄 Bitmap bytes: " + bitmap.getByteCount());
+                            // FIXED: Convert to grayscale for better thermal printing
+                            android.graphics.Bitmap grayscaleBitmap = android.graphics.Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), android.graphics.Bitmap.Config.ARGB_8888);
+                            android.graphics.Canvas canvas = new android.graphics.Canvas(grayscaleBitmap);
+                            android.graphics.Paint paint = new android.graphics.Paint();
+                            android.graphics.ColorMatrix colorMatrix = new android.graphics.ColorMatrix();
+                            colorMatrix.setSaturation(0); // Convert to grayscale
+                            android.graphics.ColorMatrixColorFilter filter = new android.graphics.ColorMatrixColorFilter(colorMatrix);
+                            paint.setColorFilter(filter);
+                            canvas.drawBitmap(bitmap, 0, 0, paint);
+                            
+                            Log.d(TAG, "📐 Final logo size: " + grayscaleBitmap.getWidth() + "x" + grayscaleBitmap.getHeight());
+                            Log.d(TAG, "📄 Logo bytes: " + grayscaleBitmap.getByteCount());
 
-                            // Try WITHOUT grayscale conversion first
+                            // Print with proper spacing
                             mPrinter.setPrintAppendString("\n", normalFormat);
-                            mPrinter.setPrintAppendBitmap(bitmap, Alignment.ALIGN_CENTER);
+                            mPrinter.setPrintAppendBitmap(grayscaleBitmap, Alignment.ALIGN_CENTER);
                             mPrinter.setPrintAppendString("\n", normalFormat);
 
-                            Log.d(TAG, "✅ setPrintAppendBitmap called successfully");
+                            Log.d(TAG, "✅ Logo printed with enhanced processing");
                             Log.d(TAG, "🖨️ Logo print command sent");
                         } else {
                             Log.e(TAG, "❌ Bitmap is null after decode!");

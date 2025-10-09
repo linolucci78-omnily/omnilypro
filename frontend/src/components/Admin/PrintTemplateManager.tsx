@@ -164,12 +164,14 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       if (error) throw error
 
       setSendingToPOS(false)
-      showSuccess('Comando di stampa inviato al POS')
 
-      // Delay modal close to show toast
+      // Close modal immediately
+      setShowDeviceModal(false)
+
+      // Show toast AFTER modal is closed
       setTimeout(() => {
-        setShowDeviceModal(false)
-      }, 2000)
+        showSuccess('✅ Comando di stampa inviato al POS')
+      }, 300)
     } catch (error) {
       console.error('Error sending test print to POS:', error)
       setSendingToPOS(false)
@@ -325,7 +327,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      showError('Seleziona un file immagine valido')
+      showError('Seleziona un file immagine valido (PNG, JPG, GIF)')
       return
     }
 
@@ -334,11 +336,56 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       return
     }
 
+    const img = new Image()
     const reader = new FileReader()
+    
     reader.onload = (e) => {
       const base64 = e.target?.result as string
-      setFormData(prev => ({ ...prev, logo_base64: base64 }))
+      
+      img.onload = () => {
+        // Validate image dimensions
+        if (img.width < 50 || img.height < 50) {
+          showError('Il logo deve essere almeno 50x50 pixel per una buona qualità di stampa')
+          return
+        }
+        
+        if (img.width > 800 || img.height > 800) {
+          showError('Il logo non deve superare 800x800 pixel')
+          return
+        }
+
+        // Create optimized canvas for thermal printing
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        
+        // Set optimal size for thermal printer (max 300px width)
+        const maxWidth = 300
+        let { width, height } = img
+        
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width
+          width = maxWidth
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // Draw with high contrast for thermal printing
+        if (ctx) {
+          ctx.fillStyle = 'white'
+          ctx.fillRect(0, 0, width, height)
+          ctx.drawImage(img, 0, 0, width, height)
+          
+          // Convert to optimized base64
+          const optimizedBase64 = canvas.toDataURL('image/png', 0.9)
+          setFormData(prev => ({ ...prev, logo_base64: optimizedBase64 }))
+          showSuccess(`Logo caricato e ottimizzato (${Math.round(width)}x${Math.round(height)}px)`)
+        }
+      }
+      
+      img.src = base64
     }
+    
     reader.readAsDataURL(file)
   }
 
@@ -755,11 +802,27 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
               {isEditing && (
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: '#374151' }}>
-                    Logo (max 100KB)
+                    Logo Stampante Termica
                   </label>
+                  <div style={{ 
+                    backgroundColor: '#f0f9ff', 
+                    border: '1px solid #0ea5e9', 
+                    borderRadius: '6px', 
+                    padding: '8px', 
+                    marginBottom: '8px',
+                    fontSize: '12px',
+                    color: '#0369a1'
+                  }}>
+                    <strong>📋 Requisiti per stampa ottimale:</strong><br/>
+                    • Formato: PNG, JPG (preferibilmente PNG)<br/>
+                    • Dimensioni: min 100x100px, max 800x800px<br/>
+                    • Peso: max 100KB<br/>
+                    • Colori: Evita sfumature, usa colori pieni<br/>
+                    • Contrasto: Alto contrasto per stampa termica
+                  </div>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg"
                     onChange={handleLogoUpload}
                     style={{
                       width: '100%',
@@ -770,11 +833,22 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     }}
                   />
                   {formData.logo_base64 && (
-                    <img
-                      src={formData.logo_base64}
-                      alt="Logo preview"
-                      style={{ marginTop: '8px', maxHeight: '60px' }}
-                    />
+                    <div style={{ marginTop: '8px' }}>
+                      <img
+                        src={formData.logo_base64}
+                        alt="Logo preview"
+                        style={{ 
+                          maxHeight: '80px', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '4px',
+                          padding: '4px',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                      <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                        ✅ Logo caricato e ottimizzato per stampa termica
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
