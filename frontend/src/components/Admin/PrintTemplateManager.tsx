@@ -206,6 +206,10 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   }
 
   const saveTemplate = async () => {
+    console.log('💾 SAVE TEMPLATE - Starting save process...')
+    console.log('💾 SAVE TEMPLATE - Current formData logo_base64 length:', formData.logo_base64?.length || 0)
+    console.log('💾 SAVE TEMPLATE - Current formData logo preview:', formData.logo_base64?.substring(0, 100) || 'NO LOGO')
+    
     if (!formData.name || !formData.store_name || !formData.organization_id) {
       showWarning('Compila i campi obbligatori (Nome Template, Nome Negozio, Organizzazione)')
       return
@@ -320,17 +324,26 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
+    console.log('🔍 LOGO UPLOAD - File selected:', file?.name, 'Size:', file?.size, 'Type:', file?.type)
+    
+    if (!file) {
+      console.log('❌ LOGO UPLOAD - No file selected')
+      return
+    }
 
     if (!file.type.startsWith('image/')) {
+      console.log('❌ LOGO UPLOAD - Invalid file type:', file.type)
       showError('Seleziona un file immagine valido (PNG, JPG, GIF)')
       return
     }
 
     if (file.size > 100 * 1024) { // 100KB limit
+      console.log('❌ LOGO UPLOAD - File too large:', file.size, 'bytes')
       showError('Il file deve essere inferiore a 100KB')
       return
     }
+
+    console.log('✅ LOGO UPLOAD - File validation passed, processing...')
 
     const img = new Image()
     const reader = new FileReader()
@@ -376,11 +389,19 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
           const optimizedBase64 = canvas.toDataURL('image/png', 0.9)
           
           // DEBUG: Log the final base64 info
-          console.log(`🖼️ Logo processed: ${Math.round(width)}x${Math.round(height)}px`)
-          console.log(`📄 Base64 length: ${optimizedBase64.length} characters`)
-          console.log(`📄 Base64 starts with: ${optimizedBase64.substring(0, 50)}...`)
+          console.log(`🖼️ LOGO PROCESSING - Final dimensions: ${Math.round(width)}x${Math.round(height)}px`)
+          console.log(`📄 LOGO PROCESSING - Base64 length: ${optimizedBase64.length} characters`)
+          console.log(`📄 LOGO PROCESSING - Base64 preview: ${optimizedBase64.substring(0, 100)}...`)
           
-          setFormData(prev => ({ ...prev, logo_base64: optimizedBase64 }))
+          console.log('💾 LOGO PROCESSING - Updating formData state...')
+          setFormData(prev => {
+            console.log('💾 LOGO PROCESSING - Previous formData logo_base64 length:', prev.logo_base64?.length || 0)
+            const newData = { ...prev, logo_base64: optimizedBase64 }
+            console.log('💾 LOGO PROCESSING - New formData logo_base64 length:', newData.logo_base64?.length || 0)
+            return newData
+          })
+          
+          console.log('✅ LOGO PROCESSING - State updated, showing success message')
           showSuccess(`Logo caricato e ottimizzato (${Math.round(width)}x${Math.round(height)}px) - Base64: ${optimizedBase64.length} chars`)
         }
       }
@@ -811,6 +832,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                   <div style={{ marginTop: '8px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <img
+                        key={`logo-view-${formData.logo_base64?.length || 0}-${Date.now()}`}
                         src={formData.logo_base64}
                         alt="Logo attuale"
                         style={{ 
@@ -820,6 +842,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                           padding: '4px',
                           backgroundColor: 'white'
                         }}
+                        onLoad={() => console.log('🖼️ LOGO VIEW - Image loaded in view mode')}
+                        onError={() => console.log('❌ LOGO VIEW - Error loading image in view mode')}
                       />
                       <div style={{ fontSize: '12px', color: '#6b7280' }}>
                         ✅ Logo configurato<br/>
@@ -884,6 +908,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                       <div style={{ marginTop: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                           <img
+                            key={`logo-${formData.logo_base64?.length || 0}-${Date.now()}`}
                             src={formData.logo_base64}
                             alt="Logo preview"
                             style={{ 
@@ -893,6 +918,8 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                               padding: '4px',
                               backgroundColor: 'white'
                             }}
+                            onLoad={() => console.log('🖼️ LOGO PREVIEW - Image loaded in preview')}
+                            onError={() => console.log('❌ LOGO PREVIEW - Error loading image')}
                           />
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <label 
