@@ -42,6 +42,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
   const [assignedCards, setAssignedCards] = useState<NFCCard[]>([]);
   const [loading, setLoading] = useState(false);
   const busyRef = useRef(false); // Ref per prevenire doppi click
+  const isReadingRef = useRef(false); // Ref per tracciare se NFC sta leggendo (usato nel cleanup)
 
   // Carica tessere esistenti quando il pannello si apre
   useEffect(() => {
@@ -114,6 +115,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
         }
         console.log('🔵 NFC CALLBACK - Parsed result:', result);
         setIsReading(false); // Ferma l'indicatore di caricamento
+        isReadingRef.current = false; // ✅ Aggiorna il ref per permettere il cleanup
 
         // Il bridge Java disattiva automaticamente il lettore NFC dopo la lettura.
 
@@ -185,6 +187,7 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
         }
         console.log('🟡 QR CALLBACK - Parsed result:', result);
         setIsReadingQR(false); // Ferma l'indicatore di caricamento
+        isReadingRef.current = false; // ✅ Aggiorna il ref per permettere il cleanup
 
         if (result && result.success && result.data) {
           console.log('✅ QR SUCCESS - Data:', result.data);
@@ -240,13 +243,23 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
     return () => {
       if (typeof window !== 'undefined') {
         const bridge = (window as any).OmnilyPOS;
+
+        // ⚠️ NON cancellare il callback se la lettura è in corso
+        // Questo previene il problema dove il callback viene cancellato prima che Android lo chiami
+        if (isReadingRef.current) {
+          console.log("⚠️ CLEANUP: Lettura NFC in corso - NON rimuovo il callback per evitare errori");
+          // NON fermare la lettura e NON cancellare il callback se è in corso
+          return;
+        }
+
+        // Solo se NON c'è una lettura in corso, ferma e pulisci
         if (bridge && bridge.stopNFCReading) {
-          // Ferma esplicitamente la lettura se era in corso
           bridge.stopNFCReading();
           console.log("🧹 CLEANUP: Lettura NFC fermata e callback rimosso.");
         }
         // Rimuove la funzione globale per evitare memory leak
         delete (window as any).cardManagementNFCHandler;
+        delete (window as any).cardManagementQRHandler;
       }
     };
   }, [isOpen, organizationId, onCardRead]);
@@ -276,12 +289,14 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       console.log('🛑 Stopping NFC reading...');
       bridge.stopNFCReading();
       setIsReading(false);
+      isReadingRef.current = false; // ✅ Reset del ref quando la lettura viene annullata
       if (bridge.showToast) {
         bridge.showToast('Lettura tessera annullata.');
       }
     } else {
       console.log('🟢 Starting NFC reading...');
       setIsReading(true);
+      isReadingRef.current = true; // ✅ Setta il ref per proteggere il callback dal cleanup
       setScannedCard(null);
       if (bridge.showToast) {
         bridge.showToast('Avvicina la tessera NFC...');
