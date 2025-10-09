@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Mail, Send, Settings, Eye, Database, FileText } from 'lucide-react'
+import { X, Mail, Send, Settings, Eye, Database, FileText, CheckCircle, XCircle, Clock, BarChart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import './CardManagementPanel.css'
@@ -34,10 +34,11 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
   const [logs, setLogs] = useState<EmailLog[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const { showError } = useToast()
+  const [isSendingTest, setIsSendingTest] = useState(false)
+  const [testEmail, setTestEmail] = useState('')
+  const { showError, showSuccess } = useToast()
 
   useEffect(() => {
-    console.log('🟢 EmailMarketingPanel - isOpen:', isOpen, 'organizationId:', organizationId);
     if (isOpen && organizationId) {
       loadEmailLogs()
     }
@@ -63,18 +64,56 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
     }
   }
 
+  const sendTestEmail = async () => {
+    if (!testEmail) {
+      showError('Inserisci un indirizzo email')
+      return
+    }
+
+    setIsSendingTest(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          organization_id: organizationId,
+          template_type: 'receipt',
+          to_email: testEmail,
+          to_name: 'Cliente Test',
+          dynamic_data: {
+            store_name: organizationName,
+            receipt_number: 'TEST-' + Date.now(),
+            timestamp: new Date().toLocaleString('it-IT'),
+            total: '99.99',
+            items_html: '<div style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Prodotto Test - €99.99</div>'
+          }
+        }
+      })
+
+      if (error) throw error
+
+      showSuccess(`Email di test inviata a ${testEmail}!`)
+      setTestEmail('')
+      // Ricarica i log per mostrare la nuova email
+      await loadEmailLogs()
+    } catch (error: any) {
+      console.error('Error sending test email:', error)
+      showError(`Errore: ${error?.message || 'Impossibile inviare email di test'}`)
+    } finally {
+      setIsSendingTest(false)
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'sent':
       case 'delivered':
-        return '✅'
+        return <CheckCircle size={16} style={{ color: '#10b981' }} />
       case 'failed':
       case 'bounced':
-        return '❌'
+        return <XCircle size={16} style={{ color: '#ef4444' }} />
       case 'pending':
-        return '⏳'
+        return <Clock size={16} style={{ color: '#f59e0b' }} />
       default:
-        return '📧'
+        return <Mail size={16} style={{ color: '#6b7280' }} />
     }
   }
 
@@ -100,53 +139,47 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
     pending: logs.filter(l => l.status === 'pending').length
   }
 
-  if (!isOpen) {
-    console.log('🔴 EmailMarketingPanel - Panel closed (isOpen=false)');
-    return null;
-  }
-
-  console.log('🟢 EmailMarketingPanel - Rendering panel...');
+  if (!isOpen) return null
 
   return (
-    <div className="slide-panel-overlay" onClick={onClose}>
-      <div className="card-management-panel" onClick={(e) => e.stopPropagation()}>
+    <>
+      {/* Overlay */}
+      <div className="card-management-overlay" onClick={onClose} />
+
+      {/* Panel */}
+      <div className={`card-management-panel ${isOpen ? 'open' : ''}`}>
         {/* Header */}
-        <div className="panel-header">
-          <div className="panel-title">
-            <Mail size={24} style={{ color: '#3b82f6' }} />
-            <div>
-              <h2>Email Marketing</h2>
-              <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                {organizationName}
-              </p>
-            </div>
+        <div className="card-management-header">
+          <div className="header-info">
+            <h2>Email Marketing</h2>
+            <p>{organizationName}</p>
           </div>
-          <button className="panel-close-btn" onClick={onClose}>
-            <X size={24} />
+          <button className="close-btn" onClick={onClose}>
+            <X size={20} />
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="panel-tabs">
+        {/* Mode Tabs */}
+        <div className="mode-tabs">
           <button
-            className={`panel-tab ${activeTab === 'logs' ? 'active' : ''}`}
+            className={`mode-tab ${activeTab === 'logs' ? 'active' : ''}`}
             onClick={() => setActiveTab('logs')}
           >
-            <Database size={16} />
+            <Database size={18} />
             Log Email
           </button>
           <button
-            className={`panel-tab ${activeTab === 'templates' ? 'active' : ''}`}
+            className={`mode-tab ${activeTab === 'templates' ? 'active' : ''}`}
             onClick={() => setActiveTab('templates')}
           >
-            <FileText size={16} />
+            <FileText size={18} />
             Template
           </button>
           <button
-            className={`panel-tab ${activeTab === 'settings' ? 'active' : ''}`}
+            className={`mode-tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
-            <Settings size={16} />
+            <Settings size={18} />
             Impostazioni
           </button>
         </div>
@@ -154,24 +187,77 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
         {/* Content */}
         <div className="panel-content">
           {activeTab === 'logs' && (
-            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div className="list-mode">
+              {/* Test Email Section */}
+              <div style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '2px solid #3b82f6' }}>
+                <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '700', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Send size={20} />
+                  Invia Email di Test
+                </h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#1e40af' }}>
+                  Testa l'invio email con il template scontrino
+                </p>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <input
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="tuaemail@esempio.com"
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      border: '2px solid #3b82f6',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !isSendingTest) {
+                        sendTestEmail()
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={sendTestEmail}
+                    disabled={isSendingTest || !testEmail}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 24px',
+                      backgroundColor: (isSendingTest || !testEmail) ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: (isSendingTest || !testEmail) ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <Send size={16} />
+                    {isSendingTest ? 'Invio...' : 'Invia Test'}
+                  </button>
+                </div>
+              </div>
+
               {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
-                <div style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '600', color: '#111827' }}>{stats.total}</div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Totale</div>
+                <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', textAlign: 'center', border: '2px solid #e5e7eb' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>{stats.total}</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: '500' }}>Totale</div>
                 </div>
-                <div style={{ padding: '12px', backgroundColor: '#d1fae5', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '600', color: '#065f46' }}>{stats.sent}</div>
-                  <div style={{ fontSize: '12px', color: '#065f46' }}>Inviate</div>
+                <div style={{ padding: '16px', backgroundColor: '#d1fae5', borderRadius: '8px', textAlign: 'center', border: '2px solid #10b981' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#065f46', marginBottom: '4px' }}>{stats.sent}</div>
+                  <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '500' }}>Inviate</div>
                 </div>
-                <div style={{ padding: '12px', backgroundColor: '#fee2e2', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '600', color: '#991b1b' }}>{stats.failed}</div>
-                  <div style={{ fontSize: '12px', color: '#991b1b' }}>Fallite</div>
+                <div style={{ padding: '16px', backgroundColor: '#fee2e2', borderRadius: '8px', textAlign: 'center', border: '2px solid #ef4444' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#991b1b', marginBottom: '4px' }}>{stats.failed}</div>
+                  <div style={{ fontSize: '12px', color: '#991b1b', fontWeight: '500' }}>Fallite</div>
                 </div>
-                <div style={{ padding: '12px', backgroundColor: '#fef3c7', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '600', color: '#92400e' }}>{stats.pending}</div>
-                  <div style={{ fontSize: '12px', color: '#92400e' }}>In Attesa</div>
+                <div style={{ padding: '16px', backgroundColor: '#fef3c7', borderRadius: '8px', textAlign: 'center', border: '2px solid #f59e0b' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#92400e', marginBottom: '4px' }}>{stats.pending}</div>
+                  <div style={{ fontSize: '12px', color: '#92400e', fontWeight: '500' }}>In Attesa</div>
                 </div>
               </div>
 
@@ -181,10 +267,12 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   style={{
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '2px solid #d1d5db',
+                    borderRadius: '8px',
                     fontSize: '14px',
+                    fontWeight: '500',
                     backgroundColor: 'white',
                     cursor: 'pointer'
                   }}
@@ -199,50 +287,63 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
               </div>
 
               {/* Logs List */}
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div className="assigned-cards-list">
                 {isLoading ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                    Caricamento...
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
+                    <Settings size={48} className="spinning" style={{ marginBottom: '12px', opacity: 0.3 }} />
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '500' }}>Caricamento...</p>
                   </div>
                 ) : filteredLogs.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
                     <Mail size={48} style={{ marginBottom: '12px', opacity: 0.3 }} />
-                    <p style={{ margin: 0 }}>Nessuna email trovata</p>
+                    <p style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>Nessuna email trovata</p>
+                    <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>Non ci sono email {filterStatus !== 'all' ? `con stato "${filterStatus}"` : ''}</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {filteredLogs.map((log) => (
                       <div
                         key={log.id}
                         style={{
-                          padding: '12px',
+                          padding: '16px',
                           backgroundColor: 'white',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '8px'
+                          border: '2px solid #e5e7eb',
+                          borderRadius: '12px',
+                          transition: 'all 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#3b82f6'
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.15)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e5e7eb'
+                          e.currentTarget.style.boxShadow = 'none'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '4px' }}>
                               {getStatusIcon(log.status)} {log.to_name || log.to_email}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                            <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
                               {log.to_email}
                             </div>
                           </div>
-                          <div style={{ fontSize: '12px', color: '#9ca3af', textAlign: 'right' }}>
+                          <div style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '500', textAlign: 'right', minWidth: '100px' }}>
                             {formatDate(log.sent_at || log.created_at)}
                           </div>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#374151', marginBottom: '4px' }}>
-                          <strong>Oggetto:</strong> {log.subject}
+                        <div style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', padding: '8px 12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                          <strong style={{ color: '#111827' }}>Oggetto:</strong> {log.subject}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                        <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
                           <strong>Template:</strong> {log.template_type}
                         </div>
                         {log.error_message && (
-                          <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '8px', padding: '8px', backgroundColor: '#fee2e2', borderRadius: '4px' }}>
-                            ❌ {log.error_message}
+                          <div style={{ fontSize: '13px', color: '#ef4444', marginTop: '12px', padding: '12px', backgroundColor: '#fee2e2', borderRadius: '6px', border: '1px solid #fecaca', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <XCircle size={16} />
+                            {log.error_message}
                           </div>
                         )}
                       </div>
@@ -254,31 +355,35 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           )}
 
           {activeTab === 'templates' && (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
-              <FileText size={64} style={{ marginBottom: '16px', opacity: 0.3 }} />
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                Template Email
-              </h3>
-              <p style={{ margin: 0, fontSize: '14px' }}>
-                Funzionalità in arrivo - personalizza i tuoi template email
-              </p>
+            <div className="read-mode">
+              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#6b7280' }}>
+                <FileText size={80} style={{ marginBottom: '20px', opacity: 0.2 }} />
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '12px' }}>
+                  Template Email
+                </h3>
+                <p style={{ margin: 0, fontSize: '15px', lineHeight: '1.6' }}>
+                  Funzionalità in arrivo - personalizza i tuoi template email
+                </p>
+              </div>
             </div>
           )}
 
           {activeTab === 'settings' && (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
-              <Settings size={64} style={{ marginBottom: '16px', opacity: 0.3 }} />
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                Impostazioni Email
-              </h3>
-              <p style={{ margin: 0, fontSize: '14px' }}>
-                Funzionalità in arrivo - configura logo, colori e branding
-              </p>
+            <div className="read-mode">
+              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#6b7280' }}>
+                <Settings size={80} style={{ marginBottom: '20px', opacity: 0.2 }} />
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '12px' }}>
+                  Impostazioni Email
+                </h3>
+                <p style={{ margin: 0, fontSize: '15px', lineHeight: '1.6' }}>
+                  Funzionalità in arrivo - configura logo, colori e branding
+                </p>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
