@@ -1027,6 +1027,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     console.log('🏢 Current organization:', currentOrganization);
     addMatrixLog('🔍 Avvio verifica hardware...');
 
+    // Wait a bit for bridge to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Check Bridge Android
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
@@ -1048,14 +1051,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }
         }));
 
-        // Get comprehensive hardware info (fallback se il metodo non esiste)
+        // Get comprehensive hardware info - NEW APPROACH
         if (bridge.getHardwareInfo) {
           try {
+            addMatrixLog('📊 Chiamata getHardwareInfo...');
             const hardwareInfo = bridge.getHardwareInfo();
             const info = typeof hardwareInfo === 'string' ? JSON.parse(hardwareInfo) : hardwareInfo;
             
             console.log('🔧 Hardware info completo:', info);
-            addMatrixLog('📊 Info hardware ricevute dal bridge');
+            addMatrixLog('✅ Info hardware ricevute dal bridge');
 
             // Update network status
             if (info.network) {
@@ -1068,6 +1072,28 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 }
               }));
               addMatrixLog(`📡 Network: ${info.network.ip} (${info.network.type})`);
+            } else {
+              // Try separate getNetworkInfo if network not in hardware info
+              if (bridge.getNetworkInfo) {
+                try {
+                  addMatrixLog('📡 Chiamata getNetworkInfo separata...');
+                  const networkInfo = bridge.getNetworkInfo();
+                  const netInfo = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
+                  
+                  setHardwareStatus(prev => ({
+                    ...prev,
+                    network: {
+                      status: netInfo.connected !== false ? 'online' : 'offline',
+                      ip: netInfo.ip || 'Non disponibile',
+                      type: netInfo.type || 'Non specificato'
+                    }
+                  }));
+                  addMatrixLog(`📡 Network (separata): ${netInfo.ip} (${netInfo.type})`);
+                } catch (error) {
+                  console.error('❌ Error getting network info:', error);
+                  addMatrixLog(`❌ Errore getNetworkInfo: ${error}`);
+                }
+              }
             }
 
             // Update printer status
@@ -1167,10 +1193,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }
         }
 
-        // Fallback network check if getHardwareInfo doesn't work
-        if (bridge.getNetworkInfo && !bridge.getHardwareInfo) {
+        // Legacy fallback per APK vecchie senza getHardwareInfo
+        if (!bridge.getHardwareInfo && bridge.getNetworkInfo) {
           try {
-            addMatrixLog('📡 Fallback: richiesta info network...');
+            addMatrixLog('📡 Legacy fallback: richiesta info network...');
             const networkInfo = bridge.getNetworkInfo();
             const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
             
@@ -1182,21 +1208,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 type: info.type || 'Non specificato'
               }
             }));
-            addMatrixLog(`✅ Network fallback: ${info.ip} (${info.type})`);
+            addMatrixLog(`✅ Network legacy: ${info.ip} (${info.type})`);
           } catch (error) {
-            console.error('📡 Error getting network info:', error);
-            addMatrixLog(`❌ Errore network fallback: ${error}`);
+            console.error('❌ Error getting network info:', error);
+            addMatrixLog(`❌ Errore network legacy: ${error}`);
             setHardwareStatus(prev => ({
               ...prev,
               network: { status: 'offline', ip: 'Errore', type: 'Errore' }
             }));
           }
-        } else {
-          console.log('📡 getNetworkInfo not available in bridge');
-          setHardwareStatus(prev => ({
-            ...prev,
-            network: { status: 'offline', ip: 'Non disponibile', type: 'Funzione mancante' }
-          }));
         }
 
       } catch (error) {
@@ -1218,10 +1238,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       });
     }
 
-    // Alert per debugging
-    setTimeout(() => {
-      alert('✅ Check hardware completato! Controlla i tab per vedere i risultati.');
-    }, 1000);
+    // Log completion senza popup fastidiosi
+    addMatrixLog('✅ Check hardware completato - risultati disponibili nei tab');
   };
 
   const testPrinter = () => {
