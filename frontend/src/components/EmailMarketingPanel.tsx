@@ -37,6 +37,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
   const { showError } = useToast()
 
   useEffect(() => {
+    console.log('🟢 EmailMarketingPanel - isOpen:', isOpen, 'organizationId:', organizationId);
     if (isOpen && organizationId) {
       loadEmailLogs()
     }
@@ -99,7 +100,12 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
     pending: logs.filter(l => l.status === 'pending').length
   }
 
-  if (!isOpen) return null
+  if (!isOpen) {
+    console.log('🔴 EmailMarketingPanel - Panel closed (isOpen=false)');
+    return null;
+  }
+
+  console.log('🟢 EmailMarketingPanel - Rendering panel...');
 
   return (
     <div className="slide-panel-overlay" onClick={onClose}>

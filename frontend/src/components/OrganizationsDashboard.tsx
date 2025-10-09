@@ -2876,7 +2876,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Email Marketing</h3>
                 <p>Invia email personalizzate ai tuoi clienti</p>
-                <button className="btn-primary" onClick={() => setShowEmailMarketingPanel(true)}>
+                <button className="btn-primary" onClick={() => {
+                  console.log('🔵 Click Gestisci Email - Opening panel...');
+                  setShowEmailMarketingPanel(true);
+                  console.log('🔵 State updated to true');
+                }}>
                   <Mail size={18} />
                   Gestisci Email
                 </button>
