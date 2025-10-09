@@ -85,11 +85,35 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Hardware monitoring state
   const [hardwareStatus, setHardwareStatus] = useState({
-    bridge: { status: 'checking' as 'connected' | 'disconnected' | 'checking', message: 'Verifica in corso...' },
-    printer: { status: 'checking' as 'ready' | 'error' | 'offline' | 'checking', message: 'Verifica in corso...' },
-    nfc: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: 'Verifica in corso...' },
-    network: { status: 'checking' as 'online' | 'offline' | 'checking', ip: 'Verifica in corso...', type: 'Verifica in corso...' },
-    emv: { status: 'checking' as 'available' | 'unavailable' | 'checking', message: 'Verifica in corso...' }
+    bridge: {
+      status: 'checking' as 'connected' | 'disconnected' | 'checking',
+      message: 'Verifica in corso...',
+      version: undefined as string | undefined
+    },
+    system: {
+      manufacturer: undefined as string | undefined,
+      model: undefined as string | undefined,
+      androidVersion: undefined as string | undefined,
+      sdkVersion: undefined as string | undefined
+    },
+    printer: {
+      status: 'checking' as 'ready' | 'error' | 'offline' | 'checking',
+      message: 'Verifica in corso...',
+      model: undefined as string | undefined
+    },
+    nfc: {
+      status: 'checking' as 'available' | 'unavailable' | 'checking',
+      message: 'Verifica in corso...'
+    },
+    network: {
+      status: 'checking' as 'online' | 'offline' | 'checking',
+      ip: 'Verifica in corso...',
+      type: 'Verifica in corso...'
+    },
+    emv: {
+      status: 'checking' as 'available' | 'unavailable' | 'checking',
+      message: 'Verifica in corso...'
+    }
   })
 
   // Matrix Monitor logs
@@ -1049,12 +1073,27 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         if (hardwareInfo.bridge) {
           setHardwareStatus(prev => ({
             ...prev,
-            bridge: { 
-              status: 'connected', 
-              message: `Bridge Android v${hardwareInfo.bridge.version || 'N/A'}` 
+            bridge: {
+              status: 'connected',
+              message: `Bridge Android v${hardwareInfo.bridge.version || 'N/A'}`,
+              version: hardwareInfo.bridge.version
             }
           }));
           addMatrixLog(`🔧 Bridge: ${hardwareInfo.bridge.version || 'N/A'}`);
+        }
+
+        // Update system info from injected data
+        if (hardwareInfo.system) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            system: {
+              manufacturer: hardwareInfo.system.manufacturer,
+              model: hardwareInfo.system.model,
+              androidVersion: hardwareInfo.system.android_version,
+              sdkVersion: hardwareInfo.system.sdk_version
+            }
+          }));
+          addMatrixLog(`📱 System: ${hardwareInfo.system.manufacturer} ${hardwareInfo.system.model}`);
         }
         
         if (hardwareInfo.network) {
@@ -1074,7 +1113,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             ...prev,
             printer: {
               status: hardwareInfo.printer.available ? 'ready' : 'error',
-              message: hardwareInfo.printer.message || 'Status da Android'
+              message: hardwareInfo.printer.message || 'Status da Android',
+              model: hardwareInfo.printer.model
             }
           }));
           addMatrixLog(`🖨️ Printer: ${hardwareInfo.printer.message || 'Available'}`);
@@ -1142,9 +1182,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
         setHardwareStatus(prev => ({
           ...prev,
-          bridge: { 
-            status: 'connected', 
-            message: `Bridge Android v${bridgeVersion}` 
+          bridge: {
+            status: 'connected',
+            message: `Bridge Android v${bridgeVersion}`,
+            version: bridgeVersion
           }
         }));
 
@@ -1199,7 +1240,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 ...prev,
                 printer: {
                   status: info.printer.status || 'checking',
-                  message: info.printer.message || 'Verifica in corso...'
+                  message: info.printer.message || 'Verifica in corso...',
+                  model: info.printer.model
                 }
               }));
               addMatrixLog(`🖨️ Printer: ${info.printer.status} - ${info.printer.message}`);
@@ -1241,11 +1283,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             const systemInfo = bridge.getSystemInfo();
             const info = typeof systemInfo === 'string' ? JSON.parse(systemInfo) : systemInfo;
             
-            console.log('� System info:', info);
-            addMatrixLog(`� Sistema: ${info.manufacturer} ${info.model}`);
+            console.log('💻 System info:', info);
+            addMatrixLog(`📱 Sistema: ${info.manufacturer} ${info.model}`);
             addMatrixLog(`🤖 Android: ${info.android_version} (SDK ${info.sdk_version})`);
-            
+
             // Store system info for display in the info section
+            setHardwareStatus(prev => ({
+              ...prev,
+              system: {
+                manufacturer: info.manufacturer,
+                model: info.model,
+                androidVersion: info.android_version,
+                sdkVersion: info.sdk_version
+              }
+            }));
+
             if (info.model && info.manufacturer) {
               addMatrixLog(`🏷️ POS Model: ${info.manufacturer} ${info.model}`);
             }
@@ -1272,7 +1324,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           if (bridge.testPrinter || bridge.printReceipt) {
             setHardwareStatus(prev => ({
               ...prev,
-              printer: { status: 'ready', message: 'Stampante disponibile' }
+              printer: { status: 'ready', message: 'Stampante disponibile', model: undefined }
             }));
             addMatrixLog('🖨️ Printer: Disponibile (fallback)');
           } else {
@@ -1333,8 +1385,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         addMatrixLog('🧪 Modalità TEST: Caricamento dati hardware simulati...');
         
         setHardwareStatus({
-          bridge: { status: 'disconnected', message: 'Bridge Android non disponibile (Modalità TEST)' },
-          printer: { status: 'error', message: 'Simulazione - Non connessa' },
+          bridge: { status: 'disconnected', message: 'Bridge Android non disponibile (Modalità TEST)', version: undefined },
+          system: {
+            manufacturer: 'Test Device',
+            model: 'Simulator',
+            androidVersion: '13.0',
+            sdkVersion: '33'
+          },
+          printer: { status: 'error', message: 'Simulazione - Non connessa', model: 'Test Printer' },
           nfc: { status: 'unavailable', message: 'Simulazione - Non disponibile' },
           network: { status: 'online', ip: '192.168.1.100', type: 'WiFi (Simulato)' },
           emv: { status: 'unavailable', message: 'Simulazione - Non disponibile' }
@@ -1349,8 +1407,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       } else {
         // Produzione senza bridge
         setHardwareStatus({
-          bridge: { status: 'disconnected', message: 'Bridge Android non disponibile' },
-          printer: { status: 'offline', message: 'Non disponibile' },
+          bridge: { status: 'disconnected', message: 'Bridge Android non disponibile', version: undefined },
+          system: {
+            manufacturer: undefined,
+            model: undefined,
+            androidVersion: undefined,
+            sdkVersion: undefined
+          },
+          printer: { status: 'offline', message: 'Non disponibile', model: undefined },
           nfc: { status: 'unavailable', message: 'Non disponibile' },
           network: { status: 'offline', ip: '', type: '' },
           emv: { status: 'unavailable', message: 'Non disponibile' }
@@ -2257,7 +2321,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">{hardwareStatus.bridge.message || 'Verifica in corso...'}</p>
+                  <p className="status-message">
+                    {hardwareStatus.bridge.message || 'Verifica in corso...'}
+                    {hardwareStatus.bridge.version && (
+                      <>
+                        <br />
+                        <strong>Versione:</strong> {hardwareStatus.bridge.version}
+                      </>
+                    )}
+                  </p>
                   <span className={`status-badge ${hardwareStatus.bridge.status}`}>
                     {hardwareStatus.bridge.status === 'connected' && 'Connesso'}
                     {hardwareStatus.bridge.status === 'disconnected' && 'Disconnesso'}
@@ -2311,7 +2383,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">{hardwareStatus.printer.message || 'Verifica in corso...'}</p>
+                  <p className="status-message">
+                    {hardwareStatus.printer.message || 'Verifica in corso...'}
+                    {hardwareStatus.printer.model && (
+                      <>
+                        <br />
+                        <strong>Modello:</strong> {hardwareStatus.printer.model}
+                      </>
+                    )}
+                  </p>
                   <span className={`status-badge ${hardwareStatus.printer.status}`}>
                     {hardwareStatus.printer.status === 'ready' && 'Pronta'}
                     {hardwareStatus.printer.status === 'error' && 'Errore'}
@@ -2415,6 +2495,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <strong>Organizzazione:</strong> {currentOrganization?.name || 'Caricamento...'}<br />
                     <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'OMNILY POS Standard'}<br />
                     <strong>Tipo:</strong> {currentOrganization?.pos_connection || 'Android Terminal'}
+                    {hardwareStatus.system.manufacturer && hardwareStatus.system.model && (
+                      <>
+                        <br />
+                        <strong>Dispositivo:</strong> {hardwareStatus.system.manufacturer} {hardwareStatus.system.model}
+                      </>
+                    )}
+                    {hardwareStatus.system.androidVersion && (
+                      <>
+                        <br />
+                        <strong>Android:</strong> {hardwareStatus.system.androidVersion} {hardwareStatus.system.sdkVersion && `(SDK ${hardwareStatus.system.sdkVersion})`}
+                      </>
+                    )}
                   </p>
                   <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
                     {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
