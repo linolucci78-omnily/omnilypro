@@ -2606,10 +2606,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <strong>Organizzazione:</strong> {currentOrganization?.name || 'Caricamento...'}<br />
                     <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'OMNILY POS Standard'}<br />
                     <strong>Tipo:</strong> {currentOrganization?.pos_connection || 'Android Terminal'}
-                    {hardwareStatus.system.manufacturer && hardwareStatus.system.model && (
+                    {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) && (
                       <>
                         <br />
-                        <strong>Dispositivo:</strong> {hardwareStatus.system.manufacturer} {hardwareStatus.system.model}
+                        <strong>Dispositivo:</strong> {hardwareStatus.system.manufacturer ? `${hardwareStatus.system.manufacturer} ${hardwareStatus.system.model || ''}` : hardwareStatus.system.model}
                       </>
                     )}
                     {hardwareStatus.system.androidVersion && (
