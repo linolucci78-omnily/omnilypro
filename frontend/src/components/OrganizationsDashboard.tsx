@@ -1174,19 +1174,39 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       addMatrixLog('✅ Bridge Android trovato');
 
       try {
-        // Get bridge version
-        let bridgeVersion = 'N/A';
-        if (bridge.getBridgeVersion) {
-          bridgeVersion = bridge.getBridgeVersion();
-          addMatrixLog(`🔧 Bridge version: ${bridgeVersion}`);
+        // Get app version (try multiple methods)
+        let appVersion = 'N/A';
+
+        // Try getAppVersion() first
+        if (bridge.getAppVersion) {
+          appVersion = bridge.getAppVersion();
+          addMatrixLog(`📱 App version (getAppVersion): ${appVersion}`);
+        }
+        // Try getSystemInfo for app_version
+        else if (bridge.getSystemInfo) {
+          try {
+            const systemInfo = bridge.getSystemInfo();
+            const info = typeof systemInfo === 'string' ? JSON.parse(systemInfo) : systemInfo;
+            if (info.app_version) {
+              appVersion = info.app_version;
+              addMatrixLog(`📱 App version (from systemInfo): ${appVersion}`);
+            }
+          } catch (e) {
+            // Ignore, will try next method
+          }
+        }
+        // Fallback to bridge version if no app version found
+        if (appVersion === 'N/A' && bridge.getBridgeVersion) {
+          appVersion = bridge.getBridgeVersion();
+          addMatrixLog(`🔧 Using bridge version as fallback: ${appVersion}`);
         }
 
         setHardwareStatus(prev => ({
           ...prev,
           bridge: {
             status: 'connected',
-            message: `Bridge Android v${bridgeVersion}`,
-            version: bridgeVersion
+            message: `Omnily POS App v${appVersion}`,
+            version: appVersion
           }
         }));
 
