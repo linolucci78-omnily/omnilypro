@@ -164,14 +164,10 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
       if (error) throw error
 
       setSendingToPOS(false)
-
-      // Close modal immediately
       setShowDeviceModal(false)
-
-      // Show toast AFTER modal is closed
-      setTimeout(() => {
-        showSuccess('✅ Comando di stampa inviato al POS')
-      }, 300)
+      
+      // Show success notification immediately (same as other MDM commands)
+      showSuccess('✅ Comando di stampa inviato al POS')
     } catch (error) {
       console.error('Error sending test print to POS:', error)
       setSendingToPOS(false)
