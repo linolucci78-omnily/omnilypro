@@ -1048,7 +1048,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }
         }));
 
-        // Get comprehensive hardware info
+        // Get comprehensive hardware info (fallback se il metodo non esiste)
         if (bridge.getHardwareInfo) {
           try {
             const hardwareInfo = bridge.getHardwareInfo();
@@ -1130,6 +1130,40 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           } catch (error) {
             console.error('❌ Error parsing system info:', error);
             addMatrixLog(`❌ Errore parsing system: ${error}`);
+          }
+        } else {
+          // Fallback: usa metodi esistenti se getHardwareInfo/getSystemInfo non esistono
+          addMatrixLog('⚠️ Metodi getHardwareInfo/getSystemInfo non disponibili - uso fallback');
+          
+          // Check hardware usando metodi singoli
+          if (bridge.readNFCCard) {
+            setHardwareStatus(prev => ({
+              ...prev,
+              nfc: { status: 'available', message: 'Lettore NFC disponibile' }
+            }));
+            addMatrixLog('📱 NFC: Disponibile (fallback)');
+          } else {
+            addMatrixLog('📱 NFC: Non disponibile (fallback)');
+          }
+
+          if (bridge.testPrinter || bridge.printReceipt) {
+            setHardwareStatus(prev => ({
+              ...prev,
+              printer: { status: 'ready', message: 'Stampante disponibile' }
+            }));
+            addMatrixLog('🖨️ Printer: Disponibile (fallback)');
+          } else {
+            addMatrixLog('🖨️ Printer: Non disponibile (fallback)');
+          }
+
+          if (bridge.inputAmount || bridge.inputAmountAsync) {
+            setHardwareStatus(prev => ({
+              ...prev,
+              emv: { status: 'available', message: 'Terminale pagamenti disponibile' }
+            }));
+            addMatrixLog('💳 EMV: Disponibile (fallback)');
+          } else {
+            addMatrixLog('💳 EMV: Non disponibile (fallback)');
           }
         }
 
