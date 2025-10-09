@@ -1331,11 +1331,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             addMatrixLog(`📱 User Agent fallback: ${userAgent}`);
 
             const androidMatch = userAgent.match(/Android\s+([\d.]+)/);
-            const deviceMatch = userAgent.match(/;\s*([^;)]+)\s*\)/);
+            // Match device name between "Android X.X;" and "Build/" or ")"
+            const deviceMatch = userAgent.match(/Android\s+[\d.]+;\s*([^;)]+?)(?:\s+Build\/|\))/);
 
             if (androidMatch || deviceMatch) {
               const androidVersion = androidMatch ? androidMatch[1] : undefined;
-              const deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
+              let deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
+
+              console.log('🔍 Device name extracted (error fallback):', deviceName);
 
               let manufacturer = undefined;
               let model = undefined;
@@ -1375,13 +1378,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           addMatrixLog(`📱 User Agent: ${userAgent}`);
 
           // Parse User Agent for Android device info
-          // Example: "Mozilla/5.0 (Linux; Android 7.1; Sunmi V2 Pro)"
+          // Example formats:
+          // "Mozilla/5.0 (Linux; Android 7.1; Sunmi V2 Pro)"
+          // "Mozilla/5.0 (Linux; Android 14; T4SMODELX Build/UP1A.231005.007; wv)"
           const androidMatch = userAgent.match(/Android\s+([\d.]+)/);
-          const deviceMatch = userAgent.match(/;\s*([^;)]+)\s*\)/);
+
+          // Match device name between "Android X.X;" and "Build/" or ")"
+          const deviceMatch = userAgent.match(/Android\s+[\d.]+;\s*([^;)]+?)(?:\s+Build\/|\))/);
 
           if (androidMatch || deviceMatch) {
             const androidVersion = androidMatch ? androidMatch[1] : undefined;
-            const deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
+            let deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
+
+            console.log('🔍 Device name extracted:', deviceName);
 
             // Try to split manufacturer and model
             let manufacturer = undefined;
@@ -1392,6 +1401,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 manufacturer = parts[0];
                 model = parts.slice(1).join(' ');
               } else {
+                // Single word - use as model
                 model = deviceName;
               }
             }
