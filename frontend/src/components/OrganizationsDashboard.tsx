@@ -1049,20 +1049,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Hardware monitoring functions
   const checkHardwareStatus = async () => {
-    console.log('🔍 Checking hardware status...');
-    console.log('🏢 Current organization:', currentOrganization);
-    
     const timestamp = new Date().toLocaleTimeString();
     addMatrixLog(`🔍 Avvio verifica hardware... [${timestamp}]`);
     addMatrixLog(`🌐 Window object available: ${typeof window !== 'undefined'}`);
     addMatrixLog(`📱 POS Mode: ${isPOSMode}`);
 
     // First try to use injected hardware data from Android
-    console.log('🔍 Checking for __OMNILY_HARDWARE_DATA__:', !!(window as any).__OMNILY_HARDWARE_DATA__);
-
     if (typeof window !== 'undefined' && (window as any).__OMNILY_HARDWARE_DATA__) {
       const injectedData = (window as any).__OMNILY_HARDWARE_DATA__;
-      console.log('🚀 Found injected data, timestamp:', injectedData.timestamp);
       addMatrixLog(`🚀 Using injected hardware data from Android (${injectedData.timestamp})`);
 
       try {
@@ -1070,7 +1064,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           ? JSON.parse(injectedData.hardware)
           : injectedData.hardware;
 
-        console.log('📦 Injected hardware structure:', JSON.stringify(Object.keys(hardwareInfo)));
         addMatrixLog('✅ Parsing injected hardware data...');
         addMatrixLog(`📦 Injected hardware keys: ${Object.keys(hardwareInfo).join(', ')}`);
 
@@ -1089,7 +1082,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
         // Update system info from injected data
         if (hardwareInfo.system) {
-          console.log('📱 Injected system data:', hardwareInfo.system);
           addMatrixLog(`📱 Injected system: manufacturer=${hardwareInfo.system.manufacturer}, model=${hardwareInfo.system.model}, android=${hardwareInfo.system.android_version}`);
           setHardwareStatus(prev => ({
             ...prev,
@@ -1204,8 +1196,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             addMatrixLog('📊 Chiamata getHardwareInfo...');
             const hardwareInfo = bridge.getHardwareInfo();
             const info = typeof hardwareInfo === 'string' ? JSON.parse(hardwareInfo) : hardwareInfo;
-            
-            console.log('🔧 Hardware info completo:', info);
+
             addMatrixLog('✅ Info hardware ricevute dal bridge');
 
             // Update network status
@@ -1245,8 +1236,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
             // Update printer status
             if (info.printer) {
-              console.log('🖨️ Printer data from bridge:', JSON.stringify(info.printer));
-              addMatrixLog(`🖨️ Printer data: ${JSON.stringify(info.printer)}`);
               setHardwareStatus(prev => ({
                 ...prev,
                 printer: {
@@ -1289,17 +1278,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }
 
         // Get system info for the info tab
-        console.log('🔍 Checking for bridge.getSystemInfo:', !!bridge.getSystemInfo);
         if (bridge.getSystemInfo) {
           try {
-            console.log('📞 Calling bridge.getSystemInfo()...');
             const systemInfo = bridge.getSystemInfo();
-            console.log('📥 Raw systemInfo type:', typeof systemInfo);
             const info = typeof systemInfo === 'string' ? JSON.parse(systemInfo) : systemInfo;
 
-            console.log('💻 System info parsed:', JSON.stringify(info));
-            console.log('💻 System info keys:', Object.keys(info));
-            addMatrixLog(`📱 System info raw: ${JSON.stringify(info)}`);
             addMatrixLog(`📱 Sistema: ${info.manufacturer} ${info.model}`);
             addMatrixLog(`🤖 Android: ${info.android_version} (SDK ${info.sdk_version})`);
 
@@ -1314,8 +1297,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               }
             }));
 
-            addMatrixLog(`✅ System data saved: manufacturer=${info.manufacturer}, model=${info.model}`);
-
             if (info.model && info.manufacturer) {
               addMatrixLog(`🏷️ POS Model: ${info.manufacturer} ${info.model}`);
             }
@@ -1325,20 +1306,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             addMatrixLog(`❌ Errore parsing system: ${error}`);
 
             // FALLBACK: Use User Agent if getSystemInfo fails
-            console.log('🔍 FALLBACK after error: Extracting system info from User Agent...');
             const userAgent = navigator.userAgent;
-            console.log('📱 User Agent:', userAgent);
-            addMatrixLog(`📱 User Agent fallback: ${userAgent}`);
-
             const androidMatch = userAgent.match(/Android\s+([\d.]+)/);
-            // Match device name between "Android X.X;" and "Build/" or ")"
             const deviceMatch = userAgent.match(/Android\s+[\d.]+;\s*([^;)]+?)(?:\s+Build\/|\))/);
 
             if (androidMatch || deviceMatch) {
               const androidVersion = androidMatch ? androidMatch[1] : undefined;
               let deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
-
-              console.log('🔍 Device name extracted (error fallback):', deviceName);
 
               let manufacturer = undefined;
               let model = undefined;
@@ -1352,8 +1326,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 }
               }
 
-              console.log('💻 Parsed from UA (error fallback):', manufacturer, model, androidVersion);
-
               setHardwareStatus(prev => ({
                 ...prev,
                 system: {
@@ -1363,8 +1335,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   sdkVersion: undefined
                 }
               }));
-
-              addMatrixLog(`✅ System from UA fallback: ${manufacturer || 'Unknown'} ${model || 'Unknown'}, Android ${androidVersion || 'Unknown'}`);
             }
           }
         } else {
@@ -1372,9 +1342,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           addMatrixLog('⚠️ Metodi getHardwareInfo/getSystemInfo non disponibili - uso fallback');
 
           // Extract system info from User Agent as fallback
-          console.log('🔍 FALLBACK: Extracting system info from User Agent...');
           const userAgent = navigator.userAgent;
-          console.log('📱 User Agent:', userAgent);
           addMatrixLog(`📱 User Agent: ${userAgent}`);
 
           // Parse User Agent for Android device info
@@ -1390,8 +1358,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             const androidVersion = androidMatch ? androidMatch[1] : undefined;
             let deviceName = deviceMatch ? deviceMatch[1].trim() : undefined;
 
-            console.log('🔍 Device name extracted:', deviceName);
-
             // Try to split manufacturer and model
             let manufacturer = undefined;
             let model = undefined;
@@ -1406,25 +1372,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               }
             }
 
-            console.log('💻 Parsed from UA - manufacturer:', manufacturer, 'model:', model, 'android:', androidVersion);
-
-            setHardwareStatus(prev => {
-              console.log('📝 BEFORE setState - prev.system:', JSON.stringify(prev.system));
-              const newState = {
-                ...prev,
-                system: {
-                  manufacturer: manufacturer,
-                  model: model,
-                  androidVersion: androidVersion,
-                  sdkVersion: undefined
-                }
-              };
-              console.log('📝 AFTER setState - new.system:', JSON.stringify(newState.system));
-              return newState;
-            });
-
-            console.log('✅ setHardwareStatus called with system data');
-            addMatrixLog(`✅ System from UA: ${manufacturer || 'Unknown'} ${model || 'Unknown'}, Android ${androidVersion || 'Unknown'}`);
+            setHardwareStatus(prev => ({
+              ...prev,
+              system: {
+                manufacturer: manufacturer,
+                model: model,
+                androidVersion: androidVersion,
+                sdkVersion: undefined
+              }
+            }));
           }
 
           // Check hardware usando metodi singoli
@@ -1543,14 +1499,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
     // Log completion senza popup fastidiosi
     addMatrixLog('✅ Check hardware completato - risultati disponibili nei tab');
-    console.log('🔧 Hardware check completed at:', new Date().toISOString());
   };
 
   const testPrinter = () => {
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
       if (bridge.testPrinter) {
-        console.log('🖨️ Testing printer...');
         bridge.testPrinter();
         showModal({
           title: 'Test Stampante',
@@ -1577,7 +1531,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
       const bridge = (window as any).OmnilyPOS;
       if (bridge.readNFCCard) {
-        console.log('📱 Testing NFC reader...');
         showModal({
           title: 'Test Lettore NFC',
           message: 'Avvicina una tessera NFC al lettore...',
@@ -1603,14 +1556,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   };
 
-  // Monitor hardwareStatus.system changes
-  useEffect(() => {
-    console.log('👁️ WATCH hardwareStatus.system changed:', JSON.stringify(hardwareStatus.system));
-    console.log('👁️ WATCH - manufacturer:', hardwareStatus.system.manufacturer);
-    console.log('👁️ WATCH - model:', hardwareStatus.system.model);
-    console.log('👁️ WATCH - androidVersion:', hardwareStatus.system.androidVersion);
-  }, [hardwareStatus.system]);
-
   // Check hardware status when entering pos-integration section
   useEffect(() => {
     if (activeSection === 'pos-integration') {
@@ -1621,42 +1566,31 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   // Auto-trigger hardware check in POS mode
   useEffect(() => {
     if (isPOSMode && activeSection === 'pos-integration') {
-      console.log('🔧 POS Mode: Initializing hardware monitoring...');
-      
       // Listen for Android hardware data injection
       const handleHardwareReady = (event: any) => {
-        console.log('📡 Received omnily-hardware-ready event:', event.detail);
         addMatrixLog('📡 Event: Android hardware data received');
         // Trigger hardware status check to process the data
         checkHardwareStatus();
       };
-      
+
       // Add event listener for Android injection
       if (typeof window !== 'undefined') {
         window.addEventListener('omnily-hardware-ready', handleHardwareReady);
       }
-      
+
       // Immediate check
-      const immediateCheck = () => {
-        console.log('🔧 POS Mode: Immediate hardware check...');
-        checkHardwareStatus();
-      };
-      
+      checkHardwareStatus();
+
       // Delayed check to ensure bridge is ready
       const delayedCheck = setTimeout(() => {
-        console.log('🔧 POS Mode: Delayed hardware check (1s)...');
         checkHardwareStatus();
       }, 1000);
-      
+
       // Periodic check every 5 seconds
       const periodicCheck = setInterval(() => {
-        console.log('🔧 POS Mode: Periodic hardware check...');
         checkHardwareStatus();
       }, 5000);
-      
-      // Run immediate check
-      immediateCheck();
-      
+
       return () => {
         clearTimeout(delayedCheck);
         clearInterval(periodicCheck);
@@ -2446,12 +2380,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">
+                  <p className="status-message" style={{ color: '#1a1a1a' }}>
                     {hardwareStatus.bridge.message || 'Verifica in corso...'}
                     {hardwareStatus.bridge.version && (
                       <>
                         <br />
-                        <strong>Versione:</strong> {hardwareStatus.bridge.version}
+                        <strong style={{ color: '#1a1a1a' }}>Versione:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.bridge.version}</span>
                       </>
                     )}
                   </p>
@@ -2481,9 +2415,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">
-                    <strong>IP:</strong> {hardwareStatus.network.ip || 'N/A'}<br />
-                    <strong>Tipo:</strong> {hardwareStatus.network.type || 'N/A'}
+                  <p className="status-message" style={{ color: '#1a1a1a' }}>
+                    <strong style={{ color: '#1a1a1a' }}>IP:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.network.ip || 'N/A'}</span><br />
+                    <strong style={{ color: '#1a1a1a' }}>Tipo:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.network.type || 'N/A'}</span>
                   </p>
                   <span className={`status-badge ${hardwareStatus.network.status}`}>
                     {hardwareStatus.network.status === 'online' && 'Online'}
@@ -2508,12 +2442,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">
+                  <p className="status-message" style={{ color: '#1a1a1a' }}>
                     {hardwareStatus.printer.message || 'Verifica in corso...'}
                     {hardwareStatus.printer.model && (
                       <>
                         <br />
-                        <strong>Modello:</strong> {hardwareStatus.printer.model}
+                        <strong style={{ color: '#1a1a1a' }}>Modello:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.printer.model}</span>
                       </>
                     )}
                   </p>
@@ -2544,7 +2478,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">{hardwareStatus.nfc.message || 'Verifica in corso...'}</p>
+                  <p className="status-message" style={{ color: '#1a1a1a' }}>{hardwareStatus.nfc.message || 'Verifica in corso...'}</p>
                   <span className={`status-badge ${hardwareStatus.nfc.status}`}>
                     {hardwareStatus.nfc.status === 'available' && 'Disponibile'}
                     {hardwareStatus.nfc.status === 'unavailable' && 'Non disponibile'}
@@ -2598,7 +2532,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   </div>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">{hardwareStatus.emv.message || 'Verifica in corso...'}</p>
+                  <p className="status-message" style={{ color: '#1a1a1a' }}>{hardwareStatus.emv.message || 'Verifica in corso...'}</p>
                   <span className={`status-badge ${hardwareStatus.emv.status}`}>
                     {hardwareStatus.emv.status === 'available' && 'Disponibile'}
                     {hardwareStatus.emv.status === 'unavailable' && 'Non disponibile'}
@@ -2616,32 +2550,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   <h3>Informazioni Sistema</h3>
                 </div>
                 <div className="hardware-status-info">
-                  <p className="status-message">
-                    <strong>Organizzazione:</strong> {currentOrganization?.name || 'Caricamento...'}<br />
-                    <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'OMNILY POS Standard'}<br />
-                    <strong>Tipo:</strong> {currentOrganization?.pos_connection || 'Android Terminal'}
-                    {(() => {
-                      console.log('🎨 RENDER System Info - hardwareStatus.system:', JSON.stringify(hardwareStatus.system));
-                      console.log('🎨 RENDER - manufacturer:', hardwareStatus.system.manufacturer);
-                      console.log('🎨 RENDER - model:', hardwareStatus.system.model);
-                      console.log('🎨 RENDER - androidVersion:', hardwareStatus.system.androidVersion);
-                      console.log('🎨 RENDER - Condition (manufacturer || model):', !!(hardwareStatus.system.manufacturer || hardwareStatus.system.model));
-                      return null;
-                    })()}
-                    {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) ? (
+                  <p className="status-message" style={{ color: '#1a1a1a' }}>
+                    <strong style={{ color: '#1a1a1a' }}>Organizzazione:</strong> <span style={{ color: '#1a1a1a' }}>{currentOrganization?.name || 'Caricamento...'}</span><br />
+                    <strong style={{ color: '#1a1a1a' }}>Modello POS:</strong> <span style={{ color: '#1a1a1a' }}>{currentOrganization?.pos_model || 'OMNILY POS Standard'}</span><br />
+                    <strong style={{ color: '#1a1a1a' }}>Tipo:</strong> <span style={{ color: '#1a1a1a' }}>{currentOrganization?.pos_connection || 'Android Terminal'}</span>
+                    {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) && (
                       <span style={{ display: 'block', color: '#000', opacity: 1, visibility: 'visible' }}>
-                        {(() => { console.log('✅ RENDERING Dispositivo line!'); return null; })()}
                         <br />
                         <strong style={{ color: '#000' }}>Dispositivo:</strong> <span style={{ color: '#000' }}>{hardwareStatus.system.manufacturer ? `${hardwareStatus.system.manufacturer} ${hardwareStatus.system.model || ''}` : hardwareStatus.system.model}</span>
                       </span>
-                    ) : (() => { console.log('❌ NOT rendering Dispositivo (condition false)'); return null; })()}
-                    {hardwareStatus.system.androidVersion ? (
+                    )}
+                    {hardwareStatus.system.androidVersion && (
                       <span style={{ display: 'block', color: '#1a1a1a' }}>
-                        {(() => { console.log('✅ RENDERING Android line!'); return null; })()}
                         <br />
                         <strong style={{ color: '#1a1a1a' }}>Android:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.system.androidVersion} {hardwareStatus.system.sdkVersion && `(SDK ${hardwareStatus.system.sdkVersion})`}</span>
                       </span>
-                    ) : (() => { console.log('❌ NOT rendering Android (no version)'); return null; })()}
+                    )}
                   </p>
                   <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
                     {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
