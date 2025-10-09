@@ -2629,18 +2629,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       return null;
                     })()}
                     {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) ? (
-                      <>
+                      <span style={{ display: 'block', color: '#000', opacity: 1, visibility: 'visible' }}>
                         {(() => { console.log('✅ RENDERING Dispositivo line!'); return null; })()}
                         <br />
-                        <strong>Dispositivo:</strong> {hardwareStatus.system.manufacturer ? `${hardwareStatus.system.manufacturer} ${hardwareStatus.system.model || ''}` : hardwareStatus.system.model}
-                      </>
+                        <strong style={{ color: '#000' }}>Dispositivo:</strong> <span style={{ color: '#000' }}>{hardwareStatus.system.manufacturer ? `${hardwareStatus.system.manufacturer} ${hardwareStatus.system.model || ''}` : hardwareStatus.system.model}</span>
+                      </span>
                     ) : (() => { console.log('❌ NOT rendering Dispositivo (condition false)'); return null; })()}
                     {hardwareStatus.system.androidVersion ? (
-                      <>
+                      <span style={{ display: 'block', color: '#1a1a1a' }}>
                         {(() => { console.log('✅ RENDERING Android line!'); return null; })()}
                         <br />
-                        <strong>Android:</strong> {hardwareStatus.system.androidVersion} {hardwareStatus.system.sdkVersion && `(SDK ${hardwareStatus.system.sdkVersion})`}
-                      </>
+                        <strong style={{ color: '#1a1a1a' }}>Android:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.system.androidVersion} {hardwareStatus.system.sdkVersion && `(SDK ${hardwareStatus.system.sdkVersion})`}</span>
+                      </span>
                     ) : (() => { console.log('❌ NOT rendering Android (no version)'); return null; })()}
                   </p>
                   <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
