@@ -4,6 +4,7 @@ import { createPrintService, type PrintConfig } from '../../services/printServic
 import { useToast } from '../../hooks/useToast'
 import { supabase } from '../../lib/supabase'
 import ReceiptDemo from './ReceiptDemo'
+import Toast from '../UI/Toast'
 
 interface PrintTemplate {
   id?: string
@@ -40,7 +41,7 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
   const [sendingToPOS, setSendingToPOS] = useState(false)
   const [currentReceiptData, setCurrentReceiptData] = useState<any>(null)
   const [logoRefreshKey, setLogoRefreshKey] = useState<number>(0)
-  const { showSuccess, showError, showWarning } = useToast()
+  const { toast, showSuccess, showError, showWarning, hideToast } = useToast()
 
   const [defaultOrgId, setDefaultOrgId] = useState<string>('')
 
@@ -1253,6 +1254,14 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
     </div>
   )
 }
