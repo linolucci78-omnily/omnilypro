@@ -626,11 +626,11 @@ public class MainActivityFinal extends AppCompatActivity {
                 Log.d(TAG, "Page finished loading: " + url);
 
                 // Re-inject bridge ogni volta per SPA navigation
-                Log.d(TAG, "🔧 Re-injecting bridge for SPA compatibility...");
+                // ⚠️ NON creare un nuovo bridge! Usa quello esistente per preservare lo stato NFC
+                Log.d(TAG, "🔧 Re-injecting EXISTING bridge for SPA compatibility...");
                 view.removeJavascriptInterface("OmnilyPOS");
-                bridge = new OmnilyPOSBridge();
                 view.addJavascriptInterface(bridge, "OmnilyPOS");
-                Log.d(TAG, "✅ Bridge re-injected!");
+                Log.d(TAG, "✅ Bridge re-injected (preserved state)!");
 
                 // Inject bridge detection (without beep test)
                 String javascript = "javascript:(function() {" +

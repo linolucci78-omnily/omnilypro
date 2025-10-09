@@ -26,9 +26,12 @@ import {
   Italic,
   List,
   AlignLeft,
-  AlignCenter
+  AlignCenter,
+  Database
 } from 'lucide-react'
 import PageLoader from '../UI/PageLoader'
+import EmailSettingsManager from './EmailSettingsManager'
+import EmailLogsViewer from './EmailLogsViewer'
 import './AdminLayout.css'
 
 interface EmailTemplate {
@@ -61,7 +64,7 @@ const EmailTemplatesDashboard: React.FC = () => {
   const [categories, setCategories] = useState<TemplateCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
-  const [activeTab, setActiveTab] = useState<'list' | 'editor' | 'preview'>('list')
+  const [activeTab, setActiveTab] = useState<'list' | 'editor' | 'preview' | 'settings' | 'logs'>('list')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -290,6 +293,20 @@ const EmailTemplatesDashboard: React.FC = () => {
             </button>
           </>
         )}
+        <button
+          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          <Settings size={16} />
+          Impostazioni
+        </button>
+        <button
+          className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
+          onClick={() => setActiveTab('logs')}
+        >
+          <Database size={16} />
+          Log Email
+        </button>
       </div>
 
       {activeTab === 'list' && (
@@ -530,6 +547,18 @@ const EmailTemplatesDashboard: React.FC = () => {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="dashboard-section">
+          <EmailSettingsManager />
+        </div>
+      )}
+
+      {activeTab === 'logs' && (
+        <div className="dashboard-section">
+          <EmailLogsViewer />
         </div>
       )}
     </div>
