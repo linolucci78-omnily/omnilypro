@@ -2606,6 +2606,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <strong>Organizzazione:</strong> {currentOrganization?.name || 'Caricamento...'}<br />
                     <strong>Modello POS:</strong> {currentOrganization?.pos_model || 'OMNILY POS Standard'}<br />
                     <strong>Tipo:</strong> {currentOrganization?.pos_connection || 'Android Terminal'}
+                    {(() => {
+                      console.log('🎨 RENDER System Info - hardwareStatus.system:', JSON.stringify(hardwareStatus.system));
+                      console.log('🎨 RENDER - manufacturer:', hardwareStatus.system.manufacturer);
+                      console.log('🎨 RENDER - model:', hardwareStatus.system.model);
+                      console.log('🎨 RENDER - androidVersion:', hardwareStatus.system.androidVersion);
+                      console.log('🎨 RENDER - Condition (manufacturer || model):', !!(hardwareStatus.system.manufacturer || hardwareStatus.system.model));
+                      return null;
+                    })()}
                     {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) && (
                       <>
                         <br />
