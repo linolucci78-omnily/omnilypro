@@ -363,16 +363,8 @@ public class MainActivityFinal extends AppCompatActivity {
             // Reset callback
             bridge.currentNFCCallback = null;
 
-            // Play success beep
-            runOnUiThread(() -> {
-                try {
-                    android.media.ToneGenerator toneGen = new android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 100);
-                    toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150);
-                    toneGen.release();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error playing beep", e);
-                }
-            });
+            // Note: Beep will be handled by JavaScript after receiving NFC data
+            Log.d(TAG, "NFC read completed - beep handled by JavaScript");
 
             Log.d(TAG, "NFC card read successfully, NFC disabled");
 
@@ -472,16 +464,8 @@ public class MainActivityFinal extends AppCompatActivity {
                 jsonResult.put("format", qrFormat);
                 jsonResult.put("qrCode", qrContent); // Alias for compatibility
 
-                // Play success beep
-                runOnUiThread(() -> {
-                    try {
-                        android.media.ToneGenerator toneGen = new android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 100);
-                        toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150);
-                        toneGen.release();
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error playing beep", e);
-                    }
-                });
+                // Note: Beep will be handled by JavaScript after receiving QR data
+                Log.d(TAG, "QR code read completed - beep handled by JavaScript");
             }
 
             // Send result to JavaScript
@@ -539,9 +523,17 @@ public class MainActivityFinal extends AppCompatActivity {
             @Override
             public void run() {
                 // Re-inject bridge to ensure it's always available
+                // BUT SKIP if NFC is currently reading (to avoid interrupting NFC operations)
                 try {
-                    webView.removeJavascriptInterface("OmnilyPOS");
-                    webView.addJavascriptInterface(bridge, "OmnilyPOS");
+                    boolean nfcReading = (bridge != null && bridge.isNFCReading);
+                    
+                    if (nfcReading) {
+                        Log.i(TAG, "⏸️ NFC reading in progress - hardware data only (no bridge touch)");
+                    } else {
+                        Log.i(TAG, "🔄 Safe to re-inject bridge (NFC not reading)");
+                        webView.removeJavascriptInterface("OmnilyPOS");
+                        webView.addJavascriptInterface(bridge, "OmnilyPOS");
+                    }
 
                     // Force hardware data injection directly into window object
                     webView.evaluateJavascript(
@@ -667,12 +659,56 @@ public class MainActivityFinal extends AppCompatActivity {
                 view.addJavascriptInterface(bridge, "OmnilyPOS");
                 Log.d(TAG, "✅ Bridge re-injected!");
 
-                // Inject bridge detection (without beep test)
-                String javascript = "javascript:(function() {" +
+                // IMMEDIATE hardware data injection for POS mode
+                String immediateInjection = "javascript:(function() {" +
                     "console.log('🔧 BRIDGE DETECTION: Checking window.OmnilyPOS...');" +
                     "if (window.OmnilyPOS) {" +
                         "console.log('✅ Bridge found:', Object.keys(window.OmnilyPOS));" +
                         "console.log('✅ Bridge available and ready');" +
+                        
+                        // IMMEDIATE hardware data injection for POS mode
+                        "if (window.location.search.includes('posomnily=true')) {" +
+                          "console.log('📱 POS MODE DETECTED: Immediate hardware data injection!');" +
+                          "try {" +
+                            "var hardwareInfo = window.OmnilyPOS.getHardwareInfo();" +
+                            "var systemInfo = window.OmnilyPOS.getSystemInfo();" +
+                            "console.log('🔧 IMMEDIATE Hardware info:', hardwareInfo);" +
+                            "console.log('📱 IMMEDIATE System info:', systemInfo);" +
+                            
+                            // Force inject into window immediately
+                            "window.__OMNILY_HARDWARE_DATA__ = {" +
+                              "timestamp: Date.now()," +
+                              "hardware: hardwareInfo," +
+                              "system: systemInfo," +
+                              "status: 'loaded-immediate'," +
+                              "source: 'onPageFinished'" +
+                            "};" +
+                            
+                            "console.log('✅ IMMEDIATE hardware data injected:', window.__OMNILY_HARDWARE_DATA__);" +
+                            
+                            // Force dispatch event immediately
+                            "if (window.dispatchEvent) {" +
+                              "window.dispatchEvent(new CustomEvent('omnily-hardware-ready', {" +
+                                "detail: window.__OMNILY_HARDWARE_DATA__" +
+                              "}));" +
+                              "console.log('📡 IMMEDIATE omnily-hardware-ready event dispatched');" +
+                            "}" +
+                            
+                            // Also try to update React state directly if components exist
+                            "setTimeout(function() {" +
+                              "if (window.dispatchEvent) {" +
+                                "window.dispatchEvent(new CustomEvent('omnily-hardware-ready', {" +
+                                  "detail: window.__OMNILY_HARDWARE_DATA__" +
+                                "}));" +
+                                "console.log('📡 DELAYED omnily-hardware-ready event dispatched (1s)');" +
+                              "}" +
+                            "}, 1000);" +
+                            
+                          "} catch(e) {" +
+                            "console.error('❌ IMMEDIATE hardware injection error:', e);" +
+                          "}" +
+                        "}" +
+                        
                     "} else {" +
                         "console.log('❌ Bridge NOT found');" +
                     "}" +
@@ -680,7 +716,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     "console.log('🔍 URL Search:', window.location.search);" +
                 "})()";
 
-                view.evaluateJavascript(javascript, null);
+                view.evaluateJavascript(immediateInjection, null);
                 setContentView(webView);
             }
 
@@ -796,10 +832,14 @@ public class MainActivityFinal extends AppCompatActivity {
             // Salva il callback per quando il tag viene rilevato
             currentNFCCallback = callbackName;
 
+            // ✅ CRITICAL: Set isNFCReading BEFORE enableNFCReading to prevent race condition
+            // with periodic bridge re-injector (runs every 3s)
+            isNFCReading = true;
+            Log.d(TAG, "NFC reading flag set to true");
+
             // Enable NFC only when needed
             enableNFCReading();
 
-            isNFCReading = true;
             Log.d(TAG, "NFC enabled and ready for card reading");
 
             showToast("Present NFC card to reader... Press again to cancel");
