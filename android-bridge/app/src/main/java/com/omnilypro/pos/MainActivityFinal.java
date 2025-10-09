@@ -1640,11 +1640,39 @@ public class MainActivityFinal extends AppCompatActivity {
                         byte[] decodedString = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
                         Log.d(TAG, "🔍 Decoded bytes length: " + decodedString.length);
                         
-                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        // Add bitmap options to debug decoding issues
+                        android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                        options.inJustDecodeBounds = true;
+                        android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length, options);
+                        
+                        Log.d(TAG, "🖼️ Image info - Width: " + options.outWidth + ", Height: " + options.outHeight);
+                        Log.d(TAG, "🖼️ Image MIME type: " + options.outMimeType);
+                        
+                        // Now decode the actual bitmap
+                        options.inJustDecodeBounds = false;
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length, options);
                         
                         if (bitmap == null) {
                             Log.e(TAG, "❌ BitmapFactory.decodeByteArray returned NULL!");
-                            Log.e(TAG, "❌ This means the Base64 data is corrupted or invalid format");
+                            Log.e(TAG, "❌ Base64 length: " + base64Image.length());
+                            Log.e(TAG, "❌ Decoded bytes: " + decodedString.length);
+                            Log.e(TAG, "❌ First 50 chars of base64: " + base64Image.substring(0, Math.min(50, base64Image.length())));
+                            Log.e(TAG, "❌ MIME type detected: " + options.outMimeType);
+                            Log.e(TAG, "❌ Image dimensions detected: " + options.outWidth + "x" + options.outHeight);
+                        } else {
+                            Log.d(TAG, "✅ Bitmap decoded successfully!");
+                            Log.d(TAG, "📐 Original bitmap size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                            Log.d(TAG, "🖼️ Bitmap config: " + bitmap.getConfig());
+                            Log.d(TAG, "💾 Bitmap byte count: " + bitmap.getByteCount());
+                            
+                            // CRITICAL CHECK: Is the bitmap too small?
+                            if (bitmap.getWidth() <= 2 || bitmap.getHeight() <= 2) {
+                                Log.e(TAG, "🚨 PROBLEMA TROVATO! Bitmap troppo piccolo: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                                Log.e(TAG, "🚨 Questo spiega il 'puntone nero' - il logo è 1x1 o 2x2 pixel!");
+                                Log.e(TAG, "🚨 SOLUZIONE: Ricarica un logo più grande (almeno 50x50px) nella dashboard");
+                                // Don't print this tiny bitmap
+                                bitmap = null;
+                            }
                         }
 
                         if (bitmap != null) {
@@ -1666,14 +1694,14 @@ public class MainActivityFinal extends AppCompatActivity {
                                 Log.d(TAG, "🔍 BottomRight pixel: " + Integer.toHexString(bottomRightPixel));
                             }
 
-                            // FIXED: Optimal size for 58mm thermal printer (384px paper width)
-                            int maxWidth = 200; // Reduced to 200px for better proportion
-                            int minWidth = 50;  // Reduced minimum to avoid over-scaling
-                            int optimalWidth = 120; // Sweet spot for 58mm printer
+                            // FIXED: Follow ZCS SDK pattern - max 384px width for thermal printer
+                            int maxWidth = 384; // ZCS SDK standard for thermal printers
+                            int minWidth = 100; // Increased minimum for better visibility
+                            int optimalWidth = 250; // Bigger optimal size for better visibility
                             
                             // Smart scaling logic
                             if (bitmap.getWidth() < minWidth) {
-                                // Very small logos: scale up modestly
+                                // Very small logos: scale up significantly for better visibility
                                 float ratio = (float) optimalWidth / bitmap.getWidth();
                                 int newHeight = (int) (bitmap.getHeight() * ratio);
                                 android.graphics.Bitmap resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, optimalWidth, newHeight, true);
@@ -1692,7 +1720,7 @@ public class MainActivityFinal extends AppCompatActivity {
                             }
                             
                             // Additional check for height (avoid too tall logos)
-                            int maxHeight = 100; // Max 100px height to avoid long prints
+                            int maxHeight = 200; // Increased max height for better logo visibility
                             if (bitmap.getHeight() > maxHeight) {
                                 float ratio = (float) maxHeight / bitmap.getHeight();
                                 int newWidth = (int) (bitmap.getWidth() * ratio);
@@ -1701,14 +1729,37 @@ public class MainActivityFinal extends AppCompatActivity {
                                 bitmap = resizedBitmap;
                             }
 
-                            Log.d(TAG, "📐 Final logo size BEFORE grayscale: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                            Log.d(TAG, "📐 Final logo size BEFORE transparency fix: " + bitmap.getWidth() + "x" + bitmap.getHeight());
                             Log.d(TAG, "📄 Bitmap config: " + bitmap.getConfig());
                             Log.d(TAG, "📄 Bitmap bytes: " + bitmap.getByteCount());
 
-                            // Try printing WITHOUT grayscale conversion first to debug
-                            Log.d(TAG, "🖨️ Attempting direct bitmap print (no grayscale)...");
+                            // FIXED: Convert to MONOCHROME for thermal printer compatibility
+                            Log.d(TAG, "🎨 Converting to MONOCHROME for thermal printer...");
                             
-                            // Print with extra spacing and visual markers for debugging
+                            // Create monochrome bitmap (black & white only)
+                            android.graphics.Bitmap monoBitmap = android.graphics.Bitmap.createBitmap(
+                                bitmap.getWidth(), bitmap.getHeight(), android.graphics.Bitmap.Config.RGB_565);
+                            android.graphics.Canvas monoCanvas = new android.graphics.Canvas(monoBitmap);
+                            
+                            // White background
+                            monoCanvas.drawColor(android.graphics.Color.WHITE);
+                            
+                            // Convert to grayscale and apply threshold
+                            android.graphics.Paint paint = new android.graphics.Paint();
+                            android.graphics.ColorMatrix colorMatrix = new android.graphics.ColorMatrix();
+                            colorMatrix.setSaturation(0); // Remove color (grayscale)
+                            android.graphics.ColorMatrixColorFilter filter = new android.graphics.ColorMatrixColorFilter(colorMatrix);
+                            paint.setColorFilter(filter);
+                            
+                            monoCanvas.drawBitmap(bitmap, 0, 0, paint);
+                            bitmap = monoBitmap;
+                            Log.d(TAG, "✅ Converted to monochrome thermal-friendly format");
+
+                            Log.d(TAG, "📐 Final logo size AFTER transparency fix: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                            Log.d(TAG, "🖨️ Attempting bitmap print with white background...");
+                            
+
+                            
                             // FIXED: Follow ZCS Demo pattern - check printer status first
                             int printStatus = mPrinter.getPrinterStatus();
                             Log.d(TAG, "Printer status: " + printStatus);
@@ -1716,7 +1767,7 @@ public class MainActivityFinal extends AppCompatActivity {
                             if (printStatus != SdkResult.SDK_PRN_STATUS_PAPEROUT) {
                                 Log.d(TAG, "Printer ready, adding bitmap...");
                                 
-                                // Clean logo print - no extra text, just the logo
+                                // Print the logo with proper thermal formatting
                                 mPrinter.setPrintAppendString("\n", normalFormat);
                                 mPrinter.setPrintAppendBitmap(bitmap, Layout.Alignment.ALIGN_CENTER);
                                 mPrinter.setPrintAppendString("\n", normalFormat);
@@ -1736,24 +1787,9 @@ public class MainActivityFinal extends AppCompatActivity {
                             
 
                         } else {
-                            Log.e(TAG, "❌ Bitmap is null after decode!");
-                            Log.e(TAG, "🛠️ Creating fallback test logo...");
-                            
-                            // Create a simple fallback logo to test if the issue is the original image
-                            bitmap = android.graphics.Bitmap.createBitmap(120, 60, android.graphics.Bitmap.Config.RGB_565);
-                            android.graphics.Canvas fallbackCanvas = new android.graphics.Canvas(bitmap);
-                            android.graphics.Paint fallbackPaint = new android.graphics.Paint();
-                            
-                            // White background
-                            fallbackPaint.setColor(android.graphics.Color.WHITE);
-                            fallbackCanvas.drawRect(0, 0, 120, 60, fallbackPaint);
-                            
-                            // Black text
-                            fallbackPaint.setColor(android.graphics.Color.BLACK);
-                            fallbackPaint.setTextSize(16);
-                            fallbackCanvas.drawText("LOGO", 40, 35, fallbackPaint);
-                            
-                            Log.d(TAG, "✅ Fallback logo created: 120x60");
+                            Log.e(TAG, "❌ Bitmap is null after decode - logo Base64 is corrupted!");
+                            Log.e(TAG, "❌ Skipping logo print - check logo format in dashboard");
+                            // Don't create fallback - just skip logo printing
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error printing logo", e);

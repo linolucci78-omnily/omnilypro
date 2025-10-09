@@ -374,8 +374,14 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
           
           // Convert to optimized base64
           const optimizedBase64 = canvas.toDataURL('image/png', 0.9)
+          
+          // DEBUG: Log the final base64 info
+          console.log(`🖼️ Logo processed: ${Math.round(width)}x${Math.round(height)}px`)
+          console.log(`📄 Base64 length: ${optimizedBase64.length} characters`)
+          console.log(`📄 Base64 starts with: ${optimizedBase64.substring(0, 50)}...`)
+          
           setFormData(prev => ({ ...prev, logo_base64: optimizedBase64 }))
-          showSuccess(`Logo caricato e ottimizzato (${Math.round(width)}x${Math.round(height)}px)`)
+          showSuccess(`Logo caricato e ottimizzato (${Math.round(width)}x${Math.round(height)}px) - Base64: ${optimizedBase64.length} chars`)
         }
       }
       
@@ -794,12 +800,51 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                 />
               </div>
 
-              {/* Logo Upload */}
-              {isEditing && (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: '#374151' }}>
-                    Logo Stampante Termica
-                  </label>
+              {/* Logo Section */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '500', color: '#374151' }}>
+                  Logo Stampante Termica
+                </label>
+                
+                {/* Show logo preview always */}
+                {formData.logo_base64 && !isEditing && (
+                  <div style={{ marginTop: '8px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img
+                        src={formData.logo_base64}
+                        alt="Logo attuale"
+                        style={{ 
+                          maxHeight: '80px', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '4px',
+                          padding: '4px',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                        ✅ Logo configurato<br/>
+                        📏 Ottimizzato per stampa termica
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {!formData.logo_base64 && !isEditing && (
+                  <div style={{ 
+                    padding: '12px', 
+                    border: '1px dashed #d1d5db', 
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                    color: '#6b7280',
+                    fontSize: '12px'
+                  }}>
+                    📸 Nessun logo configurato<br/>
+                    <span style={{ fontSize: '11px' }}>Clicca "Modifica" per aggiungere un logo</span>
+                  </div>
+                )}
+                
+                {/* Logo Upload (only when editing) */}
+                {isEditing && (
                   <div style={{ 
                     backgroundColor: '#f0f9ff', 
                     border: '1px solid #0ea5e9', 
@@ -816,31 +861,79 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                     • Colori: Evita sfumature, usa colori pieni<br/>
                     • Contrasto: Alto contrasto per stampa termica
                   </div>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    onChange={handleLogoUpload}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px'
-                    }}
-                  />
+                  {/* Upload input for new logo */}
+                  {!formData.logo_base64 && (
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={handleLogoUpload}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  )}
+                  
+                  {/* Logo preview with edit options */}
                   {formData.logo_base64 && (
                     <div style={{ marginTop: '8px' }}>
-                      <img
-                        src={formData.logo_base64}
-                        alt="Logo preview"
-                        style={{ 
-                          maxHeight: '80px', 
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '4px',
-                          padding: '4px',
-                          backgroundColor: 'white'
-                        }}
-                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <img
+                          src={formData.logo_base64}
+                          alt="Logo preview"
+                          style={{ 
+                            maxHeight: '80px', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '4px',
+                            padding: '4px',
+                            backgroundColor: 'white'
+                          }}
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label 
+                            htmlFor="logo-replace-input"
+                            style={{
+                              cursor: 'pointer',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              border: 'none'
+                            }}
+                          >
+                            🔄 Sostituisci
+                          </label>
+                          <input
+                            id="logo-replace-input"
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleLogoUpload}
+                            style={{ display: 'none' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, logo_base64: undefined }))
+                              showSuccess('Logo rimosso')
+                            }}
+                            style={{
+                              cursor: 'pointer',
+                              backgroundColor: '#ef4444',
+                              color: 'white',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              border: 'none'
+                            }}
+                          >
+                            🗑️ Rimuovi
+                          </button>
+                        </div>
+                      </div>
                       <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>
                         ✅ Logo caricato e ottimizzato per stampa termica
                       </p>
