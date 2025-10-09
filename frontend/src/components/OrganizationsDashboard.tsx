@@ -2628,18 +2628,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       console.log('🎨 RENDER - Condition (manufacturer || model):', !!(hardwareStatus.system.manufacturer || hardwareStatus.system.model));
                       return null;
                     })()}
-                    {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) && (
+                    {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) ? (
                       <>
+                        {(() => { console.log('✅ RENDERING Dispositivo line!'); return null; })()}
                         <br />
                         <strong>Dispositivo:</strong> {hardwareStatus.system.manufacturer ? `${hardwareStatus.system.manufacturer} ${hardwareStatus.system.model || ''}` : hardwareStatus.system.model}
                       </>
-                    )}
-                    {hardwareStatus.system.androidVersion && (
+                    ) : (() => { console.log('❌ NOT rendering Dispositivo (condition false)'); return null; })()}
+                    {hardwareStatus.system.androidVersion ? (
                       <>
+                        {(() => { console.log('✅ RENDERING Android line!'); return null; })()}
                         <br />
                         <strong>Android:</strong> {hardwareStatus.system.androidVersion} {hardwareStatus.system.sdkVersion && `(SDK ${hardwareStatus.system.sdkVersion})`}
                       </>
-                    )}
+                    ) : (() => { console.log('❌ NOT rendering Android (no version)'); return null; })()}
                   </p>
                   <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
                     {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
