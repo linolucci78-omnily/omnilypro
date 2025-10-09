@@ -10,6 +10,7 @@ import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
+import EmailMarketingPanel from './EmailMarketingPanel'
 import UpgradePrompt from './UpgradePrompt'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
@@ -530,6 +531,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
   const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
+  const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -2874,7 +2876,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Email Marketing</h3>
                 <p>Invia email personalizzate ai tuoi clienti</p>
-                <button className="btn-primary">Crea Email</button>
+                <button className="btn-primary" onClick={() => setShowEmailMarketingPanel(true)}>
+                  <Mail size={18} />
+                  Gestisci Email
+                </button>
               </div>
               <div className="feature-card">
                 <h3>Notifiche Push</h3>
@@ -3300,6 +3305,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           console.log('Loyalty tiers saved successfully');
           fetchOrganizations(); // Reload organizations to get updated tiers
         }}
+      />
+
+      {/* Email Marketing Panel */}
+      <EmailMarketingPanel
+        isOpen={showEmailMarketingPanel}
+        onClose={() => setShowEmailMarketingPanel(false)}
+        organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
+        organizationName={organizations.length > 0 ? organizations[0].name : 'Organizzazione'}
       />
 
       {/* Upgrade Prompt */}
