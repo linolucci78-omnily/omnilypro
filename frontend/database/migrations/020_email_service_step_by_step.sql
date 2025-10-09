@@ -242,9 +242,7 @@ BEGIN
     CREATE INDEX idx_email_logs_resend_id ON email_logs(resend_email_id) WHERE resend_email_id IS NOT NULL;
   END IF;
 
-  IF NOT EXISTS (SELECT FROM pg_indexes WHERE indexname = 'idx_email_logs_org_today') THEN
-    CREATE INDEX idx_email_logs_org_today ON email_logs(organization_id, created_at) WHERE created_at >= CURRENT_DATE;
-  END IF;
+  -- Rimosso indice con CURRENT_DATE (non supportato in indici parziali)
 
 END $$;
 

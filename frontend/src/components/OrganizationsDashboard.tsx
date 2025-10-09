@@ -1217,6 +1217,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         emv: { status: 'unavailable', message: 'Non disponibile' }
       });
     }
+
+    // Alert per debugging
+    setTimeout(() => {
+      alert('✅ Check hardware completato! Controlla i tab per vedere i risultati.');
+    }, 1000);
   };
 
   const testPrinter = () => {
