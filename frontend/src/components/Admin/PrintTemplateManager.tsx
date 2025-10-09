@@ -845,102 +845,105 @@ const PrintTemplateManager: React.FC<PrintTemplateManagerProps> = ({ organizatio
                 
                 {/* Logo Upload (only when editing) */}
                 {isEditing && (
-                  <div style={{ 
-                    backgroundColor: '#f0f9ff', 
-                    border: '1px solid #0ea5e9', 
-                    borderRadius: '6px', 
-                    padding: '8px', 
-                    marginBottom: '8px',
-                    fontSize: '12px',
-                    color: '#0369a1'
-                  }}>
-                    <strong>📋 Requisiti per stampa ottimale:</strong><br/>
-                    • Formato: PNG, JPG (preferibilmente PNG)<br/>
-                    • Dimensioni: min 100x100px, max 800x800px<br/>
-                    • Peso: max 100KB<br/>
-                    • Colori: Evita sfumature, usa colori pieni<br/>
-                    • Contrasto: Alto contrasto per stampa termica
-                  </div>
-                  {/* Upload input for new logo */}
-                  {!formData.logo_base64 && (
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/jpg"
-                      onChange={handleLogoUpload}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px'
-                      }}
-                    />
-                  )}
-                  
-                  {/* Logo preview with edit options */}
-                  {formData.logo_base64 && (
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <img
-                          src={formData.logo_base64}
-                          alt="Logo preview"
-                          style={{ 
-                            maxHeight: '80px', 
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '4px',
-                            padding: '4px',
-                            backgroundColor: 'white'
-                          }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <label 
-                            htmlFor="logo-replace-input"
-                            style={{
-                              cursor: 'pointer',
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              border: 'none'
-                            }}
-                          >
-                            🔄 Sostituisci
-                          </label>
-                          <input
-                            id="logo-replace-input"
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg"
-                            onChange={handleLogoUpload}
-                            style={{ display: 'none' }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, logo_base64: undefined }))
-                              showSuccess('Logo rimosso')
-                            }}
-                            style={{
-                              cursor: 'pointer',
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              border: 'none'
-                            }}
-                          >
-                            🗑️ Rimuovi
-                          </button>
-                        </div>
-                      </div>
-                      <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                        ✅ Logo caricato e ottimizzato per stampa termica
-                      </p>
+                  <>
+                    <div style={{ 
+                      backgroundColor: '#f0f9ff', 
+                      border: '1px solid #0ea5e9', 
+                      borderRadius: '6px', 
+                      padding: '8px', 
+                      marginBottom: '8px',
+                      fontSize: '12px',
+                      color: '#0369a1'
+                    }}>
+                      <strong>📋 Requisiti per stampa ottimale:</strong><br/>
+                      • Formato: PNG, JPG (preferibilmente PNG)<br/>
+                      • Dimensioni: min 100x100px, max 800x800px<br/>
+                      • Peso: max 100KB<br/>
+                      • Colori: Evita sfumature, usa colori pieni<br/>
+                      • Contrasto: Alto contrasto per stampa termica
                     </div>
-                  )}
-                </div>
-              )}
+                    
+                    {/* Upload input for new logo */}
+                    {!formData.logo_base64 && (
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleLogoUpload}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    )}
+                    
+                    {/* Logo preview with edit options */}
+                    {formData.logo_base64 && (
+                      <div style={{ marginTop: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                          <img
+                            src={formData.logo_base64}
+                            alt="Logo preview"
+                            style={{ 
+                              maxHeight: '80px', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '4px',
+                              padding: '4px',
+                              backgroundColor: 'white'
+                            }}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label 
+                              htmlFor="logo-replace-input"
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                border: 'none'
+                              }}
+                            >
+                              🔄 Sostituisci
+                            </label>
+                            <input
+                              id="logo-replace-input"
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg"
+                              onChange={handleLogoUpload}
+                              style={{ display: 'none' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, logo_base64: undefined }))
+                                showSuccess('Logo rimosso')
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                border: 'none'
+                              }}
+                            >
+                              🗑️ Rimuovi
+                            </button>
+                          </div>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                          ✅ Logo caricato e ottimizzato per stampa termica
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
               {/* Print Settings */}
               <div>
