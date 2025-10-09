@@ -1408,16 +1408,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
             console.log('💻 Parsed from UA - manufacturer:', manufacturer, 'model:', model, 'android:', androidVersion);
 
-            setHardwareStatus(prev => ({
-              ...prev,
-              system: {
-                manufacturer: manufacturer,
-                model: model,
-                androidVersion: androidVersion,
-                sdkVersion: undefined
-              }
-            }));
+            setHardwareStatus(prev => {
+              console.log('📝 BEFORE setState - prev.system:', JSON.stringify(prev.system));
+              const newState = {
+                ...prev,
+                system: {
+                  manufacturer: manufacturer,
+                  model: model,
+                  androidVersion: androidVersion,
+                  sdkVersion: undefined
+                }
+              };
+              console.log('📝 AFTER setState - new.system:', JSON.stringify(newState.system));
+              return newState;
+            });
 
+            console.log('✅ setHardwareStatus called with system data');
             addMatrixLog(`✅ System from UA: ${manufacturer || 'Unknown'} ${model || 'Unknown'}, Android ${androidVersion || 'Unknown'}`);
           }
 
@@ -1596,6 +1602,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       });
     }
   };
+
+  // Monitor hardwareStatus.system changes
+  useEffect(() => {
+    console.log('👁️ WATCH hardwareStatus.system changed:', JSON.stringify(hardwareStatus.system));
+    console.log('👁️ WATCH - manufacturer:', hardwareStatus.system.manufacturer);
+    console.log('👁️ WATCH - model:', hardwareStatus.system.model);
+    console.log('👁️ WATCH - androidVersion:', hardwareStatus.system.androidVersion);
+  }, [hardwareStatus.system]);
 
   // Check hardware status when entering pos-integration section
   useEffect(() => {
@@ -2447,23 +2461,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     {hardwareStatus.bridge.status === 'checking' && 'Verifica...'}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="btn-test" onClick={checkHardwareStatus}>
-                    <RefreshCw size={16} />
-                    Aggiorna
-                  </button>
-                  <button
-                    className="btn-test"
-                    onClick={() => {
-                      console.log('🔄 Forcing hard reload...');
-                      window.location.reload();
-                    }}
-                    title="Ricarica la pagina (utile per aggiornamenti)"
-                  >
-                    <RefreshCw size={16} />
-                    Reload
-                  </button>
-                </div>
+                <button className="btn-test" onClick={checkHardwareStatus}>
+                  <RefreshCw size={16} />
+                  Aggiorna
+                </button>
               </div>
 
               {/* Network Status */}
