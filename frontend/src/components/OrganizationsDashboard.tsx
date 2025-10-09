@@ -1032,83 +1032,145 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       const bridge = (window as any).OmnilyPOS;
       addMatrixLog('✅ Bridge Android trovato');
 
-      setHardwareStatus(prev => ({
-        ...prev,
-        bridge: { status: 'connected', message: 'Bridge Android connesso' }
-      }));
+      try {
+        // Get bridge version
+        let bridgeVersion = 'N/A';
+        if (bridge.getBridgeVersion) {
+          bridgeVersion = bridge.getBridgeVersion();
+          addMatrixLog(`🔧 Bridge version: ${bridgeVersion}`);
+        }
 
-      // Check NFC
-      if (bridge.readNFCCard) {
         setHardwareStatus(prev => ({
           ...prev,
-          nfc: { status: 'available', message: 'Lettore NFC disponibile' }
+          bridge: { 
+            status: 'connected', 
+            message: `Bridge Android v${bridgeVersion}` 
+          }
         }));
-      } else {
-        setHardwareStatus(prev => ({
-          ...prev,
-          nfc: { status: 'unavailable', message: 'Lettore NFC non disponibile' }
-        }));
-      }
 
-      // Check Printer
-      if (bridge.printReceipt || bridge.testPrinter) {
-        setHardwareStatus(prev => ({
-          ...prev,
-          printer: { status: 'ready', message: 'Stampante pronta' }
-        }));
-      } else {
-        setHardwareStatus(prev => ({
-          ...prev,
-          printer: { status: 'offline', message: 'Stampante non disponibile' }
-        }));
-      }
+        // Get comprehensive hardware info
+        if (bridge.getHardwareInfo) {
+          try {
+            const hardwareInfo = bridge.getHardwareInfo();
+            const info = typeof hardwareInfo === 'string' ? JSON.parse(hardwareInfo) : hardwareInfo;
+            
+            console.log('🔧 Hardware info completo:', info);
+            addMatrixLog('📊 Info hardware ricevute dal bridge');
 
-      // Check EMV/PinPad
-      if (bridge.inputAmount || bridge.inputAmountAsync) {
-        setHardwareStatus(prev => ({
-          ...prev,
-          emv: { status: 'available', message: 'PinPad disponibile' }
-        }));
-      } else {
-        setHardwareStatus(prev => ({
-          ...prev,
-          emv: { status: 'unavailable', message: 'PinPad non disponibile' }
-        }));
-      }
-
-      // Check Network
-      if (bridge.getNetworkInfo) {
-        try {
-          addMatrixLog('📡 Richiesta info network...');
-          const networkInfo = bridge.getNetworkInfo();
-          console.log('📡 Raw network info:', networkInfo);
-          addMatrixLog(`📡 Raw: ${JSON.stringify(networkInfo)}`);
-
-          const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
-          console.log('📡 Parsed network info:', info);
-          addMatrixLog(`✅ IP: ${info.ip} | Tipo: ${info.type}`);
-
-          setHardwareStatus(prev => ({
-            ...prev,
-            network: {
-              status: info.connected !== false ? 'online' : 'offline',
-              ip: info.ip || 'Non disponibile',
-              type: info.type || 'Non specificato'
+            // Update network status
+            if (info.network) {
+              setHardwareStatus(prev => ({
+                ...prev,
+                network: {
+                  status: info.network.connected !== false ? 'online' : 'offline',
+                  ip: info.network.ip || 'Non disponibile',
+                  type: info.network.type || 'Non specificato'
+                }
+              }));
+              addMatrixLog(`📡 Network: ${info.network.ip} (${info.network.type})`);
             }
-          }));
-          addMatrixLog('✅ Network status aggiornato');
-        } catch (error) {
-          console.error('📡 Error getting network info:', error);
+
+            // Update printer status
+            if (info.printer) {
+              setHardwareStatus(prev => ({
+                ...prev,
+                printer: {
+                  status: info.printer.status || 'checking',
+                  message: info.printer.message || 'Verifica in corso...'
+                }
+              }));
+              addMatrixLog(`🖨️ Printer: ${info.printer.status} - ${info.printer.message}`);
+            }
+
+            // Update NFC status
+            if (info.nfc) {
+              setHardwareStatus(prev => ({
+                ...prev,
+                nfc: {
+                  status: info.nfc.status || 'checking',
+                  message: info.nfc.message || 'Verifica in corso...'
+                }
+              }));
+              addMatrixLog(`📱 NFC: ${info.nfc.status} - ${info.nfc.message}`);
+            }
+
+            // Update EMV status
+            if (info.emv) {
+              setHardwareStatus(prev => ({
+                ...prev,
+                emv: {
+                  status: info.emv.status || 'checking',
+                  message: info.emv.message || 'Verifica in corso...'
+                }
+              }));
+              addMatrixLog(`💳 EMV: ${info.emv.status} - ${info.emv.message}`);
+            }
+
+          } catch (error) {
+            console.error('❌ Error parsing hardware info:', error);
+            addMatrixLog(`❌ Errore parsing hardware: ${error}`);
+          }
+        }
+
+        // Get system info for the info tab
+        if (bridge.getSystemInfo) {
+          try {
+            const systemInfo = bridge.getSystemInfo();
+            const info = typeof systemInfo === 'string' ? JSON.parse(systemInfo) : systemInfo;
+            
+            console.log('� System info:', info);
+            addMatrixLog(`� Sistema: ${info.manufacturer} ${info.model}`);
+            addMatrixLog(`🤖 Android: ${info.android_version} (SDK ${info.sdk_version})`);
+            
+            // Store system info for display in the info section
+            if (info.model && info.manufacturer) {
+              addMatrixLog(`🏷️ POS Model: ${info.manufacturer} ${info.model}`);
+            }
+
+          } catch (error) {
+            console.error('❌ Error parsing system info:', error);
+            addMatrixLog(`❌ Errore parsing system: ${error}`);
+          }
+        }
+
+        // Fallback network check if getHardwareInfo doesn't work
+        if (bridge.getNetworkInfo && !bridge.getHardwareInfo) {
+          try {
+            addMatrixLog('📡 Fallback: richiesta info network...');
+            const networkInfo = bridge.getNetworkInfo();
+            const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
+            
+            setHardwareStatus(prev => ({
+              ...prev,
+              network: {
+                status: info.connected !== false ? 'online' : 'offline',
+                ip: info.ip || 'Non disponibile',
+                type: info.type || 'Non specificato'
+              }
+            }));
+            addMatrixLog(`✅ Network fallback: ${info.ip} (${info.type})`);
+          } catch (error) {
+            console.error('📡 Error getting network info:', error);
+            addMatrixLog(`❌ Errore network fallback: ${error}`);
+            setHardwareStatus(prev => ({
+              ...prev,
+              network: { status: 'offline', ip: 'Errore', type: 'Errore' }
+            }));
+          }
+        } else {
+          console.log('📡 getNetworkInfo not available in bridge');
           setHardwareStatus(prev => ({
             ...prev,
-            network: { status: 'offline', ip: 'Errore', type: 'Errore' }
+            network: { status: 'offline', ip: 'Non disponibile', type: 'Funzione mancante' }
           }));
         }
-      } else {
-        console.log('📡 getNetworkInfo not available in bridge');
+
+      } catch (error) {
+        console.error('❌ Bridge error:', error);
+        addMatrixLog(`❌ Errore bridge generale: ${error}`);
         setHardwareStatus(prev => ({
           ...prev,
-          network: { status: 'offline', ip: 'Non disponibile', type: 'Funzione mancante' }
+          bridge: { status: 'disconnected', message: 'Errore comunicazione bridge' }
         }));
       }
     } else {
@@ -2054,6 +2116,33 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     {hardwareStatus.nfc.status === 'unavailable' && 'Non disponibile'}
                     {hardwareStatus.nfc.status === 'checking' && 'Verifica...'}
                   </span>
+                  
+                  {/* Dati tessera NFC letta */}
+                  {nfcResult && (
+                    <div className="nfc-card-data" style={{ 
+                      marginTop: '12px', 
+                      padding: '8px', 
+                      backgroundColor: '#f0f9ff', 
+                      border: '1px solid #0ea5e9', 
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      <div style={{ fontWeight: 'bold', color: '#0369a1', marginBottom: '4px' }}>
+                        📱 Tessera Letta:
+                      </div>
+                      <div><strong>UID:</strong> {nfcResult.cardUID?.slice(0, 12)}...</div>
+                      <div><strong>Tipo:</strong> {nfcResult.cardType || 'N/A'}</div>
+                      {nfcResult.customerName && (
+                        <div><strong>Cliente:</strong> {nfcResult.customerName}</div>
+                      )}
+                      {nfcResult.loyaltyPoints !== undefined && (
+                        <div><strong>Punti:</strong> {nfcResult.loyaltyPoints}</div>
+                      )}
+                      <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>
+                        {new Date(nfcResult.timestamp || Date.now()).toLocaleString('it-IT')}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <button className="btn-test" onClick={testNFC} disabled={hardwareStatus.nfc.status !== 'available'}>
                   <Smartphone size={16} />

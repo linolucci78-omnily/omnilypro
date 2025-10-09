@@ -972,7 +972,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAvailableMethods,getHardwareInfo,getSystemInfo";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -2024,6 +2024,125 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             }
         }
+
+        // ============================================================================
+        // HARDWARE STATUS METHODS - per Integrazione POS Dashboard
+        // ============================================================================
+
+        @JavascriptInterface
+        public String getHardwareInfo() {
+            Log.d(TAG, "getHardwareInfo called");
+            
+            try {
+                JSONObject hardwareInfo = new JSONObject();
+                
+                // Bridge Android version
+                hardwareInfo.put("bridge_version", "4.3.0-hardware-monitor");
+                hardwareInfo.put("bridge_status", "connected");
+                
+                // Network info
+                JSONObject networkObj = new JSONObject(getNetworkInfo());
+                hardwareInfo.put("network", networkObj);
+                
+                // Printer status
+                JSONObject printerObj = new JSONObject();
+                if (mPrinter != null) {
+                    try {
+                        int printerStatus = mPrinter.getPrinterStatus();
+                        printerObj.put("status", printerStatus == com.zcs.sdk.SdkResult.SDK_OK ? "ready" : "error");
+                        printerObj.put("message", printerStatus == com.zcs.sdk.SdkResult.SDK_OK ? "Stampante pronta" : "Errore stampante: " + printerStatus);
+                    } catch (Exception e) {
+                        printerObj.put("status", "error");
+                        printerObj.put("message", "Errore controllo stampante: " + e.getMessage());
+                    }
+                } else {
+                    printerObj.put("status", "offline");
+                    printerObj.put("message", "Stampante non inizializzata");
+                }
+                hardwareInfo.put("printer", printerObj);
+                
+                // NFC status
+                JSONObject nfcObj = new JSONObject();
+                if (nfcAdapter != null) {
+                    boolean nfcEnabled = nfcAdapter.isEnabled();
+                    nfcObj.put("status", nfcEnabled ? "available" : "unavailable");
+                    nfcObj.put("message", nfcEnabled ? "Lettore NFC disponibile" : "NFC disabilitato");
+                } else {
+                    nfcObj.put("status", "unavailable");
+                    nfcObj.put("message", "Hardware NFC non presente");
+                }
+                hardwareInfo.put("nfc", nfcObj);
+                
+                // EMV/PinPad status
+                JSONObject emvObj = new JSONObject();
+                if (mPinPadManager != null) {
+                    emvObj.put("status", "available");
+                    emvObj.put("message", "Terminale pagamenti disponibile");
+                } else {
+                    emvObj.put("status", "unavailable");
+                    emvObj.put("message", "Terminale pagamenti non disponibile");
+                }
+                hardwareInfo.put("emv", emvObj);
+                
+                String result = hardwareInfo.toString();
+                Log.d(TAG, "getHardwareInfo returning: " + result);
+                return result;
+                
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting hardware info", e);
+                return "{\"error\":\"" + e.getMessage() + "\"}";
+            }
+        }
+        
+        @JavascriptInterface
+        public String getSystemInfo() {
+            Log.d(TAG, "getSystemInfo called");
+            
+            try {
+                JSONObject systemInfo = new JSONObject();
+                
+                // Device model info
+                systemInfo.put("model", android.os.Build.MODEL);
+                systemInfo.put("manufacturer", android.os.Build.MANUFACTURER);
+                systemInfo.put("device", android.os.Build.DEVICE);
+                systemInfo.put("brand", android.os.Build.BRAND);
+                systemInfo.put("hardware", android.os.Build.HARDWARE);
+                
+                // Android version
+                systemInfo.put("android_version", android.os.Build.VERSION.RELEASE);
+                systemInfo.put("sdk_version", android.os.Build.VERSION.SDK_INT);
+                
+                // App info
+                try {
+                    android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                    systemInfo.put("app_version", pInfo.versionName);
+                    systemInfo.put("app_version_code", pInfo.versionCode);
+                } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+                    systemInfo.put("app_version", "Unknown");
+                    systemInfo.put("app_version_code", 0);
+                }
+                
+                // Screen info
+                android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                JSONObject screenObj = new JSONObject();
+                screenObj.put("width_px", displayMetrics.widthPixels);
+                screenObj.put("height_px", displayMetrics.heightPixels);
+                screenObj.put("density", displayMetrics.density);
+                screenObj.put("dpi", displayMetrics.densityDpi);
+                systemInfo.put("screen", screenObj);
+                
+                String result = systemInfo.toString();
+                Log.d(TAG, "getSystemInfo returning: " + result);
+                return result;
+                
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting system info", e);
+                return "{\"error\":\"" + e.getMessage() + "\"}";
+            }
+        }
+
+
     }
 
     // ============================================================================
