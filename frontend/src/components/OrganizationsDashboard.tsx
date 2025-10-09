@@ -2447,10 +2447,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     {hardwareStatus.bridge.status === 'checking' && 'Verifica...'}
                   </span>
                 </div>
-                <button className="btn-test" onClick={checkHardwareStatus}>
-                  <RefreshCw size={16} />
-                  Aggiorna
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn-test" onClick={checkHardwareStatus}>
+                    <RefreshCw size={16} />
+                    Aggiorna
+                  </button>
+                  <button
+                    className="btn-test"
+                    onClick={() => {
+                      console.log('🔄 Forcing hard reload...');
+                      window.location.reload();
+                    }}
+                    title="Ricarica la pagina (utile per aggiornamenti)"
+                  >
+                    <RefreshCw size={16} />
+                    Reload
+                  </button>
+                </div>
               </div>
 
               {/* Network Status */}
