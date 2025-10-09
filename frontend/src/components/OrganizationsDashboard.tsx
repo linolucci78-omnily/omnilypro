@@ -1033,7 +1033,85 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     addMatrixLog(`🌐 Window object available: ${typeof window !== 'undefined'}`);
     addMatrixLog(`📱 POS Mode: ${isPOSMode}`);
 
-    // Debug window object availability
+    // First try to use injected hardware data from Android
+    if (typeof window !== 'undefined' && (window as any).__OMNILY_HARDWARE_DATA__) {
+      const injectedData = (window as any).__OMNILY_HARDWARE_DATA__;
+      addMatrixLog(`🚀 Using injected hardware data from Android (${injectedData.timestamp})`);
+      
+      try {
+        const hardwareInfo = typeof injectedData.hardware === 'string' 
+          ? JSON.parse(injectedData.hardware) 
+          : injectedData.hardware;
+          
+        addMatrixLog('✅ Parsing injected hardware data...');
+        
+        // Update all hardware status from injected data
+        if (hardwareInfo.bridge) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            bridge: { 
+              status: 'connected', 
+              message: `Bridge Android v${hardwareInfo.bridge.version || 'N/A'}` 
+            }
+          }));
+          addMatrixLog(`🔧 Bridge: ${hardwareInfo.bridge.version || 'N/A'}`);
+        }
+        
+        if (hardwareInfo.network) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            network: {
+              status: hardwareInfo.network.connected !== false ? 'online' : 'offline',
+              ip: hardwareInfo.network.ip || 'Non disponibile',
+              type: hardwareInfo.network.type || 'Non specificato'
+            }
+          }));
+          addMatrixLog(`📡 Network: ${hardwareInfo.network.ip} (${hardwareInfo.network.type})`);
+        }
+        
+        if (hardwareInfo.printer) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            printer: {
+              status: hardwareInfo.printer.available ? 'ready' : 'error',
+              message: hardwareInfo.printer.message || 'Status da Android'
+            }
+          }));
+          addMatrixLog(`🖨️ Printer: ${hardwareInfo.printer.message || 'Available'}`);
+        }
+        
+        if (hardwareInfo.nfc) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            nfc: {
+              status: hardwareInfo.nfc.available ? 'available' : 'unavailable',
+              message: hardwareInfo.nfc.message || 'Status da Android'
+            }
+          }));
+          addMatrixLog(`📱 NFC: ${hardwareInfo.nfc.message || 'Status checked'}`);
+        }
+        
+        if (hardwareInfo.emv) {
+          setHardwareStatus(prev => ({
+            ...prev,
+            emv: {
+              status: hardwareInfo.emv.available ? 'available' : 'unavailable',
+              message: hardwareInfo.emv.message || 'Status da Android'
+            }
+          }));
+          addMatrixLog(`💳 EMV: ${hardwareInfo.emv.message || 'Status checked'}`);
+        }
+        
+        addMatrixLog('✅ Hardware status aggiornato da dati Android iniettati');
+        return; // Exit early - we got the data from Android injection
+        
+      } catch (error) {
+        addMatrixLog(`❌ Errore parsing dati Android: ${error}`);
+        console.error('Error parsing injected hardware data:', error);
+      }
+    }
+
+    // Fallback to bridge detection if no injected data
     if (typeof window !== 'undefined') {
       addMatrixLog(`🔍 Window.OmnilyPOS exists: ${!!(window as any).OmnilyPOS}`);
       
@@ -1356,6 +1434,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     if (isPOSMode && activeSection === 'pos-integration') {
       console.log('🔧 POS Mode: Initializing hardware monitoring...');
       
+      // Listen for Android hardware data injection
+      const handleHardwareReady = (event: any) => {
+        console.log('📡 Received omnily-hardware-ready event:', event.detail);
+        addMatrixLog('📡 Event: Android hardware data received');
+        // Trigger hardware status check to process the data
+        checkHardwareStatus();
+      };
+      
+      // Add event listener for Android injection
+      if (typeof window !== 'undefined') {
+        window.addEventListener('omnily-hardware-ready', handleHardwareReady);
+      }
+      
       // Immediate check
       const immediateCheck = () => {
         console.log('🔧 POS Mode: Immediate hardware check...');
@@ -1380,6 +1471,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       return () => {
         clearTimeout(delayedCheck);
         clearInterval(periodicCheck);
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('omnily-hardware-ready', handleHardwareReady);
+        }
       };
     }
   }, [isPOSMode, activeSection]);

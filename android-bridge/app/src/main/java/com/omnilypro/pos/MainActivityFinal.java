@@ -543,7 +543,7 @@ public class MainActivityFinal extends AppCompatActivity {
                     webView.removeJavascriptInterface("OmnilyPOS");
                     webView.addJavascriptInterface(bridge, "OmnilyPOS");
 
-                    // Force verification AND hardware check in JavaScript context
+                    // Force hardware data injection directly into window object
                     webView.evaluateJavascript(
                         "(function() {" +
                         "  console.log('🔧 Bridge verification from Android:', typeof window.OmnilyPOS);" +
@@ -553,17 +553,38 @@ public class MainActivityFinal extends AppCompatActivity {
                         "    console.log('✅ Bridge IS visible in JS context!');" +
                         "    console.log('🔧 Available bridge methods:', Object.keys(window.OmnilyPOS));" +
                         "    " +
-                        "    // Force trigger hardware check if on POS page" +
+                        "    // Direct hardware data injection for POS mode" +
                         "    if (window.location.search.includes('posomnily=true')) {" +
-                        "      console.log('📱 POS MODE: Triggering hardware check from Android...');" +
-                        "      setTimeout(() => {" +
-                        "        if (window.checkHardwareStatus && typeof window.checkHardwareStatus === 'function') {" +
-                        "          console.log('🔧 Calling checkHardwareStatus from Android bridge...');" +
-                        "          window.checkHardwareStatus();" +
-                        "        } else {" +
-                        "          console.log('⚠️ checkHardwareStatus not found in window object');" +
+                        "      console.log('📱 POS MODE: Injecting hardware data directly...');" +
+                        "      " +
+                        "      try {" +
+                        "        var hardwareInfo = window.OmnilyPOS.getHardwareInfo();" +
+                        "        var systemInfo = window.OmnilyPOS.getSystemInfo();" +
+                        "        " +
+                        "        console.log('🔧 Raw hardware info:', hardwareInfo);" +
+                        "        console.log('📱 Raw system info:', systemInfo);" +
+                        "        " +
+                        "        // Inject into window for React to pick up" +
+                        "        window.__OMNILY_HARDWARE_DATA__ = {" +
+                        "          timestamp: Date.now()," +
+                        "          hardware: hardwareInfo," +
+                        "          system: systemInfo," +
+                        "          status: 'loaded'" +
+                        "        };" +
+                        "        " +
+                        "        console.log('✅ Hardware data injected into window.__OMNILY_HARDWARE_DATA__');" +
+                        "        " +
+                        "        // Try to trigger React update" +
+                        "        if (window.dispatchEvent) {" +
+                        "          window.dispatchEvent(new CustomEvent('omnily-hardware-ready', {" +
+                        "            detail: window.__OMNILY_HARDWARE_DATA__" +
+                        "          }));" +
+                        "          console.log('📡 Dispatched omnily-hardware-ready event');" +
                         "        }" +
-                        "      }, 2000);" +
+                        "        " +
+                        "      } catch(e) {" +
+                        "        console.error('❌ Error getting hardware info:', e);" +
+                        "      }" +
                         "    }" +
                         "  }" +
                         "})()",
