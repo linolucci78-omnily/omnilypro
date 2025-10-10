@@ -11,9 +11,14 @@
     "migrate:tiers": "tsx src/scripts/migrateTiers.ts"
   },
   "dependencies": {
+    "@grapesjs/studio-sdk": "^1.0.56",
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@supabase/supabase-js": "^2.56.1",
     "@types/node": "^24.3.0",
     "@types/qrcode": "^1.5.5",
+    "express": "^5.1.0",
+    "grapesjs": "^0.22.13",
+    "grapesjs-preset-newsletter": "^1.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.542.0",
     "qrcode": "^1.5.4",
@@ -29,14 +34,15 @@
     "@types/leaflet": "^1.9.20",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react": "^5.0.4",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "nodemon": "^3.1.10",
     "tsx": "^4.20.6",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
-    "vite": "^7.1.2"
+    "vite": "^7.1.9"
   }
 }

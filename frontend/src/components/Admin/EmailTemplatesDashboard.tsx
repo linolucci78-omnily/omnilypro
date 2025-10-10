@@ -27,28 +27,36 @@ import {
   List,
   AlignLeft,
   AlignCenter,
-  Database
+  Database,
+  Check,
+  X,
+  AlertCircle
 } from 'lucide-react'
 import PageLoader from '../UI/PageLoader'
 import EmailSettingsManager from './EmailSettingsManager'
 import EmailLogsViewer from './EmailLogsViewer'
+import EmailEditor, { EmailEditorRef } from './EmailEditor'
 import './AdminLayout.css'
+import { supabase } from '../../lib/supabase'
 
 interface EmailTemplate {
   id: string
+  organization_id: string | null
+  template_type: string
   name: string
   subject: string
-  description: string
-  category: string
-  html_content: string
-  text_content: string
-  variables: string[]
+  html_body: string
+  text_body: string | null
+  variables: string[] | null
+  is_active: boolean
   created_at: string
   updated_at: string
-  created_by: string
-  usage_count: number
-  last_used: string
-  is_active: boolean
+  // Colonne opzionali aggiunte con migration
+  allowed_plans?: string[]
+  description?: string
+  usage_count?: number
+  last_used?: string | null
+  created_by?: string
   preview_data?: Record<string, string>
 }
 
@@ -70,137 +78,197 @@ const EmailTemplatesDashboard: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editorContent, setEditorContent] = useState('')
   const [editorSubject, setEditorSubject] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
-  // Mock data
-  const mockCategories: TemplateCategory[] = [
-    { id: '1', name: 'Welcome', description: 'Template di benvenuto per nuovi utenti', template_count: 5 },
-    { id: '2', name: 'Billing', description: 'Template per fatturazione e pagamenti', template_count: 8 },
-    { id: '3', name: 'Marketing', description: 'Template per campagne marketing', template_count: 12 },
-    { id: '4', name: 'Support', description: 'Template per supporto clienti', template_count: 6 },
-    { id: '5', name: 'System', description: 'Template per notifiche di sistema', template_count: 4 }
-  ]
+  // Ref per estrarre HTML dall'editor
+  const editorRef = React.useRef<EmailEditorRef>(null)
 
-  const mockTemplates: EmailTemplate[] = [
-    {
-      id: '1',
-      name: 'Benvenuto Nuovo Business Owner',
-      subject: 'Benvenuto in OMNILY Pro, {{business_name}}!',
-      description: 'Email di benvenuto per nuovi business owner che si registrano',
-      category: 'Welcome',
-      html_content: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #1a365d;">Benvenuto in OMNILY Pro!</h1>
-          <p>Ciao <strong>{{owner_name}}</strong>,</p>
-          <p>Siamo entusiasti di dare il benvenuto a <strong>{{business_name}}</strong> nella famiglia OMNILY Pro!</p>
-          <p>Il tuo account è stato attivato e puoi iniziare subito a configurare il tuo loyalty program.</p>
-          <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>I tuoi prossimi passi:</h3>
-            <ul>
-              <li>Configura le tue prime ricompense</li>
-              <li>Personalizza il tuo programma fedeltà</li>
-              <li>Invita i tuoi primi clienti</li>
-            </ul>
-          </div>
-          <a href="{{dashboard_url}}" style="background: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Inizia Subito</a>
-        </div>
-      `,
-      text_content: 'Benvenuto in OMNILY Pro! Il tuo account {{business_name}} è stato attivato.',
-      variables: ['owner_name', 'business_name', 'dashboard_url'],
-      created_at: '2025-01-10T10:00:00Z',
-      updated_at: '2025-01-15T14:30:00Z',
-      created_by: 'Admin',
-      usage_count: 156,
-      last_used: '2025-01-15T09:30:00Z',
-      is_active: true,
-      preview_data: {
-        owner_name: 'Mario Rossi',
-        business_name: 'Caffè del Centro',
-        dashboard_url: 'https://app.omnily.com/dashboard'
-      }
-    },
-    {
-      id: '2',
-      name: 'Promemoria Pagamento',
-      subject: 'Promemoria: Fattura {{invoice_number}} in scadenza',
-      description: 'Promemoria per fatture in scadenza',
-      category: 'Billing',
-      html_content: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #f56565;">Promemoria Pagamento</h2>
-          <p>Gentile <strong>{{customer_name}}</strong>,</p>
-          <p>Ti ricordiamo che la fattura <strong>{{invoice_number}}</strong> di <strong>€{{amount}}</strong> scade il <strong>{{due_date}}</strong>.</p>
-          <div style="background: #fed7d7; border: 1px solid #f56565; padding: 15px; border-radius: 6px; margin: 20px 0;">
-            <strong>Dettagli Fattura:</strong><br>
-            Numero: {{invoice_number}}<br>
-            Importo: €{{amount}}<br>
-            Scadenza: {{due_date}}
-          </div>
-          <a href="{{payment_url}}" style="background: #f56565; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Paga Ora</a>
-        </div>
-      `,
-      text_content: 'Promemoria: La fattura {{invoice_number}} di €{{amount}} scade il {{due_date}}.',
-      variables: ['customer_name', 'invoice_number', 'amount', 'due_date', 'payment_url'],
-      created_at: '2025-01-08T15:20:00Z',
-      updated_at: '2025-01-12T11:45:00Z',
-      created_by: 'System',
-      usage_count: 89,
-      last_used: '2025-01-15T08:15:00Z',
-      is_active: true,
-      preview_data: {
-        customer_name: 'Luca Bianchi',
-        invoice_number: 'INV-2025-001',
-        amount: '99.00',
-        due_date: '25 Gennaio 2025',
-        payment_url: 'https://pay.omnily.com/inv-001'
-      }
-    },
-    {
-      id: '3',
-      name: 'Campagna Sconti Natale',
-      subject: '🎄 Offerta Speciale Natale: 30% di sconto!',
-      description: 'Template per campagne marketing stagionali',
-      category: 'Marketing',
-      html_content: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px;">
-          <h1 style="text-align: center;">🎄 Offerta Speciale Natale!</h1>
-          <p style="font-size: 18px; text-align: center;">Ciao {{customer_name}},</p>
-          <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; text-align: center; margin: 20px 0;">
-            <h2 style="font-size: 36px; margin: 0;">30% DI SCONTO</h2>
-            <p style="font-size: 20px;">Su tutti i prodotti fino al 31 Dicembre!</p>
-            <p style="background: #ffd700; color: #333; padding: 10px 20px; border-radius: 25px; display: inline-block; font-weight: bold;">Codice: {{discount_code}}</p>
-          </div>
-          <a href="{{shop_url}}" style="background: #ffd700; color: #333; padding: 15px 30px; text-decoration: none; border-radius: 25px; display: block; text-align: center; font-weight: bold; margin: 20px 0;">ACQUISTA ORA</a>
-        </div>
-      `,
-      text_content: 'Offerta Speciale Natale! 30% di sconto con il codice {{discount_code}}',
-      variables: ['customer_name', 'discount_code', 'shop_url'],
-      created_at: '2024-12-01T10:00:00Z',
-      updated_at: '2024-12-15T16:30:00Z',
-      created_by: 'Marketing Team',
-      usage_count: 2340,
-      last_used: '2024-12-24T18:00:00Z',
-      is_active: false,
-      preview_data: {
-        customer_name: 'Anna Verdi',
-        discount_code: 'NATALE30',
-        shop_url: 'https://shop.example.com'
-      }
+  // Carica template dal database
+  const loadTemplates = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const { data, error: fetchError } = await supabase
+        .from('email_templates')
+        .select('*')
+        .is('organization_id', null) // Solo template globali (admin)
+        .order('created_at', { ascending: false })
+
+      if (fetchError) throw fetchError
+
+      setTemplates(data || [])
+
+      // Calcola categorie dinamicamente dai template_type
+      const typeCounts: Record<string, number> = {}
+      data?.forEach(t => {
+        typeCounts[t.template_type] = (typeCounts[t.template_type] || 0) + 1
+      })
+
+      const dynamicCategories: TemplateCategory[] = Object.entries(typeCounts).map(([type, count]) => ({
+        id: type,
+        name: type.charAt(0).toUpperCase() + type.slice(1),
+        description: `Template di tipo ${type}`,
+        template_count: count
+      }))
+
+      setCategories(dynamicCategories)
+    } catch (err: any) {
+      setError(err.message || 'Errore nel caricamento dei template')
+      console.error('Error loading templates:', err)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  // Crea nuovo template
+  const createTemplate = async (template: Partial<EmailTemplate>) => {
+    try {
+      setSaving(true)
+      setError(null)
+
+      const { data, error: insertError } = await supabase
+        .from('email_templates')
+        .insert([{
+          organization_id: null, // Template globale
+          template_type: template.template_type || 'custom',
+          name: template.name,
+          subject: template.subject,
+          html_body: template.html_body,
+          text_body: template.text_body,
+          variables: template.variables || [],
+          is_active: template.is_active ?? true,
+          allowed_plans: template.allowed_plans || ['FREE', 'BASIC', 'PRO', 'ENTERPRISE'],
+          description: template.description || '',
+          created_by: 'Admin'
+        }])
+        .select()
+        .single()
+
+      if (insertError) throw insertError
+
+      await loadTemplates()
+      setSuccess('Template creato con successo!')
+      setShowCreateModal(false)
+
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (err: any) {
+      setError(err.message || 'Errore nella creazione del template')
+      console.error('Error creating template:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Aggiorna template
+  const updateTemplate = async (id: string, updates: Partial<EmailTemplate>) => {
+    try {
+      setSaving(true)
+      setError(null)
+
+      const { error: updateError } = await supabase
+        .from('email_templates')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+
+      if (updateError) throw updateError
+
+      await loadTemplates()
+      setSuccess('Template aggiornato con successo!')
+
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (err: any) {
+      setError(err.message || 'Errore nell\'aggiornamento del template')
+      console.error('Error updating template:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Elimina template
+  const deleteTemplate = async (id: string) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo template?')) return
+
+    try {
+      setError(null)
+
+      const { error: deleteError } = await supabase
+        .from('email_templates')
+        .delete()
+        .eq('id', id)
+
+      if (deleteError) throw deleteError
+
+      await loadTemplates()
+      setSuccess('Template eliminato con successo!')
+
+      if (selectedTemplate?.id === id) {
+        setSelectedTemplate(null)
+        setActiveTab('list')
+      }
+
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (err: any) {
+      setError(err.message || 'Errore nell\'eliminazione del template')
+      console.error('Error deleting template:', err)
+    }
+  }
+
+  // Duplica template
+  const duplicateTemplate = async (template: EmailTemplate) => {
+    try {
+      setSaving(true)
+      setError(null)
+
+      const { data, error: insertError } = await supabase
+        .from('email_templates')
+        .insert([{
+          organization_id: null,
+          template_type: template.template_type,
+          name: `${template.name} (Copia)`,
+          subject: template.subject,
+          html_body: template.html_body,
+          text_body: template.text_body,
+          variables: template.variables,
+          is_active: false, // Inattivo per default quando duplicato
+          allowed_plans: template.allowed_plans || ['FREE', 'BASIC', 'PRO', 'ENTERPRISE'],
+          description: template.description || '',
+          created_by: 'Admin'
+        }])
+        .select()
+        .single()
+
+      if (insertError) throw insertError
+
+      await loadTemplates()
+      setSuccess('Template duplicato con successo!')
+
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (err: any) {
+      setError(err.message || 'Errore nella duplicazione del template')
+      console.error('Error duplicating template:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Toggle attivo/inattivo
+  const toggleTemplateActive = async (template: EmailTemplate) => {
+    await updateTemplate(template.id, { is_active: !template.is_active })
+  }
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTemplates(mockTemplates)
-      setCategories(mockCategories)
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    loadTemplates()
   }, [])
 
   const handleEditTemplate = (template: EmailTemplate) => {
     setSelectedTemplate(template)
-    setEditorContent(template.html_content)
+    setEditorContent(template.html_body)
     setEditorSubject(template.subject)
     setActiveTab('editor')
   }
@@ -210,8 +278,39 @@ const EmailTemplatesDashboard: React.FC = () => {
     setActiveTab('preview')
   }
 
+  const handleSaveTemplate = async () => {
+    if (!selectedTemplate) return
+
+    console.log('🚀 INIZIO SALVATAGGIO')
+    console.log('📝 editorContent prima di getHtml:', editorContent?.substring(0, 100))
+
+    // Estrai HTML dall'editor prima di salvare
+    let currentHtml = editorContent
+    if (editorRef.current) {
+      console.log('🔄 Estraendo HTML corrente dall\'editor via getHtml()...')
+      currentHtml = editorRef.current.getHtml()
+      console.log('✅ HTML estratto da getHtml():', currentHtml?.substring(0, 150))
+      console.log('📏 Lunghezza HTML estratto:', currentHtml?.length)
+    } else {
+      console.warn('⚠️ Editor ref non disponibile, uso editorContent esistente')
+    }
+
+    console.log('💾 Salvataggio template con HTML FINALE:', {
+      id: selectedTemplate.id,
+      subject: editorSubject,
+      html_body_length: currentHtml?.length || 0,
+      html_body_preview: currentHtml?.substring(0, 100),
+      cambiato: currentHtml !== editorContent
+    })
+
+    await updateTemplate(selectedTemplate.id, {
+      subject: editorSubject,
+      html_body: currentHtml
+    })
+  }
+
   const renderPreview = (template: EmailTemplate) => {
-    let content = template.html_content
+    let content = template.html_body
     let subject = template.subject
 
     // Replace variables with preview data
@@ -240,6 +339,46 @@ const EmailTemplatesDashboard: React.FC = () => {
 
   return (
     <div className="admin-dashboard">
+      {/* Success/Error Messages */}
+      {success && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: '#10b981',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          zIndex: 1000,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          <Check size={20} />
+          {success}
+        </div>
+      )}
+      {error && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: '#ef4444',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          zIndex: 1000,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          <AlertCircle size={20} />
+          {error}
+        </div>
+      )}
+
       <div className="dashboard-header">
         <div className="header-content">
           <div className="header-title">
@@ -360,15 +499,27 @@ const EmailTemplatesDashboard: React.FC = () => {
 
             {/* Templates Grid */}
             <div className="templates-grid">
-              {templates.map((template) => (
+              {templates
+                .filter(t =>
+                  (searchTerm === '' ||
+                   t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                   t.subject.toLowerCase().includes(searchTerm.toLowerCase())) &&
+                  (selectedCategory === 'all' || t.template_type === selectedCategory.toLowerCase())
+                )
+                .map((template) => (
                 <div key={template.id} className="template-card">
                   <div className="template-header">
                     <div className="template-info">
                       <h3>{template.name}</h3>
-                      <span className="template-category">{template.category}</span>
+                      <span className="template-category">{template.template_type}</span>
                     </div>
                     <div className="template-status">
-                      <span className={`status-badge ${template.is_active ? 'active' : 'inactive'}`}>
+                      <span
+                        className={`status-badge ${template.is_active ? 'active' : 'inactive'}`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleTemplateActive(template)}
+                        title="Clicca per attivare/disattivare"
+                      >
                         {template.is_active ? 'Attivo' : 'Inattivo'}
                       </span>
                     </div>
@@ -378,29 +529,41 @@ const EmailTemplatesDashboard: React.FC = () => {
                     <div className="template-subject">
                       <strong>Oggetto:</strong> {template.subject}
                     </div>
-                    <p className="template-description">{template.description}</p>
+                    {template.description && (
+                      <p className="template-description">{template.description}</p>
+                    )}
 
-                    <div className="template-variables">
-                      <strong>Variabili:</strong>
-                      <div className="variables-list">
-                        {template.variables.slice(0, 3).map((variable) => (
-                          <span key={variable} className="variable-tag">
-                            {`{{${variable}}}`}
-                          </span>
-                        ))}
-                        {template.variables.length > 3 && (
-                          <span className="variable-tag more">
-                            +{template.variables.length - 3}
-                          </span>
-                        )}
+                    {template.variables && template.variables.length > 0 && (
+                      <div className="template-variables">
+                        <strong>Variabili:</strong>
+                        <div className="variables-list">
+                          {template.variables.slice(0, 3).map((variable) => (
+                            <span key={variable} className="variable-tag">
+                              {`{{${variable}}}`}
+                            </span>
+                          ))}
+                          {template.variables.length > 3 && (
+                            <span className="variable-tag more">
+                              +{template.variables.length - 3}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {template.allowed_plans && (
+                      <div style={{ marginTop: '10px', fontSize: '12px', color: '#6b7280' }}>
+                        <strong>Piani:</strong> {template.allowed_plans.join(', ')}
+                      </div>
+                    )}
 
                     <div className="template-stats">
-                      <div className="stat">
-                        <Zap size={14} />
-                        <span>Utilizzato {template.usage_count} volte</span>
-                      </div>
+                      {template.usage_count !== undefined && (
+                        <div className="stat">
+                          <Zap size={14} />
+                          <span>Utilizzato {template.usage_count} volte</span>
+                        </div>
+                      )}
                       <div className="stat">
                         <Calendar size={14} />
                         <span>Aggiornato {formatDate(template.updated_at)}</span>
@@ -423,13 +586,21 @@ const EmailTemplatesDashboard: React.FC = () => {
                     >
                       <Edit size={16} />
                     </button>
-                    <button className="btn-icon" title="Duplica">
+                    <button
+                      className="btn-icon"
+                      title="Duplica"
+                      onClick={() => duplicateTemplate(template)}
+                    >
                       <Copy size={16} />
                     </button>
                     <button className="btn-icon" title="Invia Test">
                       <Send size={16} />
                     </button>
-                    <button className="btn-icon danger" title="Elimina">
+                    <button
+                      className="btn-icon danger"
+                      title="Elimina"
+                      onClick={() => deleteTemplate(template.id)}
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -441,79 +612,78 @@ const EmailTemplatesDashboard: React.FC = () => {
       )}
 
       {activeTab === 'editor' && selectedTemplate && (
-        <div className="dashboard-section">
-          <div className="editor-container">
-            <div className="editor-toolbar">
-              <div className="toolbar-group">
-                <button className="toolbar-btn">
-                  <Bold size={16} />
-                </button>
-                <button className="toolbar-btn">
-                  <Italic size={16} />
-                </button>
-                <button className="toolbar-btn">
-                  <List size={16} />
-                </button>
+        <div style={{
+          width: '100%',
+          minHeight: '600px',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 0,
+          margin: 0
+        }}>
+          {/* Header con azioni - compatto */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            backgroundColor: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            flexShrink: 0,
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                  {selectedTemplate.name}
+                </h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>
+                  {selectedTemplate.template_type}
+                </p>
               </div>
-              <div className="toolbar-group">
-                <button className="toolbar-btn">
-                  <AlignLeft size={16} />
-                </button>
-                <button className="toolbar-btn">
-                  <AlignCenter size={16} />
-                </button>
-              </div>
-              <div className="toolbar-group">
-                <button className="toolbar-btn">
-                  <Image size={16} />
-                </button>
-                <button className="toolbar-btn">
-                  <Link size={16} />
-                </button>
-              </div>
-              <div className="toolbar-group">
-                <button className="btn-primary">
-                  <Save size={16} />
-                  Salva
-                </button>
-              </div>
+              <input
+                type="text"
+                value={editorSubject}
+                onChange={(e) => setEditorSubject(e.target.value)}
+                placeholder="Oggetto Email"
+                style={{
+                  flex: 1,
+                  maxWidth: '400px',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px'
+                }}
+              />
             </div>
-
-            <div className="editor-form">
-              <div className="form-group">
-                <label>Oggetto Email</label>
-                <input
-                  type="text"
-                  value={editorSubject}
-                  onChange={(e) => setEditorSubject(e.target.value)}
-                  className="form-input"
-                  placeholder="Inserisci oggetto email..."
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Contenuto HTML</label>
-                <textarea
-                  value={editorContent}
-                  onChange={(e) => setEditorContent(e.target.value)}
-                  className="form-textarea"
-                  rows={20}
-                  placeholder="Inserisci contenuto HTML..."
-                />
-              </div>
-
-              <div className="editor-sidebar">
-                <h4>Variabili Disponibili</h4>
-                {selectedTemplate.variables.map((variable) => (
-                  <div key={variable} className="variable-item">
-                    <code>{`{{${variable}}}`}</code>
-                    <button className="btn-icon" title="Inserisci">
-                      <Plus size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => handlePreviewTemplate(selectedTemplate)}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+              >
+                <Eye size={16} />
+                Anteprima
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleSaveTemplate}
+                disabled={saving}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+              >
+                <Save size={16} />
+                {saving ? 'Salvataggio...' : 'Salva'}
+              </button>
             </div>
+          </div>
+
+          {/* Editor GrapeJS - full width */}
+          <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
+            <EmailEditor
+              ref={editorRef}
+              html={editorContent}
+              onChange={(html) => setEditorContent(html)}
+              variables={selectedTemplate.variables || []}
+            />
           </div>
         </div>
       )}
@@ -561,7 +731,226 @@ const EmailTemplatesDashboard: React.FC = () => {
           <EmailLogsViewer />
         </div>
       )}
+
+      {/* Create Template Modal */}
+      {showCreateModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => setShowCreateModal(false)}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '30px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, fontSize: '24px' }}>Crea Nuovo Template</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '24px',
+                  color: '#6b7280'
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <CreateTemplateForm
+              onSubmit={createTemplate}
+              onCancel={() => setShowCreateModal(false)}
+              saving={saving}
+            />
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+// Form per creare nuovo template
+const CreateTemplateForm: React.FC<{
+  onSubmit: (template: Partial<EmailTemplate>) => void
+  onCancel: () => void
+  saving: boolean
+}> = ({ onSubmit, onCancel, saving }) => {
+  const [formData, setFormData] = useState({
+    template_type: 'custom',
+    name: '',
+    subject: '',
+    description: '',
+    html_body: '',
+    text_body: '',
+    variables: '',
+    allowed_plans: ['FREE', 'BASIC', 'PRO', 'ENTERPRISE'],
+    is_active: true
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const variablesArray = formData.variables
+      .split(',')
+      .map(v => v.trim())
+      .filter(v => v.length > 0)
+
+    onSubmit({
+      ...formData,
+      variables: variablesArray
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Tipo Template</label>
+        <select
+          value={formData.template_type}
+          onChange={(e) => setFormData({ ...formData, template_type: e.target.value })}
+          className="form-select"
+          required
+          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+        >
+          <option value="custom">Custom</option>
+          <option value="receipt">Receipt</option>
+          <option value="birthday">Birthday</option>
+          <option value="promo">Promo</option>
+          <option value="welcome">Welcome</option>
+          <option value="billing">Billing</option>
+        </select>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Nome Template *</label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className="form-input"
+          required
+          placeholder="Es: Scontrino Digitale"
+          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+        />
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Oggetto Email *</label>
+        <input
+          type="text"
+          value={formData.subject}
+          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+          className="form-input"
+          required
+          placeholder="Es: Grazie per il tuo acquisto - {{store_name}}"
+          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+        />
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Descrizione</label>
+        <input
+          type="text"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="form-input"
+          placeholder="Breve descrizione del template"
+          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+        />
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Contenuto HTML *</label>
+        <textarea
+          value={formData.html_body}
+          onChange={(e) => setFormData({ ...formData, html_body: e.target.value })}
+          className="form-textarea"
+          required
+          rows={10}
+          placeholder="<div>Contenuto HTML dell'email...</div>"
+          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb', fontFamily: 'monospace', fontSize: '14px' }}
+        />
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Variabili (separate da virgola)</label>
+        <input
+          type="text"
+          value={formData.variables}
+          onChange={(e) => setFormData({ ...formData, variables: e.target.value })}
+          className="form-input"
+          placeholder="store_name, customer_name, total"
+          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+        />
+        <small style={{ color: '#6b7280', fontSize: '12px' }}>Es: store_name, customer_name, total</small>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Piani Consentiti</label>
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          {['FREE', 'BASIC', 'PRO', 'ENTERPRISE'].map(plan => (
+            <label key={plan} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <input
+                type="checkbox"
+                checked={formData.allowed_plans.includes(plan)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFormData({ ...formData, allowed_plans: [...formData.allowed_plans, plan] })
+                  } else {
+                    setFormData({ ...formData, allowed_plans: formData.allowed_plans.filter(p => p !== plan) })
+                  }
+                }}
+              />
+              {plan}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            checked={formData.is_active}
+            onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+          />
+          <span style={{ fontWeight: '600' }}>Template Attivo</span>
+        </label>
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn-secondary"
+          style={{ padding: '10px 20px' }}
+        >
+          Annulla
+        </button>
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={saving}
+          style={{ padding: '10px 20px' }}
+        >
+          {saving ? 'Creazione...' : 'Crea Template'}
+        </button>
+      </div>
+    </form>
   )
 }
 

@@ -12,15 +12,17 @@
   color: white;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease;
+  transition: width 0.3s ease;
   position: relative;
   z-index: 1000;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .admin-sidebar.closed {
-  transform: translateX(-280px);
+  width: 70px;
 }
+
 
 @media (max-width: 1200px) {
   .admin-sidebar {
@@ -55,6 +57,13 @@
 
 .logo-text {
   color: #60a5fa;
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar.closed .logo-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
 }
 
 .sidebar-toggle {
@@ -92,6 +101,16 @@
   flex-shrink: 0;
 }
 
+.user-details {
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar.closed .user-details {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
 .user-name {
   font-weight: 600;
   font-size: 14px;
@@ -120,6 +139,14 @@
   letter-spacing: 0.05em;
   color: #64748b;
   padding: 0 20px 8px 20px;
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar.closed .nav-group-title {
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .nav-items {
@@ -133,20 +160,25 @@
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
-  color: var(--omnily-gray-300);
+  color: white !important;
   text-decoration: none;
   transition: all 0.2s;
   border-right: 3px solid transparent;
 }
 
+.admin-sidebar.closed .nav-link {
+  justify-content: center;
+  padding: 12px 0;
+}
+
 .nav-link:hover {
   background: #334155;
-  color: white;
+  color: #ef4444 !important;
 }
 
 .nav-link.active {
   background: var(--omnily-primary);
-  color: white;
+  color: white !important;
   border-right-color: #f87171;
 }
 
@@ -159,7 +191,7 @@
 
 .nav-link.disabled:hover {
   background: transparent;
-  color: var(--omnily-gray-300);
+  color: white !important;
 }
 
 .coming-soon-badge {
@@ -172,11 +204,33 @@
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar.closed .coming-soon-badge {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
 }
 
 .nav-text {
   font-size: 14px;
   font-weight: 500;
+  color: inherit;
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar.closed .nav-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Assicura che le icone abbiano lo stesso colore del link */
+.nav-link svg,
+.footer-link svg {
+  color: inherit !important;
 }
 
 /* Sidebar Footer */
@@ -192,15 +246,33 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #94a3b8;
+  color: white !important;
   text-decoration: none;
   font-size: 13px;
   padding: 8px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
   transition: color 0.2s;
 }
 
+.admin-sidebar.closed .footer-link {
+  justify-content: center;
+}
+
+.footer-link span {
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar.closed .footer-link span {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
 .footer-link:hover {
-  color: white;
+  color: #ef4444 !important;
 }
 
 /* Main Content */
@@ -217,7 +289,7 @@
   height: 64px;
   background: white;
   border-bottom: 1px solid #e2e8f0;
-  display: none; /* Hidden by default - not needed with sidebar */
+  display: none; /* Hidden on desktop - sidebar always visible */
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
@@ -243,11 +315,15 @@
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-menu-btn:hover {
   background: #f1f5f9;
+  color: #ef4444;
 }
 
 .breadcrumb {
@@ -349,25 +425,30 @@
 /* Main Content Area */
 .admin-main {
   flex: 1;
-  padding: 24px;
+  padding: 0;
   overflow-y: auto;
   overflow-x: hidden;
   background: #f8fafc;
   width: 100%;
-  max-width: 100%;
+  max-width: none;
   box-sizing: border-box;
 }
 
-/* Remove padding for CRM dashboard to use full width */
+/* Remove padding for CRM dashboard and email editor to use full width */
 .admin-main:has(.crm-dashboard),
 .admin-main:has(.crm-leads-dashboard) {
+  padding: 0;
+}
+
+/* Remove padding when in email editor tab */
+.admin-main:has([style*="height: calc(100vh - 64px)"]) {
   padding: 0;
 }
 
 /* Force all direct children to be full width */
 .admin-main > * {
   width: 100% !important;
-  max-width: 100% !important;
+  max-width: none !important;
   box-sizing: border-box !important;
 }
 
@@ -428,9 +509,9 @@
 .supplier-orders-dashboard,
 [class*="-dashboard"] {
   width: 100% !important;
-  max-width: 100% !important;
+  max-width: none !important;
   margin: 0 !important;
-  padding: 1rem !important;
+  padding: 0.75rem !important;
   box-sizing: border-box !important;
   background: #f8fafc !important;
   min-height: 100vh !important;
@@ -447,7 +528,7 @@
   .hardware-orders-dashboard,
   .supplier-orders-dashboard,
   [class*="-dashboard"] {
-    padding: 1.5rem !important;
+    padding: 1rem !important;
   }
 }
 
@@ -462,7 +543,7 @@
   .hardware-orders-dashboard,
   .supplier-orders-dashboard,
   [class*="-dashboard"] {
-    padding: 2rem !important;
+    padding: 1.5rem !important;
   }
 }
 
@@ -508,6 +589,7 @@
   border-radius: 12px !important;
   border: 1px solid #e2e8f0 !important;
   box-sizing: border-box !important;
+  overflow: visible !important;
 }
 
 @media (min-width: 768px) {
