@@ -17,6 +17,20 @@ interface EmailLog {
   created_at: string
 }
 
+interface EmailTemplate {
+  id: string
+  organization_id: string | null
+  template_type: string
+  name: string
+  subject: string
+  html_body: string
+  text_body: string | null
+  variables: string[] | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 interface EmailMarketingPanelProps {
   isOpen: boolean
   onClose: () => void
@@ -36,11 +50,18 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [isSendingTest, setIsSendingTest] = useState(false)
   const [testEmail, setTestEmail] = useState('')
+
+  // Templates state
+  const [templates, setTemplates] = useState<EmailTemplate[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
+  const [templatesLoading, setTemplatesLoading] = useState(false)
+
   const { showError, showSuccess } = useToast()
 
   useEffect(() => {
     if (isOpen && organizationId) {
       loadEmailLogs()
+      loadTemplates()
     }
   }, [isOpen, organizationId])
 
@@ -99,6 +120,32 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
       showError(`Errore: ${error?.message || 'Impossibile inviare email di test'}`)
     } finally {
       setIsSendingTest(false)
+    }
+  }
+
+  const loadTemplates = async () => {
+    setTemplatesLoading(true)
+    try {
+      // Carica template globali (organization_id = NULL)
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('*')
+        .is('organization_id', null)
+        .eq('is_active', true)
+        .order('template_type')
+
+      if (error) throw error
+      setTemplates(data || [])
+
+      // Seleziona il primo template di default
+      if (data && data.length > 0 && !selectedTemplate) {
+        setSelectedTemplate(data[0])
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error)
+      showError('Errore nel caricamento dei template')
+    } finally {
+      setTemplatesLoading(false)
     }
   }
 
@@ -355,16 +402,159 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           )}
 
           {activeTab === 'templates' && (
-            <div className="read-mode">
-              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#6b7280' }}>
-                <FileText size={80} style={{ marginBottom: '20px', opacity: 0.2 }} />
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '12px' }}>
-                  Template Email
-                </h3>
-                <p style={{ margin: 0, fontSize: '15px', lineHeight: '1.6' }}>
-                  Funzionalità in arrivo - personalizza i tuoi template email
-                </p>
-              </div>
+            <div className="list-mode">
+              {templatesLoading ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
+                  <Settings size={48} className="spinning" style={{ marginBottom: '12px', opacity: 0.3 }} />
+                  <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>Caricamento template...</p>
+                </div>
+              ) : templates.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
+                  <FileText size={64} style={{ marginBottom: '16px', opacity: 0.3 }} />
+                  <p style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Nessun template disponibile</p>
+                </div>
+              ) : (
+                <div>
+                  {/* Lista Template - Bottoni GRANDI per touch */}
+                  <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>
+                    Seleziona Template
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', marginBottom: '30px' }}>
+                    {templates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => setSelectedTemplate(template)}
+                        style={{
+                          padding: '24px',
+                          backgroundColor: selectedTemplate?.id === template.id ? '#eff6ff' : 'white',
+                          border: selectedTemplate?.id === template.id ? '3px solid #3b82f6' : '2px solid #e5e7eb',
+                          borderRadius: '12px',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          fontSize: '18px',
+                          fontWeight: '600',
+                          color: selectedTemplate?.id === template.id ? '#1e40af' : '#111827',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '16px',
+                          minHeight: '80px'
+                        }}
+                      >
+                        <FileText size={32} />
+                        <div>
+                          <div style={{ fontSize: '20px', marginBottom: '4px' }}>{template.name}</div>
+                          <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>
+                            Tipo: {template.template_type}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Editor Template */}
+                  {selectedTemplate && (
+                    <div style={{ marginTop: '30px', padding: '24px', backgroundColor: '#f9fafb', borderRadius: '12px', border: '2px solid #e5e7eb' }}>
+                      <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Eye size={28} />
+                        Modifica: {selectedTemplate.name}
+                      </h3>
+
+                      {/* Oggetto Email - Campo GRANDE */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <label style={{ display: 'block', fontSize: '18px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+                          Oggetto Email
+                        </label>
+                        <input
+                          type="text"
+                          defaultValue={selectedTemplate.subject}
+                          style={{
+                            width: '100%',
+                            padding: '20px',
+                            fontSize: '18px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '10px',
+                            fontWeight: '500'
+                          }}
+                          placeholder="Inserisci oggetto email..."
+                        />
+                      </div>
+
+                      {/* Variabili disponibili */}
+                      {selectedTemplate.variables && selectedTemplate.variables.length > 0 && (
+                        <div style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#dbeafe', borderRadius: '10px', border: '2px solid #3b82f6' }}>
+                          <h4 style={{ fontSize: '18px', fontWeight: '600', color: '#1e40af', margin: '0 0 12px 0' }}>
+                            Variabili Disponibili
+                          </h4>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                            {selectedTemplate.variables.map((variable) => (
+                              <span
+                                key={variable}
+                                style={{
+                                  padding: '10px 16px',
+                                  backgroundColor: 'white',
+                                  border: '2px solid #3b82f6',
+                                  borderRadius: '8px',
+                                  fontSize: '16px',
+                                  fontWeight: '600',
+                                  color: '#1e40af',
+                                  fontFamily: 'monospace'
+                                }}
+                              >
+                                {`{{${variable}}}`}
+                              </span>
+                            ))}
+                          </div>
+                          <p style={{ margin: '12px 0 0 0', fontSize: '14px', color: '#1e40af' }}>
+                            Usa queste variabili nel tuo template per personalizzare le email
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Preview HTML */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <label style={{ display: 'block', fontSize: '18px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+                          Anteprima Template
+                        </label>
+                        <div
+                          style={{
+                            padding: '20px',
+                            backgroundColor: 'white',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '10px',
+                            maxHeight: '400px',
+                            overflowY: 'auto'
+                          }}
+                          dangerouslySetInnerHTML={{ __html: selectedTemplate.html_body }}
+                        />
+                      </div>
+
+                      {/* Bottone Salva - GRANDE */}
+                      <button
+                        style={{
+                          width: '100%',
+                          padding: '24px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          fontSize: '20px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '12px',
+                          minHeight: '80px'
+                        }}
+                      >
+                        <Settings size={28} />
+                        Salva Modifiche
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
