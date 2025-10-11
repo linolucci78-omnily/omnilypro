@@ -135,7 +135,11 @@ const AdminLayout: React.FC = () => {
         {/* Sidebar Header */}
         <div className="sidebar-header">
           <div className="admin-logo">
-            <Building2 size={24} />
+            <img
+              src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+              alt="OMNILY Logo"
+              style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+            />
             <span className="logo-text">OMNILY Admin</span>
           </div>
           <button 
