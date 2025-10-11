@@ -18,7 +18,8 @@ import {
   Palette,
   Package,
   Menu,
-  X,
+  ChevronLeft,
+  ChevronRight,
   Home,
   LogOut,
   User,
@@ -142,11 +143,12 @@ const AdminLayout: React.FC = () => {
             />
             <span className="logo-text">OMNILY Admin</span>
           </div>
-          <button 
+          <button
             className="sidebar-toggle"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={sidebarOpen ? "Chiudi sidebar" : "Apri sidebar"}
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
         </div>
 
