@@ -10,8 +10,8 @@ android {
         applicationId "com.omnilypro.pos"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 16
-        versionName "1.2.0-nfc-fix"
+        versionCode 17
+        versionName "1.2.1"
     }
 
     buildTypes {

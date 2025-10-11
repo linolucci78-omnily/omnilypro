@@ -38,11 +38,11 @@
 }
 
 /* Responsive Widths - IDENTICHE AL CUSTOMER PANEL */
-/* Desktop: Pannello laterale 500px, sotto header app */
+/* Desktop: Pannello laterale 400px come da ROADMAP, sotto header app */
 @media (min-width: 1025px) {
   .card-management-panel {
-    width: 500px !important;
-    max-width: 500px !important;
+    width: 400px !important;
+    max-width: 400px !important;
     top: 69px;
     height: calc(100vh - 69px);
     z-index: 998;

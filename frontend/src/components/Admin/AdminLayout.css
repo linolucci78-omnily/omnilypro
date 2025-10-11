@@ -848,6 +848,44 @@ table tbody tr:hover {
   color: var(--omnily-primary);
 }
 
+/* POS mode: forzare wrap dei tab per evitare scrolling orizzontale
+   - Mostra 3 pulsanti su riga e il 4° sotto
+   - Pulsanti più grandi per touch
+.*/
+.email-dashboard.pos-mode .dashboard-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem !important;
+}
+
+.email-dashboard.pos-mode .dashboard-tabs .tab {
+  flex: 0 0 calc(33.333% - 0.5rem); /* 3 per riga */
+  padding: 1rem 0.75rem;
+  text-align: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  min-height: 56px;
+  box-sizing: border-box;
+}
+
+/* Forza il quarto bottone a iniziare una nuova riga
+   usando nth-child:4 selector (si resetta se ci sono più tab)
+*/
+.email-dashboard.pos-mode .dashboard-tabs .tab:nth-child(4) {
+  flex-basis: 100%;
+  /* center the button on the second row */
+  margin: 0.25rem auto 0 auto;
+  max-width: 420px; /* don't stretch full width; adjust if needed */
+  justify-content: center;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.email-dashboard.pos-mode .dashboard-tabs .tab:nth-child(n+5) {
+  flex: 0 0 calc(33.333% - 0.5rem);
+}
+
 /* Toolbars and filters full width */
 .section-toolbar {
   width: 100% !important;
@@ -953,17 +991,16 @@ table tbody tr:hover {
   box-sizing: border-box !important;
 }
 
-  .admin-topbar {
-    padding: 0 16px;
-  }
+.admin-topbar {
+  padding: 0 16px;
+}
 
-  .breadcrumb {
-    display: none;
-  }
+.breadcrumb {
+  display: none;
+}
 
-  .system-status {
-    display: none;
-  }
+.system-status {
+  display: none;
 }
 
 /* Scrollbar Styling */

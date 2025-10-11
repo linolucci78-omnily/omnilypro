@@ -58,6 +58,10 @@ interface EmailTemplate {
   last_used?: string | null
   created_by?: string
   preview_data?: Record<string, string>
+  // Dati GrapeJS per ricostruire editor
+  css_styles?: string | null
+  gjs_components?: any | null
+  gjs_styles?: any | null
 }
 
 interface TemplateCategory {
@@ -77,10 +81,16 @@ const EmailTemplatesDashboard: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editorContent, setEditorContent] = useState('')
+  const [editorCss, setEditorCss] = useState('')
+  const [editorGjsComponents, setEditorGjsComponents] = useState<any>(null)
+  const [editorGjsStyles, setEditorGjsStyles] = useState<any>(null)
   const [editorSubject, setEditorSubject] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Rileva se siamo in POS mode (query param posomnily=true)
+  const isPOSMode = typeof window !== 'undefined' && window.location.search.includes('posomnily=true')
 
   // Ref per accedere all'istanza dell'editor
   const editorInstanceRef = React.useRef<any>(null)
@@ -98,6 +108,17 @@ const EmailTemplatesDashboard: React.FC = () => {
         .order('created_at', { ascending: false })
 
       if (fetchError) throw fetchError
+
+      console.log('📧 Template caricati dal database:', data?.length || 0, data)
+
+      // Verifica presenza dati GrapeJS
+      data?.forEach(t => {
+        console.log(`📋 ${t.name}:`, {
+          has_gjs_components: !!t.gjs_components,
+          has_gjs_styles: !!t.gjs_styles,
+          has_css_styles: !!t.css_styles
+        })
+      })
 
       setTemplates(data || [])
 
@@ -165,18 +186,31 @@ const EmailTemplatesDashboard: React.FC = () => {
   // Aggiorna template
   const updateTemplate = async (id: string, updates: Partial<EmailTemplate>) => {
     try {
+      console.log('🔄 updateTemplate chiamata con ID:', id);
+      console.log('📋 Updates:', Object.keys(updates));
+
       setSaving(true)
       setError(null)
 
-      const { error: updateError } = await supabase
-        .from('email_templates')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
+      const dataToUpdate = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
 
-      if (updateError) throw updateError
+      console.log('📤 Invio update a Supabase...');
+      const { data, error: updateError } = await supabase
+        .from('email_templates')
+        .update(dataToUpdate)
+        .eq('id', id)
+        .select();
+
+      if (updateError) {
+        console.error('❌ Errore Supabase:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ Update Supabase riuscito:', data);
+      console.log('🔄 Ricaricamento template...');
 
       await loadTemplates()
       setSuccess('Template aggiornato con successo!')
@@ -184,6 +218,7 @@ const EmailTemplatesDashboard: React.FC = () => {
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {
       const errorMsg = typeof err === 'string' ? err : (err?.message || 'Errore nell\'aggiornamento del template')
+      console.error('❌ Errore in updateTemplate:', errorMsg);
       setError(errorMsg)
     } finally {
       setSaving(false)
@@ -267,8 +302,48 @@ const EmailTemplatesDashboard: React.FC = () => {
   }, [])
 
   const handleEditTemplate = (template: EmailTemplate) => {
+    console.log('🖊️ handleEditTemplate chiamato per:', template.name)
+    console.log('📦 Dati template:', {
+      has_gjs_components: !!template.gjs_components,
+      has_gjs_styles: !!template.gjs_styles,
+      has_css_styles: !!template.css_styles,
+      gjs_components_type: typeof template.gjs_components,
+      gjs_components: template.gjs_components
+    })
+
     setSelectedTemplate(template)
-    setEditorContent(template.html_body)
+
+    // Se il template ha dati GrapeJS, usali
+    if (template.gjs_components) {
+      setEditorGjsComponents(template.gjs_components)
+      setEditorGjsStyles(template.gjs_styles)
+      setEditorCss(template.css_styles || '')
+
+      // Estrai solo l'HTML senza il tag <style>
+      let htmlOnly = template.html_body
+      if (template.html_body.includes('<style>')) {
+        htmlOnly = template.html_body.replace(/<style[^>]*>.*?<\/style>/is, '').trim()
+      }
+      setEditorContent(htmlOnly)
+    } else {
+      // Template legacy senza dati GrapeJS - estrai CSS dall'HTML se presente
+      let htmlOnly = template.html_body
+      let extractedCss = ''
+
+      if (template.html_body.includes('<style>')) {
+        const match = template.html_body.match(/<style[^>]*>(.*?)<\/style>/is)
+        if (match) {
+          extractedCss = match[1]
+          htmlOnly = template.html_body.replace(/<style[^>]*>.*?<\/style>/is, '').trim()
+        }
+      }
+
+      setEditorContent(htmlOnly)
+      setEditorCss(extractedCss)
+      setEditorGjsComponents(null)
+      setEditorGjsStyles(null)
+    }
+
     setEditorSubject(template.subject)
     setActiveTab('editor')
   }
@@ -278,33 +353,54 @@ const EmailTemplatesDashboard: React.FC = () => {
     setActiveTab('preview')
   }
 
-  const handleSaveTemplate = async (htmlFromEditor?: string) => {
-    if (!selectedTemplate) return
-
-    // Estrai HTML dall'editor tramite ref
-    let currentHtml = htmlFromEditor
-    if (!currentHtml && editorInstanceRef.current) {
-      try {
-        const editor = editorInstanceRef.current
-        currentHtml = editor.getHtml?.() || editor.editor?.getHtml?.() || editorContent
-      } catch (e) {
-        currentHtml = editorContent
+  const handleSaveTemplate = async (data: { html: string, css: string, gjsComponents?: any, gjsStyles?: any }) => {
+      if (!selectedTemplate) {
+        console.error('❌ Nessun template selezionato!');
+        return;
       }
-    }
-    if (!currentHtml) {
-      currentHtml = editorContent
-    }
 
-    // Assicurati che sia una stringa
-    if (typeof currentHtml !== 'string') {
-      currentHtml = String(currentHtml || '')
-    }
+      console.log('💾 Inizio salvataggio template:', selectedTemplate.id);
+      console.log('📊 Dati ricevuti:', {
+        html: data.html?.substring(0, 100) + '...',
+        css: data.css?.substring(0, 100) + '...',
+        hasGjsComponents: !!data.gjsComponents,
+        hasGjsStyles: !!data.gjsStyles
+      });
 
-    await updateTemplate(selectedTemplate.id, {
-      subject: editorSubject,
-      html_body: currentHtml
-    })
-  }
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      try {
+        // Combina CSS e HTML per un template auto-contenuto (per l'invio email)
+        const fullHtml = `<style>${data.css}</style>${data.html}`;
+
+        console.log('📝 Chiamata updateTemplate con:', {
+          id: selectedTemplate.id,
+          html_body_length: fullHtml.length,
+          subject: editorSubject,
+          css_styles_length: data.css?.length,
+          gjs_components: data.gjsComponents,
+          gjs_styles: data.gjsStyles
+        });
+
+        await updateTemplate(selectedTemplate.id, {
+          html_body: fullHtml,
+          subject: editorSubject,
+          css_styles: data.css,
+          gjs_components: data.gjsComponents,
+          gjs_styles: data.gjsStyles,
+        });
+
+        console.log('✅ Template salvato con successo!');
+
+      } catch (err: any) {
+        console.error('❌ Errore salvataggio:', err);
+        setError(err.message || 'Errore nel salvataggio del template');
+      } finally {
+        setSaving(false);
+      }
+    };
 
   const renderPreview = (template: EmailTemplate) => {
     let content = template.html_body
@@ -335,7 +431,7 @@ const EmailTemplatesDashboard: React.FC = () => {
   }
 
   return (
-    <div className="admin-dashboard">
+    <div className={"admin-dashboard email-dashboard" + (isPOSMode ? ' pos-mode' : '')}>
       {/* Success/Error Messages */}
       {success && (
         <div style={{
@@ -404,45 +500,70 @@ const EmailTemplatesDashboard: React.FC = () => {
 
       {/* Tabs */}
       <div className="dashboard-tabs">
-        <button
-          className={`tab ${activeTab === 'list' ? 'active' : ''}`}
-          onClick={() => setActiveTab('list')}
-        >
-          <FileText size={16} />
-          Lista Template
-        </button>
-        {selectedTemplate && (
+        {isPOSMode ? (
+          // POS mode: mostra 4 pulsanti fissi, con il 4° che va sotto tramite CSS
+          <>
+            <button className={`tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
+              <FileText size={16} />
+              CAMPAGNE
+            </button>
+            <button className={`tab ${activeTab === 'logs' ? 'active' : ''}`} onClick={() => setActiveTab('logs')}>
+              <Database size={16} />
+              LOG
+            </button>
+            <button className={`tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
+              <Mail size={16} />
+              EMAIL TEMPLATE
+            </button>
+            <button className={`tab ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+              <Settings size={16} />
+              IMPOSTAZIONI
+            </button>
+          </>
+        ) : (
+          // Normal mode: comportamento attuale completo
           <>
             <button
-              className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
-              onClick={() => setActiveTab('editor')}
+              className={`tab ${activeTab === 'list' ? 'active' : ''}`}
+              onClick={() => setActiveTab('list')}
             >
-              <Edit size={16} />
-              Editor
+              <FileText size={16} />
+              Lista Template
+            </button>
+            {selectedTemplate && (
+              <>
+                <button
+                  className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('editor')}
+                >
+                  <Edit size={16} />
+                  Editor
+                </button>
+                <button
+                  className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('preview')}
+                >
+                  <Eye size={16} />
+                  Anteprima
+                </button>
+              </>
+            )}
+            <button
+              className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              <Settings size={16} />
+              Impostazioni
             </button>
             <button
-              className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('preview')}
+              className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
+              onClick={() => setActiveTab('logs')}
             >
-              <Eye size={16} />
-              Anteprima
+              <Database size={16} />
+              Log Email
             </button>
           </>
         )}
-        <button
-          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-        >
-          <Settings size={16} />
-          Impostazioni
-        </button>
-        <button
-          className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
-          onClick={() => setActiveTab('logs')}
-        >
-          <Database size={16} />
-          Log Email
-        </button>
       </div>
 
       {activeTab === 'list' && (
@@ -496,6 +617,14 @@ const EmailTemplatesDashboard: React.FC = () => {
 
             {/* Templates Grid */}
             <div className="templates-grid">
+              {console.log('📋 Rendering template grid, totale template:', templates.length)}
+              {templates.length === 0 && (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                  <Mail size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
+                  <h3>Nessun template trovato</h3>
+                  <p>Crea il tuo primo template email per iniziare</p>
+                </div>
+              )}
               {templates
                 .filter(t =>
                   (searchTerm === '' ||
@@ -663,7 +792,40 @@ const EmailTemplatesDashboard: React.FC = () => {
               </button>
               <button
                 className="btn-primary"
-                onClick={() => handleSaveTemplate()}
+                onClick={() => {
+                  // Leggi i dati FRESCHI dall'editor al momento del click
+                  const editor = editorInstanceRef.current;
+                  console.log('🔘 Click Salva, editor:', !!editor);
+
+                  if (editor) {
+                    const gjsComponents = editor.getComponents();
+                    const gjsStyles = editor.getStyle();
+                    const htmlContent = editor.getHtml();
+                    const cssContent = editor.getCss();
+
+                    console.log('📦 Dati dall\'editor:', {
+                      hasGjsComponents: !!gjsComponents,
+                      hasGjsStyles: !!gjsStyles,
+                      html_length: htmlContent?.length,
+                      css_length: cssContent?.length
+                    });
+
+                    handleSaveTemplate({
+                      html: htmlContent || editorContent,
+                      css: cssContent || editorCss,
+                      gjsComponents,
+                      gjsStyles
+                    });
+                  } else {
+                    console.warn('⚠️  Editor ref non disponibile, uso stati React');
+                    handleSaveTemplate({
+                      html: editorContent,
+                      css: editorCss,
+                      gjsComponents: editorGjsComponents,
+                      gjsStyles: editorGjsStyles
+                    });
+                  }
+                }}
                 disabled={saving}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
               >
@@ -677,12 +839,18 @@ const EmailTemplatesDashboard: React.FC = () => {
           <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
             <EmailEditor
               html={editorContent}
-              onChange={(html) => setEditorContent(html)}
-              onSave={(html) => handleSaveTemplate(html)}
-              onEditorReady={(editor) => {
-                editorInstanceRef.current = editor
+              css={editorCss}
+              gjsComponents={editorGjsComponents}
+              gjsStyles={editorGjsStyles}
+              onChange={(data) => {
+                setEditorContent(data.html)
+                setEditorCss(data.css)
+                setEditorGjsComponents(data.gjsComponents)
+                setEditorGjsStyles(data.gjsStyles)
               }}
+              onSave={(data) => handleSaveTemplate(data)}
               variables={selectedTemplate.variables || []}
+              editorRef={editorInstanceRef}
             />
           </div>
         </div>

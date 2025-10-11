@@ -88,17 +88,23 @@ serve(async (req) => {
     if (settingsError || !settings) {
       // Fallback a settings globali
       console.log('⚠️ Org settings not found, using global settings')
-      const { data: globalSettings, error: globalError } = await supabaseClient
+      const { data: globalSettingsList, error: globalError } = await supabaseClient
         .from('email_settings')
         .select('*')
         .is('organization_id', null)
-        .single()
 
-      if (globalError || !globalSettings) {
+      if (globalError || !globalSettingsList || globalSettingsList.length === 0) {
         throw new Error('No email settings found (neither org nor global)')
       }
 
-      emailSettings = globalSettings
+      // Priorità: settings con API Key configurata
+      const settingsWithKey = globalSettingsList.find((s: EmailSettings) => s.resend_api_key)
+      emailSettings = settingsWithKey || globalSettingsList[0]
+
+      console.log('✅ Using global settings:', {
+        from_email: emailSettings.from_email,
+        has_api_key: !!emailSettings.resend_api_key
+      })
     } else {
       emailSettings = settings
     }
@@ -136,19 +142,20 @@ serve(async (req) => {
     if (templateError || !template) {
       // Fallback a template globale
       console.log('⚠️ Org template not found, using global template')
-      const { data: globalTemplate, error: globalTemplateError } = await supabaseClient
+      const { data: globalTemplates, error: globalTemplateError } = await supabaseClient
         .from('email_templates')
         .select('*')
         .is('organization_id', null)
         .eq('template_type', template_type)
         .eq('is_active', true)
-        .single()
+        .order('is_default', { ascending: false })
+        .limit(1)
 
-      if (globalTemplateError || !globalTemplate) {
+      if (globalTemplateError || !globalTemplates || globalTemplates.length === 0) {
         throw new Error(`Template not found: ${template_type}`)
       }
 
-      emailTemplate = globalTemplate
+      emailTemplate = globalTemplates[0]
     } else {
       emailTemplate = template
     }

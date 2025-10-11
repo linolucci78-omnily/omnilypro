@@ -430,32 +430,28 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
                 </button>
               </div>
 
-              {/* Stats campagne */}
+              {/* Stats campagne - SOLO 3 CARD */}
               {campaigns.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                   <div style={{ padding: '16px', backgroundColor: '#dbeafe', borderRadius: '8px', textAlign: 'center', border: '2px solid #3b82f6' }}>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#1e40af', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '28px', fontWeight: '700', color: '#1e40af', marginBottom: '4px' }}>
                       {campaigns.length}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: '500' }}>Totali</div>
+                    <div style={{ fontSize: '13px', color: '#1e40af', fontWeight: '500' }}>Campagne Totali</div>
                   </div>
-                  <div style={{ padding: '16px', backgroundColor: '#d1fae5', borderRadius: '8px', textAlign: 'center', border: '2px solid #10b981' }}>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#065f46', marginBottom: '4px' }}>
-                      {campaigns.filter(c => c.status === 'completed').length}
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ flex: 1, padding: '16px', backgroundColor: '#d1fae5', borderRadius: '8px', textAlign: 'center', border: '2px solid #10b981' }}>
+                      <div style={{ fontSize: '28px', fontWeight: '700', color: '#065f46', marginBottom: '4px' }}>
+                        {campaigns.filter(c => c.status === 'completed').length}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#065f46', fontWeight: '500' }}>Completate</div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '500' }}>Completate</div>
-                  </div>
-                  <div style={{ padding: '16px', backgroundColor: '#fef3c7', borderRadius: '8px', textAlign: 'center', border: '2px solid #f59e0b' }}>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#92400e', marginBottom: '4px' }}>
-                      {campaigns.filter(c => c.status === 'sending').length}
+                    <div style={{ flex: 1, padding: '16px', backgroundColor: '#e0e7ff', borderRadius: '8px', textAlign: 'center', border: '2px solid #6366f1' }}>
+                      <div style={{ fontSize: '28px', fontWeight: '700', color: '#3730a3', marginBottom: '4px' }}>
+                        {campaigns.reduce((sum, c) => sum + c.sent_count, 0)}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#3730a3', fontWeight: '500' }}>Email Inviate</div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#92400e', fontWeight: '500' }}>In Corso</div>
-                  </div>
-                  <div style={{ padding: '16px', backgroundColor: '#e0e7ff', borderRadius: '8px', textAlign: 'center', border: '2px solid #6366f1' }}>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#3730a3', marginBottom: '4px' }}>
-                      {campaigns.reduce((sum, c) => sum + c.sent_count, 0)}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#3730a3', fontWeight: '500' }}>Email Inviate</div>
                   </div>
                 </div>
               )}
@@ -545,7 +541,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
                         </div>
 
                         {/* Stats Inline */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '16px' }}>
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', fontWeight: '500' }}>Destinatari</div>
                             <div style={{ fontSize: '18px', fontWeight: '700', color: '#111827' }}>
@@ -1037,7 +1033,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
                       Colori Brand
                     </h4>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '16px', fontWeight: '600', color: '#374151', marginBottom: '10px' }}>
                           Colore Primario
