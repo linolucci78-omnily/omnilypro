@@ -227,7 +227,7 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
             loadContentIntoEditor(editor);
           }}
           onChange={handleOnChange}
-          onSave={handleOnSave}
+          // onSave non supportato da StudioEditor - gestito esternamente via button
         />
       </div>
     </div>
