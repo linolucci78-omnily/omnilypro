@@ -359,11 +359,12 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           </button>
         </div>
 
-        {/* Mode Tabs */}
-        <div className="mode-tabs">
+        {/* Mode Tabs - 3 per riga max, 4° va sotto su POS */}
+        <div className="mode-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           <button
             className={`mode-tab ${activeTab === 'campaigns' ? 'active' : ''}`}
             onClick={() => setActiveTab('campaigns')}
+            style={{ flex: '1 1 calc(33.333% - 6px)', minWidth: '110px' }}
           >
             <Megaphone size={18} />
             Campagne
@@ -371,6 +372,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           <button
             className={`mode-tab ${activeTab === 'logs' ? 'active' : ''}`}
             onClick={() => setActiveTab('logs')}
+            style={{ flex: '1 1 calc(33.333% - 6px)', minWidth: '110px' }}
           >
             <Database size={18} />
             Log Email
@@ -378,6 +380,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           <button
             className={`mode-tab ${activeTab === 'templates' ? 'active' : ''}`}
             onClick={() => setActiveTab('templates')}
+            style={{ flex: '1 1 calc(33.333% - 6px)', minWidth: '110px' }}
           >
             <FileText size={18} />
             Template
@@ -385,6 +388,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           <button
             className={`mode-tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
+            style={{ flex: '1 1 calc(33.333% - 6px)', minWidth: '110px' }}
           >
             <Settings size={18} />
             Impostazioni
