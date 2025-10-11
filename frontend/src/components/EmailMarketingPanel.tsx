@@ -432,7 +432,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
 
               {/* Stats campagne */}
               {campaigns.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
                   <div style={{ padding: '16px', backgroundColor: '#dbeafe', borderRadius: '8px', textAlign: 'center', border: '2px solid #3b82f6' }}>
                     <div style={{ fontSize: '24px', fontWeight: '700', color: '#1e40af', marginBottom: '4px' }}>
                       {campaigns.length}
