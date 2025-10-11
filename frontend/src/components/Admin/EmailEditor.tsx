@@ -95,15 +95,8 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
     identity: { id: userId },
     // storage: { type: 'browser' as const }, // Disabilitato per evitare conflitti con contenuto dinamico
     theme: 'light' as const,
-    templates: {
-      showBrowser: true,
-      items: templates.map(template => ({
-        id: template.id,
-        name: template.name,
-        content: template.html_body,
-      })),
-    },
-  }), [projectId, userId, templates]);
+    // templates: non supportato in questa versione del SDK - caricamento manuale via setComponents
+  }), [projectId, userId]);
 
   const handleOnChange = (data: any) => {
     if (onChange) {
