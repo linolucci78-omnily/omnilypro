@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
@@ -36,28 +36,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userRole, setUserRole] = useState<string | null>(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
 
-  // Evita chiamate multiple simultanee a checkUserRole
-  const isCheckingRole = useRef(false)
-  const roleCache = useRef<{ userId: string; role: string | null; isSuperAdmin: boolean } | null>(null)
-
   // Function to check user role
   const checkUserRole = async (userId: string) => {
-    // Se già sta controllando, skip
-    if (isCheckingRole.current) {
-      console.log('🔐 checkUserRole già in esecuzione, skip')
-      return
-    }
-
-    // Se abbiamo già il ruolo in cache per questo utente, usalo
-    if (roleCache.current && roleCache.current.userId === userId) {
-      console.log('🔐 Usando ruolo da cache:', roleCache.current.role)
-      setUserRole(roleCache.current.role)
-      setIsSuperAdmin(roleCache.current.isSuperAdmin)
-      setLoading(false)
-      return
-    }
-
-    isCheckingRole.current = true
     console.log('🔐 Checking user role for:', userId)
 
     try {
@@ -68,11 +48,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // STEP 2: Check organization_users table (Organization owners/staff)
       console.log('🔐 Checking organization_users table...')
 
-      const { data: allRoles, error: allError } = await supabase
+      const queryPromise = supabase
         .from('organization_users')
         .select('role, org_id')
         .eq('user_id', userId)
-        .limit(10) // Limita i risultati per velocizzare
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Role query timeout after 5s')), 5000)
+      )
+
+      const { data: allRoles, error: allError } = await Promise.race([
+        queryPromise,
+        timeoutPromise
+      ]) as any
 
       console.log('🔐 Organization_users result:', allRoles, 'Error:', allError)
 
@@ -83,8 +71,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔐 Super admin found!', superAdminRole)
         setUserRole('super_admin')
         setIsSuperAdmin(true)
-        // Salva in cache
-        roleCache.current = { userId, role: 'super_admin', isSuperAdmin: true }
         return
       }
 
@@ -94,14 +80,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔐 Regular role found:', firstRole.role)
         setUserRole(firstRole.role)
         setIsSuperAdmin(firstRole.role === 'super_admin')
-        // Salva in cache
-        roleCache.current = { userId, role: firstRole.role, isSuperAdmin: firstRole.role === 'super_admin' }
       } else {
         console.log('🔐 No roles found for user')
         setUserRole(null)
         setIsSuperAdmin(false)
-        // Salva in cache anche il null
-        roleCache.current = { userId, role: null, isSuperAdmin: false }
       }
     } catch (err) {
       console.error('🔐 Error checking user role:', err)
@@ -112,7 +94,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       // Always stop loading at the end
       setLoading(false)
-      isCheckingRole.current = false
     }
   }
 
