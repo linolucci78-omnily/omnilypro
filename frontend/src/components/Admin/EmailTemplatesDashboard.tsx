@@ -617,7 +617,6 @@ const EmailTemplatesDashboard: React.FC = () => {
 
             {/* Templates Grid */}
             <div className="templates-grid">
-              {console.log('📋 Rendering template grid, totale template:', templates.length)}
               {templates.length === 0 && (
                 <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
                   <Mail size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />

@@ -93,7 +93,7 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
       }],
     },
     identity: { id: userId },
-    storage: { type: 'none' as const }, // Cambiato da 'browser' a 'none' per evitare conflitti
+    // storage: { type: 'browser' as const }, // Disabilitato per evitare conflitti con contenuto dinamico
     theme: 'light' as const,
     templates: {
       showBrowser: true,
