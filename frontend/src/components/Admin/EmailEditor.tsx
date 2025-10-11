@@ -1,90 +1,38 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
+import React, { useRef, useEffect } from 'react'
 import StudioEditor from '@grapesjs/studio-sdk/react'
-import '@grapesjs/studio-sdk/style'
 
 interface EmailEditorProps {
   html?: string
   onChange?: (html: string) => void
+  onSave?: (html: string) => void
+  onEditorReady?: (editor: any) => void
   variables?: string[]
 }
 
-export interface EmailEditorRef {
-  getHtml: () => string
-}
-
-const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', onChange, variables = [] }, ref) => {
+const EmailEditor: React.FC<EmailEditorProps> = ({ html = '', onChange, onSave, onEditorReady, variables = [] }) => {
   const editorRef = useRef<any>(null)
   const [isEditorReady, setIsEditorReady] = React.useState(false)
   const [initialHtml, setInitialHtml] = React.useState(html)
-  const currentHtmlRef = useRef<string>(html) // Salva HTML corrente
+  const [updatedHtml, setUpdatedHtml] = React.useState(html)
 
   // Genera ID univoci per progetto e utente
   const projectId = React.useMemo(() => `omnily-email-${Date.now()}`, [])
   const userId = React.useMemo(() => `admin-user-${Math.random().toString(36).substr(2, 9)}`, [])
 
-  // Esponi metodo per estrarre HTML dall'editor
-  useImperativeHandle(ref, () => ({
-    getHtml: () => {
-      console.log('🔍 Estraendo HTML dall\'editor in tempo reale...')
-
-      // Prima prova a usare l'HTML salvato da onChange
-      if (currentHtmlRef.current && currentHtmlRef.current !== html) {
-        console.log('✅ Uso HTML da currentHtmlRef, lunghezza:', currentHtmlRef.current.length)
-        return currentHtmlRef.current
-      }
-
-      // Altrimenti estrai direttamente dall'editor
-      if (!editorRef.current) {
-        console.warn('⚠️ Editor ref non disponibile, ritorno HTML iniziale')
-        return html
-      }
-
-      try {
-        const editor = editorRef.current
-
-        // Prova getProjectData per ottenere il progetto completo
-        if (typeof editor.getProjectData === 'function') {
-          const projectData = editor.getProjectData()
-          console.log('📦 Project data ottenuto:', projectData)
-
-          if (projectData?.pages?.[0]?.component) {
-            console.log('✅ HTML estratto da getProjectData().pages[0].component')
-            return projectData.pages[0].component
-          }
-        }
-
-        // Prova getHtml diretto
-        if (typeof editor.getHtml === 'function') {
-          const result = editor.getHtml()
-          console.log('✅ HTML estratto con getHtml(), lunghezza:', result?.length)
-          return result
-        }
-
-        console.warn('⚠️ Nessun metodo funzionante, ritorno HTML iniziale')
-        return html
-      } catch (error) {
-        console.error('❌ Errore estrazione:', error)
-        return html
-      }
-    }
-  }))
-
-  // Aggiorna l'HTML iniziale quando cambia
+  // Aggiorna l'HTML iniziale quando cambia (senza loop infinito)
   useEffect(() => {
     if (html && html !== initialHtml) {
       setInitialHtml(html)
-      currentHtmlRef.current = html // Aggiorna anche il ref
-      setIsEditorReady(false) // Reset per ricaricare
+      setUpdatedHtml(html)
+      setIsEditorReady(false)
     }
-  }, [html]) // Rimosso initialHtml dalle dipendenze per evitare loop infinito
+  }, [html]) // SOLO html nelle dipendenze, non initialHtml!
 
   // Carica l'HTML nel editor quando è pronto
   useEffect(() => {
     if (isEditorReady && editorRef.current && initialHtml) {
       try {
         const editor = editorRef.current
-
-        // Carica l'HTML nell'editor
         if (typeof editor.setComponents === 'function') {
           editor.setComponents(initialHtml)
         } else if (editor.editor && typeof editor.editor.setComponents === 'function') {
@@ -100,64 +48,39 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
 
   // Gestisce i cambiamenti nell'editor
   const handleEditorUpdate = (data: any) => {
-    console.log('📧 Studio SDK onChange triggered:', data)
+    if (!onChange) return
 
     try {
       let extractedHtml = ''
 
-      // Prova a ottenere l'HTML dal data object
-      if (data && data.html) {
+      // Prova vari metodi per estrarre l'HTML
+      if (data?.html) {
         extractedHtml = data.html
-        console.log('✅ HTML trovato in data.html, lunghezza:', extractedHtml.length)
-      }
-      // Prova data.pages[0].component
-      else if (data && data.pages && data.pages[0] && data.pages[0].component) {
+      } else if (data?.pages?.[0]?.component) {
         extractedHtml = data.pages[0].component
-        console.log('✅ HTML trovato in data.pages[0].component, lunghezza:', extractedHtml.length)
-      }
-      // Altrimenti prova dal ref
-      else if (editorRef.current) {
+      } else if (editorRef.current) {
         const editor = editorRef.current
-
         if (typeof editor.getHtml === 'function') {
           extractedHtml = editor.getHtml()
-          console.log('✅ HTML estratto con editor.getHtml(), lunghezza:', extractedHtml?.length)
-        } else if (editor.editor && typeof editor.editor.getHtml === 'function') {
+        } else if (editor.editor?.getHtml) {
           extractedHtml = editor.editor.getHtml()
-          console.log('✅ HTML estratto con editor.editor.getHtml(), lunghezza:', extractedHtml?.length)
-        } else if (editor.instance && typeof editor.instance.getHtml === 'function') {
+        } else if (editor.instance?.getHtml) {
           extractedHtml = editor.instance.getHtml()
-          console.log('✅ HTML estratto con editor.instance.getHtml(), lunghezza:', extractedHtml?.length)
-        } else {
-          console.warn('⚠️ Nessun metodo per estrarre HTML trovato')
         }
       }
 
-      // Salva HTML corrente nel ref per uso successivo
       if (extractedHtml) {
-        currentHtmlRef.current = extractedHtml
-        console.log('💾 HTML salvato in currentHtmlRef, lunghezza:', extractedHtml.length)
-
-        // Chiama onChange se fornito
-        if (onChange) {
-          onChange(extractedHtml)
-        }
+        onChange(extractedHtml)
       }
     } catch (error) {
-      console.error('❌ Errore nell\'estrazione HTML:', error)
+      console.error('Errore nell\'estrazione HTML:', error)
     }
   }
 
-  // Crea le options una sola volta con l'HTML iniziale
+  // Crea le options
   const editorOptions = React.useMemo(() => ({
     licenseKey: 'ff2fab8f4c544ed98668ac8555413fcec821766e12a048bd9676cf10b550ec19',
     theme: 'light' as const,
-    ...(initialHtml && {
-      pages: [{
-        id: 'main-page',
-        component: initialHtml
-      }]
-    }),
     customTheme: {
       default: {
         colors: {
@@ -204,11 +127,8 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
     identity: {
       id: userId
     },
-    assets: {
-      storageType: 'local' as const
-    },
     storage: {
-      type: 'local' as const
+      type: 'browser' as const
     }
   }), [projectId, userId, initialHtml])
 
@@ -253,7 +173,7 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
         </p>
       </div>
 
-      {/* Pannello Variabili PROFESSIONALE */}
+      {/* Pannello Variabili */}
       {variables && variables.length > 0 && (
         <div style={{
           background: '#ffffff',
@@ -300,8 +220,6 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
                 }}
                 onClick={() => {
                   navigator.clipboard.writeText(`{{${variable}}}`)
-
-                  // Notifica semplice e professionale
                   const notification = document.createElement('div');
                   notification.innerText = `✓ ${variable} copiato`;
                   notification.style.cssText = `
@@ -323,16 +241,6 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
                       document.body.removeChild(notification);
                     }
                   }, 2000);
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #dbeafe, #bfdbfe)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #eff6ff, #dbeafe)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
                 }}
                 title="Clicca per copiare negli appunti"
               >
@@ -365,9 +273,52 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
       }}>
         <StudioEditor
           onReady={(editor: any) => {
-            // Salva il riferimento all'editor
             if (editor) {
               editorRef.current = editor
+
+              // Passa l'istanza al parent tramite callback
+              if (onEditorReady) {
+                onEditorReady(editor)
+              }
+
+              // SOLUZIONE GEMINI: Ascolta l'evento 'update' per catturare TUTTE le modifiche
+              try {
+                editor.on('update', () => {
+                  try {
+                    const newHtml = editor.getHtml?.() || editor.editor?.getHtml?.() || ''
+                    if (newHtml) {
+                      setUpdatedHtml(newHtml)
+                      if (onChange) {
+                        onChange(newHtml)
+                      }
+                    }
+                  } catch (e) {
+                    // Ignora errori di estrazione HTML
+                  }
+                })
+              } catch (e) {
+                // Ignora se editor.on non è disponibile
+              }
+
+              // Intercetta il comando "save" di GrapeJS
+              if (editor.Commands && onSave) {
+                // Salva il riferimento alla funzione onSave
+                const saveFn = onSave
+
+                editor.Commands.add('save', {
+                  run: () => {
+                    try {
+                      const html = editor.getHtml?.() || editor.editor?.getHtml?.() || updatedHtml
+                      if (html && saveFn) {
+                        // Chiama in un setTimeout per evitare problemi di serializzazione
+                        setTimeout(() => saveFn(String(html)), 0)
+                      }
+                    } catch (e) {
+                      // Ignora errori
+                    }
+                  }
+                })
+              }
             }
             setIsEditorReady(true)
           }}
@@ -377,9 +328,6 @@ const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(({ html = '', o
       </div>
     </div>
   )
-})
-
-EmailEditor.displayName = 'EmailEditor'
+}
 
 export default EmailEditor
-export type { EmailEditorRef }

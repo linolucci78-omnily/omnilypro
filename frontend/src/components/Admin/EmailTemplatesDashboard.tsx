@@ -35,7 +35,7 @@ import {
 import PageLoader from '../UI/PageLoader'
 import EmailSettingsManager from './EmailSettingsManager'
 import EmailLogsViewer from './EmailLogsViewer'
-import EmailEditor, { EmailEditorRef } from './EmailEditor'
+import EmailEditor from './EmailEditor'
 import './AdminLayout.css'
 import { supabase } from '../../lib/supabase'
 
@@ -82,8 +82,8 @@ const EmailTemplatesDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Ref per estrarre HTML dall'editor
-  const editorRef = React.useRef<EmailEditorRef>(null)
+  // Ref per accedere all'istanza dell'editor
+  const editorInstanceRef = React.useRef<any>(null)
 
   // Carica template dal database
   const loadTemplates = async () => {
@@ -183,8 +183,8 @@ const EmailTemplatesDashboard: React.FC = () => {
 
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {
-      setError(err.message || 'Errore nell\'aggiornamento del template')
-      console.error('Error updating template:', err)
+      const errorMsg = typeof err === 'string' ? err : (err?.message || 'Errore nell\'aggiornamento del template')
+      setError(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -278,30 +278,27 @@ const EmailTemplatesDashboard: React.FC = () => {
     setActiveTab('preview')
   }
 
-  const handleSaveTemplate = async () => {
+  const handleSaveTemplate = async (htmlFromEditor?: string) => {
     if (!selectedTemplate) return
 
-    console.log('🚀 INIZIO SALVATAGGIO')
-    console.log('📝 editorContent prima di getHtml:', editorContent?.substring(0, 100))
-
-    // Estrai HTML dall'editor prima di salvare
-    let currentHtml = editorContent
-    if (editorRef.current) {
-      console.log('🔄 Estraendo HTML corrente dall\'editor via getHtml()...')
-      currentHtml = editorRef.current.getHtml()
-      console.log('✅ HTML estratto da getHtml():', currentHtml?.substring(0, 150))
-      console.log('📏 Lunghezza HTML estratto:', currentHtml?.length)
-    } else {
-      console.warn('⚠️ Editor ref non disponibile, uso editorContent esistente')
+    // Estrai HTML dall'editor tramite ref
+    let currentHtml = htmlFromEditor
+    if (!currentHtml && editorInstanceRef.current) {
+      try {
+        const editor = editorInstanceRef.current
+        currentHtml = editor.getHtml?.() || editor.editor?.getHtml?.() || editorContent
+      } catch (e) {
+        currentHtml = editorContent
+      }
+    }
+    if (!currentHtml) {
+      currentHtml = editorContent
     }
 
-    console.log('💾 Salvataggio template con HTML FINALE:', {
-      id: selectedTemplate.id,
-      subject: editorSubject,
-      html_body_length: currentHtml?.length || 0,
-      html_body_preview: currentHtml?.substring(0, 100),
-      cambiato: currentHtml !== editorContent
-    })
+    // Assicurati che sia una stringa
+    if (typeof currentHtml !== 'string') {
+      currentHtml = String(currentHtml || '')
+    }
 
     await updateTemplate(selectedTemplate.id, {
       subject: editorSubject,
@@ -666,7 +663,7 @@ const EmailTemplatesDashboard: React.FC = () => {
               </button>
               <button
                 className="btn-primary"
-                onClick={handleSaveTemplate}
+                onClick={() => handleSaveTemplate()}
                 disabled={saving}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
               >
@@ -679,9 +676,12 @@ const EmailTemplatesDashboard: React.FC = () => {
           {/* Editor GrapeJS - full width */}
           <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
             <EmailEditor
-              ref={editorRef}
               html={editorContent}
               onChange={(html) => setEditorContent(html)}
+              onSave={(html) => handleSaveTemplate(html)}
+              onEditorReady={(editor) => {
+                editorInstanceRef.current = editor
+              }}
               variables={selectedTemplate.variables || []}
             />
           </div>
