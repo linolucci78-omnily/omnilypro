@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, ArrowRight, ArrowLeft, Users, Mail, Eye, Send, CheckCircle, Loader } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 
@@ -24,7 +24,11 @@ interface Customer {
   id: string
   name: string
   email: string | null
-  loyalty_tier: string | null
+  tier: string | null
+  total_spent: number
+  visits: number
+  marketing_consent: boolean
+  last_visit: string | null
 }
 
 const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
@@ -56,13 +60,23 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Step 5: Destinatari
   const [customers, setCustomers] = useState<Customer[]>([])
-  const [selectedRecipients, setSelectedRecipients] = useState<'all' | 'filtered'>('all')
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([])
   const [customersLoading, setCustomersLoading] = useState(false)
+
+  // Filtri clienti
+  const [searchText, setSearchText] = useState('')
+  const [filterTier, setFilterTier] = useState<string>('all')
+  const [filterMinSpent, setFilterMinSpent] = useState('')
+  const [filterMinVisits, setFilterMinVisits] = useState('')
+  const [filterMarketingConsent, setFilterMarketingConsent] = useState<boolean | null>(null)
 
   // Step 6: Invio
   const [isCreating, setIsCreating] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [sendProgress, setSendProgress] = useState(0)
+  const [sendOption, setSendOption] = useState<'draft' | 'schedule' | 'now'>('draft')
+  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledTime, setScheduledTime] = useState('')
 
   useEffect(() => {
     if (isOpen) {
@@ -73,7 +87,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   }, [isOpen])
 
   useEffect(() => {
-    if (selectedTemplate && !emailSubject) {
+    if (selectedTemplate) {
+      // Quando viene selezionato un template, pre-compila solo il subject
+      // Il contenuto resta vuoto per permettere all'utente di scrivere il proprio messaggio
       setEmailSubject(selectedTemplate.subject)
     }
   }, [selectedTemplate])
@@ -90,9 +106,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
       if (error) throw error
       setTemplates(data || [])
-      if (data && data.length > 0) {
-        setSelectedTemplate(data[0])
-      }
+      // Non selezionare automaticamente il primo template - lascia scegliere l'utente
     } catch (error) {
       console.error('Error loading templates:', error)
       showError('Errore nel caricamento dei template')
@@ -106,7 +120,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     try {
       const { data, error } = await supabase
         .from('customers')
-        .select('id, name, email, loyalty_tier')
+        .select('id, name, email, tier, total_spent, visits, marketing_consent, last_visit')
         .eq('organization_id', organizationId)
         .order('name')
 
@@ -143,21 +157,44 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     }
   }
 
-  const handleCreateAndSend = async () => {
+  const handleSaveCampaign = async (action: 'draft' | 'schedule' | 'now') => {
+    // Previeni chiamate multiple
+    if (isCreating || isSending) {
+      console.log('⚠️ Campaign creation already in progress, ignoring duplicate call')
+      return
+    }
+
     if (!selectedTemplate) {
       showError('Seleziona un template')
       return
     }
 
-    if (customers.length === 0) {
-      showError('Nessun cliente con email disponibile')
+    if (selectedCustomerIds.length === 0) {
+      showError('Seleziona almeno un destinatario')
+      return
+    }
+
+    // Validazione per invio programmato
+    if (action === 'schedule' && (!scheduledDate || !scheduledTime)) {
+      showError('Seleziona data e ora per l\'invio programmato')
       return
     }
 
     setIsCreating(true)
 
     try {
-      // 1. Crea campagna con contenuto personalizzato
+      // Determina status e scheduled_for in base all'azione
+      let status = 'draft'
+      let scheduled_for = null
+
+      if (action === 'schedule') {
+        status = 'scheduled'
+        scheduled_for = new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
+      } else if (action === 'now') {
+        status = 'sending'
+      }
+
+      // 1. Crea campagna
       const { data: campaign, error: campaignError } = await supabase
         .from('email_campaigns')
         .insert({
@@ -167,20 +204,22 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
           template_id: selectedTemplate.id,
           template_type: selectedTemplate.template_type,
           subject: emailSubject,
-          custom_content: emailContent, // Salva il contenuto personalizzato
-          status: 'draft',
-          total_recipients: customers.length,
-          target_filter: selectedRecipients === 'all' ? null : { type: 'all' }
+          custom_content: emailContent,
+          status: status,
+          scheduled_for: scheduled_for,
+          total_recipients: selectedCustomerIds.length,
+          target_filter: { type: 'manual', customer_ids: selectedCustomerIds }
         })
         .select()
         .single()
 
       if (campaignError) throw campaignError
 
-      console.log('✅ Campaign created:', campaign.id)
+      console.log('✅ Campaign created:', campaign.id, 'Status:', status)
 
       // 2. Crea recipients
-      const recipients = customers.map(customer => ({
+      const selectedCustomers = customers.filter(c => selectedCustomerIds.includes(c.id))
+      const recipients = selectedCustomers.map(customer => ({
         campaign_id: campaign.id,
         organization_id: organizationId,
         customer_id: customer.id,
@@ -197,12 +236,23 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
       console.log('✅ Recipients created:', recipients.length)
 
-      showSuccess('Campagna creata! Invio in corso...')
       setIsCreating(false)
-      setIsSending(true)
 
-      // 3. Avvia invio batch
-      await sendCampaignBatch(campaign.id, customers.length)
+      // 3. Azioni finali in base al tipo
+      if (action === 'draft') {
+        showSuccess('✅ Campagna salvata come bozza!')
+        onCampaignCreated()
+        handleClose()
+      } else if (action === 'schedule') {
+        const formattedDate = new Date(scheduled_for!).toLocaleString('it-IT')
+        showSuccess(`📅 Campagna programmata per ${formattedDate}`)
+        onCampaignCreated()
+        handleClose()
+      } else if (action === 'now') {
+        showSuccess('📧 Avvio invio campagna...')
+        setIsSending(true)
+        await sendCampaignBatch(campaign.id, selectedCustomerIds.length)
+      }
 
     } catch (error: any) {
       console.error('Error creating campaign:', error)
@@ -253,18 +303,70 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     setStep(1)
     setCampaignName('')
     setCampaignDescription('')
+    setSelectedTemplate(null)
     setEmailSubject('')
     setEmailContent('')
-    setSelectedRecipients('all')
+    setSelectedCustomerIds([])
     setSendProgress(0)
+    setSendOption('draft')
+    setScheduledDate('')
+    setScheduledTime('')
     onClose()
   }
+
+  // Funzione per filtrare i clienti in base ai filtri
+  const getFilteredCustomers = () => {
+    let filtered = customers
+
+    // Filtro ricerca testuale
+    if (searchText.trim()) {
+      const search = searchText.toLowerCase()
+      filtered = filtered.filter(c =>
+        c.name.toLowerCase().includes(search) ||
+        c.email?.toLowerCase().includes(search)
+      )
+    }
+
+    // Filtro tier
+    if (filterTier !== 'all') {
+      filtered = filtered.filter(c => c.tier === filterTier)
+    }
+
+    // Filtro spesa minima
+    if (filterMinSpent) {
+      const minSpent = parseFloat(filterMinSpent)
+      if (!isNaN(minSpent)) {
+        filtered = filtered.filter(c => c.total_spent >= minSpent)
+      }
+    }
+
+    // Filtro visite minime
+    if (filterMinVisits) {
+      const minVisits = parseInt(filterMinVisits)
+      if (!isNaN(minVisits)) {
+        filtered = filtered.filter(c => c.visits >= minVisits)
+      }
+    }
+
+    // Filtro consenso marketing
+    if (filterMarketingConsent !== null) {
+      filtered = filtered.filter(c => c.marketing_consent === filterMarketingConsent)
+    }
+
+    return filtered
+  }
+
+  const filteredCustomers = getFilteredCustomers()
+
+  // Estrai i livelli unici dinamicamente dai clienti
+  const availableTiers = Array.from(new Set(customers.map(c => c.tier).filter(tier => tier !== null))) as string[]
+  availableTiers.sort()
 
   const canProceedStep1 = campaignName.trim().length > 0
   const canProceedStep2 = selectedTemplate !== null
   const canProceedStep3 = emailSubject.trim().length > 0 && emailContent.trim().length > 0
   const canProceedStep4 = true // Preview step sempre valido
-  const canProceedStep5 = customers.length > 0
+  const canProceedStep5 = selectedCustomerIds.length > 0
 
   if (!isOpen) return null
 
@@ -542,15 +644,18 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
           {step === 4 && (
             <div>
               <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                👁️ Anteprima Email
+                👁️ Anteprima Email Completa
               </h3>
 
               <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#f0f9ff', borderRadius: '10px', border: '2px solid #3b82f6' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1e40af' }}>
                   📧 Da: {orgData?.email || organizationName}
                 </p>
-                <p style={{ margin: '0', fontSize: '14px', fontWeight: '600', color: '#1e40af' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1e40af' }}>
                   📝 Oggetto: {emailSubject}
+                </p>
+                <p style={{ margin: '0', fontSize: '13px', color: '#1e40af', fontStyle: 'italic' }}>
+                  ℹ️ Esempio con cliente: Mario Rossi (mario.rossi@email.com)
                 </p>
               </div>
 
@@ -558,7 +663,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                 border: '3px solid #e5e7eb',
                 borderRadius: '12px',
                 overflow: 'hidden',
-                backgroundColor: '#f9fafb'
+                backgroundColor: '#f9fafb',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
               }}>
                 {/* Preview Email Content */}
                 <div style={{
@@ -592,9 +698,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   lineHeight: '1.8',
                   color: '#374151'
                 }}>
-                  <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {emailContent || '(Il tuo messaggio apparirà qui)'}
-                  </div>
+                  {emailContent ? (
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {emailContent
+                        .replace(/\{\{customer_name\}\}/gi, 'Mario Rossi')
+                        .replace(/\{\{organization_name\}\}/gi, organizationName)
+                        .replace(/\{\{customer_email\}\}/gi, 'mario.rossi@email.com')
+                        .replace(/\{\{customer_points\}\}/gi, '250')
+                        .replace(/\{\{customer_tier\}\}/gi, 'Gold')
+                      }
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', color: '#9ca3af', padding: '20px', fontStyle: 'italic' }}>
+                      (Il tuo messaggio apparirà qui con le variabili sostituite)
+                    </div>
+                  )}
                 </div>
 
                 <div style={{
@@ -610,12 +728,20 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   {orgData?.phone && <p style={{ margin: '0 0 4px 0' }}>Tel: {orgData.phone}</p>}
                   {orgData?.email && <p style={{ margin: '0 0 4px 0' }}>Email: {orgData.email}</p>}
                   {orgData?.website && <p style={{ margin: '0 0 4px 0' }}>Web: {orgData.website}</p>}
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>
+                      Hai ricevuto questa email perché sei registrato al nostro programma fedeltà
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#fef3c7', borderRadius: '10px', border: '2px solid #f59e0b', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#92400e' }}>
-                  ℹ️ Questa è un'anteprima. Le variabili come {{customer_name}} verranno sostituite per ogni cliente.
+              <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#dbeafe', borderRadius: '10px', border: '2px solid #3b82f6' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1e40af' }}>
+                  ✅ Questa è l'anteprima esatta di come apparirà l'email ai tuoi clienti
+                </p>
+                <p style={{ margin: 0, fontSize: '13px', color: '#1e40af' }}>
+                  Le variabili (come {'{{customer_name}}'}) sono state sostituite con dati di esempio. Ogni cliente riceverà i propri dati personalizzati.
                 </p>
               </div>
             </div>
@@ -636,17 +762,216 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                 </div>
               ) : (
                 <div>
-                  {/* Stats */}
+                  {/* Stats and Selection Controls */}
                   <div style={{ padding: '24px', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '2px solid #3b82f6', marginBottom: '24px' }}>
                     <div style={{ fontSize: '48px', fontWeight: '700', color: '#1e40af', textAlign: 'center', marginBottom: '8px' }}>
-                      {customers.length}
+                      {selectedCustomerIds.length} / {filteredCustomers.length}
                     </div>
-                    <div style={{ fontSize: '18px', fontWeight: '600', color: '#1e40af', textAlign: 'center' }}>
-                      Clienti con email
+                    <div style={{ fontSize: '18px', fontWeight: '600', color: '#1e40af', textAlign: 'center', marginBottom: '16px' }}>
+                      Clienti selezionati {filteredCustomers.length !== customers.length && `(${filteredCustomers.length} filtrati su ${customers.length})`}
                     </div>
+
+                    {filteredCustomers.length > 0 && (
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => setSelectedCustomerIds(filteredCustomers.map(c => c.id))}
+                          style={{
+                            padding: '14px 24px',
+                            backgroundColor: '#3b82f6',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: 'white',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Seleziona Tutti {filteredCustomers.length !== customers.length && 'Filtrati'}
+                        </button>
+                        <button
+                          onClick={() => setSelectedCustomerIds([])}
+                          style={{
+                            padding: '14px 24px',
+                            backgroundColor: 'white',
+                            border: '2px solid #3b82f6',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: '#3b82f6',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Deseleziona Tutti
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {customers.length === 0 && (
+                  {/* Pannello Filtri */}
+                  <div style={{
+                    padding: '20px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '12px',
+                    border: '2px solid #e5e7eb',
+                    marginBottom: '24px'
+                  }}>
+                    <h4 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', marginBottom: '16px' }}>
+                      🔍 Filtri Clienti
+                    </h4>
+
+                    {/* Ricerca testuale */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'block', fontSize: '15px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                        Cerca per nome o email
+                      </label>
+                      <input
+                        type="text"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        placeholder="Cerca cliente..."
+                        style={{
+                          width: '100%',
+                          padding: '14px',
+                          fontSize: '16px',
+                          border: '2px solid #d1d5db',
+                          borderRadius: '8px',
+                          fontWeight: '500'
+                        }}
+                      />
+                    </div>
+
+                    {/* Filtri in griglia */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                      {/* Livello fedeltà */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '15px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                          Livello
+                        </label>
+                        <select
+                          value={filterTier}
+                          onChange={(e) => setFilterTier(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '14px',
+                            fontSize: '16px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            backgroundColor: 'white'
+                          }}
+                        >
+                          <option value="all">Tutti i livelli</option>
+                          {availableTiers.map(tier => (
+                            <option key={tier} value={tier}>{tier}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Consenso marketing */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '15px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                          Consenso marketing
+                        </label>
+                        <select
+                          value={filterMarketingConsent === null ? 'all' : filterMarketingConsent.toString()}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            setFilterMarketingConsent(value === 'all' ? null : value === 'true')
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '14px',
+                            fontSize: '16px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            backgroundColor: 'white'
+                          }}
+                        >
+                          <option value="all">Tutti</option>
+                          <option value="true">Solo con consenso</option>
+                          <option value="false">Senza consenso</option>
+                        </select>
+                      </div>
+
+                      {/* Spesa minima */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '15px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                          Spesa minima (€)
+                        </label>
+                        <input
+                          type="number"
+                          value={filterMinSpent}
+                          onChange={(e) => setFilterMinSpent(e.target.value)}
+                          placeholder="Es: 100"
+                          min="0"
+                          step="10"
+                          style={{
+                            width: '100%',
+                            padding: '14px',
+                            fontSize: '16px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            fontWeight: '500'
+                          }}
+                        />
+                      </div>
+
+                      {/* Visite minime */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '15px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                          Visite minime
+                        </label>
+                        <input
+                          type="number"
+                          value={filterMinVisits}
+                          onChange={(e) => setFilterMinVisits(e.target.value)}
+                          placeholder="Es: 5"
+                          min="0"
+                          step="1"
+                          style={{
+                            width: '100%',
+                            padding: '14px',
+                            fontSize: '16px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            fontWeight: '500'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pulsante reset filtri */}
+                    {(searchText || filterTier !== 'all' || filterMinSpent || filterMinVisits || filterMarketingConsent !== null) && (
+                      <button
+                        onClick={() => {
+                          setSearchText('')
+                          setFilterTier('all')
+                          setFilterMinSpent('')
+                          setFilterMinVisits('')
+                          setFilterMarketingConsent(null)
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          backgroundColor: '#ef4444',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '15px',
+                          fontWeight: '600',
+                          color: 'white',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Cancella Filtri
+                      </button>
+                    )}
+                  </div>
+
+                  {filteredCustomers.length === 0 && customers.length === 0 ? (
                     <div style={{ padding: '24px', backgroundColor: '#fef2f2', borderRadius: '12px', border: '2px solid #ef4444', textAlign: 'center' }}>
                       <p style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#991b1b' }}>
                         ⚠️ Nessun cliente con email disponibile
@@ -655,13 +980,96 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         Aggiungi clienti con email valide prima di creare una campagna
                       </p>
                     </div>
+                  ) : filteredCustomers.length === 0 ? (
+                    <div style={{ padding: '24px', backgroundColor: '#fef3c7', borderRadius: '12px', border: '2px solid #f59e0b', textAlign: 'center' }}>
+                      <p style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#92400e' }}>
+                        🔍 Nessun cliente corrisponde ai filtri
+                      </p>
+                      <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#92400e' }}>
+                        Modifica i filtri per vedere più clienti
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{
+                      maxHeight: '400px',
+                      overflowY: 'auto',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      backgroundColor: 'white'
+                    }}>
+                      {filteredCustomers.map((customer, index) => {
+                        const isSelected = selectedCustomerIds.includes(customer.id)
+                        return (
+                          <label
+                            key={customer.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '20px',
+                              cursor: 'pointer',
+                              backgroundColor: isSelected ? '#eff6ff' : 'white',
+                              borderBottom: index < filteredCustomers.length - 1 ? '1px solid #e5e7eb' : 'none',
+                              transition: 'all 0.2s',
+                              minHeight: '80px'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCustomerIds([...selectedCustomerIds, customer.id])
+                                } else {
+                                  setSelectedCustomerIds(selectedCustomerIds.filter(id => id !== customer.id))
+                                }
+                              }}
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                marginRight: '16px',
+                                cursor: 'pointer',
+                                flexShrink: 0
+                              }}
+                            />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '4px' }}>
+                                {customer.name}
+                              </div>
+                              <div style={{ fontSize: '15px', color: '#6b7280' }}>
+                                {customer.email}
+                              </div>
+                              <div style={{ display: 'flex', gap: '16px', marginTop: '6px', flexWrap: 'wrap' }}>
+                                {customer.tier && (
+                                  <span style={{ fontSize: '13px', color: '#9ca3af' }}>
+                                    🏆 {customer.tier}
+                                  </span>
+                                )}
+                                <span style={{ fontSize: '13px', color: '#9ca3af' }}>
+                                  💰 €{customer.total_spent.toFixed(2)}
+                                </span>
+                                <span style={{ fontSize: '13px', color: '#9ca3af' }}>
+                                  👥 {customer.visits} visite
+                                </span>
+                                {customer.marketing_consent && (
+                                  <span style={{ fontSize: '13px', color: '#10b981', fontWeight: '600' }}>
+                                    ✓ Consenso
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <CheckCircle size={24} style={{ color: '#3b82f6', flexShrink: 0 }} />
+                            )}
+                          </label>
+                        )
+                      })}
+                    </div>
                   )}
 
-                  {customers.length > 0 && (
-                    <div style={{ padding: '20px', backgroundColor: '#f9fafb', borderRadius: '12px', border: '2px solid #e5e7eb' }}>
-                      <p style={{ margin: 0, fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                        La campagna verrà inviata a tutti i {customers.length} clienti con email valida.
-                        In futuro potrai filtrare per tag, livello fedeltà, ecc.
+                  {selectedCustomerIds.length === 0 && filteredCustomers.length > 0 && (
+                    <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fef3c7', borderRadius: '10px', border: '2px solid #f59e0b', textAlign: 'center' }}>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#92400e' }}>
+                        ⚠️ Seleziona almeno un cliente per continuare
                       </p>
                     </div>
                   )}
@@ -670,12 +1078,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
             </div>
           )}
 
-          {/* Step 6: Conferma e Invio */}
+          {/* Step 6: Opzioni di Invio */}
           {step === 6 && (
             <div>
               <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                <Eye size={28} style={{ display: 'inline', marginRight: '8px' }} />
-                Riepilogo e Invio
+                📤 Modalità di Invio
               </h3>
 
               {isSending ? (
@@ -703,40 +1110,178 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                 </div>
               ) : (
                 <div>
+                  {/* Riepilogo */}
                   <div style={{ padding: '20px', backgroundColor: '#f9fafb', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '24px' }}>
-                    <div style={{ marginBottom: '16px' }}>
-                      <strong style={{ fontSize: '16px', color: '#111827' }}>Nome Campagna:</strong>
-                      <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>{campaignName}</p>
+                    <div style={{ marginBottom: '12px' }}>
+                      <strong style={{ fontSize: '14px', color: '#6b7280' }}>Nome:</strong>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '16px', color: '#111827', fontWeight: '600' }}>{campaignName}</p>
                     </div>
-                    {campaignDescription && (
-                      <div style={{ marginBottom: '16px' }}>
-                        <strong style={{ fontSize: '16px', color: '#111827' }}>Descrizione:</strong>
-                        <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>{campaignDescription}</p>
-                      </div>
-                    )}
-                    <div style={{ marginBottom: '16px' }}>
-                      <strong style={{ fontSize: '16px', color: '#111827' }}>Template:</strong>
-                      <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>{selectedTemplate?.name}</p>
-                    </div>
-                    <div style={{ marginBottom: '16px' }}>
-                      <strong style={{ fontSize: '16px', color: '#111827' }}>Oggetto:</strong>
-                      <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>{emailSubject}</p>
+                    <div style={{ marginBottom: '12px' }}>
+                      <strong style={{ fontSize: '14px', color: '#6b7280' }}>Oggetto:</strong>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '16px', color: '#111827', fontWeight: '600' }}>{emailSubject}</p>
                     </div>
                     <div>
-                      <strong style={{ fontSize: '16px', color: '#111827' }}>Destinatari:</strong>
-                      <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>
-                        {customers.length} clienti
+                      <strong style={{ fontSize: '14px', color: '#6b7280' }}>Destinatari:</strong>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '16px', color: '#111827', fontWeight: '600' }}>
+                        {selectedCustomerIds.length} clienti
                       </p>
                     </div>
                   </div>
 
-                  <div style={{ padding: '20px', backgroundColor: '#fef3c7', borderRadius: '12px', border: '2px solid #f59e0b', textAlign: 'center' }}>
-                    <p style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#92400e' }}>
-                      ⚠️ L'invio della campagna inizierà immediatamente!
-                    </p>
-                    <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#92400e' }}>
-                      Verifica tutti i dati prima di procedere
-                    </p>
+                  {/* Opzioni di Invio */}
+                  <div style={{ display: 'grid', gap: '16px' }}>
+                    {/* Opzione 1: Salva come Bozza */}
+                    <button
+                      onClick={() => setSendOption('draft')}
+                      style={{
+                        padding: '20px',
+                        backgroundColor: sendOption === 'draft' ? '#eff6ff' : 'white',
+                        border: sendOption === 'draft' ? '3px solid #3b82f6' : '2px solid #e5e7eb',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          border: `3px solid ${sendOption === 'draft' ? '#3b82f6' : '#d1d5db'}`,
+                          backgroundColor: sendOption === 'draft' ? '#3b82f6' : 'white',
+                          marginRight: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {sendOption === 'draft' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                        </div>
+                        <span style={{ fontSize: '18px', fontWeight: '700', color: '#111827' }}>
+                          📝 Salva come Bozza
+                        </span>
+                      </div>
+                      <p style={{ margin: '0 0 0 36px', fontSize: '14px', color: '#6b7280' }}>
+                        Salva la campagna senza inviarla. Potrai inviarla in seguito dalla lista campagne.
+                      </p>
+                    </button>
+
+                    {/* Opzione 2: Programma Invio */}
+                    <div>
+                      <button
+                        onClick={() => setSendOption('schedule')}
+                        style={{
+                          width: '100%',
+                          padding: '20px',
+                          backgroundColor: sendOption === 'schedule' ? '#eff6ff' : 'white',
+                          border: sendOption === 'schedule' ? '3px solid #3b82f6' : '2px solid #e5e7eb',
+                          borderRadius: '12px',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                          <div style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            border: `3px solid ${sendOption === 'schedule' ? '#3b82f6' : '#d1d5db'}`,
+                            backgroundColor: sendOption === 'schedule' ? '#3b82f6' : 'white',
+                            marginRight: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            {sendOption === 'schedule' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                          </div>
+                          <span style={{ fontSize: '18px', fontWeight: '700', color: '#111827' }}>
+                            📅 Programma Invio
+                          </span>
+                        </div>
+                        <p style={{ margin: '0 0 0 36px', fontSize: '14px', color: '#6b7280' }}>
+                          Scegli data e ora per l'invio automatico della campagna.
+                        </p>
+                      </button>
+
+                      {sendOption === 'schedule' && (
+                        <div style={{ marginTop: '16px', marginLeft: '36px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                              Data
+                            </label>
+                            <input
+                              type="date"
+                              value={scheduledDate}
+                              onChange={(e) => setScheduledDate(e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              style={{
+                                width: '100%',
+                                padding: '14px',
+                                fontSize: '16px',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                fontWeight: '500'
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                              Ora
+                            </label>
+                            <input
+                              type="time"
+                              value={scheduledTime}
+                              onChange={(e) => setScheduledTime(e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '14px',
+                                fontSize: '16px',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                fontWeight: '500'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Opzione 3: Invia Subito */}
+                    <button
+                      onClick={() => setSendOption('now')}
+                      style={{
+                        padding: '20px',
+                        backgroundColor: sendOption === 'now' ? '#fef3c7' : 'white',
+                        border: sendOption === 'now' ? '3px solid #f59e0b' : '2px solid #e5e7eb',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          border: `3px solid ${sendOption === 'now' ? '#f59e0b' : '#d1d5db'}`,
+                          backgroundColor: sendOption === 'now' ? '#f59e0b' : 'white',
+                          marginRight: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {sendOption === 'now' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                        </div>
+                        <span style={{ fontSize: '18px', fontWeight: '700', color: '#111827' }}>
+                          🚀 Invia Subito
+                        </span>
+                      </div>
+                      <p style={{ margin: '0 0 0 36px', fontSize: '14px', color: '#6b7280' }}>
+                        Avvia immediatamente l'invio della campagna a tutti i destinatari selezionati.
+                      </p>
+                    </button>
                   </div>
                 </div>
               )}
@@ -822,18 +1367,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
             {step === 6 && !isSending && (
               <button
-                onClick={handleCreateAndSend}
-                disabled={isCreating || !canProceedStep5}
+                onClick={() => handleSaveCampaign(sendOption)}
+                disabled={isCreating || (sendOption === 'schedule' && (!scheduledDate || !scheduledTime))}
                 style={{
                   flex: 1,
                   padding: '20px',
-                  backgroundColor: (isCreating || !canProceedStep5) ? '#9ca3af' : '#ef4444',
+                  backgroundColor:
+                    (isCreating || (sendOption === 'schedule' && (!scheduledDate || !scheduledTime)))
+                      ? '#9ca3af'
+                      : sendOption === 'now' ? '#ef4444' : '#3b82f6',
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '18px',
                   fontWeight: '700',
                   color: 'white',
-                  cursor: (isCreating || !canProceedStep5) ? 'not-allowed' : 'pointer',
+                  cursor: (isCreating || (sendOption === 'schedule' && (!scheduledDate || !scheduledTime))) ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -847,10 +1395,18 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     <Loader size={24} className="spinning" />
                     Creazione...
                   </>
+                ) : sendOption === 'draft' ? (
+                  <>
+                    Salva Bozza
+                  </>
+                ) : sendOption === 'schedule' ? (
+                  <>
+                    Programma Invio
+                  </>
                 ) : (
                   <>
                     <Send size={24} />
-                    Crea e Invia Campagna
+                    Invia Ora
                   </>
                 )}
               </button>

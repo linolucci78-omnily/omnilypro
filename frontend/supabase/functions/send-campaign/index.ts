@@ -202,24 +202,93 @@ serve(async (req) => {
         console.log(`📤 Sending to: ${recipient.email}`)
 
         // Prepara variabili dinamiche
-        const dynamicData = {
+        const dynamicData: Record<string, any> = {
           customer_name: recipient.name || 'Cliente',
+          customer_email: recipient.email,
+          organization_name: emailSettings.from_name,
           store_name: emailSettings.from_name,
           primary_color: emailSettings.primary_color,
           secondary_color: emailSettings.secondary_color,
           logo_url: emailSettings.logo_url || ''
         }
 
-        // Sostituisci variabili nel template
-        let htmlBody = template.html_body
+        // Costruisci HTML body
+        let htmlBody: string
         let textBody = template.text_body || ''
         let subject = campaign.subject // Usa l'oggetto della campagna
 
+        // Se c'è custom_content, costruisci email con layout template + contenuto personalizzato
+        if (campaign.custom_content && campaign.custom_content.trim().length > 0) {
+          // Sostituisci variabili nel custom content
+          let customContent = campaign.custom_content
+          Object.keys(dynamicData).forEach(key => {
+            const regex = new RegExp(`{{${key}}}`, 'g')
+            const value = String(dynamicData[key] || '')
+            customContent = customContent.replace(regex, value)
+          })
+
+          // Carica dati organizzazione per footer
+          const { data: orgData } = await supabaseClient
+            .from('organizations')
+            .select('name, email, phone, address, website, logo_url')
+            .eq('id', campaign.organization_id)
+            .single()
+
+          // Costruisci HTML completo con layout
+          htmlBody = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+  <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <!-- Header -->
+    <div style="background: ${dynamicData.primary_color}; color: white; padding: 30px; text-align: center;">
+      ${orgData?.logo_url ? `<img src="${orgData.logo_url}" alt="${dynamicData.organization_name}" style="max-width: 150px; max-height: 80px; margin-bottom: 16px; object-fit: contain;">` : `<h2 style="margin: 0; font-size: 28px; font-weight: 700;">${dynamicData.organization_name}</h2>`}
+    </div>
+
+    <!-- Content -->
+    <div style="background: white; padding: 40px 30px; font-size: 16px; line-height: 1.8; color: #374151;">
+      ${customContent.replace(/\n/g, '<br>')}
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f9fafb; padding: 30px; text-align: center; border-top: 2px solid #e5e7eb; font-size: 14px; color: #6b7280;">
+      <p style="margin: 0 0 8px 0;"><strong>${orgData?.name || dynamicData.organization_name}</strong></p>
+      ${orgData?.address ? `<p style="margin: 0 0 4px 0;">${orgData.address}</p>` : ''}
+      ${orgData?.phone ? `<p style="margin: 0 0 4px 0;">Tel: ${orgData.phone}</p>` : ''}
+      ${orgData?.email ? `<p style="margin: 0 0 4px 0;">Email: ${orgData.email}</p>` : ''}
+      ${orgData?.website ? `<p style="margin: 0 0 4px 0;">Web: ${orgData.website}</p>` : ''}
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          Hai ricevuto questa email perché sei registrato al nostro programma fedeltà
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+
+          // Text body dal custom content
+          textBody = customContent.replace(/<br>/g, '\n')
+        } else {
+          // Usa template standard
+          htmlBody = template.html_body
+          textBody = template.text_body || ''
+
+          Object.keys(dynamicData).forEach(key => {
+            const regex = new RegExp(`{{${key}}}`, 'g')
+            const value = String(dynamicData[key] || '')
+            htmlBody = htmlBody.replace(regex, value)
+            textBody = textBody.replace(regex, value)
+          })
+        }
+
+        // Sostituisci variabili nell'oggetto
         Object.keys(dynamicData).forEach(key => {
           const regex = new RegExp(`{{${key}}}`, 'g')
           const value = String(dynamicData[key] || '')
-          htmlBody = htmlBody.replace(regex, value)
-          textBody = textBody.replace(regex, value)
           subject = subject.replace(regex, value)
         })
 
