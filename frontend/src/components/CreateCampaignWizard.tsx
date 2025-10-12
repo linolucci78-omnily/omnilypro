@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Image } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 
@@ -78,6 +78,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('')
 
+  // Ref per textarea contenuto email
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
   useEffect(() => {
     if (isOpen) {
       loadTemplates()
@@ -154,6 +157,56 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       showError('Errore nel caricamento dati organizzazione')
     } finally {
       setOrgLoading(false)
+    }
+  }
+
+  // Funzioni helper per inserire elementi nel contenuto email
+  const insertButtonInEmail = () => {
+    const buttonUrl = prompt('Inserisci URL del bottone (es: https://tuosito.com/offerta)')
+    if (!buttonUrl) return
+
+    const buttonText = prompt('Testo del bottone (es: Scopri di più)', 'Scopri di più')
+    if (!buttonText) return
+
+    const buttonHtml = `\n\n[BUTTON:${buttonText}|${buttonUrl}]\n\n`
+
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newContent = emailContent.substring(0, start) + buttonHtml + emailContent.substring(end)
+      setEmailContent(newContent)
+
+      // Riposiziona cursore dopo il bottone inserito
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + buttonHtml.length, start + buttonHtml.length)
+      }, 0)
+    } else {
+      setEmailContent(emailContent + buttonHtml)
+    }
+  }
+
+  const insertImageInEmail = () => {
+    const imageUrl = prompt('Inserisci URL dell\'immagine (es: https://tuosito.com/immagine.jpg)')
+    if (!imageUrl) return
+
+    const imageHtml = `\n\n[IMAGE:${imageUrl}]\n\n`
+
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newContent = emailContent.substring(0, start) + imageHtml + emailContent.substring(end)
+      setEmailContent(newContent)
+
+      // Riposiziona cursore dopo l'immagine inserita
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + imageHtml.length, start + imageHtml.length)
+      }, 0)
+    } else {
+      setEmailContent(emailContent + imageHtml)
     }
   }
 
@@ -578,9 +631,70 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', fontSize: '18px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-                  Contenuto Email * (Touch-friendly)
+                  Contenuto Email *
                 </label>
+
+                {/* Toolbar per inserimento elementi */}
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  marginBottom: '12px',
+                  padding: '12px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                  border: '2px solid #e5e7eb'
+                }}>
+                  <button
+                    type="button"
+                    onClick={insertButtonInEmail}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 16px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+                  >
+                    <Link2 size={18} />
+                    Aggiungi Pulsante
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={insertImageInEmail}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 16px',
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                  >
+                    <Image size={18} />
+                    Aggiungi Immagine
+                  </button>
+                </div>
+
                 <textarea
+                  ref={textareaRef}
                   value={emailContent}
                   onChange={(e) => setEmailContent(e.target.value)}
                   placeholder="Scrivi qui il messaggio principale dell'email. Puoi usare variabili come {{customer_name}} per personalizzare..."
@@ -600,6 +714,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                 />
                 <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
                   💡 Il template grafico (logo, colori, layout) verrà applicato automaticamente
+                </p>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>
+                  📌 Usa i pulsanti sopra per inserire bottoni con link e immagini nel tuo messaggio
                 </p>
               </div>
 
@@ -673,22 +790,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   textAlign: 'center',
                   color: 'white'
                 }}>
-                  {orgData?.logo_url ? (
+                  {orgData?.logo_url && (
                     <img
                       src={orgData.logo_url}
                       alt={organizationName}
                       style={{
                         maxWidth: '150px',
                         maxHeight: '80px',
-                        marginBottom: '16px',
+                        marginBottom: '12px',
                         objectFit: 'contain'
                       }}
                     />
-                  ) : (
-                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>
-                      {organizationName}
-                    </h2>
                   )}
+                  <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>
+                    {organizationName}
+                  </h2>
                 </div>
 
                 <div style={{
@@ -699,15 +815,17 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   color: '#374151'
                 }}>
                   {emailContent ? (
-                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {emailContent
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{
+                      __html: emailContent
                         .replace(/\{\{customer_name\}\}/gi, 'Mario Rossi')
                         .replace(/\{\{organization_name\}\}/gi, organizationName)
                         .replace(/\{\{customer_email\}\}/gi, 'mario.rossi@email.com')
                         .replace(/\{\{customer_points\}\}/gi, '250')
                         .replace(/\{\{customer_tier\}\}/gi, 'Gold')
-                      }
-                    </div>
+                        .replace(/\[BUTTON:([^\|]+)\|([^\]]+)\]/g, '<div style="text-align: center; margin: 24px 0;"><a href="$2" style="display: inline-block; padding: 14px 32px; background-color: ' + (orgData?.primary_color || '#ef4444') + '; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">$1</a></div>')
+                        .replace(/\[IMAGE:([^\]]+)\]/g, '<div style="text-align: center; margin: 20px 0;"><img src="$1" alt="Immagine email" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>')
+                        .replace(/\n/g, '<br>')
+                    }} />
                   ) : (
                     <div style={{ textAlign: 'center', color: '#9ca3af', padding: '20px', fontStyle: 'italic' }}>
                       (Il tuo messaggio apparirà qui con le variabili sostituite)

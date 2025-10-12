@@ -227,6 +227,12 @@ serve(async (req) => {
             customContent = customContent.replace(regex, value)
           })
 
+          // Converti tag [BUTTON:...] e [IMAGE:...] in HTML
+          customContent = customContent
+            .replace(/\[BUTTON:([^\|]+)\|([^\]]+)\]/g, '<div style="text-align: center; margin: 24px 0;"><a href="$2" style="display: inline-block; padding: 14px 32px; background-color: ' + dynamicData.primary_color + '; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">$1</a></div>')
+            .replace(/\[IMAGE:([^\]]+)\]/g, '<div style="text-align: center; margin: 20px 0;"><img src="$1" alt="Immagine email" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>')
+            .replace(/\n/g, '<br>')
+
           // Carica dati organizzazione per footer
           const { data: orgData } = await supabaseClient
             .from('organizations')
@@ -245,12 +251,13 @@ serve(async (req) => {
   <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
     <!-- Header -->
     <div style="background: ${dynamicData.primary_color}; color: white; padding: 30px; text-align: center;">
-      ${orgData?.logo_url ? `<img src="${orgData.logo_url}" alt="${dynamicData.organization_name}" style="max-width: 150px; max-height: 80px; margin-bottom: 16px; object-fit: contain;">` : `<h2 style="margin: 0; font-size: 28px; font-weight: 700;">${dynamicData.organization_name}</h2>`}
+      ${orgData?.logo_url ? `<img src="${orgData.logo_url}" alt="${dynamicData.organization_name}" style="max-width: 150px; max-height: 80px; margin-bottom: 12px; object-fit: contain;">` : ''}
+      <h2 style="margin: 0; font-size: 24px; font-weight: 700;">${dynamicData.organization_name}</h2>
     </div>
 
     <!-- Content -->
     <div style="background: white; padding: 40px 30px; font-size: 16px; line-height: 1.8; color: #374151;">
-      ${customContent.replace(/\n/g, '<br>')}
+      ${customContent}
     </div>
 
     <!-- Footer -->
