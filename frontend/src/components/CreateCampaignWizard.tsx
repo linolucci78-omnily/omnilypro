@@ -103,6 +103,16 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     }
   }, [selectedTemplate])
 
+  // Sincronizza emailContent con l'editor solo quando cambia step o si apre il modal
+  useEffect(() => {
+    if (editorRef.current && step === 3) {
+      // Imposta il contenuto solo se l'editor è vuoto o diverso dallo stato
+      if (editorRef.current.innerHTML !== emailContent) {
+        editorRef.current.innerHTML = emailContent
+      }
+    }
+  }, [step])
+
   const loadTemplates = async () => {
     setTemplatesLoading(true)
     try {
@@ -662,7 +672,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     padding: '8px',
                     backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '2px solid #e5e7eb'
+                    border: '2px solid #e5e7eb',
+                    overflowX: 'auto',
+                    WebkitOverflowScrolling: 'touch'
                   }}>
                     <button
                       type="button"
@@ -678,7 +690,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         border: '1px solid #d1d5db',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        flexShrink: 0
                       }}
                       onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = '#3b82f6'
@@ -708,7 +721,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         border: '1px solid #d1d5db',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        flexShrink: 0
                       }}
                       onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = '#3b82f6'
@@ -738,7 +752,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         border: '1px solid #d1d5db',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        flexShrink: 0
                       }}
                       onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = '#3b82f6'
@@ -769,7 +784,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                           border: '1px solid ' + (showColorPicker ? '#8b5cf6' : '#d1d5db'),
                           borderRadius: '6px',
                           cursor: 'pointer',
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          flexShrink: 0
                         }}
                         onMouseOver={(e) => {
                           if (!showColorPicker) {
@@ -858,7 +874,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                       width: '1px',
                       height: '100%',
                       backgroundColor: '#d1d5db',
-                      margin: '0 4px'
+                      margin: '0 4px',
+                      flexShrink: 0
                     }} />
 
                     <button
@@ -877,7 +894,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap'
                       }}
                       onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = '#3b82f6'
@@ -910,7 +929,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap'
                       }}
                       onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = '#10b981'
@@ -950,7 +971,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     backgroundColor: 'white',
                     outline: 'none'
                   }}
-                  dangerouslySetInnerHTML={{ __html: emailContent }}
                 />
                 <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
                   💡 Il template grafico (logo, colori, layout) verrà applicato automaticamente
