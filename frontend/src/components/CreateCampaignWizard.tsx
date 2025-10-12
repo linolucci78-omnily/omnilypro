@@ -79,13 +79,13 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('')
 
-  // Ref per textarea contenuto email
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  // Ref per editor contenuto email
+  const editorRef = useRef<HTMLDivElement>(null)
 
   // Stati per modali inserimento elementi
   const [showButtonModal, setShowButtonModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
-  const [showColorModal, setShowColorModal] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -166,67 +166,26 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     }
   }
 
-  // Funzioni helper per inserire formattazione ed elementi nel contenuto email
-  const wrapSelectedText = (prefix: string, suffix: string) => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = emailContent.substring(start, end)
-
-    if (selectedText) {
-      // Se c'è testo selezionato, wrappa il testo
-      const newContent = emailContent.substring(0, start) + prefix + selectedText + suffix + emailContent.substring(end)
-      setEmailContent(newContent)
-
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length)
-      }, 0)
-    } else {
-      // Se non c'è selezione, inserisci i tag con placeholder
-      const placeholder = prefix === '**' ? 'testo in grassetto' : prefix === '*' ? 'testo in corsivo' : prefix === '__' ? 'testo sottolineato' : 'testo colorato'
-      const newContent = emailContent.substring(0, start) + prefix + placeholder + suffix + emailContent.substring(end)
-      setEmailContent(newContent)
-
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + prefix.length, start + prefix.length + placeholder.length)
-      }, 0)
-    }
+  // Funzioni helper per formattazione visuale WYSIWYG
+  const applyFormatting = (command: string, value?: string) => {
+    document.execCommand(command, false, value)
+    editorRef.current?.focus()
+    updateContent()
   }
 
-  const insertBold = () => wrapSelectedText('**', '**')
-  const insertItalic = () => wrapSelectedText('*', '*')
-  const insertUnderline = () => wrapSelectedText('__', '__')
+  const insertBold = () => applyFormatting('bold')
+  const insertItalic = () => applyFormatting('italic')
+  const insertUnderline = () => applyFormatting('underline')
 
-  const insertColor = (values: Record<string, string>) => {
-    const color = values.textColor
-    if (!color) {
-      showError('Seleziona un colore')
-      return
+  const applyColor = (color: string) => {
+    applyFormatting('foreColor', color)
+    setShowColorPicker(false)
+  }
+
+  const updateContent = () => {
+    if (editorRef.current) {
+      setEmailContent(editorRef.current.innerHTML)
     }
-
-    const textarea = textareaRef.current
-    if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = emailContent.substring(start, end)
-    const textToColor = selectedText || 'testo colorato'
-
-    const colorTag = `[COLOR:${color}]${textToColor}[/COLOR]`
-    const newContent = emailContent.substring(0, start) + colorTag + emailContent.substring(end)
-    setEmailContent(newContent)
-
-    setTimeout(() => {
-      textarea.focus()
-      const offset = `[COLOR:${color}]`.length
-      textarea.setSelectionRange(start + offset, start + offset + textToColor.length)
-    }, 0)
-
-    setShowColorModal(false)
   }
 
   const insertButtonInEmail = () => {
@@ -239,23 +198,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       return
     }
 
-    const buttonHtml = `\n\n[BUTTON:${values.buttonText || 'Clicca qui'}|${values.buttonUrl}]\n\n`
+    const buttonHtml = `<div style="text-align: center; margin: 24px 0;"><a href="${values.buttonUrl}" style="display: inline-block; padding: 14px 32px; background-color: ${orgData?.primary_color || '#ef4444'}; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">${values.buttonText || 'Clicca qui'}</a></div>`
 
-    const textarea = textareaRef.current
-    if (textarea) {
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const newContent = emailContent.substring(0, start) + buttonHtml + emailContent.substring(end)
-      setEmailContent(newContent)
-
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + buttonHtml.length, start + buttonHtml.length)
-      }, 0)
-    } else {
-      setEmailContent(emailContent + buttonHtml)
-    }
-
+    document.execCommand('insertHTML', false, buttonHtml)
+    updateContent()
+    editorRef.current?.focus()
     setShowButtonModal(false)
   }
 
@@ -269,23 +216,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       return
     }
 
-    const imageHtml = `\n\n[IMAGE:${values.imageUrl}]\n\n`
+    const imageHtml = `<div style="text-align: center; margin: 20px 0;"><img src="${values.imageUrl}" alt="Immagine email" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>`
 
-    const textarea = textareaRef.current
-    if (textarea) {
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const newContent = emailContent.substring(0, start) + imageHtml + emailContent.substring(end)
-      setEmailContent(newContent)
-
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + imageHtml.length, start + imageHtml.length)
-      }, 0)
-    } else {
-      setEmailContent(emailContent + imageHtml)
-    }
-
+    document.execCommand('insertHTML', false, imageHtml)
+    updateContent()
+    editorRef.current?.focus()
     setShowImageModal(false)
   }
 
@@ -819,35 +754,105 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                       <Underline size={18} />
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setShowColorModal(true)}
-                      title="Colore testo"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '8px 12px',
-                        backgroundColor: 'white',
-                        color: '#374151',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = '#8b5cf6'
-                        e.currentTarget.style.color = 'white'
-                        e.currentTarget.style.borderColor = '#8b5cf6'
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = 'white'
-                        e.currentTarget.style.color = '#374151'
-                        e.currentTarget.style.borderColor = '#d1d5db'
-                      }}
-                    >
-                      <Palette size={18} />
-                    </button>
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowColorPicker(!showColorPicker)}
+                        title="Colore testo"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '8px 12px',
+                          backgroundColor: showColorPicker ? '#8b5cf6' : 'white',
+                          color: showColorPicker ? 'white' : '#374151',
+                          border: '1px solid ' + (showColorPicker ? '#8b5cf6' : '#d1d5db'),
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => {
+                          if (!showColorPicker) {
+                            e.currentTarget.style.backgroundColor = '#8b5cf6'
+                            e.currentTarget.style.color = 'white'
+                            e.currentTarget.style.borderColor = '#8b5cf6'
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (!showColorPicker) {
+                            e.currentTarget.style.backgroundColor = 'white'
+                            e.currentTarget.style.color = '#374151'
+                            e.currentTarget.style.borderColor = '#d1d5db'
+                          }
+                        }}
+                      >
+                        <Palette size={18} />
+                      </button>
+
+                      {/* Palette colori */}
+                      {showColorPicker && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            marginTop: '8px',
+                            backgroundColor: 'white',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            padding: '12px',
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                            zIndex: 1000,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(6, 1fr)',
+                            gap: '8px',
+                            width: '240px'
+                          }}
+                        >
+                          {[
+                            '#000000', // Nero
+                            '#374151', // Grigio scuro
+                            '#6b7280', // Grigio
+                            '#ef4444', // Rosso
+                            '#f59e0b', // Arancione
+                            '#eab308', // Giallo
+                            '#22c55e', // Verde
+                            '#10b981', // Verde smeraldo
+                            '#06b6d4', // Cyan
+                            '#3b82f6', // Blu
+                            '#6366f1', // Indaco
+                            '#8b5cf6', // Viola
+                            '#ec4899', // Rosa
+                            '#f43f5e', // Rosa scuro
+                            '#ffffff', // Bianco
+                            '#d1d5db'  // Grigio chiaro
+                          ].map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => applyColor(color)}
+                              title={color}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                backgroundColor: color,
+                                border: color === '#ffffff' ? '2px solid #d1d5db' : '2px solid ' + color,
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                transition: 'transform 0.2s',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'scale(1.1)'
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'scale(1)'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     <div style={{
                       width: '1px',
@@ -924,12 +929,12 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   </div>
                 </div>
 
-                <textarea
-                  ref={textareaRef}
-                  value={emailContent}
-                  onChange={(e) => setEmailContent(e.target.value)}
-                  placeholder="Scrivi qui il messaggio principale dell'email. Puoi usare variabili come {{customer_name}} per personalizzare..."
-                  rows={10}
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  onInput={updateContent}
+                  onBlur={updateContent}
+                  data-placeholder="Scrivi qui il messaggio dell'email. Seleziona del testo e usa i bottoni per formattare..."
                   style={{
                     width: '100%',
                     padding: '20px',
@@ -937,11 +942,15 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     border: '2px solid #d1d5db',
                     borderRadius: '10px',
                     fontWeight: '500',
-                    resize: 'vertical',
                     fontFamily: 'inherit',
                     lineHeight: '1.6',
-                    minHeight: '250px'
+                    minHeight: '250px',
+                    maxHeight: '400px',
+                    overflowY: 'auto',
+                    backgroundColor: 'white',
+                    outline: 'none'
                   }}
+                  dangerouslySetInnerHTML={{ __html: emailContent }}
                 />
                 <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
                   💡 Il template grafico (logo, colori, layout) verrà applicato automaticamente
@@ -1818,27 +1827,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         onConfirm={confirmImageInsert}
         onCancel={() => setShowImageModal(false)}
         confirmButtonColor="#10b981"
-      />
-
-      {/* Modal Selezione Colore */}
-      <InputModal
-        isOpen={showColorModal}
-        title="Scegli Colore Testo"
-        icon="🎨"
-        fields={[
-          {
-            name: 'textColor',
-            label: 'Colore',
-            type: 'text',
-            placeholder: '#FF0000',
-            required: true,
-            defaultValue: '#ef4444'
-          }
-        ]}
-        confirmText="Applica Colore"
-        onConfirm={insertColor}
-        onCancel={() => setShowColorModal(false)}
-        confirmButtonColor="#8b5cf6"
       />
     </>
   )
