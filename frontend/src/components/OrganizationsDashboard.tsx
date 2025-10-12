@@ -3352,6 +3352,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onUpdate={() => {
           fetchOrganizations()
           setShowAccountSettingsPanel(false)
+          // Chiudi anche EmailMarketingPanel se aperto per forzare refresh dei dati
+          setShowEmailMarketingPanel(false)
         }}
       />
 

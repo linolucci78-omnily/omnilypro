@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Image } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Image, Bold, Italic, Underline, Palette } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import InputModal from './UI/InputModal'
@@ -85,6 +85,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   // Stati per modali inserimento elementi
   const [showButtonModal, setShowButtonModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [showColorModal, setShowColorModal] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -165,7 +166,69 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     }
   }
 
-  // Funzioni helper per inserire elementi nel contenuto email
+  // Funzioni helper per inserire formattazione ed elementi nel contenuto email
+  const wrapSelectedText = (prefix: string, suffix: string) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = emailContent.substring(start, end)
+
+    if (selectedText) {
+      // Se c'è testo selezionato, wrappa il testo
+      const newContent = emailContent.substring(0, start) + prefix + selectedText + suffix + emailContent.substring(end)
+      setEmailContent(newContent)
+
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length)
+      }, 0)
+    } else {
+      // Se non c'è selezione, inserisci i tag con placeholder
+      const placeholder = prefix === '**' ? 'testo in grassetto' : prefix === '*' ? 'testo in corsivo' : prefix === '__' ? 'testo sottolineato' : 'testo colorato'
+      const newContent = emailContent.substring(0, start) + prefix + placeholder + suffix + emailContent.substring(end)
+      setEmailContent(newContent)
+
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + prefix.length, start + prefix.length + placeholder.length)
+      }, 0)
+    }
+  }
+
+  const insertBold = () => wrapSelectedText('**', '**')
+  const insertItalic = () => wrapSelectedText('*', '*')
+  const insertUnderline = () => wrapSelectedText('__', '__')
+
+  const insertColor = (values: Record<string, string>) => {
+    const color = values.textColor
+    if (!color) {
+      showError('Seleziona un colore')
+      return
+    }
+
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = emailContent.substring(start, end)
+    const textToColor = selectedText || 'testo colorato'
+
+    const colorTag = `[COLOR:${color}]${textToColor}[/COLOR]`
+    const newContent = emailContent.substring(0, start) + colorTag + emailContent.substring(end)
+    setEmailContent(newContent)
+
+    setTimeout(() => {
+      textarea.focus()
+      const offset = `[COLOR:${color}]`.length
+      textarea.setSelectionRange(start + offset, start + offset + textToColor.length)
+    }, 0)
+
+    setShowColorModal(false)
+  }
+
   const insertButtonInEmail = () => {
     setShowButtonModal(true)
   }
@@ -650,63 +713,215 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   Contenuto Email *
                 </label>
 
-                {/* Toolbar per inserimento elementi */}
+                {/* Toolbar per formattazione e inserimento elementi */}
                 <div style={{
                   display: 'flex',
+                  flexDirection: 'column',
                   gap: '8px',
-                  marginBottom: '12px',
-                  padding: '12px',
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '8px',
-                  border: '2px solid #e5e7eb'
+                  marginBottom: '12px'
                 }}>
-                  <button
-                    type="button"
-                    onClick={insertButtonInEmail}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 16px',
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '15px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
-                  >
-                    <Link2 size={18} />
-                    Aggiungi Pulsante
-                  </button>
+                  {/* Riga 1: Formattazione testo */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '4px',
+                    padding: '8px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px',
+                    border: '2px solid #e5e7eb'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={insertBold}
+                      title="Grassetto"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3b82f6'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#3b82f6'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Bold size={18} />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={insertImageInEmail}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 16px',
-                      backgroundColor: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '15px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
-                  >
-                    <Image size={18} />
-                    Aggiungi Immagine
-                  </button>
+                    <button
+                      type="button"
+                      onClick={insertItalic}
+                      title="Corsivo"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3b82f6'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#3b82f6'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Italic size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={insertUnderline}
+                      title="Sottolineato"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3b82f6'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#3b82f6'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Underline size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowColorModal(true)}
+                      title="Colore testo"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#8b5cf6'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#8b5cf6'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Palette size={18} />
+                    </button>
+
+                    <div style={{
+                      width: '1px',
+                      height: '100%',
+                      backgroundColor: '#d1d5db',
+                      margin: '0 4px'
+                    }} />
+
+                    <button
+                      type="button"
+                      onClick={insertButtonInEmail}
+                      title="Aggiungi pulsante"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3b82f6'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#3b82f6'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Link2 size={16} />
+                      <span>Pulsante</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={insertImageInEmail}
+                      title="Aggiungi immagine"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#10b981'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#10b981'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Image size={16} />
+                      <span>Immagine</span>
+                    </button>
+                  </div>
                 </div>
 
                 <textarea
@@ -732,7 +947,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   💡 Il template grafico (logo, colori, layout) verrà applicato automaticamente
                 </p>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>
-                  📌 Usa i pulsanti sopra per inserire bottoni con link e immagini nel tuo messaggio
+                  📌 Seleziona del testo e usa i bottoni per formattare, oppure clicca per inserire elementi
                 </p>
               </div>
 
@@ -833,13 +1048,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   {emailContent ? (
                     <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{
                       __html: emailContent
+                        // Sostituisci variabili
                         .replace(/\{\{customer_name\}\}/gi, 'Mario Rossi')
                         .replace(/\{\{organization_name\}\}/gi, organizationName)
                         .replace(/\{\{customer_email\}\}/gi, 'mario.rossi@email.com')
                         .replace(/\{\{customer_points\}\}/gi, '250')
                         .replace(/\{\{customer_tier\}\}/gi, 'Gold')
+                        // Formattazione testo (grassetto prima per evitare conflitti con corsivo)
+                        .replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*([^\*]+)\*/g, '<em>$1</em>')
+                        .replace(/__([^_]+)__/g, '<u>$1</u>')
+                        .replace(/\[COLOR:([^\]]+)\]([^\[]+)\[\/COLOR\]/g, '<span style="color:$1">$2</span>')
+                        // Elementi speciali (bottoni e immagini)
                         .replace(/\[BUTTON:([^\|]+)\|([^\]]+)\]/g, '<div style="text-align: center; margin: 24px 0;"><a href="$2" style="display: inline-block; padding: 14px 32px; background-color: ' + (orgData?.primary_color || '#ef4444') + '; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">$1</a></div>')
                         .replace(/\[IMAGE:([^\]]+)\]/g, '<div style="text-align: center; margin: 20px 0;"><img src="$1" alt="Immagine email" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>')
+                        // Converti newline in <br>
                         .replace(/\n/g, '<br>')
                     }} />
                   ) : (
@@ -1595,6 +1818,27 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         onConfirm={confirmImageInsert}
         onCancel={() => setShowImageModal(false)}
         confirmButtonColor="#10b981"
+      />
+
+      {/* Modal Selezione Colore */}
+      <InputModal
+        isOpen={showColorModal}
+        title="Scegli Colore Testo"
+        icon="🎨"
+        fields={[
+          {
+            name: 'textColor',
+            label: 'Colore',
+            type: 'text',
+            placeholder: '#FF0000',
+            required: true,
+            defaultValue: '#ef4444'
+          }
+        ]}
+        confirmText="Applica Colore"
+        onConfirm={insertColor}
+        onCancel={() => setShowColorModal(false)}
+        confirmButtonColor="#8b5cf6"
       />
     </>
   )
