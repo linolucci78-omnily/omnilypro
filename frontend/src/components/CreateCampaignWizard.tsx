@@ -48,13 +48,18 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Step 3: Personalizzazione
   const [emailSubject, setEmailSubject] = useState('')
+  const [emailContent, setEmailContent] = useState('')
 
-  // Step 4: Destinatari
+  // Organization data per preview
+  const [orgData, setOrgData] = useState<any>(null)
+  const [orgLoading, setOrgLoading] = useState(false)
+
+  // Step 5: Destinatari
   const [customers, setCustomers] = useState<Customer[]>([])
   const [selectedRecipients, setSelectedRecipients] = useState<'all' | 'filtered'>('all')
   const [customersLoading, setCustomersLoading] = useState(false)
 
-  // Step 5: Invio
+  // Step 6: Invio
   const [isCreating, setIsCreating] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [sendProgress, setSendProgress] = useState(0)
@@ -63,6 +68,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     if (isOpen) {
       loadTemplates()
       loadCustomers()
+      loadOrganization()
     }
   }, [isOpen])
 
@@ -102,16 +108,38 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         .from('customers')
         .select('id, name, email, loyalty_tier')
         .eq('organization_id', organizationId)
-        .not('email', 'is', null)
         .order('name')
 
       if (error) throw error
-      setCustomers(data || [])
+
+      // Filtra clienti con email valida (non null e non stringa vuota)
+      const customersWithEmail = (data || []).filter(c => c.email && c.email.trim().length > 0)
+      console.log(`📧 Clienti totali: ${data?.length}, con email: ${customersWithEmail.length}`)
+      setCustomers(customersWithEmail)
     } catch (error) {
       console.error('Error loading customers:', error)
       showError('Errore nel caricamento dei clienti')
     } finally {
       setCustomersLoading(false)
+    }
+  }
+
+  const loadOrganization = async () => {
+    setOrgLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name, logo_url, primary_color, secondary_color, email, phone, address, website')
+        .eq('id', organizationId)
+        .single()
+
+      if (error) throw error
+      setOrgData(data)
+    } catch (error) {
+      console.error('Error loading organization:', error)
+      showError('Errore nel caricamento dati organizzazione')
+    } finally {
+      setOrgLoading(false)
     }
   }
 
@@ -129,7 +157,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     setIsCreating(true)
 
     try {
-      // 1. Crea campagna
+      // 1. Crea campagna con contenuto personalizzato
       const { data: campaign, error: campaignError } = await supabase
         .from('email_campaigns')
         .insert({
@@ -139,6 +167,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
           template_id: selectedTemplate.id,
           template_type: selectedTemplate.template_type,
           subject: emailSubject,
+          custom_content: emailContent, // Salva il contenuto personalizzato
           status: 'draft',
           total_recipients: customers.length,
           target_filter: selectedRecipients === 'all' ? null : { type: 'all' }
@@ -225,6 +254,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     setCampaignName('')
     setCampaignDescription('')
     setEmailSubject('')
+    setEmailContent('')
     setSelectedRecipients('all')
     setSendProgress(0)
     onClose()
@@ -232,8 +262,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   const canProceedStep1 = campaignName.trim().length > 0
   const canProceedStep2 = selectedTemplate !== null
-  const canProceedStep3 = emailSubject.trim().length > 0
-  const canProceedStep4 = customers.length > 0
+  const canProceedStep3 = emailSubject.trim().length > 0 && emailContent.trim().length > 0
+  const canProceedStep4 = true // Preview step sempre valido
+  const canProceedStep5 = customers.length > 0
 
   if (!isOpen) return null
 
@@ -285,7 +316,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                 Crea Nuova Campagna
               </h2>
               <p style={{ margin: 0, fontSize: '14px', opacity: 0.9 }}>
-                Step {step} di 5
+                Step {step} di 6
               </p>
             </div>
             <button
@@ -311,7 +342,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
           <div style={{ marginTop: '20px', width: '100%', height: '8px', backgroundColor: 'rgba(255, 255, 255, 0.3)', borderRadius: '4px', overflow: 'hidden' }}>
             <div
               style={{
-                width: `${(step / 5) * 100}%`,
+                width: `${(step / 6) * 100}%`,
                 height: '100%',
                 backgroundColor: 'white',
                 transition: 'width 0.3s ease'
@@ -416,11 +447,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
             </div>
           )}
 
-          {/* Step 3: Personalizzazione Oggetto */}
+          {/* Step 3: Personalizzazione Contenuto */}
           {step === 3 && (
             <div>
               <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                ✏️ Personalizza Oggetto Email
+                ✏️ Scrivi il Messaggio Email
               </h3>
 
               <div style={{ marginBottom: '24px' }}>
@@ -431,7 +462,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   type="text"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  placeholder="Inserisci l'oggetto della email"
+                  placeholder="Es: Offerta Speciale per te!"
                   style={{
                     width: '100%',
                     padding: '20px',
@@ -443,37 +474,155 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                 />
               </div>
 
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '18px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+                  Contenuto Email * (Touch-friendly)
+                </label>
+                <textarea
+                  value={emailContent}
+                  onChange={(e) => setEmailContent(e.target.value)}
+                  placeholder="Scrivi qui il messaggio principale dell'email. Puoi usare variabili come {{customer_name}} per personalizzare..."
+                  rows={10}
+                  style={{
+                    width: '100%',
+                    padding: '20px',
+                    fontSize: '18px',
+                    border: '2px solid #d1d5db',
+                    borderRadius: '10px',
+                    fontWeight: '500',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    lineHeight: '1.6',
+                    minHeight: '250px'
+                  }}
+                />
+                <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+                  💡 Il template grafico (logo, colori, layout) verrà applicato automaticamente
+                </p>
+              </div>
+
               {selectedTemplate?.variables && selectedTemplate.variables.length > 0 && (
                 <div style={{ padding: '20px', backgroundColor: '#dbeafe', borderRadius: '10px', border: '2px solid #3b82f6' }}>
                   <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1e40af', margin: '0 0 12px 0' }}>
-                    Variabili Disponibili
+                    📝 Variabili Disponibili (copia e incolla nel testo)
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {selectedTemplate.variables.map((variable) => (
                       <span
                         key={variable}
                         style={{
-                          padding: '8px 12px',
+                          padding: '10px 14px',
                           backgroundColor: 'white',
                           border: '2px solid #3b82f6',
-                          borderRadius: '6px',
-                          fontSize: '14px',
+                          borderRadius: '8px',
+                          fontSize: '15px',
                           fontWeight: '600',
                           color: '#1e40af',
-                          fontFamily: 'monospace'
+                          fontFamily: 'monospace',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => {
+                          const varText = `{{${variable}}}`
+                          setEmailContent(emailContent + varText)
                         }}
                       >
                         {`{{${variable}}}`}
                       </span>
                     ))}
                   </div>
+                  <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: '#1e40af' }}>
+                    👆 Clicca su una variabile per aggiungerla al testo
+                  </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 4: Selezione Destinatari */}
+          {/* Step 4: PREVIEW EMAIL */}
           {step === 4 && (
+            <div>
+              <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
+                👁️ Anteprima Email
+              </h3>
+
+              <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#f0f9ff', borderRadius: '10px', border: '2px solid #3b82f6' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1e40af' }}>
+                  📧 Da: {orgData?.email || organizationName}
+                </p>
+                <p style={{ margin: '0', fontSize: '14px', fontWeight: '600', color: '#1e40af' }}>
+                  📝 Oggetto: {emailSubject}
+                </p>
+              </div>
+
+              <div style={{
+                border: '3px solid #e5e7eb',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                backgroundColor: '#f9fafb'
+              }}>
+                {/* Preview Email Content */}
+                <div style={{
+                  backgroundColor: orgData?.primary_color || '#ef4444',
+                  padding: '30px',
+                  textAlign: 'center',
+                  color: 'white'
+                }}>
+                  {orgData?.logo_url ? (
+                    <img
+                      src={orgData.logo_url}
+                      alt={organizationName}
+                      style={{
+                        maxWidth: '150px',
+                        maxHeight: '80px',
+                        marginBottom: '16px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : (
+                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>
+                      {organizationName}
+                    </h2>
+                  )}
+                </div>
+
+                <div style={{
+                  backgroundColor: 'white',
+                  padding: '40px 30px',
+                  fontSize: '16px',
+                  lineHeight: '1.8',
+                  color: '#374151'
+                }}>
+                  <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {emailContent || '(Il tuo messaggio apparirà qui)'}
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#f9fafb',
+                  padding: '30px',
+                  textAlign: 'center',
+                  borderTop: '2px solid #e5e7eb',
+                  fontSize: '14px',
+                  color: '#6b7280'
+                }}>
+                  <p style={{ margin: '0 0 8px 0' }}><strong>{organizationName}</strong></p>
+                  {orgData?.address && <p style={{ margin: '0 0 4px 0' }}>{orgData.address}</p>}
+                  {orgData?.phone && <p style={{ margin: '0 0 4px 0' }}>Tel: {orgData.phone}</p>}
+                  {orgData?.email && <p style={{ margin: '0 0 4px 0' }}>Email: {orgData.email}</p>}
+                  {orgData?.website && <p style={{ margin: '0 0 4px 0' }}>Web: {orgData.website}</p>}
+                </div>
+              </div>
+
+              <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#fef3c7', borderRadius: '10px', border: '2px solid #f59e0b', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#92400e' }}>
+                  ℹ️ Questa è un'anteprima. Le variabili come {{customer_name}} verranno sostituite per ogni cliente.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Selezione Destinatari */}
+          {step === 5 && (
             <div>
               <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
                 <Users size={28} style={{ display: 'inline', marginRight: '8px' }} />
@@ -521,8 +670,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
             </div>
           )}
 
-          {/* Step 5: Conferma e Invio */}
-          {step === 5 && (
+          {/* Step 6: Conferma e Invio */}
+          {step === 6 && (
             <div>
               <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
                 <Eye size={28} style={{ display: 'inline', marginRight: '8px' }} />
@@ -624,14 +773,15 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
               </button>
             )}
 
-            {step < 5 && (
+            {step < 6 && (
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={
                   (step === 1 && !canProceedStep1) ||
                   (step === 2 && !canProceedStep2) ||
                   (step === 3 && !canProceedStep3) ||
-                  (step === 4 && !canProceedStep4)
+                  (step === 4 && !canProceedStep4) ||
+                  (step === 5 && !canProceedStep5)
                 }
                 style={{
                   flex: 1,
@@ -640,7 +790,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     (step === 1 && !canProceedStep1) ||
                     (step === 2 && !canProceedStep2) ||
                     (step === 3 && !canProceedStep3) ||
-                    (step === 4 && !canProceedStep4)
+                    (step === 4 && !canProceedStep4) ||
+                    (step === 5 && !canProceedStep5)
                       ? '#9ca3af'
                       : '#3b82f6',
                   border: 'none',
@@ -652,7 +803,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     (step === 1 && !canProceedStep1) ||
                     (step === 2 && !canProceedStep2) ||
                     (step === 3 && !canProceedStep3) ||
-                    (step === 4 && !canProceedStep4)
+                    (step === 4 && !canProceedStep4) ||
+                    (step === 5 && !canProceedStep5)
                       ? 'not-allowed'
                       : 'pointer',
                   display: 'flex',
@@ -668,20 +820,20 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
               </button>
             )}
 
-            {step === 5 && !isSending && (
+            {step === 6 && !isSending && (
               <button
                 onClick={handleCreateAndSend}
-                disabled={isCreating || !canProceedStep4}
+                disabled={isCreating || !canProceedStep5}
                 style={{
                   flex: 1,
                   padding: '20px',
-                  backgroundColor: (isCreating || !canProceedStep4) ? '#9ca3af' : '#ef4444',
+                  backgroundColor: (isCreating || !canProceedStep5) ? '#9ca3af' : '#ef4444',
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '18px',
                   fontWeight: '700',
                   color: 'white',
-                  cursor: (isCreating || !canProceedStep4) ? 'not-allowed' : 'pointer',
+                  cursor: (isCreating || !canProceedStep5) ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
