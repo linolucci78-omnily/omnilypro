@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Image } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
+import InputModal from './UI/InputModal'
 
 interface CreateCampaignWizardProps {
   isOpen: boolean
@@ -80,6 +81,10 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Ref per textarea contenuto email
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Stati per modali inserimento elementi
+  const [showButtonModal, setShowButtonModal] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -162,13 +167,16 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Funzioni helper per inserire elementi nel contenuto email
   const insertButtonInEmail = () => {
-    const buttonUrl = prompt('Inserisci URL del bottone (es: https://tuosito.com/offerta)')
-    if (!buttonUrl) return
+    setShowButtonModal(true)
+  }
 
-    const buttonText = prompt('Testo del bottone (es: Scopri di più)', 'Scopri di più')
-    if (!buttonText) return
+  const confirmButtonInsert = (values: Record<string, string>) => {
+    if (!values.buttonUrl?.trim()) {
+      showError('Inserisci un URL valido')
+      return
+    }
 
-    const buttonHtml = `\n\n[BUTTON:${buttonText}|${buttonUrl}]\n\n`
+    const buttonHtml = `\n\n[BUTTON:${values.buttonText || 'Clicca qui'}|${values.buttonUrl}]\n\n`
 
     const textarea = textareaRef.current
     if (textarea) {
@@ -177,7 +185,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       const newContent = emailContent.substring(0, start) + buttonHtml + emailContent.substring(end)
       setEmailContent(newContent)
 
-      // Riposiziona cursore dopo il bottone inserito
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(start + buttonHtml.length, start + buttonHtml.length)
@@ -185,13 +192,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     } else {
       setEmailContent(emailContent + buttonHtml)
     }
+
+    setShowButtonModal(false)
   }
 
   const insertImageInEmail = () => {
-    const imageUrl = prompt('Inserisci URL dell\'immagine (es: https://tuosito.com/immagine.jpg)')
-    if (!imageUrl) return
+    setShowImageModal(true)
+  }
 
-    const imageHtml = `\n\n[IMAGE:${imageUrl}]\n\n`
+  const confirmImageInsert = (values: Record<string, string>) => {
+    if (!values.imageUrl?.trim()) {
+      showError('Inserisci un URL valido')
+      return
+    }
+
+    const imageHtml = `\n\n[IMAGE:${values.imageUrl}]\n\n`
 
     const textarea = textareaRef.current
     if (textarea) {
@@ -200,7 +215,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       const newContent = emailContent.substring(0, start) + imageHtml + emailContent.substring(end)
       setEmailContent(newContent)
 
-      // Riposiziona cursore dopo l'immagine inserita
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(start + imageHtml.length, start + imageHtml.length)
@@ -208,6 +222,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     } else {
       setEmailContent(emailContent + imageHtml)
     }
+
+    setShowImageModal(false)
   }
 
   const handleSaveCampaign = async (action: 'draft' | 'schedule' | 'now') => {
@@ -1532,6 +1548,54 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Modal Inserimento Bottone */}
+      <InputModal
+        isOpen={showButtonModal}
+        title="Aggiungi Pulsante con Link"
+        icon="🔗"
+        fields={[
+          {
+            name: 'buttonText',
+            label: 'Testo del pulsante',
+            type: 'text',
+            placeholder: 'Es: Scopri di più',
+            required: true,
+            defaultValue: 'Scopri di più'
+          },
+          {
+            name: 'buttonUrl',
+            label: 'URL destinazione',
+            type: 'url',
+            placeholder: 'https://tuosito.com/offerta',
+            required: true
+          }
+        ]}
+        confirmText="Inserisci Pulsante"
+        onConfirm={confirmButtonInsert}
+        onCancel={() => setShowButtonModal(false)}
+        confirmButtonColor="#3b82f6"
+      />
+
+      {/* Modal Inserimento Immagine */}
+      <InputModal
+        isOpen={showImageModal}
+        title="Aggiungi Immagine"
+        icon="🖼️"
+        fields={[
+          {
+            name: 'imageUrl',
+            label: 'URL dell\'immagine',
+            type: 'url',
+            placeholder: 'https://tuosito.com/immagine.jpg',
+            required: true
+          }
+        ]}
+        confirmText="Inserisci Immagine"
+        onConfirm={confirmImageInsert}
+        onCancel={() => setShowImageModal(false)}
+        confirmButtonColor="#10b981"
+      />
     </>
   )
 }
