@@ -42,13 +42,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // STEP 1: Check users table FIRST (Admin OMNILY PRO: super_admin, sales_agent, account_manager)
+      // Con timeout per prevenire blocchi
       console.log('🔐 Checking users table for OMNILY admin roles...')
 
-      const { data: userData, error: userError } = await supabase
+      const usersPromise = supabase
         .from('users')
         .select('role')
         .eq('id', userId)
         .single()
+
+      // Timeout 2 secondi - se la query è lenta, skippa
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Users table timeout')), 2000)
+      )
+
+      let userData, userError
+      try {
+        const result = await Promise.race([usersPromise, timeoutPromise]) as any
+        userData = result.data
+        userError = result.error
+      } catch (timeoutError) {
+        console.warn('⚠️ Users table query timeout - skipping to organization_users')
+        userError = timeoutError
+      }
 
       console.log('🔐 Users table result:', userData, 'Error:', userError)
 
