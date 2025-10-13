@@ -81,9 +81,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setTimeout(() => reject(new Error('Organization_users timeout')), 5000)
       );
 
-      let orgRoles, orgError;
+      let orgRoles: any, orgError: any;
       try {
-        const result = await Promise.race([orgUsersPromise, timeoutPromise]) as any;
+        const result: any = await Promise.race([orgUsersPromise, timeoutPromise]);
         orgRoles = result.data;
         orgError = result.error;
       } catch (timeoutError) {
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (orgRoles && orgRoles.length > 0) {
-        const primaryRole = orgRoles.find(r => r.role === 'super_admin') || orgRoles.find(r => r.role === 'org_admin') || orgRoles[0];
+        const primaryRole = orgRoles.find((r: any) => r.role === 'super_admin') || orgRoles.find((r: any) => r.role === 'org_admin') || orgRoles[0];
         console.log('🔐 [V5] Organization role found:', primaryRole.role);
         setUserRole(primaryRole.role);
         setIsSuperAdmin(primaryRole.role === 'super_admin');
