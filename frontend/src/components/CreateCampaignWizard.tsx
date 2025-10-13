@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import InputModal from './UI/InputModal'
 import ImageUploadModal from './UI/ImageUploadModal'
+import ConfirmModal from './UI/ConfirmModal'
 
 interface CreateCampaignWizardProps {
   isOpen: boolean
@@ -83,11 +84,13 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   // Ref per editor contenuto email
   const editorRef = useRef<HTMLDivElement>(null)
   const savedRangeRef = useRef<Range | null>(null)
+  const elementToDeleteRef = useRef<HTMLElement | null>(null)
 
   // Stati per modali inserimento elementi
   const [showButtonModal, setShowButtonModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -318,26 +321,13 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
       container.appendChild(button)
 
-      // Inserisci alla posizione corrente o alla fine
-      if (savedRangeRef.current && savedRangeRef.current.startContainer.isConnected) {
-        try {
-          savedRangeRef.current.insertNode(container)
-          savedRangeRef.current.setStartAfter(container)
-          savedRangeRef.current.collapse(true)
-        } catch (err) {
-          // Se fallisce, appendi alla fine
-          if (editorRef.current) {
-            editorRef.current.appendChild(container)
-          }
-        }
-      } else if (editorRef.current) {
-        editorRef.current.appendChild(container)
-      }
-
-      // Aggiungi paragrafo vuoto dopo per permettere di continuare a scrivere
-      const spacer = document.createElement('p')
-      spacer.innerHTML = '<br>'
+      // SEMPRE inserisci alla fine per pulsanti (più intuitivo)
       if (editorRef.current) {
+        editorRef.current.appendChild(container)
+        
+        // Aggiungi paragrafo vuoto dopo per permettere di continuare a scrivere
+        const spacer = document.createElement('p')
+        spacer.innerHTML = '<br>'
         editorRef.current.appendChild(spacer)
         
         // Posiziona il cursore nel nuovo paragrafo
@@ -347,10 +337,10 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         range.collapse(true)
         sel?.removeAllRanges()
         sel?.addRange(range)
+        
+        updateContent()
+        editorRef.current?.focus()
       }
-
-      updateContent()
-      editorRef.current?.focus()
     } catch (error) {
       console.error('Errore inserimento pulsante:', error)
       showError('Errore inserimento pulsante')
@@ -361,6 +351,15 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   const insertImageInEmail = () => {
     setShowImageModal(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (elementToDeleteRef.current) {
+      elementToDeleteRef.current.remove()
+      updateContent()
+      elementToDeleteRef.current = null
+    }
+    setShowDeleteConfirm(false)
   }
 
   const confirmImageInsert = (imageUrl: string) => {
@@ -384,7 +383,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       const img = document.createElement('img')
       img.src = imageUrl
       img.alt = 'Immagine email'
-      img.style.width = '600px' // Dimensione default
+      img.style.width = '400px' // Dimensione default
       img.style.maxWidth = '100%'
       img.style.height = 'auto'
       img.style.borderRadius = '8px'
@@ -413,14 +412,14 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
       const slider = document.createElement('input')
       slider.type = 'range'
-      slider.min = '200'
+      slider.min = '100'
       slider.max = '800'
-      slider.value = '600'
+      slider.value = '400'
       slider.style.width = '200px'
       slider.style.verticalAlign = 'middle'
 
       const valueDisplay = document.createElement('span')
-      valueDisplay.textContent = '600px'
+      valueDisplay.textContent = '400px'
       valueDisplay.style.marginLeft = '8px'
       valueDisplay.style.fontSize = '14px'
       valueDisplay.style.fontWeight = '600'
@@ -459,10 +458,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
       deleteButton.addEventListener('click', (e) => {
         e.stopPropagation()
-        if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
-          container.remove()
-          updateContent()
-        }
+        // Usa modal invece di confirm()
+        elementToDeleteRef.current = container
+        setShowDeleteConfirm(true)
       })
 
       resizeControls.appendChild(sliderContainer)
@@ -478,26 +476,13 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       container.appendChild(wrapper)
       container.appendChild(resizeControls)
 
-      // Inserisci alla posizione corrente o alla fine
-      if (savedRangeRef.current && savedRangeRef.current.startContainer.isConnected) {
-        try {
-          savedRangeRef.current.insertNode(container)
-          savedRangeRef.current.setStartAfter(container)
-          savedRangeRef.current.collapse(true)
-        } catch (err) {
-          // Se fallisce, appendi alla fine
-          if (editorRef.current) {
-            editorRef.current.appendChild(container)
-          }
-        }
-      } else if (editorRef.current) {
-        editorRef.current.appendChild(container)
-      }
-
-      // Aggiungi paragrafo vuoto dopo per permettere di continuare a scrivere
-      const spacer = document.createElement('p')
-      spacer.innerHTML = '<br>'
+      // SEMPRE inserisci alla fine per immagini (più intuitivo)
       if (editorRef.current) {
+        editorRef.current.appendChild(container)
+        
+        // Aggiungi paragrafo vuoto dopo per permettere di continuare a scrivere
+        const spacer = document.createElement('p')
+        spacer.innerHTML = '<br>'
         editorRef.current.appendChild(spacer)
         
         // Posiziona il cursore nel nuovo paragrafo
@@ -507,10 +492,10 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         range.collapse(true)
         sel?.removeAllRanges()
         sel?.addRange(range)
+        
+        updateContent()
+        editorRef.current?.focus()
       }
-
-      updateContent()
-      editorRef.current?.focus()
     } catch (error) {
       console.error('Errore inserimento immagine:', error)
       showError('Errore inserimento immagine')
@@ -1671,32 +1656,61 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                           fontWeight: '600',
                           color: '#1e40af',
                           fontFamily: 'monospace',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          userSelect: 'none'
                         }}
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          // Previeni perdita del focus
+                          e.preventDefault()
+                          // Salva la posizione corrente del cursore
+                          saveSelection()
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          
                           const varText = `{{${variable}}}`
                           
-                          // Inserisci alla posizione del cursore
+                          // Inserisci alla posizione del cursore CON SPAZI
                           if (editorRef.current) {
+                            // Usa il range salvato o crea uno nuovo
                             const selection = window.getSelection()
-                            const range = selection && selection.rangeCount > 0 
-                              ? selection.getRangeAt(0) 
-                              : document.createRange()
+                            let range: Range
                             
-                            // Se non c'è selezione, posiziona alla fine
-                            if (!selection || selection.rangeCount === 0) {
+                            if (savedRangeRef.current && savedRangeRef.current.startContainer.isConnected) {
+                              range = savedRangeRef.current
+                            } else if (selection && selection.rangeCount > 0) {
+                              range = selection.getRangeAt(0)
+                            } else {
+                              // Posiziona alla fine
+                              range = document.createRange()
                               range.selectNodeContents(editorRef.current)
                               range.collapse(false)
                             }
                             
-                            const textNode = document.createTextNode(varText + ' ')
-                            range.insertNode(textNode)
+                            // Controlla se c'è già uno spazio prima
+                            const needsSpaceBefore = range.startOffset > 0 && 
+                              range.startContainer.textContent?.[range.startOffset - 1] !== ' '
                             
-                            // Posiziona cursore dopo il testo inserito
-                            range.setStartAfter(textNode)
-                            range.collapse(true)
-                            selection?.removeAllRanges()
-                            selection?.addRange(range)
+                            // Crea il testo con spazi prima e dopo se necessario
+                            const textToInsert = (needsSpaceBefore ? ' ' : '') + varText + ' '
+                            const textNode = document.createTextNode(textToInsert)
+                            
+                            try {
+                              range.insertNode(textNode)
+                              
+                              // Posiziona cursore dopo il testo inserito
+                              range.setStartAfter(textNode)
+                              range.collapse(true)
+                              selection?.removeAllRanges()
+                              selection?.addRange(range)
+                              
+                              // Salva il nuovo range
+                              savedRangeRef.current = range
+                            } catch (err) {
+                              // Fallback: appendi alla fine
+                              editorRef.current.appendChild(textNode)
+                            }
                             
                             updateContent()
                             editorRef.current?.focus()
@@ -2533,6 +2547,18 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         organizationId={organizationId}
         onConfirm={confirmImageInsert}
         onCancel={() => setShowImageModal(false)}
+      />
+
+      {/* Modal Conferma Eliminazione */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Elimina Immagine"
+        message="Sei sicuro di voler eliminare questa immagine? L'operazione non può essere annullata."
+        confirmText="Elimina"
+        cancelText="Annulla"
+        type="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
       />
     </>
   )
