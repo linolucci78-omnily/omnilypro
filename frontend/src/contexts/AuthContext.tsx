@@ -41,11 +41,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 Checking user role for:', userId)
 
     try {
-      // STEP 1: Check users table (Admin OMNILY PRO: super_admin, sales_agent, account_manager)
-      // SKIPPED FOR NOW - causing infinite loop, will fix later
-      console.log('🔐 Skipping users table check for now...')
+      // STEP 1: Check users table FIRST (Admin OMNILY PRO: super_admin, sales_agent, account_manager)
+      console.log('🔐 Checking users table for OMNILY admin roles...')
 
-      // STEP 2: Check organization_users table (Organization owners/staff)
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      console.log('🔐 Users table result:', userData, 'Error:', userError)
+
+      // Se trovato nella tabella users, è un admin OMNILY
+      if (userData && !userError) {
+        const role = userData.role
+        console.log('🔐 OMNILY Admin role found:', role)
+        setUserRole(role)
+        setIsSuperAdmin(role === 'super_admin')
+        return // STOP here - admin OMNILY trovato
+      }
+
+      // STEP 2: Se non trovato in users, check organization_users (Organization owners/staff)
       console.log('🔐 Checking organization_users table...')
 
       const { data: allRoles, error: allError } = await supabase
