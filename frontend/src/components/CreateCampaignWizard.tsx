@@ -343,19 +343,118 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   const confirmImageInsert = (imageUrl: string) => {
     try {
-      // Crea il container dell'immagine
+      // Crea il container dell'immagine RIDIMENSIONABILE
       const container = document.createElement('div')
       container.style.textAlign = 'center'
       container.style.margin = '20px 0'
+      container.style.position = 'relative'
+      container.style.display = 'inline-block'
+      container.style.width = '100%'
+      container.contentEditable = 'false'
+
+      // Wrapper interno per resize
+      const wrapper = document.createElement('div')
+      wrapper.style.position = 'relative'
+      wrapper.style.display = 'inline-block'
+      wrapper.style.maxWidth = '100%'
+      wrapper.style.cursor = 'pointer'
 
       const img = document.createElement('img')
       img.src = imageUrl
       img.alt = 'Immagine email'
+      img.style.width = '600px' // Dimensione default
       img.style.maxWidth = '100%'
       img.style.height = 'auto'
       img.style.borderRadius = '8px'
+      img.style.display = 'block'
+      img.draggable = false
 
-      container.appendChild(img)
+      // Slider per ridimensionare (appare al click)
+      const resizeControls = document.createElement('div')
+      resizeControls.style.display = 'none'
+      resizeControls.style.marginTop = '8px'
+      resizeControls.style.padding = '12px'
+      resizeControls.style.backgroundColor = '#f3f4f6'
+      resizeControls.style.borderRadius = '8px'
+      resizeControls.style.textAlign = 'center'
+      resizeControls.style.border = '2px solid #d1d5db'
+
+      // Container per slider
+      const sliderContainer = document.createElement('div')
+      sliderContainer.style.marginBottom = '8px'
+
+      const label = document.createElement('label')
+      label.textContent = '📏 Larghezza: '
+      label.style.fontSize = '14px'
+      label.style.fontWeight = '600'
+      label.style.marginRight = '8px'
+
+      const slider = document.createElement('input')
+      slider.type = 'range'
+      slider.min = '200'
+      slider.max = '800'
+      slider.value = '600'
+      slider.style.width = '200px'
+      slider.style.verticalAlign = 'middle'
+
+      const valueDisplay = document.createElement('span')
+      valueDisplay.textContent = '600px'
+      valueDisplay.style.marginLeft = '8px'
+      valueDisplay.style.fontSize = '14px'
+      valueDisplay.style.fontWeight = '600'
+
+      slider.addEventListener('input', (e) => {
+        const newWidth = (e.target as HTMLInputElement).value + 'px'
+        img.style.width = newWidth
+        valueDisplay.textContent = newWidth
+      })
+
+      sliderContainer.appendChild(label)
+      sliderContainer.appendChild(slider)
+      sliderContainer.appendChild(valueDisplay)
+
+      // Pulsante ELIMINA
+      const deleteButton = document.createElement('button')
+      deleteButton.textContent = '🗑️ Elimina Immagine'
+      deleteButton.type = 'button'
+      deleteButton.style.padding = '8px 16px'
+      deleteButton.style.backgroundColor = '#ef4444'
+      deleteButton.style.color = 'white'
+      deleteButton.style.border = 'none'
+      deleteButton.style.borderRadius = '6px'
+      deleteButton.style.fontSize = '14px'
+      deleteButton.style.fontWeight = '600'
+      deleteButton.style.cursor = 'pointer'
+      deleteButton.style.transition = 'all 0.2s'
+
+      deleteButton.addEventListener('mouseenter', () => {
+        deleteButton.style.backgroundColor = '#dc2626'
+      })
+
+      deleteButton.addEventListener('mouseleave', () => {
+        deleteButton.style.backgroundColor = '#ef4444'
+      })
+
+      deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
+          container.remove()
+          updateContent()
+        }
+      })
+
+      resizeControls.appendChild(sliderContainer)
+      resizeControls.appendChild(deleteButton)
+
+      // Toggle controls al click sull'immagine
+      wrapper.addEventListener('click', (e) => {
+        e.stopPropagation()
+        resizeControls.style.display = resizeControls.style.display === 'none' ? 'block' : 'none'
+      })
+
+      wrapper.appendChild(img)
+      container.appendChild(wrapper)
+      container.appendChild(resizeControls)
 
       // Inserisci alla posizione corrente o alla fine
       if (savedRangeRef.current) {
@@ -364,6 +463,15 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         savedRangeRef.current.collapse(true)
       } else if (editorRef.current) {
         editorRef.current.appendChild(container)
+      }
+
+      // Aggiungi spazio dopo l'immagine
+      const spacer = document.createElement('p')
+      spacer.innerHTML = '<br>'
+      if (savedRangeRef.current) {
+        savedRangeRef.current.insertNode(spacer)
+      } else if (editorRef.current) {
+        editorRef.current.appendChild(spacer)
       }
 
       updateContent()
