@@ -762,7 +762,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     borderRadius: '8px',
                     border: '2px solid #e5e7eb',
                     overflowX: 'scroll',
-                    overflowY: 'hidden',
+                    overflowY: 'visible',
                     WebkitOverflowScrolling: 'touch',
                     scrollbarWidth: 'thin',
                     minWidth: 0,
