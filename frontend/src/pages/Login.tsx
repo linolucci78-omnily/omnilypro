@@ -47,16 +47,16 @@ const Login: React.FC = () => {
 
       let redirectPath = '/dashboard'; // Default per utenti normali
 
-      // Se è un admin OMNILY PRO (super_admin, sales_agent, account_manager)
-      if (userRole) {
+      // 🚨 PRIORITÀ: Se è modalità POS, vai SEMPRE al dashboard aziendale (anche se sei super_admin)
+      if (isPosMode) {
+        redirectPath = '/dashboard'; // Dashboard aziendale per POS
+        console.log('🔐 📱 POS mode redirect (priority over admin roles):', { redirectPath, userRole });
+      }
+      // Se NON è POS e sei un admin OMNILY PRO (super_admin, sales_agent, account_manager)
+      else if (userRole) {
         const permissions = getAdminPermissions(userRole as AdminRole);
         redirectPath = permissions.defaultRoute;
         console.log('🔐 ✅ Admin login redirect:', { userRole, redirectPath, permissions });
-      }
-      // Se è modalità POS, vai al dashboard aziendale
-      else if (isPosMode) {
-        redirectPath = '/dashboard'; // Dashboard aziendale per POS
-        console.log('🔐 📱 POS mode redirect:', { redirectPath });
       }
 
       console.log('🔐 🚀 Final login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading, currentPath: location.pathname });
