@@ -95,19 +95,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
     setError('')
 
     try {
-      // Verifica/Crea bucket
-      const { data: buckets } = await supabase.storage.listBuckets()
-      const bucketExists = buckets?.some(b => b.name === 'email-images')
-
-      if (!bucketExists) {
-        await supabase.storage.createBucket('email-images', {
-          public: true,
-          fileSizeLimit: 5242880,
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
-        })
-      }
-
-      // Upload
+      // Upload diretto - il bucket è già stato creato alla creazione dell'organizzazione
       const timestamp = Date.now()
       const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
       const filePath = `${organizationId}/${fileName}`

@@ -142,6 +142,9 @@ export class OrganizationService {
             // Initialize usage tracking
             await this.initializeUsageTracking(organization.id)
 
+            // Initialize storage bucket for email images
+            await this.initializeStorageBucket(organization.id)
+
             // Create default rewards in the rewards table
             if (wizardData.defaultRewards && wizardData.defaultRewards.length > 0) {
                 await this.createDefaultRewards(organization.id, wizardData.defaultRewards)
@@ -309,21 +312,45 @@ export class OrganizationService {
      */
     async initializeUsageTracking(orgId: any) {
         const today = new Date().toISOString().split('T')[0]
-        
+
         const trackingEntries = [
             { org_id: orgId, resource_type: 'customers', date: today, quantity: 0 },
             { org_id: orgId, resource_type: 'workflows', date: today, quantity: 0 },
             { org_id: orgId, resource_type: 'notifications', date: today, quantity: 0 }
         ]
-        
+
         const { error } = await supabase
             .from('usage_tracking')
             .insert(trackingEntries)
-            
+
         if (error) {
             console.error('Failed to initialize usage tracking:', error)
         } else {
             console.log('Usage tracking initialized')
+        }
+    }
+
+    /**
+     * Initialize storage bucket for organization email images
+     */
+    async initializeStorageBucket(orgId: any) {
+        try {
+            console.log(`Creating storage bucket for organization ${orgId}`)
+
+            const { data, error } = await supabase.functions.invoke('create-storage-bucket', {
+                body: { organizationId: orgId }
+            })
+
+            if (error) {
+                console.error('Failed to create storage bucket:', error)
+                // Don't throw - allow organization creation to continue
+                return
+            }
+
+            console.log('✅ Storage bucket initialized:', data)
+        } catch (error) {
+            console.error('Error initializing storage bucket:', error)
+            // Don't throw - allow organization creation to continue
         }
     }
     
