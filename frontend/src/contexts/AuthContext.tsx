@@ -139,7 +139,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserRole('org_admin') // Demo user ha ruolo admin organizzazione
         setIsSuperAdmin(false)
         setLoading(false)
-        return // Skip Supabase auth check completamente
+
+        // Return empty cleanup per NON registrare onAuthStateChange
+        return () => {
+          console.log('🚀 POS Demo Mode - cleanup (noop)')
+        }
       } catch (err) {
         console.error('❌ Error parsing POS demo user:', err)
         localStorage.removeItem('pos-demo-user')
@@ -158,11 +162,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     })
 
-    // Listen for auth changes
+    // Listen for auth changes (SOLO se NON demo mode)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state changed:', event, session?.user?.email)
+
+      // Ignora se siamo in demo mode
+      if (localStorage.getItem('pos-demo-user')) {
+        console.log('🚀 POS Demo Mode - ignoro auth state change')
+        return
+      }
+
       setSession(session)
       setUser(session?.user ?? null)
 
@@ -174,8 +185,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsSuperAdmin(false)
         setLoading(false)
       }
-
-      // NON chiamare setLoading(false) qui perché checkUserRole lo fa già
     })
 
     return () => subscription.unsubscribe()
