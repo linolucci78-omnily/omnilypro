@@ -223,26 +223,61 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const removeFormat = () => applyFormatting('removeFormat')
 
   const handleColorPickerClick = () => {
+    console.log('🎨 Click palette, stato attuale:', showColorPicker, '→ nuovo:', !showColorPicker)
     setShowColorPicker(!showColorPicker)
   }
 
   const applyColor = (color: string) => {
-    // 1. Assicurati che l'editor abbia il focus PRIMA di tutto
-    editorRef.current?.focus()
-
-    // 2. Ripristina la selezione che è stata salvata onBlur
-    restoreSelection()
-
-    // 3. Applica il colore
-    document.execCommand('foreColor', false, color)
-
-    // 4. Aggiorna contenuto
-    if (editorRef.current) {
-      setEmailContent(editorRef.current.innerHTML)
+    if (!savedRangeRef.current) {
+      console.log('❌ Nessuna selezione salvata')
+      setShowColorPicker(false)
+      return
     }
 
-    // 5. Chiudi la palette
+    try {
+      // 1. Ripristina la selezione
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(savedRangeRef.current)
+      }
+
+      // 2. Estrai il contenuto selezionato
+      const range = savedRangeRef.current
+      const selectedText = range.toString()
+
+      if (selectedText.length > 0) {
+        // 3. Crea un span con il colore
+        const span = document.createElement('span')
+        span.style.color = color
+        span.textContent = selectedText
+
+        // 4. Sostituisci il contenuto selezionato con lo span
+        range.deleteContents()
+        range.insertNode(span)
+
+        // 5. Posiziona il cursore dopo lo span
+        range.setStartAfter(span)
+        range.setEndAfter(span)
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+
+        // 6. Aggiorna il contenuto
+        if (editorRef.current) {
+          setEmailContent(editorRef.current.innerHTML)
+        }
+
+        console.log('✅ Colore applicato:', color, 'a', selectedText)
+      }
+    } catch (error) {
+      console.error('Errore applicazione colore:', error)
+    }
+
+    // 7. Chiudi la palette
     setShowColorPicker(false)
+
+    // 8. Rimetti focus sull'editor
+    editorRef.current?.focus()
   }
 
   const updateContent = () => {
