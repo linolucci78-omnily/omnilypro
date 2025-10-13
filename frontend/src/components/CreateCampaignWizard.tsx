@@ -885,7 +885,10 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                             <button
                               key={color}
                               type="button"
-                              onClick={() => applyColor(color)}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                applyColor(color)
+                              }}
                               title={color}
                               style={{
                                 width: '32px',
