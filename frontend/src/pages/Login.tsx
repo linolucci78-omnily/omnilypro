@@ -59,12 +59,19 @@ const Login: React.FC = () => {
         console.log('🔐 📱 POS mode redirect:', { redirectPath });
       }
 
-      console.log('🔐 🚀 Final login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading });
+      console.log('🔐 🚀 Final login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading, currentPath: location.pathname });
 
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
+      
+      // PREVENZIONE LOOP: Non fare redirect se sei già sulla pagina giusta!
+      if (location.pathname === from) {
+        console.log('🔐 ⚠️ Already on target page, skipping redirect to prevent loop');
+        return;
+      }
+      
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location, isPosMode, isSuperAdmin, userRole, authLoading]);
+  }, [user, navigate, location.pathname, location.state, isPosMode, isSuperAdmin, userRole]); // RIMOSSO authLoading!
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
