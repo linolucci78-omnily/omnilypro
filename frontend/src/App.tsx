@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
+import { useMDMCommands } from './hooks/useMDMCommands'
 import Navbar from './components/Layout/Navbar'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
 import AdminLayout from './components/Admin/AdminLayout'
@@ -37,6 +38,9 @@ import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
 import CustomerDisplay from './components/POS/CustomerDisplay'
 
 function App() {
+  // Registra handler MDM per comandi da Android
+  useMDMCommands()
+
   // Detect if running in POS mode (only posomnily=true)
   const isPOSMode = typeof window !== 'undefined' &&
     window.location.search.includes('posomnily=true')
