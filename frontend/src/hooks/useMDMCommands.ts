@@ -28,7 +28,7 @@ export const useMDMCommands = () => {
           storeName: template.store_name || 'Store',
           storeAddress: template.store_address || '',
           storePhone: template.store_phone || '',
-          taxId: template.store_tax || '',
+          storeTax: template.store_tax || '',
           logoBase64: template.logo_base64 || undefined,
           paperWidth: template.paper_width || 384,
           fontSizeNormal: template.font_size_normal || 24,
