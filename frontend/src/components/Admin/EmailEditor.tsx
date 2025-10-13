@@ -98,14 +98,9 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
     },
     identity: { id: userId },
     // storage: { type: 'browser' as const }, // Disabilitato per evitare conflitti con contenuto dinamico
-    storage: false, // Disabilita esplicitamente lo storage per evitare "The operation is insecure"
+    // NOTA: storage non specificato = disabilitato, previene "The operation is insecure"
     theme: 'light' as const,
     // templates: non supportato in questa versione del SDK - caricamento manuale via setComponents
-    canvas: {
-      // Previeni errori "insecure operation" su immagini cross-origin
-      scripts: [],
-      styles: []
-    }
   }), [projectId, userId]);
 
   const handleOnChange = (data: any) => {
@@ -133,29 +128,6 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
         console.error('❌ Errore in handleOnChange:', err);
         // Non propagare l'errore per evitare crash
       }
-    }
-  };
-
-  const handleOnSave = (data: any) => {
-    if (onSave) {
-      const editor = editorRef.current;
-      const gjsComponents = editor ? editor.getComponents() : undefined;
-      const gjsStyles = editor ? editor.getStyle() : undefined;
-
-      console.log('💾 EmailEditor onSave:', {
-        hasEditor: !!editor,
-        gjsComponents: gjsComponents,
-        gjsStyles: gjsStyles,
-        html_length: data.html?.length,
-        css_length: data.css?.length
-      });
-
-      onSave({
-        html: data.html,
-        css: data.css,
-        gjsComponents,
-        gjsStyles
-      });
     }
   };
 
@@ -232,6 +204,18 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
           options={editorOptions}
           onReady={(editor) => {
             editorRef.current = editor;
+
+            // Configura attributi CORS per immagini (previene "insecure operation")
+            const gjs = editor.editor || editor;
+            if (gjs && gjs.on) {
+              gjs.on('component:add', (component: any) => {
+                if (component.is('image')) {
+                  // Aggiungi crossOrigin="anonymous" a tutte le immagini
+                  component.set('crossorigin', 'anonymous');
+                }
+              });
+            }
+
             // Carica il contenuto appena l'editor è pronto
             console.log('🎨 Editor GrapeJS pronto');
             console.log('📋 Metodi disponibili:', Object.keys(editor));
