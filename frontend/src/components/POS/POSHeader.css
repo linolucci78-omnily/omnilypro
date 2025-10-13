@@ -89,19 +89,19 @@
 }
 
 .pos-user-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: 1.1rem; /* Aumentato da 0.9rem */
+  font-weight: 700; /* Più bold */
+  color: #1f2937; /* Più scuro */
   text-transform: capitalize;
 }
 
 .pos-user-status {
-  font-size: 0.75rem;
+  font-size: 0.9rem; /* Aumentato da 0.75rem */
   color: #10b981;
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-weight: 600;
+  font-weight: 700; /* Più bold */
 }
 
 /* Quick Logout - POSHeader specifico */
@@ -166,8 +166,13 @@
     height: 35px;
   }
 
-  .pos-user-info {
-    display: none; /* Nascondi info utente su schermi piccoli */
+  /* Mantieni user info visibile anche su POS */
+  .pos-user-name {
+    font-size: 1rem;
+  }
+
+  .pos-user-status {
+    font-size: 0.85rem;
   }
 
   .pos-quick-logout-posheader,
