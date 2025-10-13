@@ -223,89 +223,61 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const removeFormat = () => applyFormatting('removeFormat')
 
   const handleColorPickerClick = () => {
-    console.log('🎨 Click palette, stato attuale:', showColorPicker, '→ nuovo:', !showColorPicker)
     setShowColorPicker(!showColorPicker)
   }
 
   const applyColor = (color: string) => {
-    console.log('🎨 applyColor chiamata con colore:', color)
-
     if (!savedRangeRef.current) {
-      console.log('❌ Nessuna selezione salvata')
       setShowColorPicker(false)
       return
     }
 
-    console.log('✅ Selezione salvata trovata:', savedRangeRef.current.toString())
-
     try {
-      // 1. Ripristina la selezione
       const selection = window.getSelection()
       if (selection) {
         selection.removeAllRanges()
         selection.addRange(savedRangeRef.current)
-        console.log('✅ Selezione ripristinata')
       }
 
-      // 2. Estrai il contenuto selezionato
       const range = savedRangeRef.current
       const selectedText = range.toString()
-      console.log('📝 Testo selezionato:', selectedText, 'lunghezza:', selectedText.length)
 
       if (selectedText.length > 0) {
-        // 3. Crea un span con il colore
+        // Testo selezionato: applica colore
         const span = document.createElement('span')
         span.style.color = color
         span.textContent = selectedText
-        console.log('📦 Span creato:', span.outerHTML)
 
-        // 4. Sostituisci il contenuto selezionato con lo span
         range.deleteContents()
         range.insertNode(span)
-        console.log('✅ Span inserito nel DOM')
 
-        // 5. Posiziona il cursore dopo lo span
         range.setStartAfter(span)
         range.setEndAfter(span)
         selection?.removeAllRanges()
         selection?.addRange(range)
 
-        // 6. Aggiorna il contenuto
         if (editorRef.current) {
           setEmailContent(editorRef.current.innerHTML)
-          console.log('✅ Contenuto aggiornato')
         }
-
-        console.log('✅✅✅ Colore applicato con successo:', color, 'a', selectedText)
       } else {
-        // Nessun testo selezionato - applica colore ai prossimi caratteri digitati
-        console.log('⚠️ Nessuna selezione - applico colore ai prossimi caratteri')
-
-        // Crea uno span vuoto con il colore e uno spazio zero-width
+        // Nessuna selezione: applica colore ai prossimi caratteri
         const span = document.createElement('span')
         span.style.color = color
         span.textContent = '\u200B' // Zero-width space
 
-        // Inserisci lo span alla posizione del cursore
         range.insertNode(span)
 
-        // Posiziona il cursore DENTRO lo span
         const newRange = document.createRange()
         newRange.setStart(span.firstChild!, 1)
         newRange.setEnd(span.firstChild!, 1)
         selection?.removeAllRanges()
         selection?.addRange(newRange)
-
-        console.log('✅ Marker colore inserito - prossimo testo sarà', color)
       }
     } catch (error) {
-      console.error('❌❌❌ Errore applicazione colore:', error)
+      console.error('Errore applicazione colore:', error)
     }
 
-    // 7. Chiudi la palette
     setShowColorPicker(false)
-
-    // 8. Rimetti focus sull'editor
     editorRef.current?.focus()
   }
 
