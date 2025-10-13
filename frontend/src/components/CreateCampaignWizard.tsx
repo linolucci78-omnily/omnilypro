@@ -81,7 +81,12 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Ref per editor contenuto email
   const editorRef = useRef<HTMLDivElement>(null)
-  const savedSelectionRef = useRef<Range | null>(null)
+  const savedSelectionRef = useRef<{
+    anchorNode: Node | null
+    anchorOffset: number
+    focusNode: Node | null
+    focusOffset: number
+  } | null>(null)
 
   // Stati per modali inserimento elementi
   const [showButtonModal, setShowButtonModal] = useState(false)
@@ -180,17 +185,30 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   // Funzioni helper per formattazione visuale WYSIWYG
   const saveSelection = () => {
     const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      savedSelectionRef.current = selection.getRangeAt(0).cloneRange()
+    if (selection && selection.rangeCount > 0 && selection.anchorNode && selection.focusNode) {
+      savedSelectionRef.current = {
+        anchorNode: selection.anchorNode,
+        anchorOffset: selection.anchorOffset,
+        focusNode: selection.focusNode,
+        focusOffset: selection.focusOffset
+      }
     }
   }
 
   const restoreSelection = () => {
-    if (savedSelectionRef.current && editorRef.current) {
-      const selection = window.getSelection()
-      if (selection) {
-        selection.removeAllRanges()
-        selection.addRange(savedSelectionRef.current)
+    if (savedSelectionRef.current && savedSelectionRef.current.anchorNode && savedSelectionRef.current.focusNode) {
+      try {
+        const range = document.createRange()
+        range.setStart(savedSelectionRef.current.anchorNode, savedSelectionRef.current.anchorOffset)
+        range.setEnd(savedSelectionRef.current.focusNode, savedSelectionRef.current.focusOffset)
+
+        const selection = window.getSelection()
+        if (selection) {
+          selection.removeAllRanges()
+          selection.addRange(range)
+        }
+      } catch (error) {
+        console.error('Error restoring selection:', error)
       }
     }
   }
@@ -231,28 +249,23 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   const applyColor = (color: string) => {
     // Ripristina la selezione salvata
-    if (savedSelectionRef.current) {
-      const selection = window.getSelection()
-      if (selection) {
-        selection.removeAllRanges()
-        selection.addRange(savedSelectionRef.current)
-      }
+    restoreSelection()
 
-      // Applica il colore
-      document.execCommand('foreColor', false, color)
+    // Applica il colore
+    document.execCommand('foreColor', false, color)
 
-      // Aggiorna contenuto
-      if (editorRef.current) {
-        setEmailContent(editorRef.current.innerHTML)
-      }
+    // Aggiorna contenuto
+    if (editorRef.current) {
+      setEmailContent(editorRef.current.innerHTML)
     }
 
+    // Chiudi la palette
     setShowColorPicker(false)
 
     // Rimetti focus su editor
     setTimeout(() => {
       editorRef.current?.focus()
-    }, 0)
+    }, 10)
   }
 
   const updateContent = () => {
