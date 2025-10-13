@@ -278,7 +278,25 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
         console.log('✅✅✅ Colore applicato con successo:', color, 'a', selectedText)
       } else {
-        console.log('⚠️ Testo selezionato vuoto')
+        // Nessun testo selezionato - applica colore ai prossimi caratteri digitati
+        console.log('⚠️ Nessuna selezione - applico colore ai prossimi caratteri')
+
+        // Crea uno span vuoto con il colore e uno spazio zero-width
+        const span = document.createElement('span')
+        span.style.color = color
+        span.textContent = '\u200B' // Zero-width space
+
+        // Inserisci lo span alla posizione del cursore
+        range.insertNode(span)
+
+        // Posiziona il cursore DENTRO lo span
+        const newRange = document.createRange()
+        newRange.setStart(span.firstChild!, 1)
+        newRange.setEnd(span.firstChild!, 1)
+        selection?.removeAllRanges()
+        selection?.addRange(newRange)
+
+        console.log('✅ Marker colore inserito - prossimo testo sarà', color)
       }
     } catch (error) {
       console.error('❌❌❌ Errore applicazione colore:', error)
