@@ -56,12 +56,35 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
     setError('')
 
     try {
-      // Nome file unico
+      // 1. Verifica/Crea bucket se non esiste
+      const { data: buckets } = await supabase.storage.listBuckets()
+      const bucketExists = buckets?.some(b => b.name === 'email-images')
+
+      if (!bucketExists) {
+        console.log('📦 Bucket non esiste, lo creo...')
+        const { error: createError } = await supabase.storage.createBucket('email-images', {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+        })
+
+        if (createError) {
+          console.error('Errore creazione bucket:', createError)
+          // Ignora se il bucket esiste già (race condition)
+          if (!createError.message.includes('already exists')) {
+            throw new Error('Impossibile creare storage. Contatta l\'amministratore.')
+          }
+        } else {
+          console.log('✅ Bucket creato automaticamente!')
+        }
+      }
+
+      // 2. Nome file unico
       const timestamp = Date.now()
       const fileName = `${timestamp}_${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
       const filePath = `${organizationId}/${fileName}`
 
-      // Upload su Supabase Storage
+      // 3. Upload su Supabase Storage
       const { data, error: uploadError } = await supabase.storage
         .from('email-images')
         .upload(filePath, selectedFile, {
@@ -74,7 +97,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
         throw new Error(uploadError.message)
       }
 
-      // Ottieni URL pubblico
+      // 4. Ottieni URL pubblico
       const { data: { publicUrl } } = supabase.storage
         .from('email-images')
         .getPublicUrl(filePath)
