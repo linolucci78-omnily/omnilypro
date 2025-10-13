@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Image, Bold, Italic, Underline, Palette } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Image, Bold, Italic, Underline, Palette, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, Undo, Redo, RemoveFormatting } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import InputModal from './UI/InputModal'
@@ -81,6 +81,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Ref per editor contenuto email
   const editorRef = useRef<HTMLDivElement>(null)
+  const savedSelectionRef = useRef<Range | null>(null)
 
   // Stati per modali inserimento elementi
   const [showButtonModal, setShowButtonModal] = useState(false)
@@ -177,6 +178,23 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   }
 
   // Funzioni helper per formattazione visuale WYSIWYG
+  const saveSelection = () => {
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      savedSelectionRef.current = selection.getRangeAt(0).cloneRange()
+    }
+  }
+
+  const restoreSelection = () => {
+    if (savedSelectionRef.current && editorRef.current) {
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(savedSelectionRef.current)
+      }
+    }
+  }
+
   const applyFormatting = (command: string, value?: string) => {
     document.execCommand(command, false, value)
     editorRef.current?.focus()
@@ -187,7 +205,28 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const insertItalic = () => applyFormatting('italic')
   const insertUnderline = () => applyFormatting('underline')
 
+  const insertBulletList = () => applyFormatting('insertUnorderedList')
+  const insertNumberedList = () => applyFormatting('insertOrderedList')
+
+  const alignLeft = () => applyFormatting('justifyLeft')
+  const alignCenter = () => applyFormatting('justifyCenter')
+  const alignRight = () => applyFormatting('justifyRight')
+
+  const insertH1 = () => applyFormatting('formatBlock', 'h1')
+  const insertH2 = () => applyFormatting('formatBlock', 'h2')
+  const insertH3 = () => applyFormatting('formatBlock', 'h3')
+
+  const undoEdit = () => applyFormatting('undo')
+  const redoEdit = () => applyFormatting('redo')
+  const removeFormat = () => applyFormatting('removeFormat')
+
+  const openColorPicker = () => {
+    saveSelection()
+    setShowColorPicker(!showColorPicker)
+  }
+
   const applyColor = (color: string) => {
+    restoreSelection()
     applyFormatting('foreColor', color)
     setShowColorPicker(false)
   }
@@ -772,7 +811,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     <div style={{ position: 'relative' }}>
                       <button
                         type="button"
-                        onClick={() => setShowColorPicker(!showColorPicker)}
+                        onClick={openColorPicker}
                         title="Colore testo"
                         style={{
                           display: 'flex',
@@ -869,6 +908,383 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         </div>
                       )}
                     </div>
+
+                    <div style={{
+                      width: '1px',
+                      height: '100%',
+                      backgroundColor: '#d1d5db',
+                      margin: '0 4px',
+                      flexShrink: 0
+                    }} />
+
+                    {/* Liste */}
+                    <button
+                      type="button"
+                      onClick={insertBulletList}
+                      title="Elenco puntato"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f59e0b'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#f59e0b'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <List size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={insertNumberedList}
+                      title="Elenco numerato"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f59e0b'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#f59e0b'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <ListOrdered size={18} />
+                    </button>
+
+                    <div style={{
+                      width: '1px',
+                      height: '100%',
+                      backgroundColor: '#d1d5db',
+                      margin: '0 4px',
+                      flexShrink: 0
+                    }} />
+
+                    {/* Allineamento */}
+                    <button
+                      type="button"
+                      onClick={alignLeft}
+                      title="Allinea a sinistra"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#06b6d4'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#06b6d4'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <AlignLeft size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={alignCenter}
+                      title="Allinea al centro"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#06b6d4'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#06b6d4'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <AlignCenter size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={alignRight}
+                      title="Allinea a destra"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#06b6d4'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#06b6d4'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <AlignRight size={18} />
+                    </button>
+
+                    <div style={{
+                      width: '1px',
+                      height: '100%',
+                      backgroundColor: '#d1d5db',
+                      margin: '0 4px',
+                      flexShrink: 0
+                    }} />
+
+                    {/* Titoli */}
+                    <button
+                      type="button"
+                      onClick={insertH1}
+                      title="Titolo 1"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ec4899'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#ec4899'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Heading1 size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={insertH2}
+                      title="Titolo 2"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ec4899'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#ec4899'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Heading2 size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={insertH3}
+                      title="Titolo 3"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ec4899'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#ec4899'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Heading3 size={18} />
+                    </button>
+
+                    <div style={{
+                      width: '1px',
+                      height: '100%',
+                      backgroundColor: '#d1d5db',
+                      margin: '0 4px',
+                      flexShrink: 0
+                    }} />
+
+                    {/* Undo/Redo */}
+                    <button
+                      type="button"
+                      onClick={undoEdit}
+                      title="Annulla"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#6366f1'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#6366f1'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Undo size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={redoEdit}
+                      title="Ripristina"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#6366f1'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#6366f1'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <Redo size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={removeFormat}
+                      title="Rimuovi formattazione"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ef4444'
+                        e.currentTarget.style.color = 'white'
+                        e.currentTarget.style.borderColor = '#ef4444'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                        e.currentTarget.style.color = '#374151'
+                        e.currentTarget.style.borderColor = '#d1d5db'
+                      }}
+                    >
+                      <RemoveFormatting size={18} />
+                    </button>
 
                     <div style={{
                       width: '1px',
