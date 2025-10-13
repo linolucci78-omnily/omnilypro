@@ -3,6 +3,7 @@ import { X, ArrowRight, ArrowLeft, Users, Send, CheckCircle, Loader, Link2, Imag
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import InputModal from './UI/InputModal'
+import ImageUploadModal from './UI/ImageUploadModal'
 
 interface CreateCampaignWizardProps {
   isOpen: boolean
@@ -297,11 +298,42 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       return
     }
 
-    const buttonHtml = `<div style="text-align: center; margin: 24px 0;"><a href="${values.buttonUrl}" style="display: inline-block; padding: 14px 32px; background-color: ${orgData?.primary_color || '#ef4444'}; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">${values.buttonText || 'Clicca qui'}</a></div>`
+    try {
+      // Crea il container del pulsante
+      const container = document.createElement('div')
+      container.style.textAlign = 'center'
+      container.style.margin = '24px 0'
 
-    document.execCommand('insertHTML', false, buttonHtml)
-    updateContent()
-    editorRef.current?.focus()
+      const button = document.createElement('a')
+      button.href = values.buttonUrl
+      button.textContent = values.buttonText || 'Clicca qui'
+      button.style.display = 'inline-block'
+      button.style.padding = '14px 32px'
+      button.style.backgroundColor = orgData?.primary_color || '#ef4444'
+      button.style.color = 'white'
+      button.style.textDecoration = 'none'
+      button.style.borderRadius = '8px'
+      button.style.fontWeight = '600'
+      button.style.fontSize = '16px'
+
+      container.appendChild(button)
+
+      // Inserisci alla posizione corrente o alla fine
+      if (savedRangeRef.current) {
+        savedRangeRef.current.insertNode(container)
+        savedRangeRef.current.setStartAfter(container)
+        savedRangeRef.current.collapse(true)
+      } else if (editorRef.current) {
+        editorRef.current.appendChild(container)
+      }
+
+      updateContent()
+      editorRef.current?.focus()
+    } catch (error) {
+      console.error('Errore inserimento pulsante:', error)
+      showError('Errore inserimento pulsante')
+    }
+
     setShowButtonModal(false)
   }
 
@@ -309,17 +341,38 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     setShowImageModal(true)
   }
 
-  const confirmImageInsert = (values: Record<string, string>) => {
-    if (!values.imageUrl?.trim()) {
-      showError('Inserisci un URL valido')
-      return
+  const confirmImageInsert = (imageUrl: string) => {
+    try {
+      // Crea il container dell'immagine
+      const container = document.createElement('div')
+      container.style.textAlign = 'center'
+      container.style.margin = '20px 0'
+
+      const img = document.createElement('img')
+      img.src = imageUrl
+      img.alt = 'Immagine email'
+      img.style.maxWidth = '100%'
+      img.style.height = 'auto'
+      img.style.borderRadius = '8px'
+
+      container.appendChild(img)
+
+      // Inserisci alla posizione corrente o alla fine
+      if (savedRangeRef.current) {
+        savedRangeRef.current.insertNode(container)
+        savedRangeRef.current.setStartAfter(container)
+        savedRangeRef.current.collapse(true)
+      } else if (editorRef.current) {
+        editorRef.current.appendChild(container)
+      }
+
+      updateContent()
+      editorRef.current?.focus()
+    } catch (error) {
+      console.error('Errore inserimento immagine:', error)
+      showError('Errore inserimento immagine')
     }
 
-    const imageHtml = `<div style="text-align: center; margin: 20px 0;"><img src="${values.imageUrl}" alt="Immagine email" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>`
-
-    document.execCommand('insertHTML', false, imageHtml)
-    updateContent()
-    editorRef.current?.focus()
     setShowImageModal(false)
   }
 
@@ -2306,24 +2359,12 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         confirmButtonColor="#3b82f6"
       />
 
-      {/* Modal Inserimento Immagine */}
-      <InputModal
+      {/* Modal Upload Immagine */}
+      <ImageUploadModal
         isOpen={showImageModal}
-        title="Aggiungi Immagine"
-        icon="🖼️"
-        fields={[
-          {
-            name: 'imageUrl',
-            label: 'URL dell\'immagine',
-            type: 'url',
-            placeholder: 'https://tuosito.com/immagine.jpg',
-            required: true
-          }
-        ]}
-        confirmText="Inserisci Immagine"
+        organizationId={organizationId}
         onConfirm={confirmImageInsert}
         onCancel={() => setShowImageModal(false)}
-        confirmButtonColor="#10b981"
       />
     </>
   )

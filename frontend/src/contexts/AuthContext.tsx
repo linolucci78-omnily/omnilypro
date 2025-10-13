@@ -48,21 +48,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // STEP 2: Check organization_users table (Organization owners/staff)
       console.log('🔐 Checking organization_users table...')
 
-      const queryPromise = supabase
+      const { data: allRoles, error: allError } = await supabase
         .from('organization_users')
         .select('role, org_id')
         .eq('user_id', userId)
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Role query timeout after 5s')), 5000)
-      )
-
-      const { data: allRoles, error: allError } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
-
       console.log('🔐 Organization_users result:', allRoles, 'Error:', allError)
+
+      if (allError) {
+        console.error('🔐 Error querying organization_users:', allError)
+        setUserRole(null)
+        setIsSuperAdmin(false)
+        return
+      }
 
       // Check specifically for super admin
       const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
