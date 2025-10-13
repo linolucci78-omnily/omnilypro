@@ -112,7 +112,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    // Get initial session
+    // Check for POS demo user FIRST (bypass Supabase per demo)
+    const posDemoUser = localStorage.getItem('pos-demo-user')
+    if (posDemoUser) {
+      try {
+        const mockUser = JSON.parse(posDemoUser)
+        console.log('🚀 POS Demo Mode - User caricato da localStorage:', mockUser.email)
+        setUser(mockUser as User)
+        setSession({ user: mockUser, access_token: 'demo-token' } as any)
+        setUserRole('org_admin') // Demo user ha ruolo admin organizzazione
+        setIsSuperAdmin(false)
+        setLoading(false)
+        return // Skip Supabase auth check completamente
+      } catch (err) {
+        console.error('❌ Error parsing POS demo user:', err)
+        localStorage.removeItem('pos-demo-user')
+      }
+    }
+
+    // Get initial session from Supabase
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
@@ -173,6 +191,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signOut = async () => {
+    // Pulisci demo user se presente
+    localStorage.removeItem('pos-demo-user')
+
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   }
