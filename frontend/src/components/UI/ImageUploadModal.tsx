@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { X, Upload, Loader } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { X, Camera, Images, Upload, Loader } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 interface ImageUploadModalProps {
@@ -15,24 +15,58 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
   onConfirm,
   onCancel
 }) => {
+  const [activeTab, setActiveTab] = useState<'camera' | 'library' | 'upload'>('camera')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>('')
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string>('')
+  const [libraryImages, setLibraryImages] = useState<string[]>([])
+  const [loadingLibrary, setLoadingLibrary] = useState(false)
+
+  useEffect(() => {
+    if (isOpen && activeTab === 'library') {
+      loadLibraryImages()
+    }
+  }, [isOpen, activeTab, organizationId])
+
+  const loadLibraryImages = async () => {
+    setLoadingLibrary(true)
+    try {
+      const { data, error } = await supabase.storage
+        .from('email-images')
+        .list(organizationId, {
+          limit: 50,
+          sortBy: { column: 'created_at', order: 'desc' }
+        })
+
+      if (error) throw error
+
+      const images = data?.map(file => {
+        const { data: { publicUrl } } = supabase.storage
+          .from('email-images')
+          .getPublicUrl(`${organizationId}/${file.name}`)
+        return publicUrl
+      }) || []
+
+      setLibraryImages(images)
+    } catch (err) {
+      console.error('Errore caricamento libreria:', err)
+    } finally {
+      setLoadingLibrary(false)
+    }
+  }
 
   if (!isOpen) return null
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, fromCamera: boolean = false) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Valida tipo file
     if (!file.type.startsWith('image/')) {
-      setError('Seleziona un file immagine valido')
+      setError('Seleziona un\'immagine valida')
       return
     }
 
-    // Valida dimensione (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError('L\'immagine deve essere inferiore a 5MB')
       return
@@ -41,71 +75,58 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
     setSelectedFile(file)
     setError('')
 
-    // Crea preview
+    // Preview
     const reader = new FileReader()
     reader.onloadend = () => {
       setPreviewUrl(reader.result as string)
     }
     reader.readAsDataURL(file)
+
+    // Se foto da camera, upload automatico
+    if (fromCamera) {
+      setTimeout(() => handleUpload(file), 100)
+    }
   }
 
-  const handleUpload = async () => {
-    if (!selectedFile) return
+  const handleUpload = async (file: File = selectedFile!) => {
+    if (!file) return
 
     setUploading(true)
     setError('')
 
     try {
-      // 1. Verifica/Crea bucket se non esiste
+      // Verifica/Crea bucket
       const { data: buckets } = await supabase.storage.listBuckets()
       const bucketExists = buckets?.some(b => b.name === 'email-images')
 
       if (!bucketExists) {
-        console.log('📦 Bucket non esiste, lo creo...')
-        const { error: createError } = await supabase.storage.createBucket('email-images', {
+        await supabase.storage.createBucket('email-images', {
           public: true,
-          fileSizeLimit: 5242880, // 5MB
+          fileSizeLimit: 5242880,
           allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
         })
-
-        if (createError) {
-          console.error('Errore creazione bucket:', createError)
-          // Ignora se il bucket esiste già (race condition)
-          if (!createError.message.includes('already exists')) {
-            throw new Error('Impossibile creare storage. Contatta l\'amministratore.')
-          }
-        } else {
-          console.log('✅ Bucket creato automaticamente!')
-        }
       }
 
-      // 2. Nome file unico
+      // Upload
       const timestamp = Date.now()
-      const fileName = `${timestamp}_${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+      const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
       const filePath = `${organizationId}/${fileName}`
 
-      // 3. Upload su Supabase Storage
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('email-images')
-        .upload(filePath, selectedFile, {
+        .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         })
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        throw new Error(uploadError.message)
-      }
+      if (uploadError) throw new Error(uploadError.message)
 
-      // 4. Ottieni URL pubblico
+      // URL pubblico
       const { data: { publicUrl } } = supabase.storage
         .from('email-images')
         .getPublicUrl(filePath)
 
-      console.log('✅ Immagine caricata:', publicUrl)
       onConfirm(publicUrl)
-
-      // Reset
       setSelectedFile(null)
       setPreviewUrl('')
     } catch (err: any) {
@@ -114,6 +135,10 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleLibrarySelect = (imageUrl: string) => {
+    onConfirm(imageUrl)
   }
 
   return (
@@ -127,9 +152,6 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           right: 0,
           bottom: 0,
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           zIndex: 10001,
           padding: '20px'
         }}
@@ -144,7 +166,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           width: '90%',
-          maxWidth: '500px',
+          maxWidth: '600px',
           backgroundColor: 'white',
           borderRadius: '12px',
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -163,23 +185,10 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
             borderBottom: '1px solid #e5e7eb'
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}
-          >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ fontSize: '24px' }}>🖼️</span>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '18px',
-                fontWeight: '600',
-                color: '#111827'
-              }}
-            >
-              Carica Immagine
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+              Aggiungi Immagine
             </h3>
           </div>
           <button
@@ -189,10 +198,6 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
               border: 'none',
               cursor: 'pointer',
               padding: '4px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               color: '#6b7280'
             }}
           >
@@ -200,56 +205,275 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
-        <div
-          style={{
-            padding: '24px',
-            maxHeight: '60vh',
-            overflowY: 'auto'
-          }}
-        >
-          {/* File Input */}
-          <div
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
+          <button
+            onClick={() => setActiveTab('camera')}
             style={{
-              border: '2px dashed #d1d5db',
-              borderRadius: '8px',
-              padding: '24px',
-              textAlign: 'center',
+              flex: 1,
+              padding: '16px',
+              border: 'none',
+              backgroundColor: activeTab === 'camera' ? 'white' : 'transparent',
+              borderBottom: activeTab === 'camera' ? '3px solid #3b82f6' : '3px solid transparent',
               cursor: 'pointer',
-              transition: 'all 0.2s',
-              backgroundColor: '#f9fafb'
+              fontSize: '15px',
+              fontWeight: activeTab === 'camera' ? '600' : '500',
+              color: activeTab === 'camera' ? '#3b82f6' : '#6b7280',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
             }}
-            onClick={() => document.getElementById('file-input')?.click()}
           >
-            <Upload size={32} style={{ color: '#6b7280', margin: '0 auto 12px' }} />
-            <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-              {selectedFile ? selectedFile.name : 'Clicca per selezionare un\'immagine'}
-            </p>
-            <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>
-              PNG, JPG, GIF fino a 5MB
-            </p>
-            <input
-              id="file-input"
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-            />
-          </div>
+            <Camera size={20} />
+            Scatta Foto
+          </button>
+          <button
+            onClick={() => setActiveTab('library')}
+            style={{
+              flex: 1,
+              padding: '16px',
+              border: 'none',
+              backgroundColor: activeTab === 'library' ? 'white' : 'transparent',
+              borderBottom: activeTab === 'library' ? '3px solid #3b82f6' : '3px solid transparent',
+              cursor: 'pointer',
+              fontSize: '15px',
+              fontWeight: activeTab === 'library' ? '600' : '500',
+              color: activeTab === 'library' ? '#3b82f6' : '#6b7280',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Images size={20} />
+            Le Mie Foto
+          </button>
+          <button
+            onClick={() => setActiveTab('upload')}
+            style={{
+              flex: 1,
+              padding: '16px',
+              border: 'none',
+              backgroundColor: activeTab === 'upload' ? 'white' : 'transparent',
+              borderBottom: activeTab === 'upload' ? '3px solid #3b82f6' : '3px solid transparent',
+              cursor: 'pointer',
+              fontSize: '15px',
+              fontWeight: activeTab === 'upload' ? '600' : '500',
+              color: activeTab === 'upload' ? '#3b82f6' : '#6b7280',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Upload size={20} />
+            Carica
+          </button>
+        </div>
 
-          {/* Preview */}
-          {previewUrl && (
-            <div style={{ marginTop: '16px', textAlign: 'center' }}>
-              <img
-                src={previewUrl}
-                alt="Preview"
+        {/* Content */}
+        <div style={{ padding: '24px', maxHeight: '50vh', overflowY: 'auto' }}>
+          {/* TAB FOTOCAMERA */}
+          {activeTab === 'camera' && (
+            <div>
+              <div
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '200px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb'
+                  textAlign: 'center',
+                  padding: '40px 20px',
+                  border: '3px dashed #3b82f6',
+                  borderRadius: '12px',
+                  backgroundColor: '#eff6ff',
+                  cursor: 'pointer'
                 }}
-              />
+                onClick={() => document.getElementById('camera-input')?.click()}
+              >
+                <Camera size={64} style={{ color: '#3b82f6', margin: '0 auto 16px' }} />
+                <p style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e40af' }}>
+                  Scatta una Foto
+                </p>
+                <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
+                  Usa la fotocamera del tuo dispositivo
+                </p>
+                <input
+                  id="camera-input"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => handleFileSelect(e, true)}
+                  style={{ display: 'none' }}
+                />
+              </div>
+
+              {previewUrl && activeTab === 'camera' && (
+                <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '300px',
+                      borderRadius: '8px',
+                      border: '2px solid #e5e7eb'
+                    }}
+                  />
+                  {uploading && (
+                    <div style={{ marginTop: '16px', color: '#3b82f6', fontSize: '14px' }}>
+                      <Loader size={20} style={{ animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: '8px' }} />
+                      Caricamento in corso...
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB LIBRERIA */}
+          {activeTab === 'library' && (
+            <div>
+              {loadingLibrary ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                  <Loader size={32} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                  <p>Caricamento immagini...</p>
+                </div>
+              ) : libraryImages.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                  <Images size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                  <p style={{ fontSize: '16px', fontWeight: '500', margin: '0 0 8px' }}>
+                    Nessuna immagine salvata
+                  </p>
+                  <p style={{ fontSize: '14px', margin: 0 }}>
+                    Scatta una foto o carica un'immagine per iniziare
+                  </p>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                    gap: '12px'
+                  }}
+                >
+                  {libraryImages.map((url, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleLibrarySelect(url)}
+                      style={{
+                        cursor: 'pointer',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        border: '2px solid #e5e7eb',
+                        transition: 'all 0.2s',
+                        aspectRatio: '1'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.borderColor = '#3b82f6'
+                        e.currentTarget.style.transform = 'scale(1.05)'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.transform = 'scale(1)'
+                      }}
+                    >
+                      <img
+                        src={url}
+                        alt={`Immagine ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB UPLOAD */}
+          {activeTab === 'upload' && (
+            <div>
+              <div
+                style={{
+                  border: '2px dashed #d1d5db',
+                  borderRadius: '8px',
+                  padding: '40px 24px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: '#f9fafb',
+                  transition: 'all 0.2s'
+                }}
+                onClick={() => document.getElementById('file-input')?.click()}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = '#3b82f6'
+                  e.currentTarget.style.backgroundColor = '#eff6ff'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db'
+                  e.currentTarget.style.backgroundColor = '#f9fafb'
+                }}
+              >
+                <Upload size={48} style={{ color: '#6b7280', margin: '0 auto 12px' }} />
+                <p style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: '#374151' }}>
+                  {selectedFile ? selectedFile.name : 'Clicca per selezionare un\'immagine'}
+                </p>
+                <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
+                  PNG, JPG, GIF fino a 5MB
+                </p>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect(e, false)}
+                  style={{ display: 'none' }}
+                />
+              </div>
+
+              {previewUrl && activeTab === 'upload' && (
+                <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '300px',
+                      borderRadius: '8px',
+                      border: '2px solid #e5e7eb'
+                    }}
+                  />
+                </div>
+              )}
+
+              {selectedFile && activeTab === 'upload' && (
+                <div style={{ marginTop: '16px' }}>
+                  <button
+                    onClick={() => handleUpload()}
+                    disabled={uploading}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: uploading ? 'not-allowed' : 'pointer',
+                      backgroundColor: uploading ? '#d1d5db' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    {uploading && <Loader size={20} style={{ animation: 'spin 1s linear infinite' }} />}
+                    {uploading ? 'Caricamento...' : 'Carica Immagine'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -269,57 +493,6 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
               {error}
             </div>
           )}
-        </div>
-
-        {/* Actions */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '12px',
-            padding: '20px 24px',
-            borderTop: '1px solid #e5e7eb',
-            justifyContent: 'flex-end'
-          }}
-        >
-          <button
-            onClick={onCancel}
-            disabled={uploading}
-            style={{
-              padding: '10px 16px',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              backgroundColor: '#f9fafb',
-              color: '#374151',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: uploading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              opacity: uploading ? 0.5 : 1
-            }}
-          >
-            Annulla
-          </button>
-          <button
-            onClick={handleUpload}
-            disabled={!selectedFile || uploading}
-            style={{
-              padding: '10px 16px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: !selectedFile || uploading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              backgroundColor: !selectedFile || uploading ? '#d1d5db' : '#3b82f6',
-              color: 'white',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            {uploading && <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />}
-            {uploading ? 'Caricamento...' : 'Carica'}
-          </button>
         </div>
       </div>
     </>
