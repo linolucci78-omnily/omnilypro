@@ -45,18 +45,24 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
-const AdminLayout: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+const AdminLayout = () => {
+  const { signOut, isSuperAdmin, userRole } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const { signOut } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarClosed, setSidebarClosed] = useState(false)
+  
+  // DEBUG LOG per POS
+  console.log('🏢 AdminLayout mounted:', { 
+    path: location.pathname, 
+    isSuperAdmin, 
+    userRole,
+    userAgent: navigator.userAgent
+  });
 
   const handleLogout = async () => {
-    console.log('🔴 Logout button clicked')
     try {
-      console.log('🔴 Calling signOut...')
       await signOut()
-      console.log('✅ SignOut successful, navigating to /login')
       navigate('/login')
     } catch (error) {
       console.error('❌ Logout error:', error)

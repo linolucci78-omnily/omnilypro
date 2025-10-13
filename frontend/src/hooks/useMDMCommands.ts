@@ -55,6 +55,17 @@ export const useMDMCommands = () => {
         let success = false
         if (receiptData) {
           console.log('🖨️ Printing receipt with data...')
+          
+          // Converti timestamp da stringa a Date se necessario
+          if (receiptData.timestamp && typeof receiptData.timestamp === 'string') {
+            receiptData.timestamp = new Date(receiptData.timestamp)
+          }
+          // Se timestamp non esiste o è invalido, usa data corrente
+          if (!receiptData.timestamp || !(receiptData.timestamp instanceof Date) || isNaN(receiptData.timestamp.getTime())) {
+            console.warn('⚠️ Invalid or missing timestamp, using current date')
+            receiptData.timestamp = new Date()
+          }
+          
           success = await printService.printReceipt(receiptData as Receipt)
         } else {
           console.log('🖨️ Printing test receipt...')

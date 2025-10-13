@@ -1708,6 +1708,10 @@ public class MainActivityFinal extends AppCompatActivity {
                     handleKioskMode(enabled);
                 } else if ("com.omnilypro.pos.SYNC_CONFIG".equals(action)) {
                     handleSyncConfig();
+                } else if ("com.omnilypro.pos.TEST_PRINT".equals(action)) {
+                    String template = intent.getStringExtra("template");
+                    String receiptData = intent.getStringExtra("receiptData");
+                    handleTestPrint(template, receiptData);
                 }
             }
         };
@@ -1715,6 +1719,7 @@ public class MainActivityFinal extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.omnilypro.pos.KIOSK_MODE");
         filter.addAction("com.omnilypro.pos.SYNC_CONFIG");
+        filter.addAction("com.omnilypro.pos.TEST_PRINT");
         registerReceiver(mdmCommandReceiver, filter);
 
         Log.i(TAG, "✅ MDM Command Receiver registered");
@@ -1761,6 +1766,64 @@ public class MainActivityFinal extends AppCompatActivity {
                 webView.reload();
                 Log.i(TAG, "✅ WebView reloaded for config sync");
             });
+        }
+    }
+
+    private void handleTestPrint(String templateJson, String receiptDataJson) {
+        Log.i(TAG, "🖨️ Handling test print command...");
+        Log.i(TAG, "📄 Template JSON length: " + (templateJson != null ? templateJson.length() : 0));
+        Log.i(TAG, "🧾 Receipt data JSON length: " + (receiptDataJson != null ? receiptDataJson.length() : 0));
+
+        if (templateJson == null) {
+            Log.e(TAG, "❌ No template data for print");
+            Toast.makeText(this, "❌ Errore: Nessun template di stampa", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (webView != null) {
+            runOnUiThread(() -> {
+                try {
+                    // Escape delle stringhe JSON per JavaScript
+                    String escapedTemplate = templateJson
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r");
+                    
+                    String escapedReceiptData = receiptDataJson != null ? receiptDataJson
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r") : "null";
+
+                    // Chiama funzione JavaScript nel WebView per eseguire la stampa
+                    String jsCode = String.format(
+                        "if (window.handleMDMPrintCommand) { " +
+                        "  console.log('🖨️ Calling handleMDMPrintCommand...'); " +
+                        "  window.handleMDMPrintCommand(\"%s\", \"%s\"); " +
+                        "} else { " +
+                        "  console.error('❌ window.handleMDMPrintCommand not found!'); " +
+                        "}",
+                        escapedTemplate,
+                        escapedReceiptData
+                    );
+
+                    webView.evaluateJavascript(jsCode, result -> {
+                        Log.i(TAG, "✅ JavaScript executed for print command, result: " + result);
+                    });
+
+                    Toast.makeText(this, "🖨️ Comando di stampa ricevuto", Toast.LENGTH_SHORT).show();
+                    
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Error executing print command in WebView", e);
+                    Toast.makeText(this, "❌ Errore esecuzione stampa: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        } else {
+            Log.e(TAG, "❌ WebView is null, cannot execute print");
+            Toast.makeText(this, "❌ Errore: WebView non disponibile", Toast.LENGTH_LONG).show();
         }
     }
 

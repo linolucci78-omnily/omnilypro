@@ -155,6 +155,11 @@ public class CommandPollingWorker extends Worker {
                     success = executeLocate();
                     break;
 
+                case MdmConfig.CMD_TEST_PRINT:
+                    JsonObject printPayload = command.has("payload") ? command.getAsJsonObject("payload") : null;
+                    success = executeTestPrint(printPayload);
+                    break;
+
                 default:
                     errorMessage = "Unknown command type: " + commandType;
                     Log.w(TAG, errorMessage);
@@ -321,6 +326,46 @@ public class CommandPollingWorker extends Worker {
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Sync config failed", e);
+            return false;
+        }
+    }
+
+    private boolean executeTestPrint(JsonObject payload) {
+        try {
+            Log.i(TAG, "🖨️ Executing TEST PRINT command...");
+            
+            if (payload == null) {
+                Log.w(TAG, "⚠️ No payload for test_print command");
+                return false;
+            }
+
+            Log.i(TAG, "📦 Print payload received: " + payload.toString());
+
+            // Estrai template e receiptData dal payload
+            JsonObject template = payload.has("template") ? payload.getAsJsonObject("template") : null;
+            JsonObject receiptData = payload.has("receiptData") ? payload.getAsJsonObject("receiptData") : null;
+
+            if (template == null) {
+                Log.e(TAG, "❌ No template in payload");
+                return false;
+            }
+
+            Log.i(TAG, "📄 Template: " + template.get("name").getAsString());
+            Log.i(TAG, "🧾 Receipt data available: " + (receiptData != null));
+
+            // Invia broadcast intent al MainActivity con i dati di stampa
+            Intent intent = new Intent("com.omnilypro.pos.TEST_PRINT");
+            intent.putExtra("template", template.toString());
+            if (receiptData != null) {
+                intent.putExtra("receiptData", receiptData.toString());
+            }
+            
+            getApplicationContext().sendBroadcast(intent);
+            Log.i(TAG, "✅ Test print broadcast sent to MainActivity");
+            
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Test print failed", e);
             return false;
         }
     }
