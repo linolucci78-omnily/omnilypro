@@ -69,16 +69,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔐 [V5] In POS mode, skipping direct users table check.');
       }
 
-      // STEP 2: Check for organization roles.
+      // STEP 2: Check for organization roles WITH TIMEOUT
       console.log('🔐 [V5] Checking organization_users table...');
-      const { data: orgRoles, error: orgError } = await supabase
+      
+      const orgUsersPromise = supabase
         .from('organization_users')
         .select('role')
         .eq('user_id', userId);
+      
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Organization_users timeout')), 5000)
+      );
+
+      let orgRoles, orgError;
+      try {
+        const result = await Promise.race([orgUsersPromise, timeoutPromise]) as any;
+        orgRoles = result.data;
+        orgError = result.error;
+      } catch (timeoutError) {
+        console.error('⚠️ [V5] Organization_users query timeout (5s)!');
+        orgError = timeoutError;
+      }
 
       if (orgError) {
-        console.error('🔐 [V5] Error checking organization_users table:', orgError);
-        setUserRole(null);
+        console.error('🔐 [V5] Error or timeout checking organization_users table:', orgError);
+        // Permetti l'accesso con ruolo di default invece di bloccare
+        console.warn('🔐 [V5] Setting default org_admin role to allow access despite timeout');
+        setUserRole('org_admin');
         setIsSuperAdmin(false);
         return;
       }
