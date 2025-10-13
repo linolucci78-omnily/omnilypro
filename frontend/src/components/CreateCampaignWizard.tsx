@@ -81,12 +81,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
 
   // Ref per editor contenuto email
   const editorRef = useRef<HTMLDivElement>(null)
-  const savedSelectionRef = useRef<{
-    anchorNode: Node | null
-    anchorOffset: number
-    focusNode: Node | null
-    focusOffset: number
-  } | null>(null)
+  const savedRangeRef = useRef<Range | null>(null)
 
   // Stati per modali inserimento elementi
   const [showButtonModal, setShowButtonModal] = useState(false)
@@ -183,32 +178,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   }
 
   // Funzioni helper per formattazione visuale WYSIWYG
+  // Salva il Range della selezione quando l'editor perde il focus
   const saveSelection = () => {
     const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0 && selection.anchorNode && selection.focusNode) {
-      savedSelectionRef.current = {
-        anchorNode: selection.anchorNode,
-        anchorOffset: selection.anchorOffset,
-        focusNode: selection.focusNode,
-        focusOffset: selection.focusOffset
-      }
+    if (selection && selection.rangeCount > 0) {
+      savedRangeRef.current = selection.getRangeAt(0).cloneRange()
     }
   }
 
+  // Ripristina il Range salvato
   const restoreSelection = () => {
-    if (savedSelectionRef.current && savedSelectionRef.current.anchorNode && savedSelectionRef.current.focusNode) {
-      try {
-        const range = document.createRange()
-        range.setStart(savedSelectionRef.current.anchorNode, savedSelectionRef.current.anchorOffset)
-        range.setEnd(savedSelectionRef.current.focusNode, savedSelectionRef.current.focusOffset)
-
-        const selection = window.getSelection()
-        if (selection) {
-          selection.removeAllRanges()
-          selection.addRange(range)
-        }
-      } catch (error) {
-        console.error('Error restoring selection:', error)
+    if (savedRangeRef.current) {
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(savedRangeRef.current)
       }
     }
   }
@@ -242,30 +226,23 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
     setShowColorPicker(!showColorPicker)
   }
 
-  const handleColorPickerMouseDown = (e: React.MouseEvent) => {
-    // Salva la selezione prima di aprire la palette
-    saveSelection()
-  }
-
   const applyColor = (color: string) => {
-    // Ripristina la selezione salvata
+    // 1. Assicurati che l'editor abbia il focus PRIMA di tutto
+    editorRef.current?.focus()
+
+    // 2. Ripristina la selezione che è stata salvata onBlur
     restoreSelection()
 
-    // Applica il colore
+    // 3. Applica il colore
     document.execCommand('foreColor', false, color)
 
-    // Aggiorna contenuto
+    // 4. Aggiorna contenuto
     if (editorRef.current) {
       setEmailContent(editorRef.current.innerHTML)
     }
 
-    // Chiudi la palette
+    // 5. Chiudi la palette
     setShowColorPicker(false)
-
-    // Rimetti focus su editor
-    setTimeout(() => {
-      editorRef.current?.focus()
-    }, 10)
   }
 
   const updateContent = () => {
@@ -854,7 +831,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     <div style={{ position: 'relative' }}>
                       <button
                         type="button"
-                        onMouseDown={handleColorPickerMouseDown}
                         onClick={handleColorPickerClick}
                         title="Colore testo"
                         style={{
@@ -930,10 +906,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                             <button
                               key={color}
                               type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                applyColor(color)
-                              }}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => applyColor(color)}
                               title={color}
                               style={{
                                 width: '32px',
@@ -1418,7 +1392,10 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   ref={editorRef}
                   contentEditable
                   onInput={updateContent}
-                  onBlur={updateContent}
+                  onBlur={() => {
+                    saveSelection()
+                    updateContent()
+                  }}
                   data-placeholder="Scrivi qui il messaggio dell'email. Seleziona del testo e usa i bottoni per formattare..."
                   style={{
                     width: '100%',
