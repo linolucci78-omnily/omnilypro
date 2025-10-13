@@ -41,20 +41,20 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
   const loadContentIntoEditor = useCallback((editor: any) => {
     if (!editor) return;
 
-    // L'editor GrapeJS reale è dentro editor.editor
-    const gjs = editor.editor || editor;
-
-    // Crea un ID univoco per questo contenuto
-    const contentId = JSON.stringify({ html, gjsComponents, gjsStyles });
-
-    // Se abbiamo già caricato questo contenuto, non ricaricare
-    if (loadedContentRef.current === contentId) {
-      return;
-    }
-
-    console.log('📝 Caricamento nuovo contenuto nell\'editor');
-
     try {
+      // L'editor GrapeJS reale è dentro editor.editor
+      const gjs = editor.editor || editor;
+
+      // Crea un ID univoco per questo contenuto
+      const contentId = JSON.stringify({ html, gjsComponents, gjsStyles });
+
+      // Se abbiamo già caricato questo contenuto, non ricaricare (previene loop)
+      if (loadedContentRef.current === contentId) {
+        return;
+      }
+
+      console.log('📝 Caricamento nuovo contenuto nell\'editor');
+
       // Se abbiamo dati GrapeJS strutturati, usali per ricostruire l'editor
       if (gjsComponents) {
         console.log('✅ Caricamento dati GrapeJS strutturati');
@@ -72,6 +72,10 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
       loadedContentRef.current = contentId;
     } catch (err) {
       console.error('❌ Errore nel caricamento contenuto:', err);
+      // Se l'errore è "insecure operation", logga dettagli ma non crashare
+      if (err instanceof Error && err.message.includes('insecure')) {
+        console.warn('⚠️ Errore sicurezza rilevato (probabilmente CORS su immagini). L\'editor continuerà a funzionare.');
+      }
     }
   }, [html, gjsComponents, gjsStyles]);
 
@@ -94,30 +98,41 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
     },
     identity: { id: userId },
     // storage: { type: 'browser' as const }, // Disabilitato per evitare conflitti con contenuto dinamico
+    storage: false, // Disabilita esplicitamente lo storage per evitare "The operation is insecure"
     theme: 'light' as const,
     // templates: non supportato in questa versione del SDK - caricamento manuale via setComponents
+    canvas: {
+      // Previeni errori "insecure operation" su immagini cross-origin
+      scripts: [],
+      styles: []
+    }
   }), [projectId, userId]);
 
   const handleOnChange = (data: any) => {
     if (onChange) {
-      const editor = editorRef.current;
-      const gjsComponents = editor ? editor.getComponents() : undefined;
-      const gjsStyles = editor ? editor.getStyle() : undefined;
+      try {
+        const editor = editorRef.current;
+        const gjsComponents = editor ? editor.getComponents() : undefined;
+        const gjsStyles = editor ? editor.getStyle() : undefined;
 
-      console.log('🔄 EmailEditor onChange:', {
-        hasEditor: !!editor,
-        gjsComponents: gjsComponents,
-        gjsStyles: gjsStyles,
-        html_length: data.html?.length,
-        css_length: data.css?.length
-      });
+        console.log('🔄 EmailEditor onChange:', {
+          hasEditor: !!editor,
+          gjsComponents: gjsComponents,
+          gjsStyles: gjsStyles,
+          html_length: data.html?.length,
+          css_length: data.css?.length
+        });
 
-      onChange({
-        html: data.html,
-        css: data.css,
-        gjsComponents,
-        gjsStyles
-      });
+        onChange({
+          html: data.html,
+          css: data.css,
+          gjsComponents,
+          gjsStyles
+        });
+      } catch (err) {
+        console.error('❌ Errore in handleOnChange:', err);
+        // Non propagare l'errore per evitare crash
+      }
     }
   };
 
