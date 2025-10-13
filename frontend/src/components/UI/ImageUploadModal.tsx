@@ -31,7 +31,10 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
 
   const loadLibraryImages = async () => {
     setLoadingLibrary(true)
+    setError('') // Reset error
     try {
+      console.log('📸 Loading library images for organization:', organizationId)
+      
       const { data, error } = await supabase.storage
         .from('email-images')
         .list(organizationId, {
@@ -39,7 +42,12 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           sortBy: { column: 'created_at', order: 'desc' }
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error loading library:', error)
+        throw error
+      }
+
+      console.log('✅ Library loaded:', data?.length || 0, 'images')
 
       const images = data?.map(file => {
         const { data: { publicUrl } } = supabase.storage
@@ -49,8 +57,9 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
       }) || []
 
       setLibraryImages(images)
-    } catch (err) {
-      console.error('Errore caricamento libreria:', err)
+    } catch (err: any) {
+      console.error('❌ Errore caricamento libreria:', err)
+      setError(`Errore: ${err.message || 'Impossibile caricare la libreria'}`)
     } finally {
       setLoadingLibrary(false)
     }
