@@ -38,92 +38,70 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Function to check user role
   const checkUserRole = async (userId: string) => {
-    console.log('🔐 Checking user role for:', userId)
-
+    console.log('🔐 [V5] Checking user role for:', userId);
     try {
-      // STEP 1: Check users table FIRST (Admin OMNILY PRO: super_admin, sales_agent, account_manager)
-      // Con timeout per prevenire blocchi
-      console.log('🔐 Checking users table for OMNILY admin roles...')
+      // Determine if in POS mode (this needs to be passed in or derived here)
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPosMode = urlParams.has('pos') || urlParams.has('posomnily') || navigator.userAgent.includes('OMNILY-POS-APP');
 
-      const usersPromise = supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single()
+      // STEP 1: Check for OMNILY Super Admin in `users` table first.
+      // SKIP THIS STEP IF IN POS MODE, as per user's clarification that super_admin is in organization_users for POS
+      if (!isPosMode) { // Only check users table if NOT in POS mode
+        console.log('🔐 [V5] Checking for Super Admin in users table...');
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
 
-      // Timeout 2 secondi - se la query è lenta, skippa
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Users table timeout')), 2000)
-      )
+        if (userError) {
+          console.error('🔐 [V5] Error checking users table:', userError);
+          // Don't stop, fallback to organization_users
+        }
 
-      let userData, userError
-      try {
-        const result = await Promise.race([usersPromise, timeoutPromise]) as any
-        userData = result.data
-        userError = result.error
-      } catch (timeoutError) {
-        console.warn('⚠️ Users table query timeout - skipping to organization_users')
-        userError = timeoutError
-      }
-
-      console.log('🔐 Users table result:', userData, 'Error:', userError)
-
-      // Se trovato nella tabella users, è un admin OMNILY
-      if (userData && !userError) {
-        const role = userData.role
-        console.log('🔐 OMNILY Admin role found:', role)
-        setUserRole(role)
-        setIsSuperAdmin(role === 'super_admin')
-        return // STOP here - admin OMNILY trovato
-      }
-
-      // STEP 2: Se non trovato in users, check organization_users (Organization owners/staff)
-      console.log('🔐 Checking organization_users table...')
-
-      const { data: allRoles, error: allError } = await supabase
-        .from('organization_users')
-        .select('role, org_id')
-        .eq('user_id', userId)
-
-      console.log('🔐 Organization_users result:', allRoles, 'Error:', allError)
-
-      if (allError) {
-        console.error('🔐 Error querying organization_users:', allError)
-        setUserRole(null)
-        setIsSuperAdmin(false)
-        return
-      }
-
-      // Check specifically for super admin
-      const superAdminRole = allRoles?.find((role: any) => role.role === 'super_admin')
-
-      if (superAdminRole) {
-        console.log('🔐 Super admin found!', superAdminRole)
-        setUserRole('super_admin')
-        setIsSuperAdmin(true)
-        return
-      }
-
-      // If no super admin, use first role found
-      if (allRoles && allRoles.length > 0) {
-        const firstRole = allRoles[0]
-        console.log('🔐 Regular role found:', firstRole.role)
-        setUserRole(firstRole.role)
-        setIsSuperAdmin(firstRole.role === 'super_admin')
+        if (userData && (userData.role === 'super_admin' || userData.role === 'sales_agent')) {
+          console.log('🔐 [V5] OMNILY Admin role found in users table:', userData.role);
+          setUserRole(userData.role);
+          setIsSuperAdmin(userData.role === 'super_admin');
+          return; // Role found, stop here.n
+        }
       } else {
-        console.log('🔐 No roles found for user')
-        setUserRole(null)
-        setIsSuperAdmin(false)
+        console.log('🔐 [V5] In POS mode, skipping direct users table check.');
       }
-    } catch (err) {
-      console.error('🔐 Error checking user role:', err)
 
-      // If timeout or other error, set defaults but stop loading
-      setUserRole(null)
-      setIsSuperAdmin(false)
+      // STEP 2: Check for organization roles.
+      console.log('🔐 [V5] Checking organization_users table...');
+      const { data: orgRoles, error: orgError } = await supabase
+        .from('organization_users')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (orgError) {
+        console.error('🔐 [V5] Error checking organization_users table:', orgError);
+        setUserRole(null);
+        setIsSuperAdmin(false);
+        return;
+      }
+
+      if (orgRoles && orgRoles.length > 0) {
+        const primaryRole = orgRoles.find(r => r.role === 'super_admin') || orgRoles.find(r => r.role === 'org_admin') || orgRoles[0];
+        console.log('🔐 [V5] Organization role found:', primaryRole.role);
+        setUserRole(primaryRole.role);
+        setIsSuperAdmin(primaryRole.role === 'super_admin');
+        return;
+      }
+
+      // STEP 3: No roles found anywhere.
+      console.log('🔐 [V5] No roles found for user in any table.');
+      setUserRole(null);
+      setIsSuperAdmin(false);
+
+    } catch (err) {
+      console.error('🔐 [V5] Critical error in checkUserRole:', err);
+      setUserRole(null);
+      setIsSuperAdmin(false);
     } finally {
-      // Always stop loading at the end
-      setLoading(false)
+      setLoading(false);
     }
   }
 
