@@ -227,12 +227,29 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   }
 
   const applyColor = (color: string) => {
+    // Ripristina la selezione salvata
     if (savedSelectionRef.current) {
-      restoreSelection()
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(savedSelectionRef.current)
+      }
+
+      // Applica il colore
       document.execCommand('foreColor', false, color)
-      updateContent()
+
+      // Aggiorna contenuto
+      if (editorRef.current) {
+        setEmailContent(editorRef.current.innerHTML)
+      }
     }
+
     setShowColorPicker(false)
+
+    // Rimetti focus su editor
+    setTimeout(() => {
+      editorRef.current?.focus()
+    }, 0)
   }
 
   const updateContent = () => {
@@ -716,8 +733,14 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     backgroundColor: '#f9fafb',
                     borderRadius: '8px',
                     border: '2px solid #e5e7eb',
-                    overflowX: 'auto',
-                    WebkitOverflowScrolling: 'touch'
+                    overflowX: 'scroll',
+                    overflowY: 'hidden',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollbarWidth: 'thin',
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    whiteSpace: 'nowrap',
+                    flexWrap: 'nowrap'
                   }}>
                     <button
                       type="button"
