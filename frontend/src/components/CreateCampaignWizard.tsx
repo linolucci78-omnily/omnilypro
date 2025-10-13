@@ -220,14 +220,18 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const redoEdit = () => applyFormatting('redo')
   const removeFormat = () => applyFormatting('removeFormat')
 
-  const openColorPicker = () => {
+  const openColorPicker = (e: React.MouseEvent) => {
+    e.preventDefault()
     saveSelection()
     setShowColorPicker(!showColorPicker)
   }
 
   const applyColor = (color: string) => {
-    restoreSelection()
-    applyFormatting('foreColor', color)
+    if (savedSelectionRef.current) {
+      restoreSelection()
+      document.execCommand('foreColor', false, color)
+      updateContent()
+    }
     setShowColorPicker(false)
   }
 
@@ -811,7 +815,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                     <div style={{ position: 'relative' }}>
                       <button
                         type="button"
-                        onClick={openColorPicker}
+                        onMouseDown={openColorPicker}
                         title="Colore testo"
                         style={{
                           display: 'flex',
@@ -847,6 +851,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                       {/* Palette colori */}
                       {showColorPicker && (
                         <div
+                          onMouseDown={(e) => e.preventDefault()}
                           style={{
                             position: 'absolute',
                             top: '100%',
