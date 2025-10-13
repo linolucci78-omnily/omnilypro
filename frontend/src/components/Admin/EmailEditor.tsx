@@ -208,12 +208,17 @@ const EmailEditor: React.FC<EmailEditorProps> = ({
             // Configura attributi CORS per immagini (previene "insecure operation")
             const gjs = editor.editor || editor;
             if (gjs && gjs.on) {
-              gjs.on('component:add', (component: any) => {
-                if (component.is('image')) {
-                  // Aggiungi crossOrigin="anonymous" a tutte le immagini
-                  component.set('crossorigin', 'anonymous');
+              // Funzione per applicare l'attributo a tutte le immagini
+              const addCorsAttr = (model: any) => {
+                if (model.is('image')) {
+                  model.set('crossorigin', 'anonymous');
                 }
-              });
+                model.components().forEach(addCorsAttr);
+              };
+
+              // Applica all'avvio e all'aggiunta di nuovi componenti
+              gjs.on('load', () => addCorsAttr(gjs.getWrapper()));
+              gjs.on('component:add', addCorsAttr);
             }
 
             // Carica il contenuto appena l'editor è pronto
