@@ -228,11 +228,15 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   }
 
   const applyColor = (color: string) => {
+    console.log('🎨 applyColor chiamata con colore:', color)
+
     if (!savedRangeRef.current) {
       console.log('❌ Nessuna selezione salvata')
       setShowColorPicker(false)
       return
     }
+
+    console.log('✅ Selezione salvata trovata:', savedRangeRef.current.toString())
 
     try {
       // 1. Ripristina la selezione
@@ -240,21 +244,25 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       if (selection) {
         selection.removeAllRanges()
         selection.addRange(savedRangeRef.current)
+        console.log('✅ Selezione ripristinata')
       }
 
       // 2. Estrai il contenuto selezionato
       const range = savedRangeRef.current
       const selectedText = range.toString()
+      console.log('📝 Testo selezionato:', selectedText, 'lunghezza:', selectedText.length)
 
       if (selectedText.length > 0) {
         // 3. Crea un span con il colore
         const span = document.createElement('span')
         span.style.color = color
         span.textContent = selectedText
+        console.log('📦 Span creato:', span.outerHTML)
 
         // 4. Sostituisci il contenuto selezionato con lo span
         range.deleteContents()
         range.insertNode(span)
+        console.log('✅ Span inserito nel DOM')
 
         // 5. Posiziona il cursore dopo lo span
         range.setStartAfter(span)
@@ -265,12 +273,15 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         // 6. Aggiorna il contenuto
         if (editorRef.current) {
           setEmailContent(editorRef.current.innerHTML)
+          console.log('✅ Contenuto aggiornato')
         }
 
-        console.log('✅ Colore applicato:', color, 'a', selectedText)
+        console.log('✅✅✅ Colore applicato con successo:', color, 'a', selectedText)
+      } else {
+        console.log('⚠️ Testo selezionato vuoto')
       }
     } catch (error) {
-      console.error('Errore applicazione colore:', error)
+      console.error('❌❌❌ Errore applicazione colore:', error)
     }
 
     // 7. Chiudi la palette
