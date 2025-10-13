@@ -319,12 +319,34 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       container.appendChild(button)
 
       // Inserisci alla posizione corrente o alla fine
-      if (savedRangeRef.current) {
-        savedRangeRef.current.insertNode(container)
-        savedRangeRef.current.setStartAfter(container)
-        savedRangeRef.current.collapse(true)
+      if (savedRangeRef.current && savedRangeRef.current.startContainer.isConnected) {
+        try {
+          savedRangeRef.current.insertNode(container)
+          savedRangeRef.current.setStartAfter(container)
+          savedRangeRef.current.collapse(true)
+        } catch (err) {
+          // Se fallisce, appendi alla fine
+          if (editorRef.current) {
+            editorRef.current.appendChild(container)
+          }
+        }
       } else if (editorRef.current) {
         editorRef.current.appendChild(container)
+      }
+
+      // Aggiungi paragrafo vuoto dopo per permettere di continuare a scrivere
+      const spacer = document.createElement('p')
+      spacer.innerHTML = '<br>'
+      if (editorRef.current) {
+        editorRef.current.appendChild(spacer)
+        
+        // Posiziona il cursore nel nuovo paragrafo
+        const range = document.createRange()
+        const sel = window.getSelection()
+        range.setStart(spacer, 0)
+        range.collapse(true)
+        sel?.removeAllRanges()
+        sel?.addRange(range)
       }
 
       updateContent()
@@ -457,21 +479,34 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       container.appendChild(resizeControls)
 
       // Inserisci alla posizione corrente o alla fine
-      if (savedRangeRef.current) {
-        savedRangeRef.current.insertNode(container)
-        savedRangeRef.current.setStartAfter(container)
-        savedRangeRef.current.collapse(true)
+      if (savedRangeRef.current && savedRangeRef.current.startContainer.isConnected) {
+        try {
+          savedRangeRef.current.insertNode(container)
+          savedRangeRef.current.setStartAfter(container)
+          savedRangeRef.current.collapse(true)
+        } catch (err) {
+          // Se fallisce, appendi alla fine
+          if (editorRef.current) {
+            editorRef.current.appendChild(container)
+          }
+        }
       } else if (editorRef.current) {
         editorRef.current.appendChild(container)
       }
 
-      // Aggiungi spazio dopo l'immagine
+      // Aggiungi paragrafo vuoto dopo per permettere di continuare a scrivere
       const spacer = document.createElement('p')
       spacer.innerHTML = '<br>'
-      if (savedRangeRef.current) {
-        savedRangeRef.current.insertNode(spacer)
-      } else if (editorRef.current) {
+      if (editorRef.current) {
         editorRef.current.appendChild(spacer)
+        
+        // Posiziona il cursore nel nuovo paragrafo
+        const range = document.createRange()
+        const sel = window.getSelection()
+        range.setStart(spacer, 0)
+        range.collapse(true)
+        sel?.removeAllRanges()
+        sel?.addRange(range)
       }
 
       updateContent()
@@ -1640,7 +1675,32 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         }}
                         onClick={() => {
                           const varText = `{{${variable}}}`
-                          setEmailContent(emailContent + varText)
+                          
+                          // Inserisci alla posizione del cursore
+                          if (editorRef.current) {
+                            const selection = window.getSelection()
+                            const range = selection && selection.rangeCount > 0 
+                              ? selection.getRangeAt(0) 
+                              : document.createRange()
+                            
+                            // Se non c'è selezione, posiziona alla fine
+                            if (!selection || selection.rangeCount === 0) {
+                              range.selectNodeContents(editorRef.current)
+                              range.collapse(false)
+                            }
+                            
+                            const textNode = document.createTextNode(varText + ' ')
+                            range.insertNode(textNode)
+                            
+                            // Posiziona cursore dopo il testo inserito
+                            range.setStartAfter(textNode)
+                            range.collapse(true)
+                            selection?.removeAllRanges()
+                            selection?.addRange(range)
+                            
+                            updateContent()
+                            editorRef.current?.focus()
+                          }
                         }}
                       >
                         {`{{${variable}}}`}
