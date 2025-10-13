@@ -904,16 +904,16 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         <div
                           onMouseDown={(e) => e.preventDefault()}
                           style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            marginTop: '8px',
+                            position: 'fixed',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
                             backgroundColor: 'white',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             padding: '12px',
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                            zIndex: 1000,
+                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+                            zIndex: 10003,
                             display: 'grid',
                             gridTemplateColumns: 'repeat(6, 1fr)',
                             gap: '8px',
