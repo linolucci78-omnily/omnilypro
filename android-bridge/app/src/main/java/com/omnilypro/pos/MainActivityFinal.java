@@ -1372,6 +1372,38 @@ public class MainActivityFinal extends AppCompatActivity {
 
                     // No need to initialize printer for receipt printing
 
+                    // Print logo if available
+                    String logoBase64 = receipt.optString("logoBase64", "");
+                    if (!logoBase64.isEmpty() && logoBase64.startsWith("data:image")) {
+                        try {
+                            // Remove data:image/png;base64, prefix
+                            String base64Image = logoBase64.substring(logoBase64.indexOf(",") + 1);
+                            byte[] decodedBytes = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
+                            Bitmap logoBitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                            
+                            if (logoBitmap != null) {
+                                // Scale logo to fit receipt width (max 384 pixels)
+                                int maxWidth = 300;
+                                if (logoBitmap.getWidth() > maxWidth) {
+                                    float scale = (float) maxWidth / logoBitmap.getWidth();
+                                    int newHeight = (int) (logoBitmap.getHeight() * scale);
+                                    logoBitmap = Bitmap.createScaledBitmap(logoBitmap, maxWidth, newHeight, true);
+                                }
+                                
+                                mPrinter.setPrintAppendBitmap(logoBitmap, Layout.Alignment.ALIGN_CENTER);
+                                
+                                PrnStrFormat normalFormat = new PrnStrFormat();
+                                normalFormat.setTextSize(24);
+                                normalFormat.setAli(Layout.Alignment.ALIGN_NORMAL);
+                                mPrinter.setPrintAppendString("\n", normalFormat);
+                                
+                                Log.d(TAG, "Logo printed successfully");
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error printing logo", e);
+                        }
+                    }
+
                     // Store name (large font, center)
                     String storeName = receipt.optString("storeName", "");
                     if (!storeName.isEmpty()) {

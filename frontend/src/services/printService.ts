@@ -129,6 +129,7 @@ export class ZCSPrintService {
         storeAddress: this.printConfig.storeAddress,
         storePhone: this.printConfig.storePhone,
         storeTax: this.printConfig.storeTax,
+        logoBase64: this.printConfig.logoBase64, // Include logo
         receiptNumber: receipt.receiptNumber,
         timestamp: this.formatDateTime(receipt.timestamp),
         cashier: receipt.cashierName,

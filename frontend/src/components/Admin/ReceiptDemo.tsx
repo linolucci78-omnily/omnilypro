@@ -388,6 +388,22 @@ const ReceiptDemo: React.FC<ReceiptDemoProps> = ({ printConfig, onReceiptDataCha
             margin: '0 auto',
             whiteSpace: 'pre-line'
           }}>
+            {/* Logo */}
+            {printConfig.logoBase64 && (
+              <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                <img 
+                  src={printConfig.logoBase64} 
+                  alt="Logo" 
+                  style={{ 
+                    maxWidth: '150px', 
+                    maxHeight: '80px',
+                    filter: 'invert(1)', // Inverte i colori per mostrare su sfondo nero
+                    imageRendering: 'auto'
+                  }} 
+                />
+              </div>
+            )}
+            
             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
               <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{printConfig.storeName}</div>
               <div>{printConfig.storeAddress}</div>

@@ -45,7 +45,6 @@ export const useMDMCommands = () => {
         const initialized = await printService.initialize()
         if (!initialized) {
           console.error('❌ Failed to initialize print service')
-          alert('❌ Errore: impossibile inizializzare stampante')
           return
         }
 
@@ -74,15 +73,12 @@ export const useMDMCommands = () => {
 
         if (success) {
           console.log('✅ Print completed successfully')
-          alert('✅ Stampa completata!')
         } else {
           console.error('❌ Print failed')
-          alert('❌ Errore durante la stampa')
         }
 
       } catch (error) {
         console.error('❌ Error handling MDM print command:', error)
-        alert('❌ Errore comando stampa: ' + (error as Error).message)
       }
     }
 
