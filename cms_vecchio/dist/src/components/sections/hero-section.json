@@ -1,0 +1,41 @@
+{
+    "collectionName": "components_sections_hero_sections",
+    "info": {
+        "displayName": "Hero Section",
+        "icon": "picture"
+    },
+    "options": {},
+    "attributes": {
+        "layout": {
+            "type": "enumeration",
+            "enum": [
+                "fullscreen",
+                "half",
+                "minimal"
+            ]
+        },
+        "overlay": {
+            "type": "boolean",
+            "default": true
+        },
+        "overlay_opacity": {
+            "type": "decimal",
+            "default": 0.5
+        },
+        "height": {
+            "type": "enumeration",
+            "default": "fullscreen",
+            "enum": [
+                "fullscreen",
+                "large",
+                "medium",
+                "auto"
+            ]
+        },
+        "text_color": {
+            "type": "string",
+            "default": "#ffffff"
+        }
+    },
+    "config": {}
+}

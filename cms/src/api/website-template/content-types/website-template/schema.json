@@ -1,0 +1,19 @@
+{
+  "kind": "collectionType",
+  "collectionName": "website_templates",
+  "info": {
+    "singularName": "website-template",
+    "pluralName": "website-templates",
+    "displayName": "Website_Template"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Nome": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

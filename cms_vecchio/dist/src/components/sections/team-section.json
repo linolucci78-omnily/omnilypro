@@ -1,0 +1,39 @@
+{
+    "collectionName": "components_sections_team_sections",
+    "info": {
+        "displayName": "Team Section",
+        "icon": "user",
+        "description": "Sezione team/staff"
+    },
+    "options": {},
+    "attributes": {
+        "layout": {
+            "type": "enumeration",
+            "enum": [
+                "grid",
+                "carousel",
+                "list"
+            ],
+            "default": "grid"
+        },
+        "columns": {
+            "type": "integer",
+            "default": 3,
+            "min": 2,
+            "max": 4
+        },
+        "show_social": {
+            "type": "boolean",
+            "default": true
+        },
+        "card_style": {
+            "type": "enumeration",
+            "enum": [
+                "modern",
+                "classic",
+                "minimal"
+            ],
+            "default": "modern"
+        }
+    }
+}

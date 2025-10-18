@@ -1,0 +1,57 @@
+{
+    "kind": "collectionType",
+    "collectionName": "organization_websits",
+    "info": {
+        "singularName": "organization-websit",
+        "pluralName": "organization-websits",
+        "displayName": "Organization Website"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "nome": {
+            "type": "string",
+            "required": true
+        },
+        "subdomain": {
+            "type": "string",
+            "required": true,
+            "unique": true
+        },
+        "organization_id": {
+            "type": "string",
+            "required": true
+        },
+        "contenuto": {
+            "type": "json"
+        },
+        "is_published": {
+            "type": "boolean",
+            "default": false
+        },
+        "is_maintenanc": {
+            "type": "boolean",
+            "default": false
+        },
+        "custom_domain": {
+            "type": "string"
+        },
+        "seo_title": {
+            "type": "string"
+        },
+        "seo_description": {
+            "type": "string"
+        },
+        "seo_keywords": {
+            "type": "string"
+        },
+        "template": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::website-template.website-template",
+            "inversedBy": "sites"
+        }
+    }
+}

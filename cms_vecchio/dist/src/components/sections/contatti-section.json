@@ -1,0 +1,26 @@
+{
+    "collectionName": "components_sections_contatti_sections",
+    "info": {
+        "displayName": "Contatti Section",
+        "icon": "phone",
+        "description": "Sezione contatti con mappa e form"
+    },
+    "options": {},
+    "attributes": {
+        "show_map": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_form": {
+            "type": "boolean",
+            "default": true
+        },
+        "map_zoom": {
+            "type": "integer",
+            "default": 15
+        },
+        "form_fields": {
+            "type": "json"
+        }
+    }
+}

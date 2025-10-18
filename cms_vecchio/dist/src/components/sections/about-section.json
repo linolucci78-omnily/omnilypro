@@ -1,0 +1,33 @@
+{
+    "collectionName": "components_sections_about_sections",
+    "info": {
+        "displayName": "About Section",
+        "icon": "feather",
+        "description": "Sezione Chi Siamo"
+    },
+    "options": {},
+    "attributes": {
+        "layout": {
+            "type": "enumeration",
+            "enum": [
+                "text_only",
+                "text_with_image",
+                "two_columns",
+                "centered"
+            ],
+            "default": "text_with_image"
+        },
+        "image_position": {
+            "type": "enumeration",
+            "enum": [
+                "left",
+                "right"
+            ],
+            "default": "right"
+        },
+        "background_color": {
+            "type": "string",
+            "default": "#ffffff"
+        }
+    }
+}

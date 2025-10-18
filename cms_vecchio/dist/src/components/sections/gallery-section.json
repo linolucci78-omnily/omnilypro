@@ -1,0 +1,39 @@
+{
+    "collectionName": "components_sections_gallery_sections",
+    "info": {
+        "displayName": "Gallery Section",
+        "icon": "picture",
+        "description": "Sezione galleria foto"
+    },
+    "options": {},
+    "attributes": {
+        "layout": {
+            "type": "enumeration",
+            "enum": [
+                "grid",
+                "masonry",
+                "carousel",
+                "lightbox"
+            ],
+            "default": "grid"
+        },
+        "columns": {
+            "type": "integer",
+            "default": 3
+        },
+        "image_ratio": {
+            "type": "enumeration",
+            "enum": [
+                "square",
+                "landscape",
+                "portrait",
+                "auto"
+            ],
+            "default": "square"
+        },
+        "gap": {
+            "type": "integer",
+            "default": 16
+        }
+    }
+}

@@ -1,0 +1,71 @@
+{
+    "kind": "collectionType",
+    "collectionName": "website_templates",
+    "info": {
+        "singularName": "website-template",
+        "pluralName": "website-templates",
+        "displayName": "Website_Template"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "nome": {
+            "type": "string",
+            "required": true,
+            "unique": true
+        },
+        "description": {
+            "type": "string",
+            "required": true
+        },
+        "category": {
+            "type": "enumeration",
+            "required": true,
+            "enum": [
+                "ristorante",
+                "bar",
+                "negozio",
+                "servizi",
+                "generico"
+            ]
+        },
+        "is_active": {
+            "type": "boolean",
+            "default": true
+        },
+        "proce_tier": {
+            "type": "enumeration",
+            "default": "free",
+            "enum": [
+                "free",
+                "basico",
+                "premiun"
+            ]
+        },
+        "preview_image": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "images",
+                "files",
+                "videos",
+                "audios"
+            ]
+        },
+        "demo_url": {
+            "type": "string"
+        },
+        "sites": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::organization-websit.organization-websit",
+            "mappedBy": "template"
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "nome"
+        }
+    }
+}
