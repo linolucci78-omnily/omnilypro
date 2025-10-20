@@ -1,0 +1,392 @@
+/* Create Contract Modal */
+
+.create-contract-modal {
+  max-width: 95vw;
+  width: 1400px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.create-contract-modal .modal-body-split {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.create-contract-modal .modal-form {
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  overflow-y: auto;
+  border-bottom: 2px solid #e2e8f0;
+  background: #f8fafc;
+  max-height: 35vh;
+}
+
+.create-contract-modal .form-group {
+  grid-column: span 1;
+}
+
+.create-contract-modal .form-group.full-width {
+  grid-column: span 3;
+}
+
+.create-contract-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.create-contract-modal .form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.create-contract-modal .form-group input,
+.create-contract-modal .form-group select,
+.create-contract-modal .form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  background: white;
+  transition: all 0.2s;
+}
+
+.create-contract-modal .form-group input:focus,
+.create-contract-modal .form-group select:focus,
+.create-contract-modal .form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.create-contract-modal .form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.create-contract-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.create-contract-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.create-contract-modal .btn-primary,
+.create-contract-modal .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.create-contract-modal .btn-primary {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+}
+
+.create-contract-modal .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.create-contract-modal .btn-secondary {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.create-contract-modal .btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.create-contract-modal .btn-primary:disabled,
+.create-contract-modal .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Contract Preview Panel */
+
+.create-contract-modal .contract-preview-panel {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.create-contract-modal .preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  flex-shrink: 0;
+}
+
+.create-contract-modal .preview-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.create-contract-modal .preview-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: 'Georgia', serif;
+  line-height: 1.8;
+  color: #1e293b;
+  min-height: 0;
+}
+
+.create-contract-modal .preview-content pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Preview Typography */
+
+.create-contract-modal .preview-h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 2rem 0 1rem 0;
+  color: #1e40af;
+  border-bottom: 3px solid #1e40af;
+  padding-bottom: 0.5rem;
+}
+
+.create-contract-modal .preview-h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 1.75rem 0 0.75rem 0;
+  color: #1e3a8a;
+}
+
+.create-contract-modal .preview-h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem 0;
+  color: #334155;
+}
+
+.create-contract-modal .preview-h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem 0;
+  color: #475569;
+}
+
+.create-contract-modal .preview-p {
+  margin: 0.5rem 0;
+}
+
+.create-contract-modal .preview-bold {
+  font-weight: 700;
+  margin: 0.75rem 0;
+  color: #0f172a;
+}
+
+.create-contract-modal .preview-italic {
+  font-style: italic;
+  color: #64748b;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.create-contract-modal .preview-li {
+  margin: 0.35rem 0 0.35rem 2rem;
+  list-style-type: disc;
+}
+
+.create-contract-modal .preview-hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 2px solid #cbd5e1;
+}
+
+.create-contract-modal .preview-table-row {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #475569;
+  margin: 0.25rem 0;
+  padding: 0.25rem 0.5rem;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+@media (max-width: 1200px) {
+  .create-contract-modal {
+    max-width: 95vw;
+  }
+
+  .create-contract-modal .modal-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .create-contract-modal .modal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .create-contract-modal .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .create-contract-modal .btn-primary,
+  .create-contract-modal .btn-secondary {
+    width: 100%;
+  }
+}
+
+/* Fullscreen Preview Button */
+.btn-preview-fullscreen {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-preview-fullscreen:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-preview-fullscreen:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Fullscreen Preview Modal */
+.fullscreen-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.fullscreen-preview-container {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fullscreen-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fullscreen-preview-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.fullscreen-preview-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.fullscreen-preview-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.fullscreen-preview-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+  padding: 2rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
