@@ -485,7 +485,7 @@ Codice Verifica: _________________
 
 # ALLEGATO A - DESCRIZIONE PIANO E SLA
 
-## Piano Sottoscritto: ${data.contract_type === 'subscription' ? 'BUSINESS' : 'PROFESSIONAL'}
+## Piano Sottoscritto: BUSINESS
 
 ### Funzionalità Incluse:
 
