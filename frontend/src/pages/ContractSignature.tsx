@@ -86,6 +86,16 @@ const ContractSignature: React.FC = () => {
         setOtpVerified(true)
       } else {
         setStep('verify')
+
+        // AUTO-SEND OTP when page loads for first time
+        // This happens when user clicks link from email
+        if (sigData.status === 'pending' && !otpSent) {
+          console.log('🔐 Auto-sending OTP on page load...')
+          // Use setTimeout to avoid setState conflicts
+          setTimeout(() => {
+            handleSendOTP()
+          }, 500)
+        }
       }
 
     } catch (error) {
@@ -265,44 +275,55 @@ const ContractSignature: React.FC = () => {
 
               {!otpSent ? (
                 <div className="otp-method-selection">
-                  <h3>Ricevi il codice via:</h3>
-                  <div className="method-buttons">
-                    <button
-                      className={`method-button ${otpMethod === 'email' ? 'active' : ''}`}
-                      onClick={() => setOtpMethod('email')}
-                    >
-                      <Mail size={24} />
-                      <span>Email</span>
-                      <small>{signature.signer_email}</small>
-                    </button>
-                    {signature.signer_phone && (
+                  {sendingOtp && (
+                    <div className="auto-otp-message">
+                      <Loader className="spinner" size={24} />
+                      <p>Stiamo inviando il codice OTP alla tua email...</p>
+                      <small>Il codice arriverà tra pochi secondi</small>
+                    </div>
+                  )}
+                  {!sendingOtp && (
+                    <>
+                      <h3>Ricevi il codice via:</h3>
+                      <div className="method-buttons">
+                        <button
+                          className={`method-button ${otpMethod === 'email' ? 'active' : ''}`}
+                          onClick={() => setOtpMethod('email')}
+                        >
+                          <Mail size={24} />
+                          <span>Email</span>
+                          <small>{signature.signer_email}</small>
+                        </button>
+                        {signature.signer_phone && (
+                          <button
+                            className={`method-button ${otpMethod === 'sms' ? 'active' : ''}`}
+                            onClick={() => setOtpMethod('sms')}
+                          >
+                            <Phone size={24} />
+                            <span>SMS</span>
+                            <small>{signature.signer_phone}</small>
+                          </button>
+                        )}
+                      </div>
                       <button
-                        className={`method-button ${otpMethod === 'sms' ? 'active' : ''}`}
-                        onClick={() => setOtpMethod('sms')}
+                        className="btn-primary btn-large"
+                        onClick={handleSendOTP}
+                        disabled={sendingOtp}
                       >
-                        <Phone size={24} />
-                        <span>SMS</span>
-                        <small>{signature.signer_phone}</small>
+                        {sendingOtp ? (
+                          <>
+                            <Loader className="spinner" size={20} />
+                            Invio in corso...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={20} />
+                            Invia Codice OTP
+                          </>
+                        )}
                       </button>
-                    )}
-                  </div>
-                  <button
-                    className="btn-primary btn-large"
-                    onClick={handleSendOTP}
-                    disabled={sendingOtp}
-                  >
-                    {sendingOtp ? (
-                      <>
-                        <Loader className="spinner" size={20} />
-                        Invio in corso...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={20} />
-                        Invia Codice OTP
-                      </>
-                    )}
-                  </button>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="otp-verification">

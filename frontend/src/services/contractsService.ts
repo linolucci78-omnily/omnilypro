@@ -234,7 +234,80 @@ export const contractsService = {
     // Log audit event
     await this.logAuditEvent(contractId, 'contract_sent', 'Contract sent for signature', 'system')
 
+    // Send signature invitation emails to all signers
+    const signatures = await this.getContractSignatures(contractId)
+    for (const signature of signatures) {
+      if (signature.status === 'pending') {
+        await this.sendSignatureInvitation(signature.id, data)
+      }
+    }
+
     return data
+  },
+
+  // Send signature invitation email with link
+  async sendSignatureInvitation(signatureId: string, contract: Contract): Promise<void> {
+    try {
+      // Get signature details
+      const { data: signature, error: sigError } = await supabase
+        .from('contract_signatures')
+        .select('*')
+        .eq('id', signatureId)
+        .single()
+
+      if (sigError) throw sigError
+
+      // Get frontend URL from env or use default
+      const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin
+      const signatureLink = `${frontendUrl}/sign/${signatureId}`
+
+      console.log(`📧 Sending signature invitation to ${signature.signer_email}`)
+
+      // Send email via Edge Function
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          organization_id: contract.organization_id,
+          template_type: 'contract_signature_invitation',
+          to_email: signature.signer_email,
+          to_name: signature.signer_name,
+          dynamic_data: {
+            signer_name: signature.signer_name,
+            contract_title: contract.title,
+            contract_number: contract.contract_number,
+            signature_link: signatureLink,
+            signer_role: signature.signer_role === 'client' ? 'Cliente' : 'Fornitore'
+          }
+        }
+      })
+
+      if (emailError) {
+        console.error('❌ Error sending invitation email:', emailError)
+        // Fallback: log link to console
+        console.log(`📧 FALLBACK - Signature link for ${signature.signer_email}:`)
+        console.log(signatureLink)
+      } else {
+        console.log('✅ Signature invitation sent successfully')
+      }
+
+      // Log notification
+      await supabase
+        .from('contract_notifications')
+        .insert({
+          contract_id: contract.id,
+          signature_id: signatureId,
+          notification_type: 'signature_invitation',
+          channel: 'email',
+          recipient_email: signature.signer_email,
+          subject: `Contratto da firmare: ${contract.title}`,
+          content: `Clicca sul link per firmare il contratto: ${signatureLink}`,
+          status: emailError ? 'failed' : 'sent',
+          sent_at: new Date().toISOString()
+        })
+
+    } catch (error) {
+      console.error('Error sending signature invitation:', error)
+      throw error
+    }
   },
 
   // Get signatures for contract
@@ -436,16 +509,48 @@ export const contractsService = {
     await this.logAuditEvent(
       data.contract_id,
       'signature_completed',
-      'Signature completed',
+      `Signature completed by ${data.signer_role}`,
       'signer',
       undefined,
       signatureId
     )
 
+    // Se il cliente ha appena firmato, notifica il fornitore
+    if (data.signer_role === 'client') {
+      await this.notifyVendorToSign(data.contract_id)
+    }
+
     // Check if all signatures are completed and update contract status
     await this.checkAndUpdateContractStatus(data.contract_id)
 
     return data
+  },
+
+  // Notify vendor to sign after client signature
+  async notifyVendorToSign(contractId: string): Promise<void> {
+    try {
+      // Find vendor signature request
+      const { data: vendorSignature, error } = await supabase
+        .from('contract_signatures')
+        .select('*')
+        .eq('contract_id', contractId)
+        .eq('signer_role', 'vendor')
+        .eq('status', 'pending')
+        .single()
+
+      if (error || !vendorSignature) {
+        console.log('No pending vendor signature found')
+        return
+      }
+
+      // Send OTP to vendor
+      console.log('📧 Notifying vendor to sign contract:', vendorSignature.signer_email)
+      await this.sendSignatureOTP(vendorSignature.id, 'email')
+
+      console.log('✅ Vendor notified successfully')
+    } catch (error) {
+      console.error('Error notifying vendor:', error)
+    }
   },
 
   // Check if all signatures are completed and update contract accordingly
