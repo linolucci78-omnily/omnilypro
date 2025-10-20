@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { strapiClient } from '@/lib/strapi';
-import type { WebsiteTemplate } from '@/lib/strapi';
+import { strapiClient } from '../lib/strapi';
+import type { WebsiteTemplate } from '../lib/strapi';
 import { Plus, Edit, Trash2, Eye, Globe } from 'lucide-react';
 
 interface TemplateLibraryProps {

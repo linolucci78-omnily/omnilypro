@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { strapiClient } from '@/lib/strapi';
-import type { OrganizationWebsite } from '@/lib/strapi';
+import { strapiClient } from '../lib/strapi';
+import type { OrganizationWebsite } from '../lib/strapi';
 import { Globe, Edit, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 
 interface OrganizationWebsitesProps {
