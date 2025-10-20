@@ -77,6 +77,21 @@ interface AnalyticsData {
   }
 }
 
+interface SalesAgentStats {
+  agent_id: string
+  agent_name: string
+  agent_email: string
+  total_leads: number
+  active_leads: number
+  won_leads: number
+  lost_leads: number
+  conversion_rate: number
+  pipeline_value: number
+  won_value: number
+  avg_deal_size: number
+  avg_days_to_close: number
+}
+
 const AnalyticsDashboard: React.FC = () => {
   const [data, setData] = useState<AnalyticsData>({
     revenue: { current: 0, previous: 0, growth: 0, monthly: [], daily: [] },
@@ -90,11 +105,19 @@ const AnalyticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
-  const [activeMetric, setActiveMetric] = useState<'revenue' | 'customers' | 'subscriptions' | 'performance'>('revenue')
+  const [activeMetric, setActiveMetric] = useState<'revenue' | 'customers' | 'subscriptions' | 'performance' | 'sales_agents'>('revenue')
+  const [salesAgents, setSalesAgents] = useState<SalesAgentStats[]>([])
+  const [salesAgentsLoading, setSalesAgentsLoading] = useState(false)
 
   useEffect(() => {
     loadAnalyticsData()
   }, [timeRange])
+
+  useEffect(() => {
+    if (activeMetric === 'sales_agents') {
+      loadSalesAgentsData()
+    }
+  }, [activeMetric])
 
   const loadAnalyticsData = async () => {
     try {
@@ -188,6 +211,102 @@ const AnalyticsDashboard: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Errore nel caricamento dei dati analytics')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadSalesAgentsData = async () => {
+    try {
+      setSalesAgentsLoading(true)
+      console.log('📊 Loading sales agents analytics...')
+
+      // Get all sales agents from users table
+      const { data: agents, error: agentsError } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('role', 'sales_agent')
+        .eq('is_active', true)
+
+      if (agentsError) {
+        console.error('Error loading agents:', agentsError)
+        throw agentsError
+      }
+
+      if (!agents || agents.length === 0) {
+        console.log('⚠️ No sales agents found')
+        setSalesAgents([])
+        return
+      }
+
+      console.log(`✅ Found ${agents.length} sales agents`)
+
+      // Get all leads
+      const { data: leads, error: leadsError } = await supabase
+        .from('crm_leads')
+        .select('*')
+
+      if (leadsError) {
+        console.error('Error loading leads:', leadsError)
+        throw leadsError
+      }
+
+      console.log(`✅ Found ${leads?.length || 0} total leads`)
+
+      // Calculate stats for each agent
+      const agentStats: SalesAgentStats[] = agents.map(agent => {
+        const agentLeads = leads?.filter(l => l.sales_agent_id === agent.id) || []
+        const activeLeads = agentLeads.filter(l => !['won', 'lost'].includes(l.stage))
+        const wonLeads = agentLeads.filter(l => l.stage === 'won')
+        const lostLeads = agentLeads.filter(l => l.stage === 'lost')
+
+        const pipelineValue = activeLeads.reduce((sum, l) => sum + (l.estimated_monthly_value || 0), 0)
+        const wonValue = wonLeads.reduce((sum, l) => sum + (l.estimated_monthly_value || 0), 0)
+
+        const totalClosed = wonLeads.length + lostLeads.length
+        const conversionRate = totalClosed > 0 ? (wonLeads.length / totalClosed) * 100 : 0
+
+        const avgDealSize = wonLeads.length > 0
+          ? wonLeads.reduce((sum, l) => sum + (l.estimated_monthly_value || 0), 0) / wonLeads.length
+          : 0
+
+        // Calculate avg days to close for won leads
+        const daysToClose = wonLeads
+          .filter(l => l.won_at && l.created_at)
+          .map(l => {
+            const created = new Date(l.created_at)
+            const won = new Date(l.won_at!)
+            return Math.floor((won.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
+          })
+
+        const avgDaysToClose = daysToClose.length > 0
+          ? daysToClose.reduce((sum, days) => sum + days, 0) / daysToClose.length
+          : 0
+
+        return {
+          agent_id: agent.id,
+          agent_name: agent.email.split('@')[0], // Use email username as name
+          agent_email: agent.email,
+          total_leads: agentLeads.length,
+          active_leads: activeLeads.length,
+          won_leads: wonLeads.length,
+          lost_leads: lostLeads.length,
+          conversion_rate: conversionRate,
+          pipeline_value: pipelineValue,
+          won_value: wonValue,
+          avg_deal_size: avgDealSize,
+          avg_days_to_close: avgDaysToClose
+        }
+      })
+
+      // Sort by won_value descending
+      agentStats.sort((a, b) => b.won_value - a.won_value)
+
+      console.log('✅ Sales agents stats calculated:', agentStats)
+      setSalesAgents(agentStats)
+
+    } catch (err) {
+      console.error('Error loading sales agents data:', err)
+    } finally {
+      setSalesAgentsLoading(false)
     }
   }
 
@@ -337,7 +456,7 @@ const AnalyticsDashboard: React.FC = () => {
       {/* Key Metrics Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '24px',
         marginBottom: '32px',
         padding: '0 24px',
@@ -506,6 +625,50 @@ const AnalyticsDashboard: React.FC = () => {
             {data.performance.avgResponseTime}ms response, {formatPercentage(data.performance.uptime, false)} uptime
           </div>
         </div>
+
+        {/* Sales Agents Card */}
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          padding: '24px',
+          border: '1px solid #e2e8f0',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          transform: activeMetric === 'sales_agents' ? 'translateY(-2px)' : 'none',
+          boxShadow: activeMetric === 'sales_agents' ? '0 8px 25px rgba(0,0,0,0.1)' : 'none'
+        }} onClick={() => setActiveMetric('sales_agents')}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white'
+            }}>
+              <Target size={24} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981' }}>
+              <ArrowUp size={16} />
+              <span style={{ fontSize: '14px', fontWeight: '600' }}>
+                {salesAgents.length > 0
+                  ? `${(salesAgents.reduce((sum, a) => sum + a.conversion_rate, 0) / salesAgents.length).toFixed(1)}%`
+                  : '0%'}
+              </span>
+            </div>
+          </div>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: '#1e293b', marginBottom: '4px' }}>
+            {salesAgents.length}
+          </div>
+          <div style={{ fontSize: '16px', color: '#64748b', marginBottom: '8px' }}>
+            Agenti Vendita
+          </div>
+          <div style={{ fontSize: '14px', color: '#94a3b8' }}>
+            {salesAgents.reduce((sum, a) => sum + a.won_leads, 0)} deal chiusi, {formatCurrency(salesAgents.reduce((sum, a) => sum + a.pipeline_value, 0))} pipeline
+          </div>
+        </div>
       </div>
 
       {/* Charts Section */}
@@ -529,6 +692,7 @@ const AnalyticsDashboard: React.FC = () => {
               {activeMetric === 'customers' && 'Crescita Clienti'}
               {activeMetric === 'subscriptions' && 'Abbonamenti nel Tempo'}
               {activeMetric === 'performance' && 'Performance Sistema'}
+              {activeMetric === 'sales_agents' && 'Performance Agenti Vendita'}
             </h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button style={{
@@ -553,24 +717,164 @@ const AnalyticsDashboard: React.FC = () => {
               </button>
             </div>
           </div>
-          <div style={{
-            height: '300px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#f8fafc',
-            borderRadius: '8px',
-            border: '2px dashed #d1d5db',
-            color: '#64748b'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <BarChart3 size={48} />
-              <p style={{ margin: '12px 0 0 0' }}>Grafico interattivo {activeMetric}</p>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                Integrazione Chart.js in arrivo
-              </p>
+          {/* Sales Agents Table */}
+          {activeMetric === 'sales_agents' ? (
+            <div style={{ overflowX: 'auto' }}>
+              {salesAgentsLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <RefreshCw size={32} className="spin" />
+                  <p style={{ marginTop: '16px', color: '#64748b' }}>Caricamento dati agenti...</p>
+                </div>
+              ) : salesAgents.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Target size={48} style={{ color: '#cbd5e1' }} />
+                  <p style={{ marginTop: '16px', color: '#64748b' }}>Nessun agente di vendita trovato</p>
+                  <p style={{ marginTop: '8px', fontSize: '14px', color: '#94a3b8' }}>
+                    Crea il primo agente dalla sezione Gestione Utenti
+                  </p>
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Agente
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Lead Totali
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Attivi
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Vinti
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Conv. Rate
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Pipeline Value
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Won Value
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+                        Avg Days
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {salesAgents.map((agent, index) => (
+                      <tr key={agent.agent_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: index === 0 ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' :
+                                         index === 1 ? 'linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)' :
+                                         index === 2 ? 'linear-gradient(135deg, #fdba74 0%, #fb923c 100%)' :
+                                         'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'white',
+                              fontWeight: '600',
+                              fontSize: '14px'
+                            }}>
+                              #{index + 1}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: '600', color: '#1e293b' }}>{agent.agent_name}</div>
+                              <div style={{ fontSize: '13px', color: '#64748b' }}>{agent.agent_email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#1e293b' }}>
+                          {agent.total_leads}
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '12px',
+                            background: '#dbeafe',
+                            color: '#1e40af',
+                            fontSize: '14px',
+                            fontWeight: '600'
+                          }}>
+                            {agent.active_leads}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '12px',
+                            background: '#d1fae5',
+                            color: '#065f46',
+                            fontSize: '14px',
+                            fontWeight: '600'
+                          }}>
+                            {agent.won_leads}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <div style={{
+                              width: '60px',
+                              height: '8px',
+                              background: '#f1f5f9',
+                              borderRadius: '4px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${agent.conversion_rate}%`,
+                                height: '100%',
+                                background: agent.conversion_rate >= 70 ? '#10b981' :
+                                          agent.conversion_rate >= 40 ? '#f59e0b' : '#ef4444',
+                                borderRadius: '4px'
+                              }} />
+                            </div>
+                            <span style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>
+                              {agent.conversion_rate.toFixed(1)}%
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'right', fontWeight: '600', color: '#1e293b' }}>
+                          {formatCurrency(agent.pipeline_value)}
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'right', fontWeight: '600', color: '#059669' }}>
+                          {formatCurrency(agent.won_value)}
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center', fontSize: '14px', color: '#64748b' }}>
+                          {agent.avg_days_to_close > 0 ? `${agent.avg_days_to_close.toFixed(0)}d` : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          </div>
+          ) : (
+            <div style={{
+              height: '300px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#f8fafc',
+              borderRadius: '8px',
+              border: '2px dashed #d1d5db',
+              color: '#64748b'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <BarChart3 size={48} />
+                <p style={{ margin: '12px 0 0 0' }}>Grafico interattivo {activeMetric}</p>
+                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                  Integrazione Chart.js in arrivo
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Side Panel */}

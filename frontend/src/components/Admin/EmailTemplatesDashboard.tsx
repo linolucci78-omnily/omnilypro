@@ -89,9 +89,6 @@ const EmailTemplatesDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Rileva se siamo in POS mode (query param posomnily=true)
-  const isPOSMode = typeof window !== 'undefined' && window.location.search.includes('posomnily=true')
-
   // Ref per accedere all'istanza dell'editor
   const editorInstanceRef = React.useRef<any>(null)
 
@@ -431,7 +428,7 @@ const EmailTemplatesDashboard: React.FC = () => {
   }
 
   return (
-    <div className={"admin-dashboard email-dashboard" + (isPOSMode ? ' pos-mode' : '')}>
+    <div className="admin-dashboard">
       {/* Success/Error Messages */}
       {success && (
         <div style={{
@@ -500,70 +497,45 @@ const EmailTemplatesDashboard: React.FC = () => {
 
       {/* Tabs */}
       <div className="dashboard-tabs">
-        {isPOSMode ? (
-          // POS mode: mostra 4 pulsanti fissi, con il 4° che va sotto tramite CSS
-          <>
-            <button className={`tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
-              <FileText size={16} />
-              CAMPAGNE
-            </button>
-            <button className={`tab ${activeTab === 'logs' ? 'active' : ''}`} onClick={() => setActiveTab('logs')}>
-              <Database size={16} />
-              LOG
-            </button>
-            <button className={`tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
-              <Mail size={16} />
-              EMAIL TEMPLATE
-            </button>
-            <button className={`tab ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
-              <Settings size={16} />
-              IMPOSTAZIONI
-            </button>
-          </>
-        ) : (
-          // Normal mode: comportamento attuale completo
+        <button
+          className={`tab ${activeTab === 'list' ? 'active' : ''}`}
+          onClick={() => setActiveTab('list')}
+        >
+          <FileText size={16} />
+          Lista Template
+        </button>
+        {selectedTemplate && (
           <>
             <button
-              className={`tab ${activeTab === 'list' ? 'active' : ''}`}
-              onClick={() => setActiveTab('list')}
+              className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
+              onClick={() => setActiveTab('editor')}
             >
-              <FileText size={16} />
-              Lista Template
-            </button>
-            {selectedTemplate && (
-              <>
-                <button
-                  className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('editor')}
-                >
-                  <Edit size={16} />
-                  Editor
-                </button>
-                <button
-                  className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('preview')}
-                >
-                  <Eye size={16} />
-                  Anteprima
-                </button>
-              </>
-            )}
-            <button
-              className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              <Settings size={16} />
-              Impostazioni
+              <Edit size={16} />
+              Editor
             </button>
             <button
-              className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
-              onClick={() => setActiveTab('logs')}
+              className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('preview')}
             >
-              <Database size={16} />
-              Log Email
+              <Eye size={16} />
+              Anteprima
             </button>
           </>
         )}
+        <button
+          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          <Settings size={16} />
+          Impostazioni
+        </button>
+        <button
+          className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
+          onClick={() => setActiveTab('logs')}
+        >
+          <Database size={16} />
+          Log Email
+        </button>
       </div>
 
       {activeTab === 'list' && (

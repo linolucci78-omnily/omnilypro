@@ -1,6 +1,8 @@
+import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './contexts/ToastContext'
 import { useMDMCommands } from './hooks/useMDMCommands'
 import Navbar from './components/Layout/Navbar'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
@@ -30,12 +32,20 @@ import EmailTemplatesDashboard from './components/Admin/EmailTemplatesDashboard'
 import DatabaseDashboard from './components/Admin/DatabaseDashboard'
 import SupportDashboard from './components/Admin/SupportDashboard'
 import BrandingDashboard from './components/Admin/BrandingDashboard'
+import WebsiteManager from './components/Admin/WebsiteManager'
+import ContractsDashboard from './components/Admin/ContractsDashboard'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
+import StrapiTest from './pages/StrapiTest'
+import PublicSite from './pages/PublicSite'
+import SiteRendererPage from './pages/SiteRendererPage'
+
+const ContractSignature = React.lazy(() => import('./pages/ContractSignature'))
 
 import Z108POSInterface from './components/POS/Z108POSInterface'
 import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
 import CustomerDisplay from './components/POS/CustomerDisplay'
+import WebsiteContentEditor from './components/POS/WebsiteContentEditor'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -89,6 +99,24 @@ function App() {
     return <CustomerDisplay />
   }
 
+  // Check for public site rendering mode
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+  const isPublicSite = parts.length > 1 && !['www', 'localhost', 'app', 'admin'].includes(parts[0]);
+
+  if (isPublicSite) {
+    console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage');
+    return (
+      <Router>
+        <AuthProvider>
+          <ToastProvider>
+            <SiteRendererPage />
+          </ToastProvider>
+        </AuthProvider>
+      </Router>
+    );
+  }
+
   // POS Mode - Handle both login and POS interface routes
   if (isPOSMode) {
     // Remove all margins/padding for POS mode
@@ -99,8 +127,9 @@ function App() {
     return (
       <Router>
         <AuthProvider>
-          <div className="App" style={{ margin: 0, padding: 0 }}>
-            <Routes>
+          <ToastProvider>
+            <div className="App" style={{ margin: 0, padding: 0 }}>
+              <Routes>
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -127,6 +156,7 @@ function App() {
               <Route path="*" element={<Login />} />
             </Routes>
           </div>
+          </ToastProvider>
         </AuthProvider>
       </Router>
     )
@@ -135,52 +165,28 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="App">
+        <ToastProvider>
+          <div className="App">
           <Routes>
             <Route path="/" element={<><Navbar /><Landing /></>} />
+            {/* ...tutte le altre route originali... */}
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/strapi-test" element={<StrapiTest />} />
             <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
             <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <><Navbar /><Onboarding /></>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/customers"
-              element={
-                <ProtectedRoute>
-                  <><Navbar /><BusinessCustomers /></>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
+            <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
               <Route index element={<AdminDashboard />} />
               <Route path="organizations" element={<Admin />} />
               <Route path="business-owners" element={<BusinessOwners />} />
               <Route path="pending-customers" element={<PendingCustomers />} />
               <Route path="users" element={<UsersManagement />} />
               <Route path="crm" element={<CRMLeadsDashboard />} />
+              <Route path="contracts" element={<ContractsDashboard />} />
               <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
               <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
               <Route path="mdm" element={<MDMDashboard />} />
@@ -195,13 +201,18 @@ function App() {
               <Route path="database" element={<DatabaseDashboard />} />
               <Route path="support" element={<SupportDashboard />} />
               <Route path="branding" element={<BrandingDashboard />} />
+              <Route path="websites" element={<WebsiteManager />} />
             </Route>
-            <Route
-              path="/customer-display"
-              element={<CustomerDisplay />}
-            />
+            <Route path="/sign/:signatureId" element={
+              <React.Suspense fallback={<div>Caricamento...</div>}>
+                <ContractSignature />
+              </React.Suspense>
+            } />
+            <Route path="/customer-display" element={<CustomerDisplay />} />
+            <Route path="/sites/:subdomain" element={<PublicSite />} />
           </Routes>
         </div>
+        </ToastProvider>
       </AuthProvider>
     </Router>
   )

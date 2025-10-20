@@ -36,65 +36,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userRole, setUserRole] = useState<string | null>(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
 
+  // Cache per evitare query ripetute
+  const roleCache = React.useRef<{ [userId: string]: { role: string, isSuperAdmin: boolean, timestamp: number } }>({})
+  const CACHE_DURATION = 5 * 60 * 1000 // 5 minuti
+
   // Function to check user role
   const checkUserRole = async (userId: string) => {
+    // Check cache first
+    const cached = roleCache.current[userId]
+    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+      console.log('🔐 [CACHE] Using cached role:', cached.role)
+      setUserRole(cached.role)
+      setIsSuperAdmin(cached.isSuperAdmin)
+      return
+    }
     console.log('🔐 [V5] Checking user role for:', userId);
     try {
       // Determine if in POS mode (this needs to be passed in or derived here)
       const urlParams = new URLSearchParams(window.location.search);
       const isPosMode = urlParams.has('pos') || urlParams.has('posomnily') || navigator.userAgent.includes('OMNILY-POS-APP');
 
-      // STEP 1: Check for OMNILY Super Admin in `users` table first.
-      // SKIP THIS STEP IF IN POS MODE, as per user's clarification that super_admin is in organization_users for POS
-      if (!isPosMode) { // Only check users table if NOT in POS mode
-        console.log('🔐 [V5] Checking for Super Admin in users table...');
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', userId)
-          .maybeSingle();
+      // STEP 1: TEMPORANEAMENTE DISABILITATO
+      // Il controllo sulla tabella users causa problemi con le RLS policies (loop circolare)
+      // Tutti gli utenti useranno organization_users per ora
+      console.log('🔐 [V5] Skipping users table check (RLS issue), going to organization_users...');
 
-        if (userError) {
-          console.error('🔐 [V5] Error checking users table:', userError);
-          // Don't stop, fallback to organization_users
-        }
-
-        if (userData && (userData.role === 'super_admin' || userData.role === 'sales_agent')) {
-          console.log('🔐 [V5] OMNILY Admin role found in users table:', userData.role);
-          setUserRole(userData.role);
-          setIsSuperAdmin(userData.role === 'super_admin');
-          return; // Role found, stop here.n
-        }
-      } else {
-        console.log('🔐 [V5] In POS mode, skipping direct users table check.');
-      }
-
-      // STEP 2: Check for organization roles WITH TIMEOUT
+      // STEP 2: Check for organization roles (NO TIMEOUT - wait as long as needed)
       console.log('🔐 [V5] Checking organization_users table...');
-      
-      const orgUsersPromise = supabase
-        .from('organization_users')
-        .select('role')
-        .eq('user_id', userId);
-      
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Organization_users timeout')), 5000)
-      );
 
       let orgRoles: any, orgError: any;
+
       try {
-        const result: any = await Promise.race([orgUsersPromise, timeoutPromise]);
-        orgRoles = result.data;
-        orgError = result.error;
-      } catch (timeoutError) {
-        console.error('⚠️ [V5] Organization_users query timeout (5s)!');
-        orgError = timeoutError;
+        console.log('🔐 [V5] Starting query to organization_users...');
+
+        // Add timeout
+        const queryPromise = supabase
+          .from('organization_users')
+          .select('role')
+          .eq('user_id', userId);
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Query timeout after 5s')), 5000)
+        );
+
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
+        console.log('🔐 [V5] Query completed. Data:', data, 'Error:', error);
+
+        orgRoles = data;
+        orgError = error;
+
+      } catch (error) {
+        console.error('🔐 [V5] Error checking organization_users table:', error);
+        orgError = error;
       }
 
       if (orgError) {
-        console.error('🔐 [V5] Error or timeout checking organization_users table:', orgError);
+        console.error('🔐 [V5] Error checking organization_users table:', orgError);
         // Permetti l'accesso con ruolo di default invece di bloccare
-        console.warn('🔐 [V5] Setting default org_admin role to allow access despite timeout');
+        console.warn('✅ [V5] Setting default org_admin role to allow access despite error');
         setUserRole('org_admin');
         setIsSuperAdmin(false);
         return;
@@ -103,8 +103,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (orgRoles && orgRoles.length > 0) {
         const primaryRole = orgRoles.find((r: any) => r.role === 'super_admin') || orgRoles.find((r: any) => r.role === 'org_admin') || orgRoles[0];
         console.log('🔐 [V5] Organization role found:', primaryRole.role);
-        setUserRole(primaryRole.role);
-        setIsSuperAdmin(primaryRole.role === 'super_admin');
+
+        const role = primaryRole.role
+        const isSuper = role === 'super_admin'
+
+        // Save to cache
+        roleCache.current[userId] = {
+          role,
+          isSuperAdmin: isSuper,
+          timestamp: Date.now()
+        }
+
+        setUserRole(role);
+        setIsSuperAdmin(isSuper);
         return;
       }
 

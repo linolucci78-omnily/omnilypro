@@ -3,7 +3,7 @@
  * Gestisce i permessi per i diversi ruoli admin di OMNILY PRO
  */
 
-export type AdminRole = 'super_admin' | 'sales_agent' | 'account_manager'
+export type AdminRole = 'super_admin' | 'org_admin' | 'sales_agent' | 'account_manager'
 
 export interface AdminPermissions {
   canViewDashboard: boolean
@@ -31,6 +31,19 @@ export const getAdminPermissions = (role: AdminRole | null): AdminPermissions =>
         canViewSettings: true,
         canManageUsers: true,
         canManageOrganizations: true,
+        canViewAllSections: true,
+        defaultRoute: '/admin'
+      }
+
+    case 'org_admin':
+      return {
+        canViewDashboard: true,
+        canViewCRM: true,
+        canViewCustomers: true,
+        canViewAnalytics: true,
+        canViewSettings: true,
+        canManageUsers: true,
+        canManageOrganizations: false, // Can't manage other orgs
         canViewAllSections: true,
         defaultRoute: '/admin'
       }

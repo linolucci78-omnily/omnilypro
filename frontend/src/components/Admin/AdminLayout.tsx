@@ -28,7 +28,8 @@ import {
   Factory,
   Target,
   Clock,
-  UserCog
+  UserCog,
+  FileSignature
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -86,6 +87,7 @@ const AdminLayout = () => {
         { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
         { path: '/admin/pending-customers', icon: Clock, label: 'Clienti da Attivare' },
         { path: '/admin/crm', icon: Target, label: 'CRM & Marketing' },
+        { path: '/admin/contracts', icon: FileSignature, label: 'Contratti e Firme' },
         { path: '/admin/supplier-orders', icon: Factory, label: 'Ordini Fornitori' },
         { path: '/admin/hardware-orders', icon: Truck, label: 'Ordini Hardware' },
         { path: '/admin/mdm', icon: Smartphone, label: 'Gestione Dispositivi' },
@@ -106,6 +108,7 @@ const AdminLayout = () => {
       group: 'Personalizzazione',
       items: [
         { path: '/admin/branding', icon: Palette, label: 'Brand & Temi' },
+        { path: '/admin/websites', icon: Globe, label: 'Gestione Siti' },
         { path: '/admin/domains', icon: Globe, label: 'Domini', disabled: true },
         { path: '/admin/emails', icon: Mail, label: 'Email Templates' },
         { path: '/admin/reports', icon: FileText, label: 'Report' }

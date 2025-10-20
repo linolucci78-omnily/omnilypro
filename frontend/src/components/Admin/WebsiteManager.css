@@ -1,0 +1,277 @@
+/* frontend/src/components/Admin/WebsiteManager.css */
+
+.website-manager-dashboard {
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  background-color: #f8fafc; /* Same as admin-page body */
+}
+
+.wm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wm-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+}
+
+.wm-subtitle {
+  font-size: 1.125rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.wm-card {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.wm-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 1.5rem 0;
+}
+
+.wm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.wm-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wm-form-group label {
+  font-weight: 500;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wm-select,
+.wm-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  color: #1e293b;
+  background-color: #f8fafc;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.wm-select option {
+  color: #1e293b;
+  background-color: white;
+}
+
+.wm-select:focus,
+.wm-input:focus {
+  outline: none;
+  border-color: var(--omnily-primary);
+  box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
+}
+
+.wm-subdomain-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.wm-subdomain-wrapper .wm-input {
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.wm-subdomain-suffix {
+    padding: 0.75rem 1rem;
+    background-color: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-left: none;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    color: #475569;
+    font-size: 1rem;
+}
+
+.wm-card-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.wm-btn-primary {
+  background-color: var(--omnily-primary);
+  color: white;
+}
+
+.wm-btn-primary:hover {
+  background-color: #a0522d; /* Darker brown */
+}
+
+.wm-subdomain-link {
+    color: var(--omnily-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+.wm-subdomain-link:hover {
+    text-decoration: underline;
+}
+
+.wm-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.wm-status-badge.published {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.wm-status-badge.draft {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Reusing some CRM styles for the table actions */
+.actions-cell {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-button-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
+  font-weight: 500;
+}
+
+/* Publish/Unpublish button - Verde */
+.action-button-circle:first-child {
+  background-color: #10b981;
+  color: white;
+}
+
+.action-button-circle:first-child:hover {
+  background-color: #059669;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+  transform: translateY(-1px);
+}
+
+/* Edit button - Blu */
+.action-button-circle:nth-child(2) {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.action-button-circle:nth-child(2):hover {
+  background-color: #2563eb;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+  transform: translateY(-1px);
+}
+
+/* Delete button - Rosso */
+.action-button-circle:nth-child(3) {
+  background-color: #ef4444;
+  color: white;
+}
+
+.action-button-circle:nth-child(3):hover {
+  background-color: #dc2626;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+  transform: translateY(-1px);
+}
+
+/* Icone centrate */
+.action-button-circle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Re-using table styles from CRMDashboard */
+.crm-table-card {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.crm-table-scroll {
+    overflow-x: auto;
+}
+
+.crm-customers-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.crm-customers-table th,
+.crm-customers-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.crm-customers-table th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.crm-customers-table tbody tr:last-child td {
+    border-bottom: none;
+}

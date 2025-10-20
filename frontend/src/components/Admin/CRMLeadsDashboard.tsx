@@ -17,24 +17,68 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Target
+  Target,
+  LayoutDashboard,
+  Kanban,
+  FileText
 } from 'lucide-react'
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  type DragStartEvent,
+  type DragEndEvent
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { crmLeadsService } from '../../services/crmLeadsService'
+import { contractsService } from '../../services/contractsService'
 import type { CRMLead, LeadStats, CRMLeadInput } from '../../services/crmLeadsService'
 import PageLoader from '../UI/PageLoader'
 import LeadModal from './LeadModal'
+import LeadDetailModal from './LeadDetailModal'
+import CreateContractModal from './CreateContractModal'
+import AgentDashboard from './AgentDashboard'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
+import { useToast } from '../../contexts/ToastContext'
 import './CRMLeadsDashboard.css'
 
 const CRMLeadsDashboard: React.FC = () => {
+  const { isSuperAdmin } = useAuth()
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [leads, setLeads] = useState<CRMLead[]>([])
   const [stats, setStats] = useState<LeadStats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStage, setSelectedStage] = useState('all')
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline')
+  const [dashboardView, setDashboardView] = useState<'agent' | 'full'>('agent') // New: agent dashboard vs full Kanban
   const [showLeadModal, setShowLeadModal] = useState(false)
+  const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [activeDragId, setActiveDragId] = useState<string | null>(null)
+  const [showContractModal, setShowContractModal] = useState(false)
+  const [contractLeadId, setContractLeadId] = useState<string | null>(null)
+
+  // Drag & Drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  )
 
   // Get current user ID
   useEffect(() => {
@@ -56,6 +100,7 @@ const CRMLeadsDashboard: React.FC = () => {
 
   const loadData = async () => {
     try {
+      console.log('🔃 Loading CRM data...')
       setLoading(true)
 
       const [leadsData, statsData] = await Promise.all([
@@ -66,6 +111,7 @@ const CRMLeadsDashboard: React.FC = () => {
         crmLeadsService.getLeadStats()
       ])
 
+      console.log(`✅ Loaded ${leadsData.length} leads`)
       setLeads(leadsData)
       setStats(statsData)
     } catch (error) {
@@ -94,22 +140,115 @@ const CRMLeadsDashboard: React.FC = () => {
   }
 
   const handleSignContract = async (leadId: string) => {
-    if (!confirm('Sei sicuro di voler firmare il contratto per questo lead? Verrà creato un nuovo customer con stato PENDING in attesa di attivazione.')) {
+    // Apre modal per creare contratto con lead pre-selezionato
+    console.log('📝 Opening contract modal for lead:', leadId)
+    setContractLeadId(leadId)
+    setShowContractModal(true)
+  }
+
+  const handleContractCreated = async () => {
+    // Dopo creazione contratto, chiudi modal e reload leads
+    setShowContractModal(false)
+    setContractLeadId(null)
+    toast.showSuccess('Successo', 'Contratto creato! Ora vai in "Contratti e Firma" per inviarlo al cliente.')
+    await loadData()
+  }
+
+  const handleFixCorruptedData = async () => {
+    if (!confirm('Questa operazione cercherà e correggerà i lead con stage corrotto (UUID invece di nome stage). Vuoi continuare?')) {
       return
     }
 
     try {
-      console.log('📝 Signing contract for lead:', leadId)
-      const result = await crmLeadsService.signContract(leadId)
-      console.log('✅ Contract signed! Customer ID:', result.customerId)
+      console.log('🔧 Searching for corrupted leads...')
 
-      alert(`✅ Contratto firmato!\n\nCustomer ID: ${result.customerId}\n\nIl cliente è ora in stato PENDING e apparirà nella sezione "Clienti da Attivare" dell'admin.`)
+      // Find all leads with UUID-like stage (contains dashes in UUID pattern)
+      const corruptedLeads = leads.filter(lead =>
+        lead.stage && lead.stage.includes('-') && lead.stage.length > 30
+      )
+
+      console.log(`Found ${corruptedLeads.length} corrupted leads:`, corruptedLeads.map(l => ({ id: l.id, company: l.company_name, stage: l.stage })))
+
+      if (corruptedLeads.length === 0) {
+        alert('✅ Nessun lead corrotto trovato!')
+        return
+      }
+
+      // Fix each corrupted lead by setting stage to 'lead'
+      let fixed = 0
+      for (const lead of corruptedLeads) {
+        try {
+          await crmLeadsService.moveLeadToStage(lead.id, 'lead')
+          console.log(`✅ Fixed lead: ${lead.company_name}`)
+          fixed++
+        } catch (error) {
+          console.error(`❌ Error fixing lead ${lead.id}:`, error)
+        }
+      }
+
+      alert(`✅ Corretti ${fixed} lead su ${corruptedLeads.length}!`)
 
       // Reload data
       await loadData()
     } catch (error: any) {
-      console.error('❌ Error signing contract:', error)
-      alert(`❌ Errore durante la firma del contratto: ${error.message}`)
+      console.error('❌ Error fixing corrupted data:', error)
+      alert(`❌ Errore durante la correzione: ${error.message}`)
+    }
+  }
+
+  // Drag & Drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(event.active.id as string)
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    console.log('🎯 DragEnd event:', { active: active.id, over: over?.id })
+
+    setActiveDragId(null)
+
+    if (!over) {
+      console.log('⚠️ No drop target')
+      return
+    }
+
+    const leadId = active.id as string
+    const newStage = over.id as string
+
+    console.log('📌 Lead ID:', leadId, 'New Stage:', newStage)
+
+    // Find the lead that was dragged
+    const lead = leads.find(l => l.id === leadId)
+
+    if (!lead) {
+      console.error('❌ Lead not found:', leadId)
+      return
+    }
+
+    if (lead.stage === newStage) {
+      console.log('ℹ️ Same stage, no update needed')
+      return
+    }
+
+    try {
+      console.log(`📦 Moving lead "${lead.company_name}" from ${lead.stage} to ${newStage}`)
+
+      // Update in database FIRST
+      await crmLeadsService.moveLeadToStage(leadId, newStage)
+
+      console.log('✅ Lead moved successfully in database')
+
+      // Reload ALL data to ensure consistency
+      await loadData()
+
+      console.log('✅ Data reloaded successfully')
+
+    } catch (error) {
+      console.error('❌ Error moving lead:', error)
+      alert('Errore nello spostamento del lead')
+      // Reload data anyway
+      await loadData()
     }
   }
 
@@ -129,6 +268,7 @@ const CRMLeadsDashboard: React.FC = () => {
       'proposal_sent': '#a855f7',
       'negotiation': '#ec4899',
       'contract_ready': '#f59e0b',
+      'sign_contract': '#16a34a',  // Verde scuro per firma
       'won': '#10b981',
       'lost': '#ef4444'
     }
@@ -144,20 +284,12 @@ const CRMLeadsDashboard: React.FC = () => {
       'proposal_sent': 'Proposta Inviata',
       'negotiation': 'Negoziazione',
       'contract_ready': 'Contratto Pronto',
+      'sign_contract': 'Firma Contratto',  // NUOVO
       'won': 'Vinto',
       'lost': 'Perso'
     }
     return labels[stage] || stage
   }
-
-  // Group leads by stage for Kanban view
-  const leadsByStage = leads.reduce((acc, lead) => {
-    if (!acc[lead.stage]) {
-      acc[lead.stage] = []
-    }
-    acc[lead.stage].push(lead)
-    return acc
-  }, {} as { [key: string]: CRMLead[] })
 
   const stages = [
     'lead',
@@ -166,17 +298,152 @@ const CRMLeadsDashboard: React.FC = () => {
     'demo_completed',
     'proposal_sent',
     'negotiation',
-    'contract_ready'
+    'contract_ready',
+    'sign_contract',  // Stage finale per firma contratto
+    'won',  // Deal vinti - colonna finale celebrativa!
+    'lost'  // Deal persi - per tracciamento
   ]
+
+  // Group leads by stage for Kanban view - MUST be recalculated when leads change
+  const leadsByStage = React.useMemo(() => {
+    const grouped = leads.reduce((acc, lead) => {
+      if (!acc[lead.stage]) {
+        acc[lead.stage] = []
+      }
+      acc[lead.stage].push(lead)
+      return acc
+    }, {} as { [key: string]: CRMLead[] })
+
+    console.log('🔄 Leads grouped by stage:', Object.keys(grouped).map(stage => `${stage}: ${grouped[stage].length}`))
+    return grouped
+  }, [leads])
+
+  // Droppable Column Component
+  const DroppableColumn = ({ stage, children }: { stage: string; children: React.ReactNode }) => {
+    const { setNodeRef, isOver } = useDroppable({ id: stage })
+
+    return (
+      <div
+        ref={setNodeRef}
+        className="column-content"
+        style={{
+          minHeight: '100px',
+          background: isOver ? '#f0f9ff' : 'transparent',
+          transition: 'background 0.2s ease'
+        }}
+      >
+        {children}
+      </div>
+    )
+  }
+
+  // Draggable Lead Card Component
+  const DraggableLeadCard = ({ lead, stage }: { lead: CRMLead; stage: string }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging
+    } = useSortable({ id: lead.id })
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1
+    }
+
+    return (
+      <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div className="lead-card" onClick={() => setSelectedLead(lead)} style={{ cursor: 'pointer' }}>
+          <div className="lead-card-header">
+            <h4>{lead.company_name}</h4>
+            <button className="card-menu-btn" onClick={(e) => e.stopPropagation()}>
+              <MoreVertical size={16} />
+            </button>
+          </div>
+
+          <div className="lead-card-contact">
+            <Users size={14} />
+            {lead.contact_name}
+          </div>
+
+          {lead.email && (
+            <div className="lead-card-email">
+              <Mail size={14} />
+              {lead.email}
+            </div>
+          )}
+
+          <div className="lead-card-value">
+            <DollarSign size={14} />
+            {formatCurrency(lead.estimated_monthly_value)}/mese
+          </div>
+
+          <div className="lead-card-footer">
+            <div
+              className="probability-badge"
+              style={{ background: `${getStageColor(stage)}20`, color: getStageColor(stage) }}
+            >
+              {lead.probability}%
+            </div>
+
+            {lead.next_action_date && (
+              <div className="next-action">
+                <Clock size={12} />
+                {new Date(lead.next_action_date).toLocaleDateString('it-IT')}
+              </div>
+            )}
+          </div>
+
+          {stage === 'contract_ready' && (
+            <button
+              className="btn-sign-contract"
+              onClick={async (e) => {
+                e.stopPropagation()
+                // Sposta il lead allo stage "Firma Contratto"
+                try {
+                  await crmLeadsService.moveLeadToStage(lead.id, 'sign_contract')
+                  await loadData()
+                } catch (error) {
+                  console.error('Error moving to sign_contract stage:', error)
+                }
+              }}
+            >
+              <CheckCircle size={16} />
+              Procedi a Firma
+            </button>
+          )}
+
+          {stage === 'sign_contract' && (
+            <button
+              className="btn-sign-contract"
+              style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' }}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleSignContract(lead.id)
+              }}
+            >
+              <CheckCircle size={16} />
+              Firma Contratto OTP
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return <PageLoader />
   }
 
+  const activeLead = leads.find(l => l.id === activeDragId)
+
   return (
-    <div className="crm-leads-dashboard" style={{ width: '100%', maxWidth: '100%', overflow: 'visible' }}>
-      {/* Header */}
-      <div className="crm-leads-header" style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+    <div className="crm-leads-dashboard" style={{ width: '100%', maxWidth: '100vw', overflow: 'hidden', padding: dashboardView === 'agent' ? '0' : '2rem', boxSizing: 'border-box' }}>
+      {/* Header - Sempre visibile */}
+      <div className="crm-leads-header" style={{ width: '100%', maxWidth: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: dashboardView === 'agent' ? '0' : '2rem', padding: dashboardView === 'agent' ? '2rem 2rem 0 2rem' : '0', boxSizing: 'border-box' }}>
         <div>
           <h1 className="crm-leads-title">
             <Briefcase size={32} />
@@ -187,26 +454,64 @@ const CRMLeadsDashboard: React.FC = () => {
           </p>
         </div>
 
-        <button
-          className="btn-add-lead"
-          onClick={() => setShowLeadModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.875rem 1.5rem',
-            background: '#1e40af',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          <Plus size={18} />
-          Nuovo Lead
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {/* Dashboard / Kanban Toggle */}
+          <div className="view-toggle" style={{ marginRight: '0.5rem' }}>
+            <button
+              className={dashboardView === 'agent' ? 'active' : ''}
+              onClick={() => setDashboardView('agent')}
+            >
+              <div className="tab-content">
+                <span className="tab-title">La Mia Dashboard</span>
+                <span className="tab-subtitle">I miei task e lead</span>
+              </div>
+            </button>
+            <button
+              className={dashboardView === 'full' ? 'active' : ''}
+              onClick={() => setDashboardView('full')}
+            >
+              <div className="tab-content">
+                <span className="tab-title">Kanban Completo</span>
+                <span className="tab-subtitle">Pipeline vendite</span>
+              </div>
+            </button>
+          </div>
+
+          {dashboardView === 'full' && isSuperAdmin && (
+            <button
+              className="btn-fix-data"
+              onClick={handleFixCorruptedData}
+              title="Correggi dati corrotti nel database"
+            >
+              <div className="btn-content">
+                <span className="btn-title">🔧 Fix Data</span>
+                <span className="btn-subtitle">Correggi errori</span>
+              </div>
+            </button>
+          )}
+          <button
+            className="btn-add-lead"
+            onClick={() => setShowLeadModal(true)}
+          >
+            <div className="btn-content">
+              <Plus size={18} />
+              <div>
+                <span className="btn-title">Nuovo Lead</span>
+                <span className="btn-subtitle">Aggiungi contatto</span>
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
+
+      {/* Agent Dashboard View - SOLO questa vista */}
+      {dashboardView === 'agent' && (
+        <AgentDashboard />
+      )}
+
+      {/* Full Kanban View - SOLO questa vista */}
+      {dashboardView === 'full' && (
+        <div>
 
       {/* Stats Cards */}
       <div className="crm-stats-grid">
@@ -294,83 +599,60 @@ const CRMLeadsDashboard: React.FC = () => {
 
       {/* Pipeline Kanban View */}
       {viewMode === 'pipeline' && (
-        <div className="pipeline-kanban">
-          {stages.map((stage) => (
-            <div key={stage} className="kanban-column">
-              <div
-                className="column-header"
-                style={{ borderTopColor: getStageColor(stage) }}
-              >
-                <h3>{getStageLabel(stage)}</h3>
-                <span className="column-count">
-                  {leadsByStage[stage]?.length || 0}
-                </span>
-              </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="pipeline-kanban">
+            {stages.map((stage) => (
+              <div key={stage} className="kanban-column">
+                <div
+                  className="column-header"
+                  style={{ borderTopColor: getStageColor(stage) }}
+                >
+                  <h3>{getStageLabel(stage)}</h3>
+                  <span className="column-count">
+                    {leadsByStage[stage]?.length || 0}
+                  </span>
+                </div>
 
-              <div className="column-content">
-                {leadsByStage[stage]?.map((lead) => (
-                  <div key={lead.id} className="lead-card">
-                    <div className="lead-card-header">
-                      <h4>{lead.company_name}</h4>
-                      <button className="card-menu-btn">
-                        <MoreVertical size={16} />
-                      </button>
-                    </div>
+                <SortableContext
+                  id={stage}
+                  items={leadsByStage[stage]?.map(l => l.id) || []}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <DroppableColumn stage={stage}>
+                    {leadsByStage[stage]?.map((lead) => (
+                      <DraggableLeadCard key={lead.id} lead={lead} stage={stage} />
+                    ))}
 
-                    <div className="lead-card-contact">
-                      <Users size={14} />
-                      {lead.contact_name}
-                    </div>
-
-                    {lead.email && (
-                      <div className="lead-card-email">
-                        <Mail size={14} />
-                        {lead.email}
+                    {(!leadsByStage[stage] || leadsByStage[stage].length === 0) && (
+                      <div className="empty-column">
+                        Nessun lead in questo stage
                       </div>
                     )}
-
-                    <div className="lead-card-value">
-                      <DollarSign size={14} />
-                      {formatCurrency(lead.estimated_monthly_value)}/mese
-                    </div>
-
-                    <div className="lead-card-footer">
-                      <div
-                        className="probability-badge"
-                        style={{ background: `${getStageColor(stage)}20`, color: getStageColor(stage) }}
-                      >
-                        {lead.probability}%
-                      </div>
-
-                      {lead.next_action_date && (
-                        <div className="next-action">
-                          <Clock size={12} />
-                          {new Date(lead.next_action_date).toLocaleDateString('it-IT')}
-                        </div>
-                      )}
-                    </div>
-
-                    {stage === 'contract_ready' && (
-                      <button
-                        className="btn-sign-contract"
-                        onClick={() => handleSignContract(lead.id)}
-                      >
-                        <CheckCircle size={16} />
-                        Firma Contratto
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {(!leadsByStage[stage] || leadsByStage[stage].length === 0) && (
-                  <div className="empty-column">
-                    Nessun lead in questo stage
-                  </div>
-                )}
+                  </DroppableColumn>
+                </SortableContext>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          <DragOverlay>
+            {activeLead ? (
+              <div className="lead-card" style={{ opacity: 0.8, cursor: 'grabbing' }}>
+                <div className="lead-card-header">
+                  <h4>{activeLead.company_name}</h4>
+                </div>
+                <div className="lead-card-contact">
+                  <Users size={14} />
+                  {activeLead.contact_name}
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       {/* List View */}
@@ -464,12 +746,34 @@ const CRMLeadsDashboard: React.FC = () => {
           </table>
         </div>
       )}
+        </div>
+      )}
 
-      {/* Lead Modal */}
+      {/* Lead Modal - Always visible regardless of view */}
       <LeadModal
         isOpen={showLeadModal}
         onClose={() => setShowLeadModal(false)}
         onSave={handleSaveLead}
+      />
+
+      {/* Lead Detail Modal - Always visible regardless of view */}
+      {selectedLead && (
+        <LeadDetailModal
+          lead={selectedLead}
+          onClose={() => setSelectedLead(null)}
+          onUpdate={loadData}
+        />
+      )}
+
+      {/* Contract Modal - Opens when clicking "Firma Contratto OTP" */}
+      <CreateContractModal
+        isOpen={showContractModal}
+        onClose={() => {
+          setShowContractModal(false)
+          setContractLeadId(null)
+        }}
+        onSuccess={handleContractCreated}
+        preSelectedLeadId={contractLeadId || undefined}
       />
     </div>
   )

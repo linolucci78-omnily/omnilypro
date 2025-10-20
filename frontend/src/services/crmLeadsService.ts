@@ -16,6 +16,7 @@ export interface CRMLead {
   city?: string
   country?: string
   address?: string
+  vat_number?: string // P.IVA/CF for contracts
 
   // Sales Pipeline
   stage: 'lead' | 'contacted' | 'demo_scheduled' | 'demo_completed' |

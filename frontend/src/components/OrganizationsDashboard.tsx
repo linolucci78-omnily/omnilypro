@@ -12,6 +12,7 @@ import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import EmailMarketingPanel from './EmailMarketingPanel'
 import UpgradePrompt from './UpgradePrompt'
+import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -1758,6 +1759,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'notifications', icon: Bell, label: 'Notifiche', feature: 'notifications' },
       { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
+      { id: 'website-editor', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
       { id: 'communications', icon: Gift, label: 'Comunicazioni', feature: null },
       { id: 'settings', icon: Settings, label: 'Impostazioni', feature: null },
@@ -2808,6 +2810,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        )
+
+      case 'website-editor':
+        return currentOrganization ? (
+          <WebsiteContentEditor
+            organizationId={currentOrganization.id}
+          />
+        ) : (
+          <div className="section-content">
+            <div className="section-header">
+              <Globe size={24} />
+              <h2>Il Mio Sito Web</h2>
+              <p>Seleziona un'organizzazione per modificare il sito</p>
             </div>
           </div>
         )

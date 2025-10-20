@@ -55,3 +55,4 @@ SELECT
 FROM information_schema.columns
 WHERE table_name = 'customer_activities'
 ORDER BY ordinal_position;
+2

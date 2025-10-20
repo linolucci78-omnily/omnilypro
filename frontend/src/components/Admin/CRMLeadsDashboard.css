@@ -1,7 +1,6 @@
 /* CRM Leads Dashboard - Pipeline Vendite per Agenti */
 
 .crm-leads-dashboard {
-  padding: 2rem;
   background: #f8fafc;
   min-height: 100vh;
   width: 100%;
@@ -17,6 +16,9 @@
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
+  position: relative;
+  z-index: 10;
+  background: #f8fafc;
 }
 
 .crm-leads-title {
@@ -35,26 +37,81 @@
   font-size: 1rem;
 }
 
-.btn-add-lead {
+.btn-add-lead,
+.btn-fix-data {
   display: flex !important;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
-  background: var(--omnily-primary) !important;
-  color: white !important;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.btn-add-lead {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  border-color: #1e40af;
+}
+
+.btn-fix-data {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #dc2626;
 }
 
 .btn-add-lead:hover {
-  background: #1e3a8a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
+  box-shadow: 0 -4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.btn-fix-data:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  box-shadow: 0 -4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-add-lead .btn-content,
+.btn-fix-data .btn-content {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: white;
+}
+
+.btn-add-lead .btn-content > div,
+.btn-fix-data .btn-content > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.btn-add-lead .btn-title,
+.btn-fix-data .btn-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+  display: block;
+}
+
+.btn-add-lead .btn-subtitle,
+.btn-fix-data .btn-subtitle {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1;
+  display: block;
+}
+
+.btn-add-lead svg,
+.btn-fix-data svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 /* Stats Grid */
@@ -158,70 +215,130 @@
 }
 
 .view-toggle {
-  display: flex;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 4px;
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  width: auto;
+  max-width: fit-content;
+  align-items: flex-end;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
 }
 
 .view-toggle button {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #64748b;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(to bottom, #e2e8f0 0%, #cbd5e1 100%);
+  border: 1px solid #cbd5e1;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.view-toggle button .tab-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.view-toggle button .tab-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.view-toggle button .tab-subtitle {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.view-toggle button:hover {
+  background: linear-gradient(to bottom, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #93c5fd;
+}
+
+.view-toggle button:hover .tab-title {
+  color: #1e40af;
+}
+
+.view-toggle button:hover .tab-subtitle {
+  color: #3b82f6;
 }
 
 .view-toggle button.active {
-  background: var(--omnily-primary);
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  border-color: #1e40af;
+  border-bottom-color: transparent;
+  z-index: 1;
+  box-shadow: 0 -4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.view-toggle button.active .tab-title {
   color: white;
 }
 
-/* Pipeline Kanban */
+.view-toggle button.active .tab-subtitle {
+  color: #bfdbfe;
+}
+
+/* Pipeline Kanban - Krayin Style */
 .pipeline-kanban {
   display: flex;
-  gap: 0.5rem;
+  gap: 1.25rem;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 1rem 0 2rem 0;
+  padding: 1.5rem 0 2.5rem 0;
   width: 100%;
 }
 
 .pipeline-kanban::-webkit-scrollbar {
-  height: 10px;
+  height: 12px;
 }
 
 .pipeline-kanban::-webkit-scrollbar-track {
-  background: #e2e8f0;
-  border-radius: 8px;
+  background: #f1f5f9;
+  border-radius: 10px;
   margin: 0 2rem;
 }
 
 .pipeline-kanban::-webkit-scrollbar-thumb {
-  background: var(--omnily-primary);
-  border-radius: 8px;
-  border: 2px solid #e2e8f0;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  border-radius: 10px;
+  border: 3px solid #f1f5f9;
 }
 
 .pipeline-kanban::-webkit-scrollbar-thumb:hover {
-  background: #1e3a8a;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .kanban-column {
-  flex: 0 0 240px;
-  min-width: 240px;
-  max-width: 240px;
-  background: #f8fafc;
-  border-radius: 12px;
+  flex: 0 0 280px;
+  min-width: 280px;
+  max-width: 280px;
+  background: #ffffff;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
   max-height: calc(100vh - 400px);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.kanban-column:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .column-header {
@@ -267,20 +384,21 @@
   font-size: 0.875rem;
 }
 
-/* Lead Card */
+/* Lead Card - More Spacious Design */
 .lead-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.25rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .lead-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-  border-color: var(--omnily-primary);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  border-color: #60a5fa;
 }
 
 .lead-card-header {

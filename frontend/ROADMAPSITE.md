@@ -1,11 +1,179 @@
-# 🌐 OMNILY PRO - Sistema Siti Vetrina
+# 🌐 OMNILY PRO - Website Builder Module
 
 ## 📋 Panoramica
 
-**Modulo**: **Website Builder** - Sistema di creazione e gestione siti vetrina professionali
-**Obiettivo**: Fornire ad ogni organizzazione un sito web professionale di livello Wix/Squarespace, completamente integrato con l'ecosistema OmnilyPro (Loyalty, CRM, Email Marketing, POS)
+**Modulo**: **Website Builder** - Sistema di creazione e gestione siti vetrina professionali  
+**Obiettivo**: Fornire ad ogni organizzazione un sito web professionale su subdomain dedicato, completamente integrato con l'ecosistema OmnilyPro (Loyalty, CRM, Email Marketing, POS)
 
-**Target Quality**: Siti vetrina competitivi con Wix, Squarespace, Webflow - NON giocattoli
+**Target Quality**: Siti vetrina competitivi con Wix, Squarespace, Webflow - NON giocattoli  
+**Stack Tecnologico**: **Strapi CMS** (headless) + Next.js + Vercel + Subdomain Routing
+
+**Ultimo aggiornamento**: 18 Ottobre 2025
+
+---
+
+## ⚡ DECISIONI ARCHITETTURALI CHIAVE (TL;DR)
+
+### 🎯 **Scelte Tecnologiche Finali**
+
+| Componente | Tecnologia | Motivo |
+|------------|-----------|--------|
+| **CMS** | Strapi (self-hosted) | Admin panel pronto, API auto, gratis, permissions granulari |
+| **Hosting Strapi** | Railway.app | Free tier $5/mese, PostgreSQL incluso, auto-deploy |
+| **Frontend** | Next.js (esistente) | Middleware per subdomain, SSR, già in uso |
+| **Hosting Frontend** | Vercel (esistente) | Wildcard SSL, edge functions, già configurato |
+| **Database Strapi** | PostgreSQL | Incluso Railway, relazioni native, i18n support |
+| **Database OmnilyPro** | Supabase (esistente) | Auth, organizations, loyalty - manteniamo separato |
+| **Storage Immagini** | Strapi Media Library | Upload/resize automatico, CDN ready |
+| **Domini** | Subdomain (*.omnilypro.com) | Professionale, SEO, SSL auto, futuro custom domain |
+| **Localizzazione** | Strapi i18n | Italiano first, multilingua pronto |
+
+### 🏗️ **Principio Architetturale**
+
+```text
+ADMIN (tu) → Crea TEMPLATE in Strapi (struttura + design)
+              ↓
+CLIENTE    → Modifica CONTENUTI dal POS (solo testi/foto)  
+              ↓
+PUBBLICO   → Vede SITO su subdomain.omnilypro.com
+```
+
+**Separazione netta**: 
+- ✅ Admin = controllo totale (Strapi Admin Panel)
+- ✅ Cliente = solo contenuti (form touch-friendly POS)
+- ❌ Cliente NON vede mai editor visuale
+- ❌ Cliente NON può modificare struttura/codice
+
+### 🌐 **Sistema Domini**
+
+```text
+omnilypro.com                    → Dashboard principale
+admin.omnilypro.com              → Admin panel
+
+pizzerianapoli.omnilypro.com     → Sito Cliente 1
+barcentrale.omnilypro.com        → Sito Cliente 2
+trattoriamario.omnilypro.com     → Sito Cliente 3
+
+(futuro) www.pizzerianapoli.it   → Custom domain opzionale
+```
+
+**DNS Setup** (una tantum):
+```dns
+Type:  CNAME
+Name:  *
+Value: cname.vercel-dns.com
+```
+→ Tutti i subdomain funzionano automaticamente
+
+### 💰 **Costi**
+
+| Fase | Utenti | Costo/mese |
+|------|--------|------------|
+| **Sviluppo/Test** | 1-10 org | $0 (Railway free tier) |
+| **Lancio** | 10-50 org | $0-10 |
+| **Crescita** | 50-200 org | $10-20 |
+| **Scale** | 200-500 org | $20-50 |
+
+**vs Alternative SaaS**: Sanity $99/mese, Contentful $300/mese
+
+### 🇮🇹 **Localizzazione**
+
+- ✅ Strapi Admin in italiano
+- ✅ POS interface in italiano
+- ✅ Contenuti multilingua (it, en, de, fr)
+- ✅ Default: Italiano
+
+### ⏱️ **Timeline Sviluppo**
+
+| Fase | Durata | Output |
+|------|--------|--------|
+| Setup Strapi + Railway | 2 ore | CMS funzionante |
+| Content Types (Template, Website) | 1 ora | Schema DB completo |
+| Integrazione API Omnily ↔ Strapi | 2 ore | Fetch/update contenuti |
+| Admin Panel (assegna sito a org) | 3 ore | UI gestione siti |
+| POS Interface (form touch) | 4 ore | Cliente edita contenuti |
+| Middleware subdomain routing | 1 ora | Routing dinamico |
+| Template React #1 (Restaurant) | 3 ore | Primo template live |
+| Public rendering + SEO | 2 ore | Siti pubblici ottimizzati |
+| **TOTALE** | **1.5-2 giorni** | **Sistema completo** |
+
+vs Costruire CMS custom: **3-4 settimane**
+
+---
+
+## 🏆 DECISIONI ARCHITETTURALI FINALI
+
+### ✅ **CMS: Strapi (Open Source, Self-hosted)**
+
+**Perché Strapi?**
+- ✅ **100% Gratis** - Open source, self-hosted
+- ✅ **Admin Panel già pronto** - UI moderna per creare Content Types
+- ✅ **API REST/GraphQL automatiche** - Zero backend da scrivere
+- ✅ **Permissions granulari** - Admin vs Cliente perfettamente separati
+- ✅ **Media Library integrata** - Upload/ottimizzazione automatica immagini
+- ✅ **Dynamic Zones** - Template flessibili e componibili
+- ✅ **i18n nativo** - Supporto multilingua (Italiano + altre lingue)
+- ✅ **Mature & Stabile** - Usato da 40,000+ aziende
+- ✅ **Community grande** - Plugin e soluzioni pronte
+
+**Hosting Strapi:**
+- Railway.app (Free tier: $5 crediti/mese)
+- PostgreSQL incluso
+- Deploy automatico da GitHub
+- SSL gratis
+- **Costo**: $0-10/mese (vs $99-299/mese SaaS alternative)
+
+### ✅ **Domini: Subdomain System**
+
+**Struttura URL:**
+```
+omnilypro.com                       → Dashboard/POS principale
+admin.omnilypro.com                 → Admin Panel
+cms.omnilypro.com                   → Strapi CMS (opzionale, può essere interno)
+
+pizzerianapoli.omnilypro.com        → Sito Cliente 1
+barcentrale.omnilypro.com           → Sito Cliente 2
+trattoriamario.omnilypro.com        → Sito Cliente 3
+```
+
+**Configurazione DNS (una tantum):**
+```
+Type:  CNAME
+Name:  *
+Value: cname.vercel-dns.com
+```
+→ Wildcard subdomain: tutti i subdomain automaticamente attivi
+
+**Vantaggi Subdomain:**
+- ✅ Più professionale di `/sites/slug`
+- ✅ SEO migliore
+- ✅ SSL automatico per ogni subdomain
+- ✅ Branding: cliente stampa su biglietti
+- ✅ Futuro: upgrade a dominio custom (`www.pizzeria.it`)
+
+### ✅ **Localizzazione: Italiano First**
+
+**Strapi Admin in Italiano:**
+```javascript
+// config/admin.js
+locales: ['it'],
+defaultLocale: 'it',
+```
+
+**Contenuti Multilingua:**
+```javascript
+// config/plugins.js
+i18n: {
+  enabled: true,
+  locales: ['it', 'en', 'de', 'fr'],
+  defaultLocale: 'it'
+}
+```
+
+**POS Interface completamente in Italiano:**
+- Form in italiano
+- Messaggi in italiano
+- Notifiche in italiano
 
 ---
 
@@ -21,204 +189,812 @@
    - 🆕 **Sito Vetrina** → Chiude il cerchio!
 
 2. **Vantaggio Competitivo**
-   - Wix/Squarespace: Solo siti web
+   - Wix/Squarespace: Solo siti web ($20-30/mese)
    - **OmnilyPro**: Sito + Loyalty + Email + POS + CRM in un'unica piattaforma
 
-3. **Monetizzazione**
-   - Piano Base: Landing page singola
-   - Piano Pro: Sito multi-pagina + blog
-   - Piano Enterprise: Multi-sito + A/B testing
+3. **Risparmio Sviluppo**
+   - Costruire CMS da zero: 3-4 settimane
+   - Con Strapi: 1-2 giorni setup completo
+   - Admin panel già pronto (risparmio 2 settimane)
+   - API automatiche (risparmio 1 settimana)
 
 4. **Integrazione Nativa**
    - Form contatti → CRM OmnilyPro
    - Prodotti sito → Catalogo POS
    - Lead generation → Email Marketing
    - Programma punti esposto sul sito
+   - Prenotazioni → Calendario POS
 
 ---
 
 ## 🏗️ Architettura del Sistema
 
-### **Principio Fondamentale: Separazione Struttura/Contenuti**
+### **Principio Fondamentale: Admin Crea, Cliente Modifica Solo Contenuti**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
-│                    ADMIN OMNILYPRO                      │
-│  (Super Admin - Gestisce struttura e design)            │
+│              ADMIN OMNILYPRO (tu)                       │
+│  Controllo completo su template e struttura             │
 │                                                          │
-│  ✏️ GrapesJS Editor Completo                            │
-│  • Drag & drop componenti                               │
-│  • Layout design                                        │
-│  • Template professionali                               │
-│  • Definisce campi modificabili per cliente             │
-│  • SEO setup avanzato                                   │
-│  • Multi-pagina (Home, Chi Siamo, Servizi, etc)        │
+│  🎨 STRAPI CMS (cms.omnilypro.com)                     │
+│  • Crea Template (Restaurant, Cafe, Retail, ecc.)       │
+│  • Dynamic Zones per sezioni componibili                │
+│  • Definisce campi editabili (JSON schema)              │
+│  • Media Library per immagini default                   │
+│  • Permissions: Admin = full, Cliente = solo contenuto  │
+│                                                          │
+│  🔧 OMNILY ADMIN PANEL (admin.omnilypro.com)           │
+│  • Assegna template a organizzazione                    │
+│  • Genera subdomain automatico                          │
+│  • Configura dominio custom (opzionale)                 │
+│  • Pre-compila contenuti da DB organizzazione           │
+│  • Analytics e statistiche siti                         │
 │                                                          │
 └──────────────────┬──────────────────────────────────────┘
                    │
-                   │ Crea struttura + definisce campi
+                   │ Assegna template + crea subdomain
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│              CLIENTE (Organizzazione)                    │
-│  (Vede solo FORM per modificare contenuti)              │
+│         CLIENTE (dal POS Android o Web)                 │
+│  Vede SOLO form touch-friendly per contenuti            │
 │                                                          │
-│  📝 Dashboard Contenuti                                 │
-│  • Form testuali semplici                               │
-│  • Upload immagini/gallery                              │
-│  • Gestione prodotti/servizi                            │
-│  • Orari apertura                                       │
-│  • Info SEO base                                        │
-│  • Preview live                                         │
+│  📝 POS: "Il Mio Sito Web"                              │
+│  • Form grandi con input touch-friendly                 │
+│  • Upload immagini da camera Android/gallery            │
+│  • Nessun drag & drop, solo form                        │
+│  • Gestione contenuti (testi, foto, prodotti)           │
+│  • Preview in tempo reale                               │
+│  • Pubblica/Nascondi sito                               │
 │                                                          │
-│  ⚠️ NON vede mai l'editor GrapesJS                      │
+│  ⚠️ NON può modificare struttura/layout/codice         │
+│  ⚠️ NON vede mai Strapi Admin                          │
 │                                                          │
 └──────────────────┬──────────────────────────────────────┘
                    │
-                   │ Contenuti salvati
+                   │ Contenuti salvati via API Strapi
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│                SITO PUBBLICO                             │
-│  URL: {slug}.omnilypro.app                              │
-│  Custom domain: www.azienda.it (opzionale)              │
+│              SITO PUBBLICO LIVE                          │
 │                                                          │
-│  🌐 Rendering Dinamico                                  │
-│  • Struttura (da Admin)                                 │
-│  • + Contenuti (da Cliente)                             │
-│  • = Sito finale                                        │
+│  🌐 SUBDOMAIN                                           │
+│  URL: pizzerianapoli.omnilypro.com                      │
+│  Opzionale: www.pizzerianapoli.it (custom domain)       │
+│                                                          │
+│  📡 RENDERING (Next.js Vercel)                          │
+│  • Middleware legge subdomain                           │
+│  • Fetch contenuto da Strapi API                        │
+│  • Renderizza template React component                  │
+│  • SEO ottimizzato (meta tags dinamici)                 │
+│  • Performance elevate (PageSpeed > 90)                 │
+│  • SSL automatico Vercel                                │
+│                                                          │
+│  🔗 INTEGRAZIONE OMNILYPRO                              │
+│  • Form contatti → CRM Supabase                         │
+│  • Prodotti menu → Catalogo POS                         │
+│  • Widget loyalty "Hai X punti"                         │
+│  • Prenotazioni → Sistema booking                       │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### **Flusso di Lavoro**
+### **Flusso di Lavoro Completo**
 
-#### **1. Admin Crea Sito per Cliente**
+#### **1. Admin Crea Template in Strapi**
 
+```text
+Strapi Admin Panel (cms.omnilypro.com/admin)
+  
+  ├── 🎨 Content Types > Website Template
+  │    │
+  │    ├── ✏️ Crea Nuovo Template
+  │    │    • Nome: "Restaurant Classic"
+  │    │    • Slug: "restaurant-classic"
+  │    │    • Categoria: "ristorante"
+  │    │    • Anteprima: [upload preview.jpg]
+  │    │    • Descrizione: "Template elegante per ristoranti"
+  │    │
+  │    ├── 🧩 Dynamic Zones (Sezioni Template)
+  │    │    │
+  │    │    ├── Hero Section
+  │    │    │    • title: { type: "text", editabile: true }
+  │    │    │    • subtitle: { type: "text", editabile: true }
+  │    │    │    • image: { type: "media", editabile: true }
+  │    │    │    • overlay_color: { type: "color", editabile: false }
+  │    │    │
+  │    │    ├── Menu Section
+  │    │    │    • title: { type: "text", editabile: true }
+  │    │    │    • items: { 
+  │    │    │        type: "component-repeatable",
+  │    │    │        editabile: true,
+  │    │    │        schema: {
+  │    │    │          nome: "text",
+  │    │    │          descrizione: "textarea", 
+  │    │    │          prezzo: "decimal",
+  │    │    │          foto: "media"
+  │    │    │        }
+  │    │    │      }
+  │    │    │
+  │    │    ├── Gallery Section
+  │    │    │    • images: { type: "media-multiple", editabile: true }
+  │    │    │    • layout: { type: "enum", editabile: false }
+  │    │    │
+  │    │    └── Contacts Section
+  │    │         • map_embed: { type: "text", editabile: true }
+  │    │         • show_form: { type: "boolean", editabile: false }
+  │    │
+  │    ├── 💾 Contenuto Default (JSON)
+  │    │    • Pre-compila dati esempio
+  │    │    • Cliente può personalizzare
+  │    │
+  │    └── 🚀 Pubblica Template
+  │         • is_active: true
+  │         • Disponibile per assegnazione
 ```
-Admin Dashboard
-  └── Organizzazioni
-       └── [Seleziona "Gelateria Roma"]
+
+#### **2. Admin Assegna Sito a Organizzazione**
+
+```text
+Omnily Admin Panel (admin.omnilypro.com)
+
+  └── 🏢 Organizzazioni
+       └── [Seleziona "Pizzeria Napoli"]
             └── 🌐 Gestisci Sito Web
                  │
-                 ├── ✏️ Crea/Modifica Struttura (GrapesJS)
-                 │    • Sceglie template (Ristorante/Retail/Servizi/Beauty/Corporate)
-                 │    • Layout viene auto-popolato con dati da organizations:
-                 │      - logo_url → Logo automatico
-                 │      - name → Nome azienda
-                 │      - tagline → Slogan
-                 │      - address, city → Indirizzo
-                 │      - phone, business_email → Contatti
-                 │      - primary_color, secondary_color → Palette
-                 │      - facebook_url, instagram_url → Social
-                 │    • Admin personalizza layout/design
-                 │    • Marca elementi come "modificabili dal cliente"
-                 │    • Configura pagine (Home, Chi Siamo, Servizi, Contatti)
+                 ├── 📋 Dati Organizzazione (da Supabase)
+                 │    • Nome: "Pizzeria Napoli"
+                 │    • Logo: [logo.png]
+                 │    • Indirizzo: "Via Roma 1, Roma"
+                 │    • Telefono: "+39 06 123456"
+                 │    • Colori: primary: #c41e3a, secondary: #2c3e50
                  │
-                 ├── 📋 Definisce Campi Modificabili
-                 │    • Hero title/subtitle/image
-                 │    • Sezione prodotti (repeater)
-                 │    • Gallery immagini
-                 │    • Testi descrittivi
-                 │    • Orari apertura
-                 │    • Form contatti
+                 ├── 🎨 Seleziona Template
+                 │    • [○] Restaurant Classic ✅
+                 │    • [ ] Cafe Modern
+                 │    • [ ] Pizzeria Napoli
+                 │    • [ ] Trattoria Rustic
                  │
-                 ├── 🔍 SEO Setup
-                 │    • Meta title/description
-                 │    • OpenGraph tags
-                 │    • Schema.org markup
+                 ├── 🔗 Genera Subdomain
+                 │    • Auto-generato: pizzerianapoli
+                 │    • URL: pizzerianapoli.omnilypro.com
+                 │    • Verifica disponibilità: ✅ Disponibile
                  │
-                 ├── 👁️ Preview Multi-Device
-                 │    • Desktop/Tablet/Mobile
+                 ├── � Pre-compila Contenuti
+                 │    • Nome org → Hero title
+                 │    • Logo → Logo header
+                 │    • Indirizzo → Footer contatti
+                 │    • Telefono → Click-to-call
+                 │    • Colori → Palette template
                  │
-                 └── 🚀 Pubblica
-                      • is_published = true
-                      • URL live: gelateriaroma.omnilypro.app
+                 ├── ⚙️ Configurazione
+                 │    • [ ] Pubblica subito
+                 │    • [✓] Modalità manutenzione
+                 │    • Custom domain (opzionale): ___________
+                 │
+                 └── 🚀 Crea Sito Web
+                      │
+                      ▼
+                      API POST a Strapi:
+                      {
+                        subdomain: "pizzerianapoli",
+                        organization_id: "abc-123",
+                        template_id: "restaurant-classic-id",
+                        content: { ...precompilato... },
+                        is_published: false
+                      }
+                      │
+                      ▼
+                      ✅ Sito creato!
+                      → Cliente può ora editare dal POS
 ```
 
-#### **2. Cliente Gestisce Contenuti**
+#### **3. Cliente Edita Contenuti dal POS**
 
-```
-Dashboard Organizzazione
-  └── 🌐 Il Mio Sito
+```text
+POS Android/Web Dashboard
+
+  └── 🌐 Il Mio Sito Web
        │
-       ├── 📊 Statistiche (Read-Only)
-       │    • URL sito: gelateriaroma.omnilypro.app [Copia] [Apri]
-       │    • Visite questa settimana: 234
-       │    • Lead generati: 12
-       │    • Dispositivi: 60% mobile, 35% desktop, 5% tablet
-       │    • Pagine più viste
+       ├── 📊 Info Sito (Read-Only)
+       │    • 🔗 URL: pizzerianapoli.omnilypro.com
+       │         [📋 Copia Link] [🌐 Apri Browser]
+       │    • 👁️  Visite settimana: 287
+       │    • 📧 Lead generati: 12
+       │    • 📱 76% mobile, 24% desktop
+       │    • 🟢 Pubblicato / 🔴 Bozza
        │
-       ├── ✏️ Modifica Contenuti (Form Semplici)
+       ├── ✏️ Modifica Contenuti (Form Touch-Friendly)
        │    │
-       │    ├── 📝 Contenuti Principali
-       │    │    • Titolo principale [input text]
-       │    │    • Sottotitolo [textarea]
-       │    │    • Immagine hero [upload]
+       │    ├── 🎯 Hero Section
+       │    │    ┌────────────────────────────┐
+       │    │    │ Titolo Principale          │
+       │    │    │ [Pizzeria Napoli_______]   │ ← Grande, touch-friendly
+       │    │    │                            │
+       │    │    │ Sottotitolo                │
+       │    │    │ [Dal 1960 a Roma_______]   │
+       │    │    │                            │
+       │    │    │ Immagine Hero              │
+       │    │    │ [📷 Cambia Foto]           │ ← Apre camera/gallery Android
+       │    │    │ [current: hero.jpg]        │
+       │    │    └────────────────────────────┘
        │    │
-       │    ├── 🍦 Prodotti/Servizi
-       │    │    • Nome [text]
-       │    │    • Prezzo [number]
-       │    │    • Descrizione [textarea]
-       │    │    • Foto [upload]
-       │    │    [+ Aggiungi Prodotto] (max 12)
+       │    ├── � Menu (Gestione Piatti)
+       │    │    ┌────────────────────────────┐
+       │    │    │ Pizza Margherita           │
+       │    │    │ Prezzo: [8]€               │
+       │    │    │ [Pomodoro, mozzarella...]  │
+       │    │    │ [📷 hero_margherita.jpg]   │
+       │    │    │ [✏️ Modifica] [🗑️ Elimina]   │
+       │    │    ├────────────────────────────┤
+       │    │    │ Pizza Marinara             │
+       │    │    │ ...                        │
+       │    │    ├────────────────────────────┤
+       │    │    │ [+ Aggiungi Piatto]        │ ← Grande pulsante
+       │    │    └────────────────────────────┘
        │    │
-       │    ├── 📸 Gallery
-       │    │    • [Upload multiplo immagini]
-       │    │    • Drag per riordinare
+       │    ├── 📸 Gallery Foto
+       │    │    • [Upload da Camera] [Upload da Gallery]
+       │    │    • Grid foto attuali (drag per ordinare)
        │    │    • Max 20 immagini
        │    │
-       │    ├── 📞 Info Contatto (auto-popolato da DB)
-       │    │    • Telefono [readonly - da organizations]
-       │    │    • Email [readonly - da organizations]
-       │    │    • Indirizzo [readonly - da organizations]
+       │    ├── � Contatti (Read-Only da Supabase)
+       │    │    • Telefono: +39 06 123456 [readonly]
+       │    │    • Email: info@pizzeria.it [readonly]
+       │    │    • Indirizzo: Via Roma 1 [readonly]
+       │    │    ℹ️ Modifica dal profilo organizzazione
        │    │
-       │    ├── 🕐 Orari Apertura
-       │    │    • Lun-Ven: [09:00] - [20:00]
-       │    │    • Sab-Dom: [10:00] - [22:00]
-       │    │    • ☑️ Stesso orario tutti i giorni
-       │    │
-       │    └── 🔍 SEO Base
-       │         • Meta description [textarea]
-       │         • Parole chiave [tags]
+       │    └── 🕐 Orari Apertura
+       │         • Lun-Ven: [10:00] - [23:00]
+       │         • Sabato: [11:00] - [00:00]
+       │         • Domenica: [11:00] - [23:00]
+       │         • [✓] Stesso orario tutti i giorni
        │
-       ├── 👁️ Anteprima
-       │    • Preview real-time
-       │    • Switch desktop/mobile
+       ├── �️ Anteprima Live
+       │    • iframe responsive
+       │    • [📱 Mobile] [� Desktop]
+       │    • Aggiornamento real-time
        │
-       ├── 💾 Salva Bozza
+       ├── 💾 [Salva Bozza]
+       │    → API PUT a Strapi (is_published: false)
        │
-       └── 🚀 Pubblica Modifiche
-            • Cliente può pubblicare le sue modifiche contenuti
-            • NON può modificare struttura/design
+       └── 🚀 [Pubblica Modifiche]
+            → API PUT a Strapi (is_published: true)
+            → Sito live su pizzerianapoli.omnilypro.com
 ```
 
-#### **3. Visitatore Vede Sito Pubblico**
+#### **4. Pubblico Visita Sito**
 
-```
-URL: gelateriaroma.omnilypro.app
-Opzionale: www.gelateriaroma.it (custom domain)
+```text
+Browser → pizzerianapoli.omnilypro.com
 
-🌐 Sito Renderizzato
-  • Struttura layout (da Admin)
-  • Contenuti personalizzati (da Cliente)
-  • SEO ottimizzato
-  • Mobile responsive
-  • Performance elevate (PageSpeed > 90)
-  • Form contatti → Salvati in CRM OmnilyPro
-  • Integrazione con loyalty program (mostra punti disponibili)
+  ↓
+  
+Vercel Next.js (omnilypro.com)
+  
+  ├── Middleware.ts
+  │    • Legge hostname: pizzerianapoli.omnilypro.com
+  │    • Estrae subdomain: "pizzerianapoli"
+  │    • Rewrite a: /sites/pizzerianapoli
+  │
+  ├── /sites/[subdomain]/page.tsx
+  │    • Fetch da Strapi API:
+  │      GET /api/organization-websites?
+  │          filters[subdomain][$eq]=pizzerianapoli&
+  │          populate=*
+  │    
+  │    • Riceve:
+  │      {
+  │        template: { slug: "restaurant-classic" },
+  │        content: { hero: {...}, menu: {...} },
+  │        is_published: true
+  │      }
+  │    
+  │    • Carica template React:
+  │      const Template = templates["restaurant-classic"]
+  │    
+  │    • Renderizza:
+  │      <Template content={content} />
+  │
+  └── Output HTML
+       • SEO ottimizzato (meta tags dinamici)
+       • OpenGraph per social
+       • Schema.org LocalBusiness
+       • Performance: PageSpeed > 90
+       • Mobile responsive
+       • SSL Vercel (automatico)
+
+Risultato: 
+🌐 Sito bellissimo, veloce, professionale
+📊 Tracking analytics (integrato)
+📧 Form contatti → CRM Supabase
+🎁 Widget loyalty "Hai 120 punti!"
 ```
 
 ---
 
-## 💾 Database Schema
+## 💾 Database Schema (Strapi)
 
-### **Tabelle Principali**
+### **Content Types Strapi**
 
-```sql
--- ========================================
--- Struttura sito (gestita da Admin)
--- ========================================
+
+#### **1. Website Template** (gestito da Admin)
+
+```javascript
+// Strapi Content Type: api::website-template.website-template
+{
+  kind: "collectionType",
+  collectionName: "website_templates",
+  info: {
+    singularName: "website-template",
+    pluralName: "website-templates",
+    displayName: "Template Sito Web",
+    description: "Template personalizzabili creati dall'admin"
+  },
+  options: {
+    draftAndPublish: false
+  },
+  pluginOptions: {
+    i18n: { localized: false } // Template uguale per tutte lingue
+  },
+  attributes: {
+    nome: {
+      type: "string",
+      required: true,
+      unique: true
+    },
+    slug: {
+      type: "uid",
+      targetField: "nome",
+      required: true
+    },
+    categoria: {
+      type: "enumeration",
+      enum: ["ristorante", "bar", "negozio", "servizi", "beauty", "altro"],
+      default: "ristorante"
+    },
+    descrizione: {
+      type: "text"
+    },
+    anteprima: {
+      type: "media",
+      allowedTypes: ["images"],
+      required: true
+    },
+    // Dynamic Zone: sezioni componibili del template
+    sezioni: {
+      type: "dynamiczone",
+      components: [
+        "sections.hero",
+        "sections.menu",
+        "sections.gallery",
+        "sections.servizi",
+        "sections.contatti",
+        "sections.about",
+        "sections.prodotti",
+        "sections.team",
+        "sections.recensioni"
+      ]
+    },
+    // Schema campi editabili dal cliente (JSON)
+    editable_fields: {
+      type: "json",
+      required: true
+      /* Esempio:
+      {
+        hero: {
+          title: { type: "text", label: "Titolo", required: true },
+          subtitle: { type: "text", label: "Sottotitolo" },
+          image: { type: "media", label: "Immagine di sfondo" }
+        },
+        menu: {
+          items: {
+            type: "repeatable",
+            max: 50,
+            schema: {
+              nome: { type: "text", required: true },
+              prezzo: { type: "decimal" },
+              descrizione: { type: "textarea" },
+              foto: { type: "media" }
+            }
+          }
+        }
+      }
+      */
+    },
+    // Contenuto default (pre-compilato)
+    contenuto_default: {
+      type: "json"
+    },
+    // Path componente React (es: "RestaurantClassic")
+    component_path: {
+      type: "string",
+      required: true
+    },
+    is_active: {
+      type: "boolean",
+      default: true
+    },
+    version: {
+      type: "string",
+      default: "1.0.0"
+    }
+  }
+}
+```
+
+#### **2. Organization Website** (sito del cliente)
+
+```javascript
+// Strapi Content Type: api::organization-website.organization-website
+{
+  kind: "collectionType",
+  collectionName: "organization_websites",
+  info: {
+    singularName: "organization-website",
+    pluralName: "organization-websites",
+    displayName: "Sito Organizzazione",
+    description: "Siti web delle organizzazioni clienti"
+  },
+  options: {
+    draftAndPublish: false
+  },
+  pluginOptions: {
+    i18n: { 
+      localized: true // Supporto multilingua per contenuti
+    }
+  },
+  attributes: {
+    subdomain: {
+      type: "string",
+      unique: true,
+      required: true,
+      regex: /^[a-z0-9-]+$/,
+      minLength: 3,
+      maxLength: 63,
+      pluginOptions: {
+        i18n: { localized: false } // Subdomain uguale per tutte lingue
+      }
+    },
+    organization_id: {
+      type: "string", // UUID da Supabase
+      required: true,
+      pluginOptions: {
+        i18n: { localized: false }
+      }
+    },
+    template: {
+      type: "relation",
+      relation: "manyToOne",
+      target: "api::website-template.website-template",
+      pluginOptions: {
+        i18n: { localized: false }
+      }
+    },
+    nome: {
+      type: "string",
+      required: true,
+      pluginOptions: {
+        i18n: { localized: true } // Nome traducibile
+      }
+    },
+    // Contenuti editabili dal cliente
+    contenuto: {
+      type: "json",
+      required: true,
+      pluginOptions: {
+        i18n: { localized: true } // Contenuto traducibile
+      }
+      /* Struttura contenuto segue schema editable_fields del template */
+    },
+    is_published: {
+      type: "boolean",
+      default: false,
+      pluginOptions: {
+        i18n: { localized: false }
+      }
+    },
+    is_maintenance: {
+      type: "boolean",
+      default: false,
+      pluginOptions: {
+        i18n: { localized: false }
+      }
+    },
+    custom_domain: {
+      type: "string",
+      regex: /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/,
+      pluginOptions: {
+        i18n: { localized: false }
+      }
+    },
+    // SEO
+    seo_title: {
+      type: "string",
+      pluginOptions: {
+        i18n: { localized: true }
+      }
+    },
+    seo_description: {
+      type: "text",
+      maxLength: 160,
+      pluginOptions: {
+        i18n: { localized: true }
+      }
+    },
+    seo_keywords: {
+      type: "string",
+      pluginOptions: {
+        i18n: { localized: true }
+      }
+    },
+    og_image: {
+      type: "media",
+      allowedTypes: ["images"],
+      pluginOptions: {
+        i18n: { localized: false }
+      }
+    },
+    // Analytics
+    analytics_id: {
+      type: "string" // Google Analytics ID opzionale
+    }
+  }
+}
+```
+
+#### **3. Strapi Components (Sezioni Template)**
+
+```javascript
+// Component: sections.hero
+{
+  collectionName: "components_sections_hero",
+  info: {
+    displayName: "Hero Section",
+    icon: "image"
+  },
+  attributes: {
+    layout: {
+      type: "enumeration",
+      enum: ["fullscreen", "half", "minimal"],
+      default: "fullscreen"
+    },
+    overlay: {
+      type: "boolean",
+      default: true
+    },
+    overlay_opacity: {
+      type: "decimal",
+      default: 0.5
+    },
+    height: {
+      type: "enumeration",
+      enum: ["100vh", "80vh", "60vh", "auto"],
+      default: "100vh"
+    },
+    text_color: {
+      type: "string",
+      default: "#ffffff"
+    }
+  }
+}
+
+// Component: sections.menu
+{
+  collectionName: "components_sections_menu",
+  info: {
+    displayName: "Menu/Catalogo Section",
+    icon: "restaurant"
+  },
+  attributes: {
+    layout: {
+      type: "enumeration",
+      enum: ["grid", "list", "tabs"],
+      default: "grid"
+    },
+    columns: {
+      type: "integer",
+      default: 3,
+      min: 1,
+      max: 4
+    },
+    show_prices: {
+      type: "boolean",
+      default: true
+    },
+    show_images: {
+      type: "boolean",
+      default: true
+    },
+    categories_enabled: {
+      type: "boolean",
+      default: true
+    }
+  }
+}
+
+// Component: sections.gallery
+{
+  collectionName: "components_sections_gallery",
+  info: {
+    displayName: "Gallery Section",
+    icon: "images"
+  },
+  attributes: {
+    layout: {
+      type: "enumeration",
+      enum: ["grid", "masonry", "carousel", "lightbox"],
+      default: "grid"
+    },
+    columns: {
+      type: "integer",
+      default: 3
+    },
+    image_ratio: {
+      type: "enumeration",
+      enum: ["1:1", "16:9", "4:3", "auto"],
+      default: "1:1"
+    },
+    gap: {
+      type: "integer",
+      default: 16
+    }
+  }
+}
+
+// Component: sections.contatti
+{
+  collectionName: "components_sections_contatti",
+  info: {
+    displayName: "Contatti Section",
+    icon: "phone"
+  },
+  attributes: {
+    show_map: {
+      type: "boolean",
+      default: true
+    },
+    show_form: {
+      type: "boolean",
+      default: true
+    },
+    map_zoom: {
+      type: "integer",
+      default: 15
+    },
+    form_fields: {
+      type: "json"
+      /* Esempio:
+      ["nome", "email", "telefono", "messaggio"]
+      */
+    }
+  }
+}
+```
+
+### **Permissions Strapi (Ruoli)**
+
+```javascript
+// Role: Super Admin (tu)
+{
+  name: "Super Admin",
+  permissions: {
+    "website-template": ["create", "read", "update", "delete"],
+    "organization-website": ["create", "read", "update", "delete"],
+    upload: ["create", "read", "update", "delete"]
+  }
+}
+
+// Role: Organization (cliente)
+{
+  name: "Organization",
+  permissions: {
+    "website-template": ["read"], // Solo lettura template
+    "organization-website": [
+      "read", // Solo il proprio sito
+      "update" // Solo contenuto, non template/subdomain
+    ],
+    upload: [
+      "create", // Upload immagini
+      "read", // Solo le proprie
+      "delete" // Solo le proprie
+    ]
+  },
+  // Filtri per limitare accesso
+  conditions: [
+    {
+      "organization-website": {
+        organization_id: { $eq: "${user.organization_id}" }
+      }
+    },
+    {
+      upload: {
+        createdBy: { id: { $eq: "${user.id}" } }
+      }
+    }
+  ]
+}
+
+// Role: Public (visitatori siti)
+{
+  name: "Public",
+  permissions: {
+    "organization-website": ["findOne"], // Solo siti pubblicati
+    upload: ["read"] // Solo immagini pubbliche
+  },
+  conditions: [
+    {
+      "organization-website": {
+        is_published: { $eq: true }
+      }
+    }
+  ]
+}
+```
+
+---
+
+## 🔗 Integrazione Omnily Pro + Strapi
+
+### **API Routes Next.js**
+
+```typescript
+// app/api/strapi/websites/route.ts
+import { NextRequest } from 'next/server'
+
+const STRAPI_URL = process.env.STRAPI_URL
+const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN
+
+// Get website by subdomain
+export async function GET(req: NextRequest) {
+  const subdomain = req.nextUrl.searchParams.get('subdomain')
+  const locale = req.nextUrl.searchParams.get('locale') || 'it'
+  
+  const res = await fetch(
+    `${STRAPI_URL}/api/organization-websites?` +
+    `filters[subdomain][$eq]=${subdomain}&` +
+    `locale=${locale}&` +
+    `populate=*`,
+    {
+      headers: {
+        'Authorization': `Bearer ${STRAPI_TOKEN}`
+      },
+      next: { revalidate: 60 } // Cache 60 sec
+    }
+  )
+  
+  const data = await res.json()
+  return Response.json(data.data[0] || null)
+}
+
+// Update website content (cliente)
+export async function PUT(req: NextRequest) {
+  const { id, contenuto, locale } = await req.json()
+  const session = await getSession() // Auth da Supabase
+  
+  // Verifica permessi: cliente può modificare solo il suo sito
+  const website = await getWebsiteById(id)
+  if (website.organization_id !== session.user.organization_id) {
+    return Response.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+  
+  const res = await fetch(
+    `${STRAPI_URL}/api/organization-websites/${id}?locale=${locale}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${STRAPI_TOKEN}`
+      },
+      body: JSON.stringify({
+        data: { contenuto }
+      })
+    }
+  )
+  
+  return Response.json(await res.json())
+}
+```
 CREATE TABLE organization_websites (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
@@ -1673,7 +2449,179 @@ Vetrina Online (Website) → Lead Generation
 
 ---
 
+---
+
+## 📅 TODO - Deployment in Produzione
+
+**Data**: 18 Ottobre 2025
+
+### **FASE 1: Setup Strapi in Produzione** ⏳
+
+#### **Step 1: Scelta Hosting Strapi**
+- [ ] **Decisione**: Scegliere tra Railway / Render / Strapi Cloud
+  - **Consigliato**: Railway ($5-10/mese, setup veloce)
+  - Alternative: Render (free tier), Strapi Cloud ($15/mese)
+
+#### **Step 2: Preparazione Strapi per Produzione**
+- [ ] Configurare variabili ambiente produzione
+  - `DATABASE_URL` (PostgreSQL)
+  - `ADMIN_JWT_SECRET` (generare nuovo secret)
+  - `API_TOKEN_SALT` (generare nuovo salt)
+  - `APP_KEYS` (generare nuove keys)
+  - `JWT_SECRET` (generare nuovo secret)
+  - `STRAPI_URL` (URL produzione)
+
+- [ ] Setup Database PostgreSQL
+  - Railway: automatico con deploy
+  - Render: creare PostgreSQL database separato
+  - Strapi Cloud: incluso
+
+- [ ] Configurare CORS
+  ```javascript
+  // config/middlewares.js
+  cors: {
+    enabled: true,
+    origin: [
+      'https://omnilypro.com',
+      'https://app.omnilypro.com',
+      'https://*.omnilypro.com', // Wildcard per subdomain
+      'https://omnilypro.vercel.app'
+    ]
+  }
+  ```
+
+#### **Step 3: Deploy Strapi**
+- [ ] Push codice CMS su GitHub (branch separato o repo dedicato)
+- [ ] Collegare Railway/Render al repository GitHub
+- [ ] Configurare auto-deploy da branch main
+- [ ] Verificare build e deploy riusciti
+- [ ] Testare accesso admin panel: `https://cms.omnilypro.com/admin`
+
+#### **Step 4: Migrazione Dati (se esistono dati locali)**
+- [ ] Esportare contenuti da Strapi locale
+  ```bash
+  npm run strapi export
+  ```
+- [ ] Importare su Strapi produzione
+  ```bash
+  npm run strapi import
+  ```
+- [ ] Verificare template e siti migrati correttamente
+
+### **FASE 2: Configurazione Frontend** ⏳
+
+#### **Step 1: Aggiornare Variabili Ambiente**
+- [ ] Aggiungere su Vercel (Project Settings → Environment Variables):
+  ```env
+  VITE_STRAPI_URL=https://cms.omnilypro.com
+  VITE_STRAPI_API_TOKEN=<nuovo-token-produzione>
+  ```
+
+#### **Step 2: Generare API Token Produzione**
+- [ ] Login Strapi Admin produzione
+- [ ] Settings → API Tokens → Create new API Token
+  - Nome: "Frontend Production"
+  - Token type: Read-Only (per public site) o Full Access (per dashboard)
+  - Scadenza: Unlimited
+- [ ] Copiare token e aggiungere a Vercel env vars
+
+#### **Step 3: Deploy Frontend**
+- [ ] Push commit con configurazione produzione
+- [ ] Vercel auto-deploy
+- [ ] Verificare che le variabili ambiente siano caricate
+
+### **FASE 3: Testing e Verifica** ⏳
+
+#### **Test 1: Dashboard Organizzazione**
+- [ ] Login dashboard organizzazione
+- [ ] Andare su "Il Mio Sito Web"
+- [ ] Caricare immagine test
+- [ ] Salvare contenuti
+- [ ] Verificare salvataggio su Strapi produzione
+
+#### **Test 2: Sito Pubblico**
+- [ ] Aprire `https://saporiecolori.omnilypro.com` (o subdomain configurato)
+- [ ] Verificare che carichi contenuti da Strapi produzione
+- [ ] Verificare che l'immagine hero si visualizzi
+- [ ] Testare tutte le sezioni (menu, gallery, contatti)
+
+#### **Test 3: Performance**
+- [ ] Google PageSpeed Insights: `https://pagespeed.web.dev/`
+- [ ] Target: > 90/100 mobile e desktop
+- [ ] Verificare Core Web Vitals
+
+### **FASE 4: Configurazione DNS e Subdomain** ⏳
+
+#### **DNS Wildcard per Subdomain**
+- [ ] Andare su provider DNS (es. Cloudflare, Google Domains)
+- [ ] Aggiungere record CNAME wildcard:
+  ```
+  Type: CNAME
+  Name: *
+  Value: cname.vercel-dns.com
+  TTL: Auto
+  ```
+- [ ] Verificare propagazione DNS (può richiedere fino a 48h)
+- [ ] Testare accesso a subdomain: `ping test.omnilypro.com`
+
+#### **Vercel Wildcard Domain**
+- [ ] Vercel Project Settings → Domains
+- [ ] Aggiungere: `*.omnilypro.com`
+- [ ] Vercel verificherà automaticamente il DNS
+- [ ] SSL certificati generati automaticamente
+
+### **FASE 5: Monitoraggio e Backup** ⏳
+
+#### **Setup Monitoring**
+- [ ] Strapi: Abilitare logging produzione
+- [ ] Uptime monitoring (es. UptimeRobot, Pingdom)
+  - Monitor: `https://cms.omnilypro.com/admin`
+  - Alert se down > 5 minuti
+
+#### **Backup Database**
+- [ ] Railway: Backup automatico incluso
+- [ ] Render: Configurare backup PostgreSQL
+- [ ] Schedule: Daily backup automatico
+
+#### **Error Tracking**
+- [ ] Setup Sentry o LogRocket per error tracking
+- [ ] Configurare alerts per errori critici
+
+---
+
+### **🚨 Checklist Pre-Launch**
+
+Prima di rendere il sistema disponibile ai clienti:
+
+- [ ] ✅ Strapi in produzione funzionante
+- [ ] ✅ Database PostgreSQL configurato
+- [ ] ✅ Frontend connesso a Strapi produzione
+- [ ] ✅ Upload immagini funzionante
+- [ ] ✅ Siti pubblici accessibili su subdomain
+- [ ] ✅ SSL/HTTPS attivo su tutti i domini
+- [ ] ✅ Performance > 90 PageSpeed
+- [ ] ✅ Backup automatici attivi
+- [ ] ✅ Monitoring uptime configurato
+- [ ] ✅ Documentazione per clienti pronta
+
+---
+
+### **📊 Costi Stimati Produzione**
+
+| Servizio | Piano | Costo/mese |
+|----------|-------|------------|
+| **Railway** (Strapi + PostgreSQL) | Hobby | $5-10 |
+| **Vercel** (Frontend) | Pro (se necessario) | $0-20 |
+| **Supabase** (Storage immagini) | Free/Pro | $0-25 |
+| **Cloudflare** (DNS, opzionale) | Free | $0 |
+| **Total** | | **$5-55/mese** |
+
+*vs costruire infrastruttura custom: $200-500/mese*
+
+---
+
 **Documento creato**: 2025-01-13
-**Versione**: 1.0
+**Ultimo aggiornamento TODO**: 18 Ottobre 2025
+**Versione**: 1.1
 **Autore**: OmnilyPro Team
-**Status**: Ready for Implementation 🚀
+**Status**: In Deployment 🚀

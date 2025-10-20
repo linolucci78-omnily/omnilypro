@@ -1,0 +1,498 @@
+/* ========================================
+   WEBSITE CONTENT EDITOR - POS OPTIMIZED
+   Dimensioni touch-friendly secondo ROADMAP.md
+   ======================================== */
+
+/* Container principale */
+.website-content-editor {
+  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding-bottom: 100px; /* Spazio per fixed button */
+}
+
+/* Header con gradiente rosso Omnily */
+.wce-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  padding: 2.5rem 2rem;
+  min-height: 120px; /* POS requirement */
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wce-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.wce-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.wce-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  margin: 0.5rem 0 0 0;
+}
+
+.wce-header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Content area */
+.wce-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Section cards */
+.wce-section {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.wce-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.wce-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-bottom: 2px solid #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+  min-height: 80px; /* Touch-friendly */
+  transition: background 0.3s ease;
+}
+
+.wce-section-header:hover {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+}
+
+.wce-section-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.wce-section-content {
+  padding: 2rem;
+}
+
+/* Form groups - TOUCH OPTIMIZED */
+.wce-form-group {
+  margin-bottom: 2rem;
+}
+
+.wce-form-group label {
+  display: block;
+  font-size: 1.2rem; /* Leggibilità POS */
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+/* Input fields - DIMENSIONI GRANDI PER TOUCH */
+.wce-input,
+.wce-textarea {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  font-size: 1.2rem; /* Leggibilità aumentata */
+  min-height: 60px; /* TOUCH REQUIREMENT */
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f2937;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.wce-input:focus,
+.wce-textarea:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.wce-input-large {
+  font-size: 1.3rem;
+  padding: 1.5rem;
+  min-height: 70px; /* Extra large per touch */
+}
+
+.wce-textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Buttons - TOUCH OPTIMIZED */
+.wce-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  min-height: 60px; /* TOUCH REQUIREMENT */
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.wce-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wce-btn-primary {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.wce-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+.wce-btn-secondary {
+  background: white;
+  color: #ef4444;
+  border: 2px solid #ef4444;
+}
+
+.wce-btn-secondary:hover:not(:disabled) {
+  background: #fef2f2;
+  transform: translateY(-2px);
+}
+
+.wce-btn-upload {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.wce-btn-add {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  margin-top: 1rem;
+  min-height: 70px;
+  font-size: 1.25rem;
+}
+
+.wce-btn-add:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+}
+
+.wce-btn-block {
+  width: 100%;
+  font-size: 1.3rem;
+  min-height: 70px;
+}
+
+.wce-btn-icon {
+  padding: 0.75rem;
+  min-height: 50px;
+  min-width: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.wce-btn-danger {
+  color: #dc2626;
+}
+
+.wce-btn-danger:hover {
+  background: #fee2e2;
+  transform: scale(1.1);
+}
+
+/* Menu Items */
+.wce-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.wce-menu-item-card {
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.wce-menu-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.wce-menu-item-header h4 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #1f2937;
+}
+
+/* Image previews */
+.wce-image-preview {
+  margin-top: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e5e7eb;
+}
+
+.wce-image-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+.wce-image-preview-small img {
+  max-height: 150px;
+}
+
+/* Fixed save button for mobile */
+.wce-fixed-save {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+/* No site state */
+.wce-no-site {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+  padding: 2rem;
+}
+
+.wce-no-site-icon {
+  color: #d1d5db;
+  margin-bottom: 2rem;
+}
+
+.wce-no-site h2 {
+  font-size: 2rem;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.wce-no-site p {
+  font-size: 1.2rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.wce-no-site-hint {
+  font-size: 1rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ========================================
+   RESPONSIVE - POS/TABLET OPTIMIZATIONS
+   Secondo specifiche ROADMAP.md
+   ======================================== */
+
+@media (max-width: 1024px) {
+  /* FULL WIDTH PER POS */
+  .website-content-editor {
+    width: 100vw;
+    padding-bottom: 120px;
+  }
+
+  .wce-header {
+    padding: 2rem 1.5rem;
+    min-height: 140px;
+  }
+
+  .wce-title {
+    font-size: 2.25rem; /* Leggibilità ottimale POS */
+  }
+
+  .wce-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .wce-content {
+    padding: 1.5rem;
+  }
+
+  .wce-section-header {
+    padding: 1.75rem;
+    min-height: 90px;
+  }
+
+  .wce-section-header h2 {
+    font-size: 1.6rem;
+  }
+
+  .wce-section-content {
+    padding: 1.75rem;
+  }
+
+  .wce-form-group label {
+    font-size: 1.3rem;
+  }
+
+  .wce-input,
+  .wce-textarea {
+    font-size: 1.3rem;
+    padding: 1.5rem;
+    min-height: 70px; /* Extra large per POS */
+  }
+
+  .wce-input-large {
+    font-size: 1.4rem;
+    min-height: 80px;
+  }
+
+  .wce-btn {
+    min-height: 70px;
+    font-size: 1.2rem;
+    padding: 1.25rem 2rem;
+  }
+
+  .wce-btn-block {
+    min-height: 80px;
+    font-size: 1.4rem;
+  }
+
+  .wce-menu-item-header h4 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* MOBILE ADJUSTMENTS */
+  .wce-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .wce-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .wce-title {
+    font-size: 1.8rem;
+  }
+
+  .wce-subtitle {
+    font-size: 1rem;
+  }
+
+  .wce-header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .wce-btn {
+    width: 100%;
+  }
+
+  .wce-content {
+    padding: 1rem;
+  }
+
+  .wce-section-header {
+    padding: 1.25rem;
+  }
+
+  .wce-section-content {
+    padding: 1.25rem;
+  }
+
+  .wce-fixed-save {
+    padding: 1rem;
+  }
+}
+
+/* ========================================
+   ANIMATIONS & TRANSITIONS
+   ======================================== */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wce-section {
+  animation: slideIn 0.3s ease;
+}
+
+/* Loading state */
+.wce-btn:disabled {
+  position: relative;
+  overflow: hidden;
+}
+
+.wce-btn:disabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    left: 100%;
+  }
+}
