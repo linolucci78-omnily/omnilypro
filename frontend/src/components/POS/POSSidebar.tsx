@@ -25,6 +25,7 @@ import {
   MdFlashOn,
   MdPublic,
   MdPalette,
+  MdLanguage,
   MdLock
 } from 'react-icons/md';
 import './POSSidebar.css';
@@ -58,15 +59,15 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   }, [isOpen]);
 
   const handleSignOut = async () => {
-    console.log('üö™ LOGOUT SIDEBAR CLICKED!');
+    console.log('=™ LOGOUT SIDEBAR CLICKED!');
     try {
-      console.log('üö™ Setting POS mode flag from sidebar...');
+      console.log('=™ Setting POS mode flag from sidebar...');
       localStorage.setItem('pos-mode', 'true');
-      console.log('üö™ Calling signOut from sidebar...');
+      console.log('=™ Calling signOut from sidebar...');
       await signOut();
-      console.log('üö™ SignOut success from sidebar');
+      console.log('=™ SignOut success from sidebar');
     } catch (error) {
-      console.error('‚ùå Errore logout sidebar:', error);
+      console.error('L Errore logout sidebar:', error);
     }
   };
 
@@ -85,7 +86,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'dashboard', icon: MdDashboard, label: 'Dashboard', feature: null },
     { id: 'stamps', icon: MdLoyalty, label: 'Tessere Punti', feature: null },
     { id: 'members', icon: MdPeople, label: 'Clienti', feature: null },
-    { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedelt√†', feature: 'loyaltyTiers' },
+    { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedelt‡', feature: 'loyaltyTiers' },
     { id: 'rewards', icon: MdCardGiftcard, label: 'Premi', feature: 'rewards' },
     { id: 'categories', icon: MdCategory, label: 'Categorie', feature: 'categories' },
     { id: 'marketing-campaigns', icon: MdEmail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
@@ -94,6 +95,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'notifications', icon: MdNotifications, label: 'Notifiche', feature: 'notifications' },
     { id: 'analytics-reports', icon: MdAnalytics, label: 'Analytics & Report', feature: 'analyticsReports' },
     { id: 'branding-social', icon: MdPalette, label: 'Branding & Social', feature: 'brandingSocial' },
+    { id: 'website-editor', icon: MdLanguage, label: 'Il Mio Sito Web', feature: null },
     { id: 'channels', icon: MdPublic, label: 'Canali Integrazione', feature: 'channelsIntegration' },
     { id: 'communications', icon: MdCampaign, label: 'Comunicazioni', feature: null },
     { id: 'settings', icon: MdSettings, label: 'Impostazioni', feature: null },
@@ -122,6 +124,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       'notifications': '#f59e0b',
       'analytics-reports': '#8b5cf6',
       'branding-social': '#ef4444',
+      'website-editor': '#10b981',
       'channels': '#6b7280',
       'communications': '#f59e0b',
       'settings': '#6b7280',
@@ -143,10 +146,10 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
           className="pos-sidebar-backdrop"
           onClick={() => {
             if (backdropActive) {
-              console.log('üé≠ BACKDROP CLICKED!');
+              console.log('<≠ BACKDROP CLICKED!');
               onClose();
             } else {
-              console.log('üé≠ BACKDROP IGNORED (too early)');
+              console.log('<≠ BACKDROP IGNORED (too early)');
             }
           }}
         />
