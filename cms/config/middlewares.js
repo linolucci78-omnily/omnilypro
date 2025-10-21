@@ -21,6 +21,8 @@ module.exports = [
       origin: [
         'http://localhost:5173',
         'http://localhost:3000',
+        'https://omnilypro.com',
+        'https://www.omnilypro.com',
         process.env.CLIENT_URL, // Vercel URL
         /\.vercel\.app$/, // Tutti i deployment Vercel
       ].filter(Boolean),
