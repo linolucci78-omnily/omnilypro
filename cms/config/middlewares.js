@@ -36,7 +36,8 @@ module.exports = [
     name: 'strapi::session',
     config: {
       cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Disabilita secure cookie per Render proxy
+        httpOnly: true,
         sameSite: 'lax',
       },
     },
