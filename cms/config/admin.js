@@ -3,7 +3,7 @@ module.exports = ({ env }) => ({
     secret: env('ADMIN_JWT_SECRET'),
     options: {
       expiresIn: '7d',
-      cookieSecure: false, // CRITICAL: Disable secure cookies for Render proxy
+      cookieSecure: !env.bool('STRAPI_DISABLE_SECURE_COOKIE', false), // Force disable for Render
     },
   },
   apiToken: {
