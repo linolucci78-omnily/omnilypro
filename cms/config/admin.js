@@ -1,6 +1,10 @@
 module.exports = ({ env }) => ({
   auth: {
     secret: env('ADMIN_JWT_SECRET'),
+    options: {
+      expiresIn: '7d',
+      cookieSecure: false, // CRITICAL: Disable secure cookies for Render proxy
+    },
   },
   apiToken: {
     salt: env('API_TOKEN_SALT'),
