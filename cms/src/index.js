@@ -6,21 +6,22 @@ module.exports = {
    * This gives you an opportunity to extend code.
    */
   register({ strapi }) {
-    // Force insecure cookies by intercepting Koa response
-    strapi.server.app.use(async (ctx, next) => {
-      await next();
+    // Override Strapi's cookie options at the lowest level
+    const originalUse = strapi.server.app.use;
+    strapi.server.app.use = function(...args) {
+      return originalUse.apply(this, args);
+    };
 
-      // Intercept and modify Set-Cookie headers
-      const setCookie = ctx.response.get('Set-Cookie');
-      if (setCookie) {
-        if (Array.isArray(setCookie)) {
-          ctx.response.set('Set-Cookie', setCookie.map(cookie =>
-            cookie.replace(/;\s*Secure/gi, '')
-          ));
-        } else {
-          ctx.response.set('Set-Cookie', setCookie.replace(/;\s*Secure/gi, ''));
-        }
-      }
+    // Monkey-patch ctx.cookies.set to force secure: false
+    strapi.server.app.use(async (ctx, next) => {
+      const originalSet = ctx.cookies.set.bind(ctx.cookies);
+      ctx.cookies.set = function(name, value, opts = {}) {
+        opts.secure = false;
+        opts.httpOnly = true;
+        opts.sameSite = 'lax';
+        return originalSet(name, value, opts);
+      };
+      await next();
     });
   },
 
