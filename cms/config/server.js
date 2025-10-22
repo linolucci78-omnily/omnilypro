@@ -4,20 +4,11 @@ module.exports = ({ env }) => ({
   app: {
     keys: env.array('APP_KEYS'),
   },
-  url: env('PUBLIC_URL', 'https://omnilypro.onrender.com'),
-  proxy: true, // Force proxy mode
-  cron: {
-    enabled: env.bool('CRON_ENABLED', false),
-  },
+  url: env('PUBLIC_URL', 'http://localhost:1337'),
+  proxy: true, // Trust Render proxy
   admin: {
     auth: {
       secret: env('ADMIN_JWT_SECRET'),
-    },
-  },
-  // Force HTTP mode for cookies behind proxy
-  settings: {
-    cors: {
-      enabled: true,
     },
   },
 });

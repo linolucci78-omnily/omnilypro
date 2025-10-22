@@ -1,5 +1,5 @@
 {
-  "name": "cms",
+  "name": "cms-clean",
   "version": "0.1.0",
   "private": true,
   "description": "A Strapi application",
@@ -36,7 +36,7 @@
     "npm": ">=6.0.0"
   },
   "strapi": {
-    "uuid": "3865362f-1919-4f43-bd41-d688cd1bb2bd",
-    "installId": "7cb502101e085f10d601e0d7c060253f9f90ce0380d2f9bf4787923942ff89ca"
+    "uuid": "6bdf61ab-0cee-439d-8275-8599f39535d5",
+    "installId": "1046f11938da4720ea8884d5a6289a596e66274467527a6597ccf09f17938542"
   }
 }
