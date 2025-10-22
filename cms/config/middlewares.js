@@ -1,6 +1,8 @@
 module.exports = [
   'strapi::logger',
   'strapi::errors',
+  // Custom middleware to force insecure cookies for Render proxy
+  'global::force-insecure-cookies',
   {
     name: 'strapi::security',
     config: {
