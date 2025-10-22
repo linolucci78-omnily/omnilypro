@@ -5,6 +5,12 @@ module.exports = ({ env }) => ({
       expiresIn: '7d',
       cookieSecure: false, // Hardcoded false for Render HTTPS proxy
     },
+    // Strapi 5 new session configuration
+    sessions: {
+      maxRefreshTokenLifespan: '7d',
+      maxSessionLifespan: '7d',
+      cookieSecure: false, // Critical: disable secure cookie for refresh sessions
+    },
   },
   apiToken: {
     salt: env('API_TOKEN_SALT'),
