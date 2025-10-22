@@ -58,4 +58,12 @@ Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/
 
 ---
 
+## 🏗️ Custom Content Types
+
+This Strapi instance includes custom content types for OmnilyPro:
+- `organization-website`: Manages organization websites with templates
+- `website-template`: Defines website templates
+
+---
+
 <sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
