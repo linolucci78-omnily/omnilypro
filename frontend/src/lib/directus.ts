@@ -9,7 +9,7 @@
  */
 
 const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://omnilypro-directus.onrender.com';
-const DIRECTUS_TOKEN = import.meta.env.VITE_DIRECTUS_TOKEN || 'vEBE2gnXO-CzxdlAb2Sw2EjzEK6pGPo_';
+const DIRECTUS_TOKEN = import.meta.env.VITE_DIRECTUS_TOKEN || 'ejtLayi_fWbvPXQ1Afax78ym7TvvfXDz';
 
 // ============================================
 // TYPES
