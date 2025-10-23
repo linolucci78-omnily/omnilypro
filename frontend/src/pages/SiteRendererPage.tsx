@@ -1,65 +1,105 @@
 import React, { useState, useEffect } from 'react';
+import { directusClient } from '../lib/directus';
+import { supabase } from '../lib/supabase';
+import PageLoader from '../components/UI/PageLoader';
 
 // Placeholder for actual template components
 const templates: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
   'restaurant-classic': React.lazy(() => import('../components/templates/RestaurantClassic')),
+  'RestaurantClassic': React.lazy(() => import('../components/templates/RestaurantClassic')),
 };
 
 const SiteRendererPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [websiteData, setWebsiteData] = useState<any | null>(null);
+  const [organizationName, setOrganizationName] = useState<string>('');
 
   useEffect(() => {
     const fetchSiteData = async () => {
       try {
         // 1. Get subdomain from hostname
         const hostname = window.location.hostname;
-        // In development, you might use a query param. For now, we'll simulate.
-        // Example: pizzerianapoli.localhost:5173 -> we need to handle this.
-        // A simple approach for local dev: use a fixed subdomain or a query param.
         const subdomain = hostname.split('.')[0];
 
-        if (!subdomain || subdomain === 'localhost' || subdomain === 'www') {
+        console.log('🌐 SiteRendererPage - Hostname:', hostname);
+        console.log('🔍 SiteRendererPage - Subdomain:', subdomain);
+
+        if (!subdomain || subdomain === 'localhost' || subdomain === 'www' || subdomain === 'app' || subdomain === 'admin') {
           setError('Nessun sito trovato per questo indirizzo.');
           setLoading(false);
           return;
         }
 
-        // 2. Fetch website data from Strapi API
-        const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-        const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
+        // 2. Fetch website data from Directus API
+        const directusUrl = import.meta.env.VITE_DIRECTUS_URL;
+        const directusToken = import.meta.env.VITE_DIRECTUS_TOKEN;
 
-        if (!strapiUrl || !strapiToken) {
-          throw new Error('Configurazione Strapi non trovata.');
+        if (!directusUrl || !directusToken) {
+          throw new Error('Configurazione Directus non trovata.');
         }
 
-        // The actual API call
-        const response = await fetch(
-          `${strapiUrl}/api/organization-websites?filters[subdomain][$eq]=${subdomain}&populate=template,contenuto`,
-          {
-            headers: {
-              Authorization: `Bearer ${strapiToken}`,
-            },
-          }
-        );
+        // Fetch all websites from Directus
+        const response = await fetch(`${directusUrl}/items/organizations_websites`, {
+          headers: {
+            'Authorization': `Bearer ${directusToken}`,
+          },
+        });
 
         if (!response.ok) {
-          throw new Error('Errore nel recupero dei dati del sito.');
+          throw new Error(`Errore nella richiesta: ${response.status}`);
         }
 
-        const json = await response.json();
-        const siteData = json.data?.[0];
+        const { data: allWebsites } = await response.json();
+
+        // Find website by subdomain (convert site_name to slug)
+        const siteData = allWebsites.find((site: any) => {
+          const slug = site.site_name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
+          return slug === subdomain || site.domain === `${subdomain}.omnilypro.com`;
+        });
+
+        console.log('✅ Found site:', siteData);
 
         if (!siteData) {
-          setError(`Nessun sito pubblicato trovato per '${subdomain}'.`);
+          setError(`Nessun sito trovato per '${subdomain}'.`);
           setLoading(false);
           return;
         }
 
-        setWebsiteData(siteData.attributes);
+        // Check if published
+        if (!siteData.published) {
+          setError('Questo sito non è ancora pubblicato.');
+          setLoading(false);
+          return;
+        }
+
+        // Get complete website with pages, sections, and components
+        const completeWebsite = await directusClient.getWebsiteComplete(siteData.id);
+        setWebsiteData(completeWebsite);
+
+        // Fetch organization name from Supabase
+        if (siteData.organization_id) {
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('name')
+            .eq('id', siteData.organization_id)
+            .single();
+
+          if (orgData) {
+            setOrganizationName(orgData.name);
+          }
+        }
 
       } catch (err: any) {
+        console.error('❌ Error fetching website:', err);
         setError(err.message || 'Si è verificato un errore sconosciuto.');
       } finally {
         setLoading(false);
@@ -71,42 +111,56 @@ const SiteRendererPage: React.FC = () => {
 
   // Render loading state
   if (loading) {
-    return <div>Caricamento del sito...</div>;
+    return <PageLoader />;
   }
 
   // Render error state
   if (error) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
-        <h1>Errore</h1>
-        <p>{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Oops!</h1>
+          <p className="text-xl text-gray-600 mb-8">{error}</p>
+          <a
+            href="https://omnilypro.com"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Torna alla Home
+          </a>
+        </div>
       </div>
     );
   }
 
   // Render the site
-  if (websiteData) {
-    const templateSlug = websiteData.template?.data?.attributes?.slug; // As defined in Strapi
-    const TemplateComponent = templates[templateSlug];
-
-    if (TemplateComponent) {
-      return (
-        <React.Suspense fallback={<div>Caricamento template...</div>}>
-          <TemplateComponent content={websiteData.contenuto} />
-        </React.Suspense>
-      );
-    }
-
+  if (!websiteData) {
     return (
-      <div style={{ padding: '2rem' }}>
-        <h1>{websiteData.nome}</h1>
-        <p>Template ''{templateSlug}'' non trovato. Impossibile renderizzare il sito.</p>
-        <pre>{JSON.stringify(websiteData.contenuto, null, 2)}</pre>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Sito non trovato</h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Questo sito non esiste o non è stato pubblicato.
+          </p>
+          <a
+            href="https://omnilypro.com"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Torna alla Home
+          </a>
+        </div>
       </div>
     );
   }
 
-  return null; // Should not be reached if logic is correct
+  // Map template component_path to actual component
+  const templatePath = websiteData.template?.component_path || 'RestaurantClassic';
+  const TemplateComponent = templates[templatePath] || templates['RestaurantClassic'];
+
+  return (
+    <React.Suspense fallback={<PageLoader />}>
+      <TemplateComponent website={websiteData} organizationName={organizationName} />
+    </React.Suspense>
+  );
 };
 
 export default SiteRendererPage;
