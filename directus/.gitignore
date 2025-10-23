@@ -1,0 +1,19 @@
+# Directus
+.env
+.env.*
+!.env.example
+node_modules/
+extensions/dist/
+uploads/
+database/
+.directus/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
