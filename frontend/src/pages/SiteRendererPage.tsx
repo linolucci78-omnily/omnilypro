@@ -4,8 +4,9 @@ import { supabase } from '../lib/supabase';
 
 // Placeholder for actual template components
 const templates: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
-  'restaurant-classic': React.lazy(() => import('../components/templates/RestaurantClassic')),
-  'RestaurantClassic': React.lazy(() => import('../components/templates/RestaurantClassic')),
+  'restaurant-classic': React.lazy(() => import('../components/templates/RestaurantModern')),
+  'RestaurantClassic': React.lazy(() => import('../components/templates/RestaurantModern')),
+  'RestaurantModern': React.lazy(() => import('../components/templates/RestaurantModern')),
 };
 
 const SiteRendererPage: React.FC = () => {
