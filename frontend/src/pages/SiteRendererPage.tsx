@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { directusClient } from '../lib/directus';
 import { supabase } from '../lib/supabase';
-import PageLoader from '../components/UI/PageLoader';
 
 // Placeholder for actual template components
 const templates: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -109,9 +108,31 @@ const SiteRendererPage: React.FC = () => {
     fetchSiteData();
   }, []);
 
-  // Render loading state
+  // Render loading state - Simple loader without branding
   if (loading) {
-    return <PageLoader />;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#ffffff'
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          border: '3px solid #e2e8f0',
+          borderTopColor: '#3b82f6',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   // Render error state
@@ -157,7 +178,24 @@ const SiteRendererPage: React.FC = () => {
   const TemplateComponent = templates[templatePath] || templates['RestaurantClassic'];
 
   return (
-    <React.Suspense fallback={<PageLoader />}>
+    <React.Suspense fallback={
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#ffffff'
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          border: '3px solid #e2e8f0',
+          borderTopColor: '#3b82f6',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+      </div>
+    }>
       <TemplateComponent website={websiteData} organizationName={organizationName} />
     </React.Suspense>
   );
