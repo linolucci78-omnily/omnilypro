@@ -3,6 +3,7 @@ import { X, Save, Globe, Eye, Settings } from 'lucide-react';
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import DynamicFormGenerator from '../POS/DynamicFormGenerator';
+import { directusClient } from '../../lib/directus';
 import './AdminWebsiteEditor.css';
 
 interface AdminWebsiteEditorProps {
@@ -28,11 +29,9 @@ const AdminWebsiteEditor: React.FC<AdminWebsiteEditorProps> = ({
   const [templateName, setTemplateName] = useState<string>('');
 
   // Settings data
-  const [subdomain, setSubdomain] = useState('');
-  const [customDomain, setCustomDomain] = useState('');
+  const [siteName, setSiteName] = useState('');
+  const [domain, setDomain] = useState('');
   const [isPublished, setIsPublished] = useState(false);
-  const [seoTitle, setSeoTitle] = useState('');
-  const [seoDescription, setSeoDescription] = useState('');
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -60,48 +59,40 @@ const AdminWebsiteEditor: React.FC<AdminWebsiteEditorProps> = ({
   const loadWebsiteData = async () => {
     try {
       setLoading(true);
-      const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-      const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
 
-      const response = await fetch(
-        `${strapiUrl}/api/organization-websites/${websiteId}?populate=template`,
-        {
-          headers: {
-            'Authorization': `Bearer ${strapiToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error('Errore nel caricamento del sito');
-
-      const data = await response.json();
-      const siteData = data.data;
+      // Load website with pages, sections, and components from Directus
+      const siteData = await directusClient.getWebsiteComplete(parseInt(websiteId));
 
       setWebsiteData(siteData);
-      setContent(siteData.contenuto || {});
 
       // Load settings
-      setSubdomain(siteData.subdomain || '');
-      setCustomDomain(siteData.custom_domain || '');
-      setIsPublished(siteData.is_published || false);
-      setSeoTitle(siteData.seo_title || '');
-      setSeoDescription(siteData.seo_description || '');
+      setSiteName(siteData.site_name || '');
+      setDomain(siteData.domain || '');
+      setIsPublished(siteData.published || false);
 
-      // Get template and editable_fields
-      const template = siteData.template?.data;
-      if (template) {
-        setTemplateName(template.attributes?.name || template.nome || 'Template');
+      // Convert Directus structure to editable content format
+      // This creates a structure compatible with DynamicFormGenerator
+      const contentData: any = {};
 
-        const fields = template.attributes?.editable_fields || template.editable_fields;
+      if (siteData.pages && siteData.pages.length > 0) {
+        const homepage = siteData.pages.find(p => p.is_homepage) || siteData.pages[0];
 
-        if (fields && Object.keys(fields).length > 0) {
-          setEditableFields(fields);
-        } else {
-          setEditableFields(getDefaultSchema());
+        if (homepage.sections) {
+          homepage.sections.forEach(section => {
+            const sectionKey = section.section_type;
+            contentData[sectionKey] = {
+              title: section.section_title || '',
+              subtitle: section.section_subtitle || '',
+              components: section.components || []
+            };
+          });
         }
-      } else {
-        setEditableFields(getDefaultSchema());
       }
+
+      setContent(contentData);
+      setTemplateName(siteData.site_name);
+      setEditableFields(getDefaultSchema());
+
     } catch (error: any) {
       console.error('Error loading website:', error);
       showToast('Errore nel caricamento del sito', 'error');
@@ -161,34 +152,19 @@ const AdminWebsiteEditor: React.FC<AdminWebsiteEditorProps> = ({
   const handleSave = async () => {
     try {
       setSaving(true);
-      const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-      const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
 
       const updateData: any = {
-        contenuto: content,
+        site_name: siteName,
+        domain: domain || null,
+        published: isPublished,
       };
 
-      // Include settings if on settings tab
-      if (activeTab === 'settings') {
-        updateData.subdomain = subdomain;
-        updateData.custom_domain = customDomain || null;
-        updateData.is_published = isPublished;
-        updateData.seo_title = seoTitle || null;
-        updateData.seo_description = seoDescription || null;
-      }
+      // Update website basic info
+      await directusClient.updateWebsite(parseInt(websiteId), updateData);
 
-      const response = await fetch(`${strapiUrl}/api/organization-websites/${websiteId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${strapiToken}`,
-        },
-        body: JSON.stringify({
-          data: updateData
-        }),
-      });
-
-      if (!response.ok) throw new Error('Errore nel salvataggio');
+      // TODO: Update sections and components based on content changes
+      // This would require iterating through content and updating each section/component
+      // For now, we just update the website settings
 
       showToast('✅ Modifiche salvate con successo!', 'success');
 
@@ -276,56 +252,27 @@ const AdminWebsiteEditor: React.FC<AdminWebsiteEditorProps> = ({
           {activeTab === 'settings' && (
             <div className="admin-editor-settings">
               <div className="admin-settings-section">
-                <h3>🔗 Dominio</h3>
+                <h3>📝 Informazioni Generali</h3>
 
                 <div className="admin-form-group">
-                  <label>Sottodominio</label>
-                  <div className="admin-subdomain-wrapper">
-                    <input
-                      type="text"
-                      className="admin-input"
-                      value={subdomain}
-                      onChange={(e) => setSubdomain(e.target.value)}
-                      placeholder="es. pizzerianapoli"
-                    />
-                    <span className="admin-subdomain-suffix">.omnilypro.com</span>
-                  </div>
-                </div>
-
-                <div className="admin-form-group">
-                  <label>Dominio Custom (opzionale)</label>
+                  <label>Nome Sito</label>
                   <input
                     type="text"
                     className="admin-input"
-                    value={customDomain}
-                    onChange={(e) => setCustomDomain(e.target.value)}
-                    placeholder="es. www.tuosito.it"
-                  />
-                </div>
-              </div>
-
-              <div className="admin-settings-section">
-                <h3>📄 SEO</h3>
-
-                <div className="admin-form-group">
-                  <label>Titolo SEO</label>
-                  <input
-                    type="text"
-                    className="admin-input"
-                    value={seoTitle}
-                    onChange={(e) => setSeoTitle(e.target.value)}
-                    placeholder="Titolo per motori di ricerca"
+                    value={siteName}
+                    onChange={(e) => setSiteName(e.target.value)}
+                    placeholder="es. Pizzeria Da Mario"
                   />
                 </div>
 
                 <div className="admin-form-group">
-                  <label>Descrizione SEO</label>
-                  <textarea
-                    className="admin-textarea"
-                    value={seoDescription}
-                    onChange={(e) => setSeoDescription(e.target.value)}
-                    placeholder="Descrizione per motori di ricerca"
-                    rows={3}
+                  <label>Dominio (opzionale)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    placeholder="es. pizzeriadamario.com"
                   />
                 </div>
               </div>

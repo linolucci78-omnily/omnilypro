@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_sections_about",
+  "info": {
+    "displayName": "About Section",
+    "icon": "info-circle",
+    "description": "About us section with story"
+  },
+  "options": {},
+  "attributes": {
+    "layout": {
+      "type": "enumeration",
+      "enum": ["two-column", "centered", "fullwidth"],
+      "default": "two-column"
+    },
+    "image_position": {
+      "type": "enumeration",
+      "enum": ["left", "right"],
+      "default": "left"
+    }
+  }
+}

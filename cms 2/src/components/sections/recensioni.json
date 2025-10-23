@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_sections_recensioni",
+  "info": {
+    "displayName": "Recensioni Section",
+    "icon": "star",
+    "description": "Testimonials/reviews section"
+  },
+  "options": {},
+  "attributes": {
+    "layout": {
+      "type": "enumeration",
+      "enum": ["grid", "carousel", "masonry"],
+      "default": "carousel"
+    },
+    "show_rating": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_avatar": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

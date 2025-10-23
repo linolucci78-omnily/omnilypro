@@ -1,0 +1,41 @@
+{
+  "collectionName": "components_sections_hero",
+  "info": {
+    "displayName": "Hero Section",
+    "icon": "image",
+    "description": "Hero section with image/video background"
+  },
+  "options": {},
+  "attributes": {
+    "layout": {
+      "type": "enumeration",
+      "enum": ["fullscreen", "half", "minimal"],
+      "default": "fullscreen",
+      "required": true
+    },
+    "overlay": {
+      "type": "boolean",
+      "default": true
+    },
+    "overlay_opacity": {
+      "type": "decimal",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+    },
+    "height": {
+      "type": "enumeration",
+      "enum": ["100vh", "80vh", "60vh", "auto"],
+      "default": "100vh"
+    },
+    "text_color": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "text_align": {
+      "type": "enumeration",
+      "enum": ["left", "center", "right"],
+      "default": "center"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_sections_prodotti",
+  "info": {
+    "displayName": "Prodotti Section",
+    "icon": "shopping-bag",
+    "description": "Products showcase section"
+  },
+  "options": {},
+  "attributes": {
+    "layout": {
+      "type": "enumeration",
+      "enum": ["grid", "list", "masonry"],
+      "default": "grid"
+    },
+    "columns": {
+      "type": "integer",
+      "default": 4,
+      "min": 1,
+      "max": 6
+    },
+    "show_filters": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_badges": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

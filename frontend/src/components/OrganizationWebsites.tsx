@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { strapiClient } from '../lib/strapi';
-import type { OrganizationWebsite } from '../lib/strapi';
+import { directusClient } from '../lib/directus';
+import type { DirectusWebsite } from '../lib/directus';
 import { Globe, Edit, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 
 interface OrganizationWebsitesProps {
@@ -8,11 +8,11 @@ interface OrganizationWebsitesProps {
   organizationName: string;
 }
 
-export default function OrganizationWebsites({ 
-  organizationId, 
-  organizationName 
+export default function OrganizationWebsites({
+  organizationId,
+  organizationName
 }: OrganizationWebsitesProps) {
-  const [websites, setWebsites] = useState<OrganizationWebsite[]>([]);
+  const [websites, setWebsites] = useState<DirectusWebsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ export default function OrganizationWebsites({
   const loadWebsites = async () => {
     try {
       setLoading(true);
-      const data = await strapiClient.getOrganizationWebsites(organizationId);
+      const data = await directusClient.getOrganizationWebsites(organizationId);
       setWebsites(data);
       setError(null);
     } catch (err) {
@@ -33,35 +33,35 @@ export default function OrganizationWebsites({
     }
   };
 
-  const handleTogglePublish = async (website: OrganizationWebsite) => {
+  const handleTogglePublish = async (website: DirectusWebsite) => {
     try {
-      const newStatus = !website.attributes.is_published;
-      await strapiClient.togglePublish(website.id, newStatus);
+      const newStatus = !website.published;
+      await directusClient.togglePublish(website.id, newStatus);
       await loadWebsites();
     } catch (err) {
       alert('Errore aggiornamento stato: ' + (err instanceof Error ? err.message : 'Errore'));
     }
   };
 
-  const handleDelete = async (website: OrganizationWebsite) => {
-    if (!confirm(`Eliminare il sito "${website.attributes.subdomain}.omnilypro.com"?`)) {
+  const handleDelete = async (website: DirectusWebsite) => {
+    if (!confirm(`Eliminare il sito "${website.domain || website.site_name}"?`)) {
       return;
     }
 
     try {
-      await strapiClient.deleteOrganizationWebsite(website.id);
+      await directusClient.deleteWebsite(website.id);
       await loadWebsites();
     } catch (err) {
       alert('Errore eliminazione: ' + (err instanceof Error ? err.message : 'Errore'));
     }
   };
 
-  const getPublicUrl = (subdomain: string, customDomain?: string) => {
-    if (customDomain) {
-      return `https://${customDomain}`;
+  const getPublicUrl = (domain: string | null, siteName: string) => {
+    if (domain) {
+      return `https://${domain}`;
     }
     const baseUrl = import.meta.env.VITE_PUBLIC_SITES_URL || 'https://omnilypro.com';
-    return `https://${subdomain}.${baseUrl.replace('https://', '')}`;
+    return `https://${siteName.toLowerCase().replace(/\s+/g, '-')}.${baseUrl.replace('https://', '')}`;
   };
 
   if (loading) {
@@ -95,11 +95,8 @@ export default function OrganizationWebsites({
       {websites.length > 0 ? (
         <div className="space-y-3">
           {websites.map((website) => {
-            const publicUrl = getPublicUrl(
-              website.attributes.subdomain,
-              website.attributes.custom_domain
-            );
-            const isPublished = website.attributes.is_published;
+            const publicUrl = getPublicUrl(website.domain, website.site_name);
+            const isPublished = website.published;
 
             return (
               <div
@@ -117,8 +114,7 @@ export default function OrganizationWebsites({
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline font-medium"
                       >
-                        {website.attributes.custom_domain || 
-                         `${website.attributes.subdomain}.omnilypro.com`}
+                        {website.domain || website.site_name}
                       </a>
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -131,23 +127,14 @@ export default function OrganizationWebsites({
                       </span>
                     </div>
 
-                    {/* SEO Info */}
-                    {website.attributes.seo_title && (
-                      <p className="text-sm text-gray-600 mt-2">
-                        {website.attributes.seo_title}
-                      </p>
-                    )}
-
-                    {/* Template */}
-                    {website.attributes.template?.data && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Template: {website.attributes.template.data.attributes.name}
-                      </p>
-                    )}
+                    {/* Nome sito */}
+                    <p className="text-sm text-gray-600 mt-2">
+                      {website.site_name}
+                    </p>
 
                     {/* Date */}
                     <p className="text-xs text-gray-400 mt-1">
-                      Creato: {new Date(website.attributes.createdAt).toLocaleDateString('it-IT')}
+                      Creato: {new Date(website.created_at).toLocaleDateString('it-IT')}
                     </p>
                   </div>
 

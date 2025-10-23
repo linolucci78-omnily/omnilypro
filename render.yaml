@@ -1,0 +1,96 @@
+services:
+  - type: web
+    name: omnilypro-directus
+    env: node
+    region: frankfurt
+    plan: free
+    branch: main
+    rootDir: directus
+    buildCommand: npm install
+    startCommand: npx directus bootstrap && npx directus start
+    envVars:
+      - key: PUBLIC_URL
+        sync: false
+      - key: PORT
+        value: "10000"
+      - key: DB_CLIENT
+        value: pg
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: KEY
+        sync: false
+      - key: SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CORS_ENABLED
+        value: "true"
+      - key: CORS_ORIGIN
+        sync: false
+      - key: CORS_CREDENTIALS
+        value: "true"
+      - key: RATE_LIMITER_ENABLED
+        value: "true"
+      - key: RATE_LIMITER_POINTS
+        value: "50"
+      - key: RATE_LIMITER_DURATION
+        value: "1"
+      - key: STORAGE_LOCATIONS
+        value: local
+      - key: CACHE_ENABLED
+        value: "false"
+
+  - type: web
+    name: omnilypro-cms
+    env: node
+    region: frankfurt
+    plan: free
+    branch: main
+    rootDir: cms
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_CLIENT
+        sync: false
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_PORT
+        sync: false
+      - key: DATABASE_NAME
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DATABASE_SSL
+        sync: false
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        sync: false
+      - key: STRAPI_DISABLE_SECURE_COOKIE
+        value: "true"
+      - key: APP_KEYS
+        sync: false
+      - key: API_TOKEN_SALT
+        sync: false
+      - key: ADMIN_JWT_SECRET
+        sync: false
+      - key: TRANSFER_TOKEN_SALT
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false

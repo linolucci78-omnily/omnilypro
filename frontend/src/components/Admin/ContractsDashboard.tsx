@@ -104,14 +104,14 @@ const ContractsDashboard: React.FC = () => {
           `Il link di firma è stato rinviato a ${contract.client_info.email}`
         )
       } else {
-        // Prima volta - crea nuova signature request
-        console.log('📧 Creating new signature request')
+        // Prima volta - crea signature requests per ENTRAMBE le parti
+        console.log('📧 Creating signature requests for client AND vendor')
 
         // Update contract status to sent
         await contractsService.sendContract(contractId)
 
-        // Create signature request for the client
-        signature = await contractsService.createSignatureRequest({
+        // 1. Create signature request for the CLIENT
+        const clientSignature = await contractsService.createSignatureRequest({
           contract_id: contractId,
           signer_name: contract.client_info.name,
           signer_email: contract.client_info.email,
@@ -120,12 +120,24 @@ const ContractsDashboard: React.FC = () => {
           signer_company: contract.client_info.company
         })
 
-        // Send OTP to client's email
-        await contractsService.sendSignatureOTP(signature.id, 'email')
+        // 2. Create signature request for the VENDOR (fornitore)
+        await contractsService.createSignatureRequest({
+          contract_id: contractId,
+          signer_name: contract.vendor_info.name,
+          signer_email: contract.vendor_info.email,
+          signer_phone: undefined,
+          signer_role: 'vendor',
+          signer_company: contract.vendor_info.company
+        })
+
+        // Send OTP ONLY to client first
+        await contractsService.sendSignatureOTP(clientSignature.id, 'email')
+
+        signature = clientSignature
 
         toast.showSuccess(
           'Contratto Inviato',
-          `Il contratto è stato inviato a ${contract.client_info.email}`
+          `Il contratto è stato inviato a ${contract.client_info.email}. Dopo la firma del cliente, riceverai notifica per firmare anche tu.`
         )
       }
 

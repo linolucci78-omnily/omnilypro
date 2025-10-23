@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_sections_contatti",
+  "info": {
+    "displayName": "Contatti Section",
+    "icon": "phone",
+    "description": "Contact section with map and form"
+  },
+  "options": {},
+  "attributes": {
+    "show_map": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_form": {
+      "type": "boolean",
+      "default": true
+    },
+    "map_zoom": {
+      "type": "integer",
+      "default": 15,
+      "min": 1,
+      "max": 20
+    },
+    "form_fields": {
+      "type": "json",
+      "default": ["nome", "email", "telefono", "messaggio"]
+    }
+  }
+}

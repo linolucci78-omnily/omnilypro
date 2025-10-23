@@ -1,11 +1,104 @@
 import React from 'react';
 import './RestaurantClassic.css';
 
+// Helper function to extract content from Directus sections/components structure
+const extractContentFromDirectus = (sections: any[]) => {
+  const content: any = {};
+
+  console.log('📦 Processing sections:', sections);
+
+  sections.forEach((section: any) => {
+    const sectionType = section.section_type;
+    const components = section.components || [];
+
+    console.log(`📄 Section type: ${sectionType}, components:`, components);
+
+    // Map section types to content structure
+    if (sectionType === 'hero') {
+      const headingComp = components.find((c: any) => c.component_type === 'heading');
+      const buttonComp = components.find((c: any) => c.component_type === 'button');
+      const imageComp = components.find((c: any) => c.component_type === 'image');
+
+      console.log('🎯 Hero heading:', headingComp);
+      console.log('🎯 Hero button:', buttonComp);
+      console.log('🎯 Hero image:', imageComp);
+
+      content.hero = {
+        title: headingComp?.content_text || headingComp?.content || '',
+        subtitle: '',
+        cta_text: buttonComp?.content_text || buttonComp?.content || 'Scopri di più',
+        image_url: imageComp?.image_url || ''
+      };
+
+      console.log('🎯 Hero content created:', content.hero);
+    } else if (sectionType === 'menu' || sectionType === 'menu_food') {
+      const menuComponents = components.filter((c: any) => c.component_type === 'menu_item');
+      console.log('🍽️ Menu components:', menuComponents);
+
+      content.menu = {
+        title: section.section_title || 'Il Nostro Menu',
+        items: menuComponents.map((c: any) => {
+          const item = {
+            nome: c.name || c.content || '',
+            descrizione: c.description || '',
+            prezzo: c.price ? parseFloat(c.price) : 0,
+            foto: c.image_url || ''
+          };
+          console.log('🍽️ Menu item created:', item);
+          return item;
+        })
+      };
+
+      console.log('🍽️ Menu content created:', content.menu);
+    } else if (sectionType === 'gallery') {
+      const imageComponents = components.filter((c: any) => c.component_type === 'image');
+      content.gallery = {
+        title: section.section_title || 'La Nostra Gallery',
+        images: imageComponents.map((c: any) => c.image_url || '')
+      };
+    } else if (sectionType === 'about') {
+      content.about = {
+        title: section.section_title || 'Chi Siamo',
+        text: components.find((c: any) => c.component_type === 'text' || c.component_type === 'paragraph')?.content || ''
+      };
+    } else if (sectionType === 'contact' || sectionType === 'footer') {
+      const phoneComp = components.find((c: any) => c.component_type === 'contact_phone');
+      const emailComp = components.find((c: any) => c.component_type === 'contact_email');
+      const addressComp = components.find((c: any) => c.component_type === 'contact_address');
+
+      content.contact = {
+        phone: phoneComp?.content || '',
+        email: emailComp?.content || '',
+        address: addressComp?.content || ''
+      };
+    }
+  });
+
+  return content;
+};
+
 // Professional Restaurant Template - Full Screen & Modern Design
 // Content structure is designed to be easily editable via POS forms
 const RestaurantClassic = ({ website, organizationName }: any) => {
   // Extract content from website object
-  const content = website?.contenuto || website?.content || {};
+  // Support both old Strapi format (contenuto/content) and new Directus format (pages/sections/components)
+  let content = website?.contenuto || website?.content || {};
+
+  // If content is empty, try to extract from Directus structure
+  if (!content || Object.keys(content).length === 0) {
+    if (website?.pages && website.pages.length > 0) {
+      const homepage = website.pages.find((p: any) => p.is_homepage) || website.pages[0];
+
+      console.log('🔍 Extracting from Directus structure');
+      console.log('Homepage:', homepage);
+      console.log('Sections:', homepage?.sections);
+
+      if (homepage?.sections) {
+        content = extractContentFromDirectus(homepage.sections);
+        console.log('✅ Extracted content:', content);
+      }
+    }
+  }
 
   if (!content || Object.keys(content).length === 0) {
     return (
@@ -39,7 +132,7 @@ const RestaurantClassic = ({ website, organizationName }: any) => {
   const aboutText = about.text || 'La nostra storia e passione per la cucina.';
 
   const contact = content.contact || {};
-  const restaurantName = content.nome || 'Ristorante';
+  const restaurantName = content.nome || website?.site_name || organizationName || 'Ristorante';
   const phone = contact.phone || '';
   const email = contact.email || '';
   const address = contact.address || '';

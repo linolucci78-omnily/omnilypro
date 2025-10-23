@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "organization_websites",
+  "info": {
+    "singularName": "organization-website",
+    "pluralName": "organization-websites",
+    "displayName": "Sito Organizzazione",
+    "description": "Siti web delle organizzazioni clienti"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "subdomain": {
+      "type": "string",
+      "unique": true,
+      "required": true,
+      "regex": "^[a-z0-9-]+$",
+      "minLength": 3,
+      "maxLength": 63
+    },
+    "organization_id": {
+      "type": "string",
+      "required": true
+    },
+    "template": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::website-template.website-template"
+    },
+    "nome": {
+      "type": "string",
+      "required": true
+    },
+    "contenuto": {
+      "type": "json",
+      "required": true
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_maintenance": {
+      "type": "boolean",
+      "default": false
+    },
+    "custom_domain": {
+      "type": "string"
+    },
+    "seo_title": {
+      "type": "string"
+    },
+    "seo_description": {
+      "type": "text",
+      "maxLength": 160
+    },
+    "seo_keywords": {
+      "type": "string"
+    },
+    "og_image": {
+      "type": "media",
+      "allowedTypes": ["images"],
+      "multiple": false
+    },
+    "analytics_id": {
+      "type": "string"
+    }
+  }
+}

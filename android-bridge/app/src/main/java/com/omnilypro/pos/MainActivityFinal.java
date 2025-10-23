@@ -160,7 +160,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
     private void loadInitialUrl() {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String url = "https://omnilypro.vercel.app?posomnily=true&v=" + timestamp + "&cb=" + timestamp + "&_t=" + timestamp;
+        String url = "https://omnilypro.com?posomnily=true&v=" + timestamp + "&cb=" + timestamp + "&_t=" + timestamp;
         Log.d(TAG, "Loading initial URL: " + url);
         webView.loadUrl(url);
     }
@@ -1948,7 +1948,7 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             });
 
-            customerWebView.loadUrl("https://omnilypro.vercel.app?posomnily=true&customer=true");
+            customerWebView.loadUrl("https://omnilypro.com?posomnily=true&customer=true");
             setContentView(customerWebView);
 
             Log.d(TAG, "✅ CustomerPresentation WebView creata e configurata");

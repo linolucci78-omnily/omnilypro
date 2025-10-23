@@ -1,0 +1,78 @@
+{
+  "kind": "collectionType",
+  "collectionName": "website_templates",
+  "info": {
+    "singularName": "website-template",
+    "pluralName": "website-templates",
+    "displayName": "Template Sito Web",
+    "description": "Template personalizzabili creati dall'admin"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": false
+    }
+  },
+  "attributes": {
+    "nome": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nome",
+      "required": true
+    },
+    "categoria": {
+      "type": "enumeration",
+      "enum": ["ristorante", "bar", "negozio", "servizi", "beauty", "altro"],
+      "default": "ristorante",
+      "required": true
+    },
+    "descrizione": {
+      "type": "text"
+    },
+    "anteprima": {
+      "type": "media",
+      "allowedTypes": ["images"],
+      "required": false,
+      "multiple": false
+    },
+    "sezioni": {
+      "type": "dynamiczone",
+      "components": [
+        "sections.hero",
+        "sections.menu",
+        "sections.gallery",
+        "sections.servizi",
+        "sections.contatti",
+        "sections.about",
+        "sections.prodotti",
+        "sections.team",
+        "sections.recensioni"
+      ]
+    },
+    "editable_fields": {
+      "type": "json",
+      "required": true
+    },
+    "contenuto_default": {
+      "type": "json"
+    },
+    "component_path": {
+      "type": "string",
+      "required": true
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0"
+    }
+  }
+}

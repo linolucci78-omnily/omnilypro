@@ -15,34 +15,28 @@ import {
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import ConfirmModal from '../UI/ConfirmModal';
-import AdminWebsiteEditor from './AdminWebsiteEditor';
-import { supabase } from '../../lib/supabase'; // Import Supabase client
+import { supabase } from '../../lib/supabase';
+import { directusClient, type TemplateType } from '../../lib/directus';
 import './WebsiteManager.css';
 
-// Mock data for templates and websites - will be replaced later
-const mockTemplates = [
-  { id: 'template_1', name: 'Restaurant Classic' },
-  { id: 'template_2', name: 'Cafe Modern' },
-  { id: 'template_3', name: 'Beauty & Wellness' },
-];
-
-const mockWebsites = [
-    { id: 'site_1', orgName: 'Pizzeria Napoli', templateName: 'Restaurant Classic', subdomain: 'pizzerianapoli', is_published: true, custom_domain: 'www.pizzerianapoli.it' },
-    { id: 'site_2', orgName: 'Bar Centrale', templateName: 'Cafe Modern', subdomain: 'barcentrale', is_published: false, custom_domain: '' },
+// Template options for Directus
+const availableTemplates: { id: TemplateType; name: string }[] = [
+  { id: 'restaurant', name: 'Ristorante/Pizzeria' },
+  { id: 'salon', name: 'Parrucchiere/Salone' },
+  { id: 'gym', name: 'Palestra/Centro Fitness' },
+  { id: 'bakery', name: 'Panetteria/Pasticceria' },
+  { id: 'shop', name: 'Negozio/Shop' },
+  { id: 'generic', name: 'Generico' },
 ];
 
 const WebsiteManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [organizations, setOrganizations] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
   const [websites, setWebsites] = useState<any[]>([]);
 
   const [selectedOrg, setSelectedOrg] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [subdomain, setSubdomain] = useState('');
-
-  // Editor state
-  const [editingWebsiteId, setEditingWebsiteId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | ''>('');
+  const [siteName, setSiteName] = useState('');
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -105,10 +99,11 @@ const WebsiteManager: React.FC = () => {
     setConfirmModal(prev => ({ ...prev, isOpen: false }));
   };
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // 1. Fetch organizations from Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // 1. Fetch organizations from Supabase
         const { data: orgsData, error: orgsError } = await supabase
           .from('organizations')
           .select('id, name')
@@ -118,187 +113,79 @@ const WebsiteManager: React.FC = () => {
         const organizations = orgsData || [];
         setOrganizations(organizations);
 
-        // 2. Fetch templates from Strapi
-        const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-        const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
+        // 2. Fetch all websites from Directus
+        // We'll aggregate websites from all organizations
+        const allWebsites: any[] = [];
 
-        console.log('Strapi Config:', { strapiUrl, hasToken: !!strapiToken });
-        console.log('Token first 20 chars:', strapiToken?.substring(0, 20));
-        console.log('Token last 20 chars:', strapiToken?.substring(strapiToken.length - 20));
-
-        if (strapiUrl && strapiToken) {
-          const templatesResponse = await fetch(`${strapiUrl}/api/website-templates`, {
-            headers: {
-              'Authorization': `Bearer ${strapiToken}`,
-            },
-          });
-          console.log('Templates Response Status:', templatesResponse.status);
-          if (!templatesResponse.ok) {
-            const errorText = await templatesResponse.text();
-            console.error('Templates fetch failed:', templatesResponse.status, errorText);
-            throw new Error(`Failed to fetch templates: ${templatesResponse.status}`);
-          }
-          const templatesJson = await templatesResponse.json();
-          const formattedTemplates = templatesJson.data.map((t: any) => ({ id: t.id, name: t.nome }));
-          setTemplates(formattedTemplates || []);
-
-          // 3. Fetch existing websites from Strapi
-          const websitesResponse = await fetch(`${strapiUrl}/api/organization-websites?populate=template`, {
-            headers: {
-              'Authorization': `Bearer ${strapiToken}`,
-            },
-          });
-          if (!websitesResponse.ok) throw new Error('Failed to fetch websites');
-          const websitesJson = await websitesResponse.json();
-
-          const formattedWebsites = websitesJson.data.map((site: any) => {
-            const org = organizations.find(o => o.id === site.organization_id);
-            return {
+        for (const org of organizations) {
+          try {
+            const orgWebsites = await directusClient.getOrganizationWebsites(org.id);
+            const formattedSites = orgWebsites.map(site => ({
               id: site.id,
-              documentId: site.documentId,  // Strapi 5 uses documentId for updates/deletes
-              orgName: org ? org.name : 'ID non trovato',
-              templateName: site.template?.nome || 'Nessun template',
-              subdomain: site.subdomain,
-              is_published: site.is_published,
-              custom_domain: site.custom_domain || 'N/A',
-            };
-          });
-          setWebsites(formattedWebsites || []);
-
-        } else {
-          console.error('Strapi URL or Token is not configured in .env file.');
-          setTemplates([]);
-          setWebsites([]);
+              organization_id: site.organization_id,
+              orgName: org.name,
+              site_name: site.site_name,
+              domain: site.domain,
+              is_published: site.published,
+              custom_domain: site.domain || 'N/A',
+            }));
+            allWebsites.push(...formattedSites);
+          } catch (err) {
+            console.error(`Error fetching websites for org ${org.id}:`, err);
+          }
         }
+
+        setWebsites(allWebsites);
+
       } catch (error) {
         console.error('Error fetching data:', error);
         setOrganizations([]);
-        setTemplates([]);
         setWebsites([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
     fetchData();
   }, []);
 
   const handleCreateSite = async () => {
-    if (!selectedOrg || !selectedTemplate || !subdomain) {
+    if (!selectedOrg || !selectedTemplate || !siteName) {
       showToast('Per favore, compila tutti i campi.', 'warning');
       return;
     }
 
     try {
-      const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-      const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
+      const orgName = organizations.find(o => o.id === selectedOrg)?.name || 'Organizzazione';
 
-      if (!strapiUrl || !strapiToken) {
-        throw new Error('Strapi URL or Token not configured');
-      }
+      // Create website from template using Directus
+      const newSite = await directusClient.createWebsiteFromTemplate(
+        selectedOrg,
+        siteName,
+        selectedTemplate as TemplateType
+      );
 
-      const orgName = organizations.find(o => o.id === selectedOrg)?.name || subdomain;
-
-      // Default content for new site (example data that can be edited later)
-      const defaultContent = {
-        nome: orgName,
-        hero: {
-          title: orgName,
-          subtitle: 'La nostra passione, la vostra soddisfazione',
-          cta_text: 'Scopri di più',
-          image_url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop'
-        },
-        menu: {
-          title: 'Il Nostro Menu',
-          items: [
-            {
-              nome: 'Prodotto Esempio 1',
-              descrizione: 'Descrizione del prodotto che può essere modificata',
-              prezzo: 12.50,
-              foto: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop'
-            },
-            {
-              nome: 'Prodotto Esempio 2',
-              descrizione: 'Un altro prodotto di esempio',
-              prezzo: 15.00,
-              foto: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop'
-            },
-            {
-              nome: 'Prodotto Esempio 3',
-              descrizione: 'Terzo prodotto di esempio',
-              prezzo: 18.00,
-              foto: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&h=400&fit=crop'
-            }
-          ]
-        },
-        gallery: {
-          title: 'La Nostra Gallery',
-          images: [
-            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=600&fit=crop',
-            'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop'
-          ]
-        },
-        about: {
-          title: 'Chi Siamo',
-          text: 'La nostra storia inizia con una passione per l\'eccellenza. Siamo impegnati a offrire i migliori prodotti e servizi ai nostri clienti. Questo testo può essere modificato dalla dashboard.'
-        },
-        contact: {
-          phone: '+39 06 1234567',
-          email: 'info@esempio.com',
-          address: 'Via Esempio 123, Roma'
-        }
-      };
-
-      const payload = {
-        data: {
-          organization_id: selectedOrg,
-          template: selectedTemplate,
-          subdomain: subdomain,
-          nome: `Sito di ${orgName}`,
-          is_published: false, // Start as draft
-          contenuto: defaultContent // Pre-populated with example content
-        },
-      };
-
-      const response = await fetch(`${strapiUrl}/api/organization-websites`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${strapiToken}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.json();
-        console.error('Strapi error:', errorBody);
-        throw new Error(`Creazione sito fallita: ${errorBody.error?.message || response.statusText}`);
-      }
-
-      const newSite = await response.json();
-
-      // Optimistically update UI
+      // Update UI
       setWebsites(prev => [...prev, {
-        id: newSite.data.id,
-        documentId: newSite.data.documentId,
+        id: newSite.id,
+        organization_id: newSite.organization_id,
         orgName: orgName,
-        templateName: templates.find(t => t.id === selectedTemplate)?.name || 'N/A',
-        subdomain: subdomain,
-        is_published: false,
-        custom_domain: 'N/A',
+        site_name: newSite.site_name,
+        domain: newSite.domain,
+        is_published: newSite.published,
+        custom_domain: newSite.domain || 'N/A',
       }]);
 
-      showToast(`Sito per ${orgName} creato con successo!`, 'success');
+      showToast(`Sito "${siteName}" creato con successo per ${orgName}!`, 'success');
+
       // Reset form
       setSelectedOrg('');
       setSelectedTemplate('');
-      setSubdomain('');
+      setSiteName('');
 
     } catch (error: any) {
       console.error('Failed to create site:', error);
-      showToast(`Errore: ${error.message}. Ricorda di impostare i permessi 'create' per il ruolo Public e per il token API in Strapi.`, 'error');
+      showToast(`Errore: ${error.message}`, 'error');
     }
   };
   
@@ -306,141 +193,64 @@ const WebsiteManager: React.FC = () => {
     setSelectedOrg(orgId);
     const org = organizations.find(o => o.id === orgId);
     if (org) {
-      const suggestedSubdomain = org.name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')   // Rimuove caratteri non validi (NO trattini iniziali)
-        .replace(/\s+/g, '')            // Rimuove spazi (tutto attaccato)
-        .replace(/^-|-$/g, '');         // Rimuove trattini all'inizio e fine
-      setSubdomain(suggestedSubdomain);
+      // Suggest site name based on organization name
+      setSiteName(`Sito ${org.name}`);
     }
   };
 
-  const handleTogglePublish = (site: any) => {
-    const action = site.is_published ? 'sospendere' : 'pubblicare';
-    const newStatus = !site.is_published;
+  const handleTogglePublish = async (siteId: number, currentStatus: boolean, siteName: string) => {
+    const action = currentStatus ? 'sospendere' : 'pubblicare';
+    const confirmMessage = `Sei sicuro di voler ${action} il sito "${siteName}"?`;
 
-    showConfirm(
-      site.is_published ? 'Sospendi Sito' : 'Pubblica Sito',
-      `Sei sicuro di voler ${action} il sito "${site.orgName}"?`,
-      async () => {
-        try {
-          const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-          const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
 
-          console.log('🔄 Toggle publish request:', { documentId: site.documentId, newStatus });
+    try {
+      await directusClient.togglePublish(siteId, !currentStatus);
 
-          const response = await fetch(`${strapiUrl}/api/organization-websites/${site.documentId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${strapiToken}`,
-            },
-            body: JSON.stringify({
-              data: {
-                is_published: newStatus
-              }
-            }),
-          });
+      // Update UI
+      setWebsites(prev => prev.map(site =>
+        site.id === siteId
+          ? { ...site, is_published: !currentStatus }
+          : site
+      ));
 
-          console.log('📡 Response status:', response.status);
-
-          if (!response.ok) {
-            const errorBody = await response.json();
-            console.error('❌ Strapi error:', errorBody);
-            throw new Error(`Errore nell'aggiornamento: ${errorBody.error?.message || response.statusText}`);
-          }
-
-          // Update UI
-          setWebsites(prev => prev.map(s =>
-            s.id === site.id
-              ? { ...s, is_published: newStatus }
-              : s
-          ));
-
-          showToast(`Sito ${newStatus ? 'pubblicato' : 'sospeso'} con successo!`, 'success');
-          closeConfirm();
-        } catch (error: any) {
-          console.error('Error toggling publish:', error);
-          showToast(error.message || 'Errore nell\'aggiornamento dello stato del sito.', 'error');
-          closeConfirm();
-        }
-      },
-      'info',
-      action.charAt(0).toUpperCase() + action.slice(1),
-      'Annulla'
-    );
+      showToast(`Sito ${!currentStatus ? 'pubblicato' : 'sospeso'} con successo!`, 'success');
+    } catch (error) {
+      console.error('Error toggling publish:', error);
+      showToast('Errore nell\'aggiornamento dello stato del sito.', 'error');
+    }
   };
 
-  const handleEditSite = (documentId: string) => {
-    setEditingWebsiteId(documentId);
+  const handleEditSite = (siteId: number, siteName: string) => {
+    alert(`🚧 Funzionalità in sviluppo!\n\nProssimamente potrai modificare:\n- Contenuti del sito\n- Immagini\n- Menu/prodotti\n- Informazioni contatti\n\nSito: ${siteName}`);
   };
 
-  const handleCloseEditor = () => {
-    setEditingWebsiteId(null);
-  };
+  const handleDeleteSite = async (siteId: number, siteName: string) => {
+    const confirmMessage = `⚠️ ATTENZIONE!\n\nSei sicuro di voler eliminare definitivamente il sito "${siteName}"?\n\nQuesta azione NON può essere annullata!`;
 
-  const handleSaveEditor = async () => {
-    // Reload websites list after save
-    await fetchData();
-    showToast('Sito aggiornato con successo!', 'success');
-    setEditingWebsiteId(null);
-  };
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
 
-  const handleDeleteSite = (site: any) => {
-    // First confirmation
-    showConfirm(
-      'Elimina Sito',
-      `Sei sicuro di voler eliminare definitivamente il sito "${site.orgName}"? Questa azione NON può essere annullata!`,
-      () => {
-        // Close first modal
-        closeConfirm();
+    // Double confirmation for delete
+    const doubleConfirm = window.confirm('Confermi di voler procedere con l\'eliminazione?');
+    if (!doubleConfirm) {
+      return;
+    }
 
-        // Second confirmation
-        setTimeout(() => {
-          showConfirm(
-            'Conferma Definitiva',
-            'Confermi di voler procedere con l\'eliminazione? Questa è l\'ultima conferma.',
-            async () => {
-              try {
-                const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-                const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
+    try {
+      await directusClient.deleteWebsite(siteId);
 
-                console.log('🗑️ Delete request:', { documentId: site.documentId });
+      // Update UI
+      setWebsites(prev => prev.filter(site => site.id !== siteId));
 
-                const response = await fetch(`${strapiUrl}/api/organization-websites/${site.documentId}`, {
-                  method: 'DELETE',
-                  headers: {
-                    'Authorization': `Bearer ${strapiToken}`,
-                  },
-                });
-
-                if (!response.ok) {
-                  const errorBody = await response.json();
-                  console.error('❌ Delete error:', errorBody);
-                  throw new Error(`Errore nell'eliminazione: ${errorBody.error?.message || response.statusText}`);
-                }
-
-                // Update UI
-                setWebsites(prev => prev.filter(s => s.id !== site.id));
-
-                showToast('Sito eliminato con successo!', 'success');
-                closeConfirm();
-              } catch (error: any) {
-                console.error('Error deleting site:', error);
-                showToast(error.message || 'Errore nell\'eliminazione del sito.', 'error');
-                closeConfirm();
-              }
-            },
-            'danger',
-            'Elimina Definitivamente',
-            'Annulla'
-          );
-        }, 300);
-      },
-      'danger',
-      'Procedi',
-      'Annulla'
-    );
+      showToast('Sito eliminato con successo!', 'success');
+    } catch (error) {
+      console.error('Error deleting site:', error);
+      showToast('Errore nell\'eliminazione del sito.', 'error');
+    }
   };
 
   if (loading) {
@@ -495,32 +305,29 @@ const WebsiteManager: React.FC = () => {
               id="template-select"
               className="wm-select"
               value={selectedTemplate}
-              onChange={(e) => setSelectedTemplate(e.target.value)}
+              onChange={(e) => setSelectedTemplate(e.target.value as TemplateType)}
             >
               <option value="" disabled>Seleziona un template</option>
-              {templates.map(template => (
+              {availableTemplates.map(template => (
                 <option key={template.id} value={template.id}>{template.name}</option>
               ))}
             </select>
           </div>
 
-          {/* Subdomain Input */}
+          {/* Site Name Input */}
           <div className="wm-form-group">
-            <label htmlFor="subdomain-input">
+            <label htmlFor="sitename-input">
               <LinkIcon size={16} />
-              Sottodominio
+              Nome Sito
             </label>
-            <div className="wm-subdomain-wrapper">
-              <input
-                id="subdomain-input"
-                type="text"
-                className="wm-input"
-                placeholder="es. pizzerianapoli"
-                value={subdomain}
-                onChange={(e) => setSubdomain(e.target.value)}
-              />
-              <span className="wm-subdomain-suffix">.omnilypro.com</span>
-            </div>
+            <input
+              id="sitename-input"
+              type="text"
+              className="wm-input"
+              placeholder="es. Pizzeria Napoli"
+              value={siteName}
+              onChange={(e) => setSiteName(e.target.value)}
+            />
           </div>
         </div>
         <div className="wm-card-footer">
@@ -540,10 +347,9 @@ const WebsiteManager: React.FC = () => {
                   <thead>
                     <tr>
                       <th>Organizzazione</th>
-                      <th>Subdomain</th>
-                      <th>Template</th>
+                      <th>Nome Sito</th>
                       <th>Stato</th>
-                      <th>Dominio Custom</th>
+                      <th>Dominio</th>
                       <th style={{ textAlign: 'center' }}>Azioni</th>
                     </tr>
                   </thead>
@@ -551,38 +357,41 @@ const WebsiteManager: React.FC = () => {
                     {websites.map((site) => (
                       <tr key={site.id}>
                         <td>{site.orgName}</td>
-                        <td>
-                            <a href={`http://${site.subdomain}.omnilypro.com`} target="_blank" rel="noopener noreferrer" className="wm-subdomain-link">
-                                {site.subdomain}.omnilypro.com
-                            </a>
-                        </td>
-                        <td>{site.templateName}</td>
+                        <td>{site.site_name}</td>
                         <td>
                             <div className={`wm-status-badge ${site.is_published ? 'published' : 'draft'}`}>
                                 {site.is_published ? 'Pubblicato' : 'Bozza'}
                             </div>
                         </td>
-                        <td>{site.custom_domain || 'N/A'}</td>
+                        <td>
+                            {site.domain ? (
+                              <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="wm-subdomain-link">
+                                {site.domain}
+                              </a>
+                            ) : (
+                              'N/A'
+                            )}
+                        </td>
                         <td style={{ textAlign: 'center' }}>
                           <div className="actions-cell">
                             <button
                               className="action-button-circle"
-                              title={site.is_published ? "Sospendi sito" : "Pubblica sito"}
-                              onClick={() => handleTogglePublish(site)}
+                              title="Pubblica/Sospendi"
+                              onClick={() => handleTogglePublish(site.id, site.is_published, site.site_name)}
                             >
                                 {site.is_published ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
                             </button>
                             <button
                               className="action-button-circle"
-                              title="Modifica contenuti"
-                              onClick={() => handleEditSite(site.documentId)}
+                              title="Modifica"
+                              onClick={() => handleEditSite(site.id, site.site_name)}
                             >
                               <Edit2 size={16} />
                             </button>
                             <button
                               className="action-button-circle"
-                              title="Elimina sito"
-                              onClick={() => handleDeleteSite(site)}
+                              title="Elimina"
+                              onClick={() => handleDeleteSite(site.id, site.site_name)}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -595,35 +404,6 @@ const WebsiteManager: React.FC = () => {
               </div>
             </div>
       </div>
-
-      {/* Toast Notification */}
-      <Toast
-        isVisible={toast.isVisible}
-        message={toast.message}
-        type={toast.type}
-        onClose={closeToast}
-      />
-
-      {/* Confirm Modal */}
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        confirmText={confirmModal.confirmText}
-        cancelText={confirmModal.cancelText}
-        type={confirmModal.type}
-        onConfirm={confirmModal.onConfirm}
-        onCancel={closeConfirm}
-      />
-
-      {/* Admin Website Editor Modal */}
-      {editingWebsiteId && (
-        <AdminWebsiteEditor
-          websiteId={editingWebsiteId}
-          onClose={handleCloseEditor}
-          onSave={handleSaveEditor}
-        />
-      )}
     </div>
   );
 };

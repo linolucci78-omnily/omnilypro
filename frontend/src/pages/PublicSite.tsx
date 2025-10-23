@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import PageLoader from '../components/UI/PageLoader';
 import RestaurantClassic from '../components/templates/RestaurantClassic';
 import { supabase } from '../lib/supabase';
+import { directusClient } from '../lib/directus';
 
 const PublicSite: React.FC = () => {
   const { subdomain } = useParams<{ subdomain: string }>();
@@ -23,45 +24,59 @@ const PublicSite: React.FC = () => {
         setLoading(true);
         setError('');
 
-        // Fetch website data from Strapi
-        const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-        const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
+        // Fetch website data from Directus
+        // For now, fetch all websites (we'll optimize this later with a proper endpoint)
+        const directusUrl = import.meta.env.VITE_DIRECTUS_URL;
+        const directusToken = import.meta.env.VITE_DIRECTUS_TOKEN;
 
-        if (!strapiUrl || !strapiToken) {
-          throw new Error('Configurazione Strapi mancante');
-        }
-
-        const response = await fetch(
-          `${strapiUrl}/api/organization-websites?filters[subdomain][$eq]=${subdomain}&populate=template`,
-          {
-            headers: {
-              'Authorization': `Bearer ${strapiToken}`,
-            },
-          }
-        );
+        const response = await fetch(`${directusUrl}/items/organizations_websites`, {
+          headers: {
+            'Authorization': `Bearer ${directusToken}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Errore nella richiesta: ${response.status}`);
         }
 
-        const data = await response.json();
+        const { data: allWebsites } = await response.json();
 
-        if (!data.data || data.data.length === 0) {
+        console.log('🔍 Looking for subdomain:', subdomain);
+        console.log('📋 All websites:', allWebsites);
+
+        // Find website by subdomain (convert site_name to slug)
+        const siteData = allWebsites.find((site: any) => {
+          const slug = site.site_name
+            .toLowerCase()
+            .normalize('NFD') // Normalizza caratteri accentati
+            .replace(/[\u0300-\u036f]/g, '') // Rimuove accenti
+            .replace(/[^a-z0-9\s-]/g, '') // Rimuove caratteri speciali
+            .replace(/\s+/g, '-') // Sostituisce spazi con trattini
+            .replace(/-+/g, '-') // Rimuove trattini multipli
+            .replace(/^-|-$/g, ''); // Rimuove trattini all'inizio/fine
+
+          console.log(`Comparing: "${slug}" vs "${subdomain}" OR domain: "${site.domain}"`);
+          return slug === subdomain || site.domain === `${subdomain}.omnilypro.com`;
+        });
+
+        console.log('✅ Found site:', siteData);
+
+        if (!siteData) {
           setError('Sito non trovato');
           setLoading(false);
           return;
         }
 
-        const siteData = data.data[0];
-
         // Check if published
-        if (!siteData.is_published) {
+        if (!siteData.published) {
           setError('Questo sito non è ancora pubblicato');
           setLoading(false);
           return;
         }
 
-        setWebsite(siteData);
+        // Get complete website with pages, sections, and components
+        const completeWebsite = await directusClient.getWebsiteComplete(siteData.id);
+        setWebsite(completeWebsite);
 
         // Fetch organization name from Supabase
         if (siteData.organization_id) {
