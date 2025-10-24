@@ -42,6 +42,29 @@ const WebsiteVisualEditor: React.FC<WebsiteVisualEditorProps> = ({
       const gjsComponents = website.grapesjs_components ? JSON.parse(website.grapesjs_components) : null;
       const gjsStyles = website.grapesjs_styles ? JSON.parse(website.grapesjs_styles) : null;
 
+      console.log('🔍 Dati caricati da Directus:', {
+        has_html: !!website.grapesjs_html,
+        has_css: !!website.grapesjs_css,
+        has_components: !!website.grapesjs_components,
+        has_styles: !!website.grapesjs_styles,
+        html_length: html?.length,
+        css_length: css?.length
+      });
+
+      // Se i dati GrapesJS non esistono nel database, salva quelli di default
+      if (!website.grapesjs_html || !website.grapesjs_css) {
+        console.log('💾 Inizializzazione dati GrapesJS di default...');
+        try {
+          await directusClient.updateWebsite(websiteId, {
+            grapesjs_html: html,
+            grapesjs_css: css,
+          });
+          console.log('✅ Dati GrapesJS di default salvati');
+        } catch (saveError) {
+          console.error('⚠️ Errore nel salvataggio dati di default:', saveError);
+        }
+      }
+
       setEditorData({
         html,
         css,

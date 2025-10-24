@@ -83,28 +83,48 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
 
   // Effect per iniettare il CSS nel canvas dell'editor
   useEffect(() => {
+    console.log('🎨 CSS Effect triggered:', {
+      hasEditor: !!editorRef.current,
+      cssLength: css?.length,
+      css: css?.substring(0, 100)
+    });
+
     const editor = editorRef.current;
-    if (!editor || !css) return;
+    if (!editor) {
+      console.log('⚠️ Editor non pronto');
+      return;
+    }
+
+    if (!css) {
+      console.log('⚠️ CSS vuoto o non disponibile');
+      return;
+    }
 
     const gjs = editor.editor || editor;
-    if (!gjs || !gjs.Canvas) return;
+    if (!gjs || !gjs.Canvas) {
+      console.log('⚠️ Canvas non disponibile');
+      return;
+    }
 
     // Ottieni l'iframe del canvas
     const iframe = gjs.Canvas.getFrameEl();
-    if (!iframe || !iframe.contentDocument) return;
+    if (!iframe || !iframe.contentDocument) {
+      console.log('⚠️ Iframe del canvas non disponibile');
+      return;
+    }
 
     // Inietta il CSS nel canvas
     const existingStyle = iframe.contentDocument.getElementById('custom-grapesjs-styles');
     if (existingStyle) {
       existingStyle.textContent = css;
+      console.log('✅ CSS aggiornato nel canvas dell\'editor');
     } else {
       const styleEl = iframe.contentDocument.createElement('style');
       styleEl.id = 'custom-grapesjs-styles';
       styleEl.textContent = css;
       iframe.contentDocument.head.appendChild(styleEl);
+      console.log('✅ CSS iniettato nel canvas dell\'editor (nuovo tag)');
     }
-
-    console.log('✅ CSS iniettato nel canvas dell\'editor');
   }, [css]);
 
   const editorOptions = useMemo(() => ({
