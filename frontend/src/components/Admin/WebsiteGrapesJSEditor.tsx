@@ -55,19 +55,20 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
         if (gjsStyles) {
           console.log('🎨 Caricamento gjsStyles strutturati');
           gjs.setStyle(gjsStyles);
-        } else if (css) {
-          // Altrimenti fallback su CSS testuale
-          console.log('🎨 Caricamento CSS testuale (fallback)');
-          gjs.setStyle(css);
         }
       } else if (html) {
-        // Nessun dato GrapeJS, carica solo HTML + CSS
+        // Nessun dato GrapeJS, carica HTML + CSS come stringa
         console.log('⚠️ Caricamento HTML e CSS testuali');
-        gjs.setComponents(html);
+
+        // Se abbiamo CSS, includiamolo nell'HTML con un tag <style>
+        let htmlWithCss = html;
         if (css) {
-          console.log('🎨 Caricamento CSS testuale');
-          gjs.setStyle(css);
+          console.log('🎨 Inserimento CSS nell\'HTML come <style> tag');
+          // Inserisci il CSS all'inizio dell'HTML
+          htmlWithCss = `<style>${css}</style>${html}`;
         }
+
+        gjs.setComponents(htmlWithCss);
       }
 
       // Marca questo contenuto come caricato
