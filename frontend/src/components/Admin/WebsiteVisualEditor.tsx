@@ -82,56 +82,215 @@ const WebsiteVisualEditor: React.FC<WebsiteVisualEditorProps> = ({
   const generateDefaultHTML = (website: any) => {
     const siteName = website.site_name || 'Il Mio Sito';
     return `
-      <div style="font-family: system-ui, -apple-system, sans-serif;">
-        <header style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 20px; text-align: center;">
-          <h1 style="margin: 0 0 10px 0; font-size: 3em;">${siteName}</h1>
-          <p style="margin: 0; font-size: 1.2em; opacity: 0.9;">Benvenuti nel nostro sito</p>
-        </header>
+      <section class="hero-section">
+        <div class="hero-content">
+          <h1 class="hero-title">${siteName}</h1>
+          <p class="hero-subtitle">Benvenuti nel nostro sito</p>
+          <a href="#contatti" class="hero-cta">Contattaci</a>
+        </div>
+      </section>
 
-        <section style="padding: 60px 20px; max-width: 1200px; margin: 0 auto;">
-          <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 30px;">Chi Siamo</h2>
-          <p style="font-size: 1.1em; line-height: 1.6; text-align: center; max-width: 800px; margin: 0 auto;">
+      <section class="about-section">
+        <h2 class="section-title">Chi Siamo</h2>
+        <div class="about-content">
+          <p class="about-description">
             Clicca su qualsiasi elemento per modificarlo. Trascina nuovi blocchi dalla barra laterale per costruire il tuo sito.
+            Personalizza testi, immagini, colori e layout per creare un sito unico che rappresenta la tua attività.
           </p>
-        </section>
+        </div>
+      </section>
 
-        <section style="background: #f8fafc; padding: 60px 20px;">
-          <div style="max-width: 1200px; margin: 0 auto;">
-            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 40px;">I Nostri Servizi</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
-              <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.5em;">Servizio 1</h3>
-                <p style="margin: 0; color: #64748b;">Descrizione del primo servizio</p>
-              </div>
-              <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.5em;">Servizio 2</h3>
-                <p style="margin: 0; color: #64748b;">Descrizione del secondo servizio</p>
-              </div>
-              <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.5em;">Servizio 3</h3>
-                <p style="margin: 0; color: #64748b;">Descrizione del terzo servizio</p>
-              </div>
-            </div>
+      <section class="services-section">
+        <h2 class="section-title">I Nostri Servizi</h2>
+        <div class="services-grid">
+          <div class="service-card">
+            <h3 class="service-title">Servizio 1</h3>
+            <p class="service-description">Descrizione del primo servizio offerto dalla tua attività. Modifica questo testo per descrivere cosa offri.</p>
           </div>
-        </section>
+          <div class="service-card">
+            <h3 class="service-title">Servizio 2</h3>
+            <p class="service-description">Descrizione del secondo servizio. Aggiungi dettagli su caratteristiche, prezzi o vantaggi.</p>
+          </div>
+          <div class="service-card">
+            <h3 class="service-title">Servizio 3</h3>
+            <p class="service-description">Terzo servizio principale. Personalizza o aggiungi altri servizi secondo le tue esigenze.</p>
+          </div>
+        </div>
+      </section>
 
-        <footer style="background: #1f2937; color: white; padding: 40px 20px; text-align: center;">
-          <p style="margin: 0;">&copy; 2025 ${siteName}. Tutti i diritti riservati.</p>
-        </footer>
-      </div>
+      <footer class="footer">
+        <p>&copy; 2025 ${siteName}. Tutti i diritti riservati.</p>
+      </footer>
     `;
   };
 
   const generateDefaultCSS = () => {
+    // Inline the complete RestaurantClassic CSS
     return `
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: system-ui, -apple-system, sans-serif;
-      }
+/* Restaurant Classic Template - Professional Design */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Sections */
+section {
+  padding: 80px 20px;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #2c3e50;
+}
+
+/* Hero Section */
+.hero-section {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: relative;
+}
+
+.hero-content {
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  opacity: 0.95;
+}
+
+.hero-cta {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  background: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* About Section */
+.about-section {
+  background: white;
+}
+
+.about-content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about-description {
+  font-size: 1.2rem;
+  color: #555;
+  line-height: 1.8;
+}
+
+/* Services Grid */
+.services-section {
+  background: #f8fafc;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.service-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+}
+
+.service-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.service-description {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* Footer */
+.footer {
+  background: #1f2937;
+  color: white;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.footer p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}
     `;
   };
 

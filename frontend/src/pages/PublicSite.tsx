@@ -149,7 +149,20 @@ const PublicSite: React.FC = () => {
     'restaurant-classic': RestaurantClassic,
   };
 
-  // Get template component (default to RestaurantClassic)
+  // Check if website has custom GrapesJS HTML
+  if (website.grapesjs_html) {
+    console.log('🎨 Rendering GrapesJS custom HTML');
+    return (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: website.grapesjs_html
+        }}
+      />
+    );
+  }
+
+  // Otherwise, use React template component
+  console.log('📄 Rendering React template component');
   const TemplateComponent = templateMap[website.template?.component_path || 'RestaurantClassic'] || RestaurantClassic;
 
   return <TemplateComponent website={website} organizationName={organizationName} />;
