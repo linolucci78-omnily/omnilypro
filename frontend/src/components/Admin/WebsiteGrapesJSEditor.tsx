@@ -81,6 +81,32 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
     loadContentIntoEditor(editor);
   }, [loadContentIntoEditor]);
 
+  // Effect per iniettare il CSS nel canvas dell'editor
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !css) return;
+
+    const gjs = editor.editor || editor;
+    if (!gjs || !gjs.Canvas) return;
+
+    // Ottieni l'iframe del canvas
+    const iframe = gjs.Canvas.getFrameEl();
+    if (!iframe || !iframe.contentDocument) return;
+
+    // Inietta il CSS nel canvas
+    const existingStyle = iframe.contentDocument.getElementById('custom-grapesjs-styles');
+    if (existingStyle) {
+      existingStyle.textContent = css;
+    } else {
+      const styleEl = iframe.contentDocument.createElement('style');
+      styleEl.id = 'custom-grapesjs-styles';
+      styleEl.textContent = css;
+      iframe.contentDocument.head.appendChild(styleEl);
+    }
+
+    console.log('✅ CSS iniettato nel canvas dell\'editor');
+  }, [css]);
+
   const editorOptions = useMemo(() => ({
     licenseKey: 'ff2fab8f4c544ed98668ac8555413fcec821766e12a048bd9676cf10b550ec19',
     project: {
