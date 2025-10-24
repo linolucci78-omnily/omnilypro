@@ -204,10 +204,14 @@ export default function OrganizationWebsites({
       {/* Editor Modal */}
       {editingWebsite && (
         <AdminWebsiteEditor
-          websiteId={editingWebsite.id}
+          websiteId={editingWebsite.id.toString()}
           onClose={() => {
             setEditingWebsite(null);
             loadWebsites(); // Ricarica la lista dopo le modifiche
+          }}
+          onSave={() => {
+            setEditingWebsite(null);
+            loadWebsites();
           }}
         />
       )}

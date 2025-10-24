@@ -22,6 +22,11 @@ export interface DirectusWebsite {
   domain: string | null;
   published: boolean;
   created_at: string;
+  template?: {
+    id: number;
+    name: string;
+    component_path: string;
+  } | null;
 }
 
 export interface DirectusPage {
