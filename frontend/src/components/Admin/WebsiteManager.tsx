@@ -11,12 +11,14 @@ import {
   Link as LinkIcon,
   ToggleLeft,
   ToggleRight,
-  Paintbrush
+  Paintbrush,
+  Layout
 } from 'lucide-react';
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import ConfirmModal from '../UI/ConfirmModal';
 import DirectusVisualEditor from './DirectusVisualEditor';
+import WebsiteVisualEditor from './WebsiteVisualEditor';
 import { supabase } from '../../lib/supabase';
 import { directusClient, type TemplateType } from '../../lib/directus';
 import './WebsiteManager.css';
@@ -40,6 +42,7 @@ const WebsiteManager: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | ''>('');
   const [siteName, setSiteName] = useState('');
   const [visualEditingWebsite, setVisualEditingWebsite] = useState<number | null>(null);
+  const [grapesJSEditingWebsite, setGrapesJSEditingWebsite] = useState<number | null>(null);
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -394,6 +397,14 @@ const WebsiteManager: React.FC = () => {
                             </button>
                             <button
                               className="action-button-circle"
+                              title="Page Builder (GrapesJS)"
+                              onClick={() => setGrapesJSEditingWebsite(site.id)}
+                              style={{ backgroundColor: '#10b981', color: 'white' }}
+                            >
+                              <Layout size={16} />
+                            </button>
+                            <button
+                              className="action-button-circle"
                               title="Modifica"
                               onClick={() => handleEditSite(site.id, site.site_name)}
                             >
@@ -416,11 +427,57 @@ const WebsiteManager: React.FC = () => {
             </div>
       </div>
 
-      {/* Visual Editor Modal */}
+      {/* Visual Editor Modal (Directus) */}
       {visualEditingWebsite && (
         <DirectusVisualEditor
           websiteId={visualEditingWebsite}
           onClose={() => setVisualEditingWebsite(null)}
+        />
+      )}
+
+      {/* Page Builder Modal (GrapesJS) */}
+      {grapesJSEditingWebsite && (
+        <WebsiteVisualEditor
+          websiteId={grapesJSEditingWebsite}
+          onClose={() => setGrapesJSEditingWebsite(null)}
+          onSave={() => {
+            setGrapesJSEditingWebsite(null);
+            // Ricarica la lista siti
+            const fetchData = async () => {
+              try {
+                const { data: orgsData } = await supabase
+                  .from('organizations')
+                  .select('id, name')
+                  .order('name', { ascending: true });
+
+                const organizations = orgsData || [];
+                const allWebsites: any[] = [];
+
+                for (const org of organizations) {
+                  try {
+                    const orgWebsites = await directusClient.getOrganizationWebsites(org.id);
+                    const formattedSites = orgWebsites.map(site => ({
+                      id: site.id,
+                      organization_id: site.organization_id,
+                      orgName: org.name,
+                      site_name: site.site_name,
+                      domain: site.domain,
+                      is_published: site.published,
+                      custom_domain: site.domain || 'N/A',
+                    }));
+                    allWebsites.push(...formattedSites);
+                  } catch (err) {
+                    console.error(`Error fetching websites for org ${org.id}:`, err);
+                  }
+                }
+
+                setWebsites(allWebsites);
+              } catch (error) {
+                console.error('Error refreshing data:', error);
+              }
+            };
+            fetchData();
+          }}
         />
       )}
     </div>

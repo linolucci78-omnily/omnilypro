@@ -27,6 +27,10 @@ export interface DirectusWebsite {
     name: string;
     component_path: string;
   } | null;
+  grapesjs_html?: string | null;
+  grapesjs_css?: string | null;
+  grapesjs_components?: string | null;
+  grapesjs_styles?: string | null;
 }
 
 export interface DirectusPage {
