@@ -3,6 +3,7 @@ import { Globe, Save, Eye, Target, UtensilsCrossed, BookOpen, Phone } from 'luci
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import DynamicFormGenerator from './DynamicFormGenerator';
+import { directusClient } from '../../lib/directus';
 import './WebsiteContentEditor.css';
 
 interface WebsiteContentEditorProps {
@@ -53,50 +54,81 @@ const WebsiteContentEditor: React.FC<WebsiteContentEditorProps> = ({
 
     try {
       setLoading(true);
-      const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-      const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
 
-      // Fetch website by organization_id with template populated
-      const response = await fetch(
-        `${strapiUrl}/api/organization-websites?filters[organization_id][$eq]=${organizationId}&populate=template`,
-        {
-          headers: {
-            'Authorization': `Bearer ${strapiToken}`,
-          },
-        }
-      );
+      // Fetch websites from Directus by organization_id
+      const websites = await directusClient.getOrganizationWebsites(organizationId);
 
-      if (!response.ok) throw new Error('Errore nel caricamento del sito');
+      if (websites && websites.length > 0) {
+        const website = websites[0];
+        setActualWebsiteId(website.id.toString());
 
-      const data = await response.json();
+        // Get complete website data with pages, sections, and components
+        const completeWebsite = await directusClient.getWebsiteComplete(website.id);
 
-      if (data.data && data.data.length > 0) {
-        const siteData = data.data[0];
-        setActualWebsiteId(siteData.documentId);
+        // Convert Directus structure to legacy content format for DynamicFormGenerator
+        const convertedContent: any = {};
 
-        // Set content
-        setContent(siteData.contenuto || {});
+        if (completeWebsite.pages && completeWebsite.pages.length > 0) {
+          const homepage = completeWebsite.pages.find(p => p.is_homepage) || completeWebsite.pages[0];
 
-        // Get template and editable_fields
-        const template = siteData.template?.data;
-        if (template) {
-          setTemplateName(template.attributes?.name || template.nome || 'Template');
+          if (homepage.sections) {
+            homepage.sections.forEach((section: any) => {
+              const sectionType = section.section_type;
+              const components = section.components || [];
 
-          // Check if template has editable_fields
-          const fields = template.attributes?.editable_fields || template.editable_fields;
+              // Convert sections to legacy format
+              if (sectionType === 'hero') {
+                const headingComp = components.find((c: any) => c.component_type === 'heading');
+                const buttonComp = components.find((c: any) => c.component_type === 'button');
+                const imageComp = components.find((c: any) => c.component_type === 'image');
 
-          if (fields && Object.keys(fields).length > 0) {
-            console.log('✅ Editable fields loaded:', fields);
-            setEditableFields(fields);
-          } else {
-            console.warn('⚠️ Template has no editable_fields, using default fallback');
-            // Fallback schema for backward compatibility
-            setEditableFields(getDefaultSchema());
+                convertedContent.hero = {
+                  title: section.section_title || headingComp?.content_text || '',
+                  subtitle: section.section_subtitle || '',
+                  cta_text: buttonComp?.content_link_text || '',
+                  image_url: imageComp?.content_image || ''
+                };
+              } else if (sectionType === 'menu' || sectionType === 'menu_food') {
+                const menuComponents = components.filter((c: any) => c.component_type === 'menu_item');
+                convertedContent.menu = {
+                  title: section.section_title || '',
+                  items: menuComponents.map((c: any) => ({
+                    nome: c.item_name || '',
+                    descrizione: c.item_description || '',
+                    prezzo: c.item_price ? parseFloat(c.item_price) : 0,
+                    foto: c.item_image || ''
+                  }))
+                };
+              } else if (sectionType === 'about' || sectionType === 'chi_siamo') {
+                const textComp = components.find((c: any) => c.component_type === 'text' || c.component_type === 'paragraph');
+                convertedContent.about = {
+                  title: section.section_title || '',
+                  text: textComp?.content_text || textComp?.content_rich_text || ''
+                };
+              } else if (sectionType === 'contact' || sectionType === 'footer') {
+                const phoneComp = components.find((c: any) => c.component_type === 'contact_phone');
+                const emailComp = components.find((c: any) => c.component_type === 'contact_email');
+                const addressComp = components.find((c: any) => c.component_type === 'contact_address');
+
+                convertedContent.contact = {
+                  phone: phoneComp?.content_text || '',
+                  email: emailComp?.content_text || '',
+                  address: addressComp?.content_text || ''
+                };
+              }
+            });
           }
-        } else {
-          console.warn('⚠️ No template found, using default fallback schema');
-          setEditableFields(getDefaultSchema());
         }
+
+        setContent(convertedContent);
+
+        // Set template name
+        if (completeWebsite.template) {
+          setTemplateName(completeWebsite.template.name || 'Template');
+        }
+
+        // Use default schema (Directus doesn't store editable_fields in template)
+        setEditableFields(getDefaultSchema());
       } else {
         setLoading(false);
       }
@@ -170,27 +202,11 @@ const WebsiteContentEditor: React.FC<WebsiteContentEditorProps> = ({
 
     try {
       setSaving(true);
-      const strapiUrl = import.meta.env.VITE_STRAPI_URL;
-      const strapiToken = import.meta.env.VITE_STRAPI_API_TOKEN;
 
-      const response = await fetch(`${strapiUrl}/api/organization-websites/${actualWebsiteId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${strapiToken}`,
-        },
-        body: JSON.stringify({
-          data: {
-            contenuto: content
-          }
-        }),
-      });
+      // TODO: Implement Directus save by updating sections and components
+      // For now, use AdminWebsiteEditor from OrganizationWebsites component
+      showToast('Per modificare il sito, usa il pulsante "Modifica" nella lista siti', 'info');
 
-      if (!response.ok) {
-        throw new Error('Errore nel salvataggio');
-      }
-
-      showToast('Contenuti salvati con successo!', 'success');
     } catch (error: any) {
       console.error('❌ Error saving content:', error);
       showToast('Errore nel salvataggio', 'error');
