@@ -51,14 +51,21 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
       if (gjsComponents) {
         console.log('✅ Caricamento dati GrapeJS strutturati');
         gjs.setComponents(gjsComponents);
+        // Se abbiamo gjsStyles (struttura GrapesJS), usa quella
         if (gjsStyles) {
+          console.log('🎨 Caricamento gjsStyles strutturati');
           gjs.setStyle(gjsStyles);
+        } else if (css) {
+          // Altrimenti fallback su CSS testuale
+          console.log('🎨 Caricamento CSS testuale (fallback)');
+          gjs.setStyle(css);
         }
       } else if (html) {
-        // Nessun dato GrapeJS, carica solo HTML
-        console.log('⚠️ Caricamento solo HTML (senza dati GrapeJS)');
+        // Nessun dato GrapeJS, carica solo HTML + CSS
+        console.log('⚠️ Caricamento HTML e CSS testuali');
         gjs.setComponents(html);
         if (css) {
+          console.log('🎨 Caricamento CSS testuale');
           gjs.setStyle(css);
         }
       }
@@ -81,48 +88,6 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
     loadContentIntoEditor(editor);
   }, [loadContentIntoEditor]);
 
-  // Effect per iniettare il CSS nel canvas dell'editor
-  useEffect(() => {
-    const editor = editorRef.current;
-    if (!editor || !css) return;
-
-    const gjs = editor.editor || editor;
-    if (!gjs || !gjs.Canvas) return;
-
-    // Funzione per iniettare il CSS
-    const injectCSS = () => {
-      const iframe = gjs.Canvas.getFrameEl();
-      if (!iframe || !iframe.contentDocument) {
-        return false;
-      }
-
-      try {
-        const existingStyle = iframe.contentDocument.getElementById('custom-grapesjs-styles');
-        if (existingStyle) {
-          existingStyle.textContent = css;
-        } else {
-          const styleEl = iframe.contentDocument.createElement('style');
-          styleEl.id = 'custom-grapesjs-styles';
-          styleEl.textContent = css;
-          iframe.contentDocument.head.appendChild(styleEl);
-        }
-        console.log('✅ CSS iniettato nel canvas');
-        return true;
-      } catch (error) {
-        console.error('❌ Errore iniezione CSS:', error);
-        return false;
-      }
-    };
-
-    // Prova a iniettare subito
-    if (!injectCSS()) {
-      // Se fallisce, riprova dopo un breve delay
-      const timeout = setTimeout(() => {
-        injectCSS();
-      }, 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [css]);
 
   const editorOptions = useMemo(() => ({
     licenseKey: 'ff2fab8f4c544ed98668ac8555413fcec821766e12a048bd9676cf10b550ec19',
@@ -209,20 +174,6 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
 
               gjs.on('load', () => {
                 addCorsAttr(gjs.getWrapper());
-
-                // Inietta il CSS nel canvas quando il canvas è caricato
-                if (css && gjs.Canvas) {
-                  setTimeout(() => {
-                    const iframe = gjs.Canvas.getFrameEl();
-                    if (iframe && iframe.contentDocument) {
-                      const styleEl = iframe.contentDocument.createElement('style');
-                      styleEl.id = 'custom-grapesjs-styles';
-                      styleEl.textContent = css;
-                      iframe.contentDocument.head.appendChild(styleEl);
-                      console.log('✅ CSS iniettato al caricamento canvas');
-                    }
-                  }, 100);
-                }
               });
 
               gjs.on('component:add', addCorsAttr);
