@@ -175,11 +175,11 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
     }}>
       {/* HEADER */}
       <div style={{
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
         color: 'white',
         padding: '12px 16px',
         textAlign: 'center',
-        boxShadow: '0 2px 6px rgba(16, 185, 129, 0.15)',
+        boxShadow: '0 2px 6px rgba(59, 130, 246, 0.15)',
         flexShrink: 0
       }}>
         <h2 style={{ margin: '0 0 4px 0', fontSize: 'clamp(16px, 3vw, 20px)', fontWeight: '700' }}>

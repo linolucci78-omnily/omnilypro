@@ -399,7 +399,7 @@ const WebsiteManager: React.FC = () => {
                               className="action-button-circle"
                               title="Page Builder (GrapesJS)"
                               onClick={() => setGrapesJSEditingWebsite(site.id)}
-                              style={{ backgroundColor: '#10b981', color: 'white' }}
+                              style={{ backgroundColor: '#3b82f6', color: 'white' }}
                             >
                               <Layout size={16} />
                             </button>
