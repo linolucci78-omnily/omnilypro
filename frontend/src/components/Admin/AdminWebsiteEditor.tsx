@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Globe, Eye, Settings } from 'lucide-react';
+import { X, Save, Globe, Eye, Settings, Monitor, Smartphone } from 'lucide-react';
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import DynamicFormGenerator from '../POS/DynamicFormGenerator';
@@ -21,6 +21,7 @@ const AdminWebsiteEditor: React.FC<AdminWebsiteEditorProps> = ({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'settings'>('content');
+  const [viewMode, setViewMode] = useState<'desktop' | 'pos'>('desktop');
 
   // Website data
   const [websiteData, setWebsiteData] = useState<any>(null);

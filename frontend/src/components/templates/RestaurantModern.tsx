@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './RestaurantModern.css';
+import { setAttr, initVisualEditor, isVisualEditorMode } from '../../lib/visual-editor';
 
 // Helper function to extract content from Directus sections/components structure
 const extractContentFromDirectus = (sections: any[]) => {
@@ -127,15 +128,24 @@ const extractContentFromDirectus = (sections: any[]) => {
 
 const RestaurantModern = ({ website, organizationName }: any) => {
   let content = website?.contenuto || website?.content || {};
+  let sections: any[] = [];
 
   if (!content || Object.keys(content).length === 0) {
     if (website?.pages && website.pages.length > 0) {
       const homepage = website.pages.find((p: any) => p.is_homepage) || website.pages[0];
       if (homepage?.sections) {
+        sections = homepage.sections; // Keep original sections with IDs
         content = extractContentFromDirectus(homepage.sections);
       }
     }
   }
+
+  // Initialize Visual Editor
+  useEffect(() => {
+    if (isVisualEditorMode()) {
+      initVisualEditor();
+    }
+  }, []);
 
   const hero = content.hero || {};
   const about = content.about || {};
@@ -146,6 +156,16 @@ const RestaurantModern = ({ website, organizationName }: any) => {
   const orari = content.orari || {};
   const contact = content.contact || {};
   const restaurantName = website?.site_name || organizationName || 'Ristorante';
+
+  // Find section IDs for Visual Editor
+  const heroSection = sections.find((s: any) => s.section_type === 'hero');
+  const aboutSection = sections.find((s: any) => s.section_type === 'about' || s.section_type === 'chi_siamo');
+  const menuSection = sections.find((s: any) => s.section_type === 'menu' || s.section_type === 'menu_food');
+  const gallerySection = sections.find((s: any) => s.section_type === 'gallery');
+  const serviziSection = sections.find((s: any) => s.section_type === 'servizi' || s.section_type === 'features' || s.section_type === 'services');
+  const recensioniSection = sections.find((s: any) => s.section_type === 'recensioni' || s.section_type === 'testimonials' || s.section_type === 'reviews');
+  const orariSection = sections.find((s: any) => s.section_type === 'orari' || s.section_type === 'hours' || s.section_type === 'opening_hours');
+  const contactSection = sections.find((s: any) => s.section_type === 'contact' || s.section_type === 'footer');
 
   return (
     <div className="restaurant-modern">
@@ -171,10 +191,26 @@ const RestaurantModern = ({ website, organizationName }: any) => {
         )}
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h1 className="hero-title">
+          <h1
+            className="hero-title"
+            data-directus={heroSection ? setAttr({
+              collection: 'page_sections',
+              item: heroSection.id,
+              fields: 'section_title',
+              mode: 'popover'
+            }) : undefined}
+          >
             {hero.title || 'Benvenuti'}
           </h1>
-          <p className="hero-subtitle">
+          <p
+            className="hero-subtitle"
+            data-directus={heroSection ? setAttr({
+              collection: 'page_sections',
+              item: heroSection.id,
+              fields: 'section_subtitle',
+              mode: 'popover'
+            }) : undefined}
+          >
             {hero.subtitle || 'Autentica cucina italiana'}
           </p>
           <div className="hero-buttons">
@@ -197,8 +233,30 @@ const RestaurantModern = ({ website, organizationName }: any) => {
         <section id="about" className="modern-about">
           <div className="about-container">
             <div className="about-content">
-              <h2 className="section-title">{about.title}</h2>
-              {about.subtitle && <p className="section-subtitle">{about.subtitle}</p>}
+              <h2
+                className="section-title"
+                data-directus={aboutSection ? setAttr({
+                  collection: 'page_sections',
+                  item: aboutSection.id,
+                  fields: 'section_title',
+                  mode: 'popover'
+                }) : undefined}
+              >
+                {about.title}
+              </h2>
+              {about.subtitle && (
+                <p
+                  className="section-subtitle"
+                  data-directus={aboutSection ? setAttr({
+                    collection: 'page_sections',
+                    item: aboutSection.id,
+                    fields: 'section_subtitle',
+                    mode: 'popover'
+                  }) : undefined}
+                >
+                  {about.subtitle}
+                </p>
+              )}
               {about.text && <p className="about-text">{about.text}</p>}
             </div>
             {about.image_url && (
@@ -214,8 +272,28 @@ const RestaurantModern = ({ website, organizationName }: any) => {
       {menu.items && menu.items.length > 0 && (
         <section id="menu" className="modern-menu">
           <div className="menu-header">
-            <h2 className="section-title">{menu.title || 'Il Nostro Menu'}</h2>
-            <p className="section-subtitle">{menu.subtitle || 'Le nostre specialità'}</p>
+            <h2
+              className="section-title"
+              data-directus={menuSection ? setAttr({
+                collection: 'page_sections',
+                item: menuSection.id,
+                fields: 'section_title',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {menu.title || 'Il Nostro Menu'}
+            </h2>
+            <p
+              className="section-subtitle"
+              data-directus={menuSection ? setAttr({
+                collection: 'page_sections',
+                item: menuSection.id,
+                fields: 'section_subtitle',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {menu.subtitle || 'Le nostre specialità'}
+            </p>
           </div>
           <div className="menu-grid">
             {menu.items.map((item: any, index: number) => (
@@ -247,8 +325,28 @@ const RestaurantModern = ({ website, organizationName }: any) => {
       {gallery.images && gallery.images.length > 0 && (
         <section id="gallery" className="modern-gallery">
           <div className="gallery-header">
-            <h2 className="section-title">{gallery.title || 'Gallery'}</h2>
-            <p className="section-subtitle">{gallery.subtitle || 'I nostri piatti'}</p>
+            <h2
+              className="section-title"
+              data-directus={gallerySection ? setAttr({
+                collection: 'page_sections',
+                item: gallerySection.id,
+                fields: 'section_title',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {gallery.title || 'Gallery'}
+            </h2>
+            <p
+              className="section-subtitle"
+              data-directus={gallerySection ? setAttr({
+                collection: 'page_sections',
+                item: gallerySection.id,
+                fields: 'section_subtitle',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {gallery.subtitle || 'I nostri piatti'}
+            </p>
           </div>
           <div className="gallery-grid">
             {gallery.images.map((image: any, index: number) => (
@@ -265,8 +363,30 @@ const RestaurantModern = ({ website, organizationName }: any) => {
       {servizi.items && servizi.items.length > 0 && (
         <section id="servizi" className="modern-servizi">
           <div className="servizi-header">
-            <h2 className="section-title">{servizi.title || 'I Nostri Servizi'}</h2>
-            {servizi.subtitle && <p className="section-subtitle">{servizi.subtitle}</p>}
+            <h2
+              className="section-title"
+              data-directus={serviziSection ? setAttr({
+                collection: 'page_sections',
+                item: serviziSection.id,
+                fields: 'section_title',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {servizi.title || 'I Nostri Servizi'}
+            </h2>
+            {servizi.subtitle && (
+              <p
+                className="section-subtitle"
+                data-directus={serviziSection ? setAttr({
+                  collection: 'page_sections',
+                  item: serviziSection.id,
+                  fields: 'section_subtitle',
+                  mode: 'popover'
+                }) : undefined}
+              >
+                {servizi.subtitle}
+              </p>
+            )}
           </div>
           <div className="servizi-grid">
             {servizi.items.map((item: any, index: number) => (
@@ -284,8 +404,28 @@ const RestaurantModern = ({ website, organizationName }: any) => {
       {recensioni.reviews && recensioni.reviews.length > 0 && (
         <section id="recensioni" className="modern-recensioni">
           <div className="recensioni-header">
-            <h2 className="section-title">{recensioni.title || 'Recensioni'}</h2>
-            <p className="section-subtitle">{recensioni.subtitle || 'Cosa dicono di noi'}</p>
+            <h2
+              className="section-title"
+              data-directus={recensioniSection ? setAttr({
+                collection: 'page_sections',
+                item: recensioniSection.id,
+                fields: 'section_title',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {recensioni.title || 'Recensioni'}
+            </h2>
+            <p
+              className="section-subtitle"
+              data-directus={recensioniSection ? setAttr({
+                collection: 'page_sections',
+                item: recensioniSection.id,
+                fields: 'section_subtitle',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {recensioni.subtitle || 'Cosa dicono di noi'}
+            </p>
           </div>
           <div className="recensioni-grid">
             {recensioni.reviews.map((review: any, index: number) => (
@@ -312,8 +452,30 @@ const RestaurantModern = ({ website, organizationName }: any) => {
       {orari.schedule && orari.schedule.length > 0 && (
         <section id="orari" className="modern-orari">
           <div className="orari-header">
-            <h2 className="section-title">{orari.title || 'Orari di Apertura'}</h2>
-            {orari.subtitle && <p className="section-subtitle">{orari.subtitle}</p>}
+            <h2
+              className="section-title"
+              data-directus={orariSection ? setAttr({
+                collection: 'page_sections',
+                item: orariSection.id,
+                fields: 'section_title',
+                mode: 'popover'
+              }) : undefined}
+            >
+              {orari.title || 'Orari di Apertura'}
+            </h2>
+            {orari.subtitle && (
+              <p
+                className="section-subtitle"
+                data-directus={orariSection ? setAttr({
+                  collection: 'page_sections',
+                  item: orariSection.id,
+                  fields: 'section_subtitle',
+                  mode: 'popover'
+                }) : undefined}
+              >
+                {orari.subtitle}
+              </p>
+            )}
           </div>
           <div className="orari-list">
             {orari.schedule.map((item: any, index: number) => (
