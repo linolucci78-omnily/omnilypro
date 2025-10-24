@@ -143,7 +143,16 @@ settings            JSON
 │  🎨 Omnily Visual Editor - Pizzeria Napoli            [💾][👁️][❌]│
 ├────────────┬─────────────────────────────────────────────────────┤
 │            │                                                     │
-│  SEZIONI   │              PREVIEW LIVE                           │
+│  📄 PAGINE │              PREVIEW LIVE                           │
+│            │                                                     │
+│  🏠 Home   │  Pagina: [Home ▼] [+ Nuova Pagina]                 │
+│  📖 Chi    │                                                     │
+│     Siamo  │  ┌───────────────────────────────────────────────┐ │
+│  📞 Contat.│  │ 🏠 HERO SECTION                               │ │
+│  [+ Pagina]│  │ "Benvenuti da Pizzeria Napoli"                │ │
+│            │  │ [Immagine hero bellissima]                    │ │
+│  SEZIONI   │  │                                                │ │
+│  (Home)    │  └───────────────────────────────────────────────┘ │
 │            │                                                     │
 │  [+ Nuova] │  ┌───────────────────────────────────────────────┐ │
 │            │  │ 🏠 HERO SECTION                               │ │
@@ -369,6 +378,133 @@ settings            JSON
    ↓
 4. Aggiorna preview con nuovo ordine
 ```
+
+---
+
+## 📄 Gestione Multi-Pagina
+
+### Tipi di Pagine Supportate
+
+1. **🏠 Homepage** (`is_homepage: true`)
+   - Pagina principale del sito
+   - Sempre presente (creata automaticamente)
+   - URL: `/` o `/home`
+
+2. **📖 Chi Siamo / About**
+   - Storia dell'attività
+   - URL: `/chi-siamo` o `/about`
+
+3. **📞 Contatti**
+   - Informazioni di contatto dettagliate
+   - Form contatto
+   - Mappa
+   - URL: `/contatti` o `/contact`
+
+4. **🍕 Menu / Prodotti**
+   - Catalogo completo prodotti/servizi
+   - URL: `/menu` o `/prodotti`
+
+5. **📅 Prenotazioni**
+   - Sistema prenotazione online
+   - URL: `/prenota` o `/booking`
+
+6. **📰 Blog / News**
+   - Articoli e notizie
+   - URL: `/blog` o `/news`
+
+7. **📷 Gallery**
+   - Galleria foto completa
+   - URL: `/gallery` o `/foto`
+
+8. **💼 Lavora con Noi**
+   - Posizioni aperte
+   - URL: `/lavora-con-noi` or `/careers`
+
+9. **🆕 Pagina Custom**
+   - Pagina personalizzata creata dall'utente
+   - URL personalizzabile
+
+### Workflow Creazione Pagina
+
+```
+1. Click "[+ Nuova Pagina]" nell'editor
+   ↓
+2. Si apre modal:
+   ┌────────────────────────────────────┐
+   │  📄 Crea Nuova Pagina             │
+   ├────────────────────────────────────┤
+   │  Nome Pagina:                      │
+   │  [________________]                │
+   │                                    │
+   │  Tipo Pagina:                      │
+   │  ○ Chi Siamo                       │
+   │  ○ Contatti                        │
+   │  ○ Menu/Prodotti                   │
+   │  ● Pagina Custom                   │
+   │                                    │
+   │  URL (slug):                       │
+   │  /[________________]               │
+   │                                    │
+   │  Template Iniziale:                │
+   │  ○ Vuota                           │
+   │  ● Con sezioni predefinite         │
+   │                                    │
+   │  [Crea Pagina] [Annulla]          │
+   └────────────────────────────────────┘
+   ↓
+3. Pagina creata con sezioni di default
+   ↓
+4. Admin personalizza sezioni per quella pagina
+   ↓
+5. Pagina disponibile nel menu del sito
+```
+
+### Navigazione tra Pagine nell'Editor
+
+```
+┌─────────────────────────────────┐
+│  📄 PAGINE                      │
+├─────────────────────────────────┤
+│  🏠 Home              [👁️][🗑️] │ ← is_homepage
+│  📖 Chi Siamo         [👁️][🗑️] │
+│  🍕 Menu              [👁️][🗑️] │
+│  📞 Contatti          [👁️][🗑️] │
+│  📷 Gallery           [👁️][🗑️] │
+│                                 │
+│  [+ Aggiungi Pagina]            │
+└─────────────────────────────────┘
+```
+
+Click su una pagina → Mostra sezioni di quella pagina
+
+### Menu di Navigazione Automatico
+
+Il sito genera automaticamente un menu di navigazione con tutte le pagine pubblicate:
+
+```html
+<nav>
+  <a href="/">Home</a>
+  <a href="/chi-siamo">Chi Siamo</a>
+  <a href="/menu">Menu</a>
+  <a href="/gallery">Gallery</a>
+  <a href="/contatti">Contatti</a>
+</nav>
+```
+
+### Gestione Ordine Pagine nel Menu
+
+```typescript
+// Ogni pagina ha un campo sort_order
+interface WebsitePage {
+  id: number;
+  page_name: string;
+  slug: string;
+  sort_order: number;  // Ordine nel menu (1, 2, 3...)
+  show_in_menu: boolean; // Mostra nel menu di navigazione
+}
+```
+
+Drag & drop nell'editor per riordinare pagine nel menu.
 
 ---
 
