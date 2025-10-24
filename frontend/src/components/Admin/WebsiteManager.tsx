@@ -10,11 +10,13 @@ import {
   Edit2,
   Link as LinkIcon,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Paintbrush
 } from 'lucide-react';
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import ConfirmModal from '../UI/ConfirmModal';
+import DirectusVisualEditor from './DirectusVisualEditor';
 import { supabase } from '../../lib/supabase';
 import { directusClient, type TemplateType } from '../../lib/directus';
 import './WebsiteManager.css';
@@ -37,6 +39,7 @@ const WebsiteManager: React.FC = () => {
   const [selectedOrg, setSelectedOrg] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | ''>('');
   const [siteName, setSiteName] = useState('');
+  const [visualEditingWebsite, setVisualEditingWebsite] = useState<number | null>(null);
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -383,6 +386,14 @@ const WebsiteManager: React.FC = () => {
                             </button>
                             <button
                               className="action-button-circle"
+                              title="Visual Editor (Directus)"
+                              onClick={() => setVisualEditingWebsite(site.id)}
+                              style={{ backgroundColor: '#a855f7', color: 'white' }}
+                            >
+                              <Paintbrush size={16} />
+                            </button>
+                            <button
+                              className="action-button-circle"
                               title="Modifica"
                               onClick={() => handleEditSite(site.id, site.site_name)}
                             >
@@ -404,6 +415,14 @@ const WebsiteManager: React.FC = () => {
               </div>
             </div>
       </div>
+
+      {/* Visual Editor Modal */}
+      {visualEditingWebsite && (
+        <DirectusVisualEditor
+          websiteId={visualEditingWebsite}
+          onClose={() => setVisualEditingWebsite(null)}
+        />
+      )}
     </div>
   );
 };

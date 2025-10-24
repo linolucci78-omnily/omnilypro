@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { directusClient } from '../lib/directus';
 import type { DirectusWebsite } from '../lib/directus';
-import { Globe, Edit, Trash2, Eye, EyeOff, ExternalLink, Paintbrush } from 'lucide-react';
+import { Globe, Edit, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import AdminWebsiteEditor from './Admin/AdminWebsiteEditor';
-import DirectusVisualEditor from './Admin/DirectusVisualEditor';
 
 interface OrganizationWebsitesProps {
   organizationId: string;
@@ -18,7 +17,6 @@ export default function OrganizationWebsites({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingWebsite, setEditingWebsite] = useState<DirectusWebsite | null>(null);
-  const [visualEditingWebsite, setVisualEditingWebsite] = useState<DirectusWebsite | null>(null);
 
   useEffect(() => {
     loadWebsites();
@@ -170,20 +168,11 @@ export default function OrganizationWebsites({
                       {isPublished ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
 
-                    {/* Visual Editor */}
-                    <button
-                      onClick={() => setVisualEditingWebsite(website)}
-                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
-                      title="Visual Editor (Directus)"
-                    >
-                      <Paintbrush size={18} />
-                    </button>
-
-                    {/* Modifica */}
+                    {/* Modifica Contenuti (POS-friendly) */}
                     <button
                       onClick={() => setEditingWebsite(website)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="Modifica contenuto"
+                      title="Modifica contenuti (testi, prezzi, foto)"
                     >
                       <Edit size={18} />
                     </button>
@@ -212,7 +201,7 @@ export default function OrganizationWebsites({
         </div>
       )}
 
-      {/* Editor Modal */}
+      {/* Editor Modal - Solo contenuti (POS-friendly) */}
       {editingWebsite && (
         <AdminWebsiteEditor
           websiteId={editingWebsite.id.toString()}
@@ -223,17 +212,6 @@ export default function OrganizationWebsites({
           onSave={() => {
             setEditingWebsite(null);
             loadWebsites();
-          }}
-        />
-      )}
-
-      {/* Visual Editor Modal (Directus) */}
-      {visualEditingWebsite && (
-        <DirectusVisualEditor
-          websiteId={visualEditingWebsite.id}
-          onClose={() => {
-            setVisualEditingWebsite(null);
-            loadWebsites(); // Ricarica la lista dopo le modifiche
           }}
         />
       )}
