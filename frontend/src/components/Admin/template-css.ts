@@ -1,6 +1,9 @@
 // Full RestaurantClassic template CSS
 export const RESTAURANT_CLASSIC_CSS = `/* Restaurant Classic Template - Professional Design */
 
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 /* Force full width - override any parent styles */
 html {
   overflow-x: hidden !important;
@@ -14,6 +17,9 @@ body {
   width: 100% !important;
   max-width: 100% !important;
   overflow-x: hidden !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  color: #1a1a1a;
+  line-height: 1.6;
 }
 
 * {

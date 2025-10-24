@@ -152,10 +152,16 @@ const PublicSite: React.FC = () => {
   // Check if website has custom GrapesJS HTML
   if (website.grapesjs_html) {
     console.log('🎨 Rendering GrapesJS custom HTML');
+
+    // Include CSS in the HTML
+    const htmlWithCss = website.grapesjs_css
+      ? `<style>${website.grapesjs_css}</style>${website.grapesjs_html}`
+      : website.grapesjs_html;
+
     return (
       <div
         dangerouslySetInnerHTML={{
-          __html: website.grapesjs_html
+          __html: htmlWithCss
         }}
       />
     );
