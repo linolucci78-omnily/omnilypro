@@ -1,0 +1,341 @@
+/* Craft Editor Styles */
+
+.craft-editor-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER */
+.craft-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  flex-shrink: 0;
+}
+
+.craft-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.craft-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.craft-subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.craft-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* BUTTONS */
+.craft-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.craft-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.craft-btn-primary {
+  background: #10b981;
+  color: white;
+}
+
+.craft-btn-primary:hover:not(:disabled) {
+  background: #059669;
+}
+
+.craft-btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.craft-btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.craft-btn-ghost {
+  background: transparent;
+  color: #9ca3af;
+}
+
+.craft-btn-ghost:hover {
+  background: #374151;
+  color: white;
+}
+
+.craft-btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.craft-btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.craft-btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* MAIN LAYOUT */
+.craft-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* TOOLBOX (Sidebar Sinistra) */
+.craft-toolbox {
+  width: 260px;
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.craft-panel-header {
+  padding: 16px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.craft-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.craft-toolbox-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.craft-toolbox-category {
+  margin-bottom: 24px;
+}
+
+.craft-toolbox-category h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.craft-toolbox-items {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.craft-toolbox-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: move;
+  transition: all 0.2s;
+}
+
+.craft-toolbox-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.craft-toolbox-icon {
+  font-size: 24px;
+}
+
+.craft-toolbox-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* CANVAS (Area Centrale) */
+.craft-canvas-wrapper {
+  flex: 1;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.craft-device-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.craft-device-btn {
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.craft-device-btn:hover {
+  background: #e5e7eb;
+}
+
+.craft-device-btn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.craft-canvas-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+
+.craft-canvas {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-height: 600px;
+}
+
+/* RIGHT PANEL (Layers & Settings) */
+.craft-right-panel {
+  width: 300px;
+  background: #f9fafb;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.craft-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.craft-layers-panel {
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.craft-settings-panel {
+  flex: 1;
+}
+
+.craft-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* SETTINGS */
+.craft-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.craft-settings-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.craft-settings-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.craft-settings-value {
+  font-size: 14px;
+  color: #1f2937;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.craft-settings-empty {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.craft-settings-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.craft-settings-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.craft-settings-actions button {
+  width: 100%;
+}
+
+/* LAYERS PANEL */
+.craft-layers-panel .craft-panel-content {
+  padding: 0;
+}
