@@ -247,15 +247,22 @@ const WebsiteManager: React.FC = () => {
     }
 
     try {
+      console.log('🗑️ Tentativo eliminazione sito:', { siteId, siteName });
       await directusClient.deleteWebsite(siteId);
+      console.log('✅ Sito eliminato con successo da Directus');
 
       // Update UI
       setWebsites(prev => prev.filter(site => site.id !== siteId));
 
       showToast('Sito eliminato con successo!', 'success');
-    } catch (error) {
-      console.error('Error deleting site:', error);
-      showToast('Errore nell\'eliminazione del sito.', 'error');
+    } catch (error: any) {
+      console.error('❌ Error deleting site:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response,
+      });
+      showToast(`Errore nell'eliminazione del sito: ${error.message || 'Errore sconosciuto'}`, 'error');
     }
   };
 
