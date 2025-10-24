@@ -210,11 +210,10 @@ class DirectusClient {
   async deleteWebsite(websiteId: number): Promise<void> {
     console.log('🔥 DirectusClient.deleteWebsite chiamato:', { websiteId });
     try {
-      const result = await this.request(`/items/organizations_websites/${websiteId}`, {
+      await this.request(`/items/organizations_websites/${websiteId}`, {
         method: 'DELETE',
       });
-      console.log('✅ DirectusClient.deleteWebsite completato:', result);
-      return result;
+      console.log('✅ DirectusClient.deleteWebsite completato');
     } catch (error: any) {
       console.error('❌ DirectusClient.deleteWebsite errore:', error);
       throw error;
