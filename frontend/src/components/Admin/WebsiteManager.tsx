@@ -17,7 +17,6 @@ import {
 import PageLoader from '../UI/PageLoader';
 import Toast from '../UI/Toast';
 import ConfirmModal from '../UI/ConfirmModal';
-import DirectusVisualEditor from './DirectusVisualEditor';
 import WebsiteVisualEditor from './WebsiteVisualEditor';
 import { supabase } from '../../lib/supabase';
 import { directusClient, type TemplateType } from '../../lib/directus';
@@ -41,8 +40,7 @@ const WebsiteManager: React.FC = () => {
   const [selectedOrg, setSelectedOrg] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | ''>('');
   const [siteName, setSiteName] = useState('');
-  const [visualEditingWebsite, setVisualEditingWebsite] = useState<number | null>(null);
-  const [grapesJSEditingWebsite, setGrapesJSEditingWebsite] = useState<number | null>(null);
+  const [editingWebsite, setEditingWebsite] = useState<number | null>(null);
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -428,19 +426,11 @@ const WebsiteManager: React.FC = () => {
                             </button>
                             <button
                               className="action-button-circle"
-                              title="Visual Editor (Directus)"
-                              onClick={() => setVisualEditingWebsite(site.id)}
-                              style={{ backgroundColor: '#a855f7', color: 'white' }}
-                            >
-                              <Paintbrush size={16} />
-                            </button>
-                            <button
-                              className="action-button-circle"
-                              title="Page Builder (GrapesJS)"
-                              onClick={() => setGrapesJSEditingWebsite(site.id)}
+                              title="Editor Visuale - Modifica il sito"
+                              onClick={() => setEditingWebsite(site.id)}
                               style={{ backgroundColor: '#3b82f6', color: 'white' }}
                             >
-                              <Layout size={16} />
+                              <Paintbrush size={16} />
                             </button>
                             <button
                               className="action-button-circle"
@@ -468,21 +458,13 @@ const WebsiteManager: React.FC = () => {
             </div>
       </div>
 
-      {/* Visual Editor Modal (Directus) */}
-      {visualEditingWebsite && (
-        <DirectusVisualEditor
-          websiteId={visualEditingWebsite}
-          onClose={() => setVisualEditingWebsite(null)}
-        />
-      )}
-
-      {/* Page Builder Modal (GrapesJS) */}
-      {grapesJSEditingWebsite && (
+      {/* Visual Editor Modal (GrapesJS) */}
+      {editingWebsite && (
         <WebsiteVisualEditor
-          websiteId={grapesJSEditingWebsite}
-          onClose={() => setGrapesJSEditingWebsite(null)}
+          websiteId={editingWebsite}
+          onClose={() => setEditingWebsite(null)}
           onSave={() => {
-            setGrapesJSEditingWebsite(null);
+            setEditingWebsite(null);
             // Ricarica la lista siti
             const fetchData = async () => {
               try {
