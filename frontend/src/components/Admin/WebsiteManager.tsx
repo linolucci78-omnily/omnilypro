@@ -389,10 +389,14 @@ const WebsiteManager: React.FC = () => {
                           <div className="actions-cell">
                             <button
                               className="action-button-circle"
-                              title="Pubblica/Sospendi"
+                              title={site.is_published ? "Sospendi pubblicazione" : "Pubblica sito"}
                               onClick={() => handleTogglePublish(site.id, site.is_published, site.site_name)}
+                              style={{
+                                backgroundColor: site.is_published ? '#10b981' : '#6b7280',
+                                color: 'white'
+                              }}
                             >
-                                {site.is_published ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
+                                {site.is_published ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                             </button>
                             <button
                               className="action-button-circle"
@@ -412,15 +416,17 @@ const WebsiteManager: React.FC = () => {
                             </button>
                             <button
                               className="action-button-circle"
-                              title="Modifica"
+                              title="Modifica impostazioni"
                               onClick={() => handleEditSite(site.id, site.site_name)}
+                              style={{ backgroundColor: '#f59e0b', color: 'white' }}
                             >
                               <Edit2 size={16} />
                             </button>
                             <button
                               className="action-button-circle"
-                              title="Elimina"
+                              title="Elimina sito"
                               onClick={() => handleDeleteSite(site.id, site.site_name)}
+                              style={{ backgroundColor: '#ef4444', color: 'white' }}
                             >
                               <Trash2 size={16} />
                             </button>
