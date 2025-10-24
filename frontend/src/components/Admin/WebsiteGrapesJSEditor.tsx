@@ -100,6 +100,11 @@ const WebsiteGrapesJSEditor: React.FC<WebsiteGrapesJSEditorProps> = ({
     },
     identity: { id: userId },
     theme: 'light' as const,
+    canvas: {
+      styles: [
+        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
+      ],
+    },
   }), [projectId, userId]);
 
   const handleOnChange = (data: any) => {
