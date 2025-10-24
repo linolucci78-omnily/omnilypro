@@ -251,8 +251,36 @@ const WebsiteManager: React.FC = () => {
       await directusClient.deleteWebsite(siteId);
       console.log('✅ Sito eliminato con successo da Directus');
 
-      // Update UI
-      setWebsites(prev => prev.filter(site => site.id !== siteId));
+      // Ricarica la lista completa per essere sicuri
+      console.log('🔄 Ricaricamento lista siti...');
+      const { data: orgsData } = await supabase
+        .from('organizations')
+        .select('id, name')
+        .order('name', { ascending: true });
+
+      const organizations = orgsData || [];
+      const allWebsites: any[] = [];
+
+      for (const org of organizations) {
+        try {
+          const orgWebsites = await directusClient.getOrganizationWebsites(org.id);
+          const formattedSites = orgWebsites.map(site => ({
+            id: site.id,
+            organization_id: site.organization_id,
+            orgName: org.name,
+            site_name: site.site_name,
+            domain: site.domain,
+            is_published: site.published,
+            custom_domain: site.domain || 'N/A',
+          }));
+          allWebsites.push(...formattedSites);
+        } catch (err) {
+          console.error(`Error fetching websites for org ${org.id}:`, err);
+        }
+      }
+
+      setWebsites(allWebsites);
+      console.log('✅ Lista siti aggiornata');
 
       showToast('Sito eliminato con successo!', 'success');
     } catch (error: any) {
