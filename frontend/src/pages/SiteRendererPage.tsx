@@ -85,17 +85,24 @@ const SiteRendererPage: React.FC = () => {
         const completeWebsite = await directusClient.getWebsiteComplete(siteData.id);
         setWebsiteData(completeWebsite);
 
-        // Fetch organization name from Supabase
-        if (siteData.organization_id) {
-          const { data: orgData } = await supabase
-            .from('organizations')
-            .select('name')
-            .eq('id', siteData.organization_id)
-            .single();
+        // Fetch organization name from Supabase (optional, non-blocking)
+        try {
+          if (siteData.organization_id) {
+            const { data: orgData, error: orgError } = await supabase
+              .from('organizations')
+              .select('name')
+              .eq('id', siteData.organization_id)
+              .single();
 
-          if (orgData) {
-            setOrganizationName(orgData.name);
+            if (orgData && !orgError) {
+              setOrganizationName(orgData.name);
+            } else {
+              console.warn('⚠️ Could not fetch organization name:', orgError);
+            }
           }
+        } catch (orgErr) {
+          // Non-blocking: if organization fetch fails, just use site_name
+          console.warn('⚠️ Organization fetch failed:', orgErr);
         }
 
       } catch (err: any) {
