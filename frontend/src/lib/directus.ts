@@ -404,14 +404,25 @@ class DirectusClient {
     siteName: string,
     templateType: TemplateType
   ): Promise<DirectusWebsiteComplete> {
-    // 1. Crea il sito
+    // 1. Genera il dominio dal nome sito (slug)
+    const domain = siteName
+      .toLowerCase()
+      .normalize('NFD') // Normalizza caratteri accentati
+      .replace(/[\u0300-\u036f]/g, '') // Rimuove accenti
+      .replace(/[^a-z0-9\s-]/g, '') // Rimuove caratteri speciali
+      .replace(/\s+/g, '-') // Sostituisce spazi con trattini
+      .replace(/-+/g, '-') // Rimuove trattini multipli
+      .replace(/^-|-$/g, ''); // Rimuove trattini all'inizio/fine
+
+    // 2. Crea il sito con dominio
     const website = await this.createWebsite({
       organization_id: organizationId,
       site_name: siteName,
+      domain: `${domain}.omnilypro.com`,
       published: false,
     });
 
-    // 2. Crea la homepage
+    // 3. Crea la homepage
     const page = await this.createPage({
       website_id: website.id,
       page_name: 'Home',
@@ -423,10 +434,10 @@ class DirectusClient {
       sort_order: 1,
     });
 
-    // 3. Crea sezioni e componenti in base al template
+    // 4. Crea sezioni e componenti in base al template
     await this.createTemplateContent(page.id, templateType, siteName);
 
-    // 4. Ritorna il sito completo
+    // 5. Ritorna il sito completo
     return this.getWebsiteComplete(website.id);
   }
 
