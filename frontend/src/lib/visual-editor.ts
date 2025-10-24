@@ -43,7 +43,11 @@ export function setAttr({
  */
 export function initVisualEditor() {
   if (typeof window !== 'undefined') {
-    apply();
+    const directusUrl = import.meta.env.VITE_DIRECTUS_URL || 'https://omnilypro-directus.onrender.com';
+
+    apply({
+      directusUrl,
+    });
   }
 }
 
