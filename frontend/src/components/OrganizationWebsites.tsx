@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { directusClient } from '../lib/directus';
 import type { DirectusWebsite } from '../lib/directus';
 import { Globe, Edit, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import AdminWebsiteEditor from './Admin/AdminWebsiteEditor';
 
 interface OrganizationWebsitesProps {
   organizationId: string;
@@ -15,6 +16,7 @@ export default function OrganizationWebsites({
   const [websites, setWebsites] = useState<DirectusWebsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingWebsite, setEditingWebsite] = useState<DirectusWebsite | null>(null);
 
   useEffect(() => {
     loadWebsites();
@@ -168,6 +170,7 @@ export default function OrganizationWebsites({
 
                     {/* Modifica */}
                     <button
+                      onClick={() => setEditingWebsite(website)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="Modifica contenuto"
                     >
@@ -196,6 +199,17 @@ export default function OrganizationWebsites({
             Crea il primo sito scegliendo un template
           </p>
         </div>
+      )}
+
+      {/* Editor Modal */}
+      {editingWebsite && (
+        <AdminWebsiteEditor
+          websiteId={editingWebsite.id}
+          onClose={() => {
+            setEditingWebsite(null);
+            loadWebsites(); // Ricarica la lista dopo le modifiche
+          }}
+        />
       )}
     </div>
   );
