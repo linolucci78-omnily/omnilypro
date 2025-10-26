@@ -1,78 +1,116 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { useNode, Element } from '@craftjs/core';
-import { Container } from '../components/Container';
-import { Text } from '../components/Text';
-import { Button } from '../components/Button';
-import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
+import { useNode } from '@craftjs/core';
 import { FileText, Palette, Settings } from 'lucide-react';
+import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
 
-export interface HeroSectionProps {
+interface ContactSectionProps {
   title?: string;
   subtitle?: string;
   backgroundColor?: string;
-  minHeight?: number;
+  textColor?: string;
   paddingTop?: number;
   paddingBottom?: number;
+  minHeight?: number;
   background?: BackgroundSettings;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
-  title = 'Benvenuti',
-  subtitle = 'Il tuo sottotitolo',
-  backgroundColor = '#667eea',
-  minHeight = 400,
+export const ContactSection: React.FC<ContactSectionProps> = ({
+  title = 'Contact Us',
+  subtitle = 'Get in touch with us',
+  backgroundColor = '#f9fafb',
+  textColor = '#1a1a1a',
   paddingTop = 60,
   paddingBottom = 60,
-  background = {}
+  minHeight = 0,
+  background = {},
 }) => {
-  const {
-    connectors: { connect, drag }
-  } = useNode();
+  const { connectors: { connect, drag } } = useNode();
 
   const backgroundStyles = getBackgroundStyles(background);
   const overlayStyles = getOverlayStyles(background);
 
   return (
-    <div
-      ref={(ref) => connect(drag(ref as HTMLElement))}
+    <section
+      ref={(ref) => {
+        if (ref) {
+          connect(drag(ref));
+        }
+      }}
       style={{
         ...backgroundStyles,
-        background: backgroundStyles.background || `linear-gradient(135deg, ${backgroundColor} 0%, #764ba2 100%)`,
-        minHeight: `${minHeight}px`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: backgroundStyles.background || backgroundColor,
+        backgroundColor: backgroundStyles.backgroundColor || backgroundColor,
+        color: textColor,
         paddingTop: `${paddingTop}px`,
         paddingBottom: `${paddingBottom}px`,
-        paddingLeft: '20px',
-        paddingRight: '20px',
+        minHeight: minHeight ? `${minHeight}px` : 'auto',
         position: 'relative',
       }}
     >
       {overlayStyles && <div style={{ ...overlayStyles }} />}
-      <Element
-        id="hero-container"
-        is={Container}
-        canvas
-        background="transparent"
-        padding={20}
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        gap={20}
-        custom={{ displayName: 'Hero Content' }}
-      >
-        <Element id="hero-title" is={Text} text={title} fontSize={48} fontWeight={700} color="#ffffff" textAlign="center" />
-        <Element id="hero-subtitle" is={Text} text={subtitle} fontSize={20} fontWeight={400} color="#ffffff" textAlign="center" />
-        <Element id="hero-button" is={Button} text="Scopri di più" backgroundColor="#ffffff" color="#667eea" />
-      </Element>
-    </div>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '36px', marginBottom: '15px', fontWeight: 'bold' }}>
+            {title}
+          </h2>
+          <p style={{ fontSize: '18px', opacity: 0.8 }}>
+            {subtitle}
+          </p>
+        </div>
+        <form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <input
+            type="text"
+            placeholder="Name"
+            style={{
+              padding: '12px',
+              fontSize: '16px',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+            }}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            style={{
+              padding: '12px',
+              fontSize: '16px',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+            }}
+          />
+          <textarea
+            placeholder="Message"
+            rows={5}
+            style={{
+              padding: '12px',
+              fontSize: '16px',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+            }}
+          />
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#3b82f6',
+              color: '#ffffff',
+              padding: '12px 32px',
+              fontSize: '18px',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            Send Message
+          </button>
+        </form>
+      </div>
+    </section>
   );
 };
 
-// HeroSection Settings Toolbar - TIPO ELEMENTOR
-const HeroSectionSettings = () => {
+// ContactSection Settings Toolbar - TIPO ELEMENTOR
+const ContactSectionSettings = () => {
   const { actions: { setProp }, props } = useNode((node) => ({
     props: node.data.props
   }));
@@ -189,6 +227,18 @@ const HeroSectionSettings = () => {
                 Usato se non imposti un'immagine di background
               </p>
             </div>
+
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
+                Colore Testo
+              </label>
+              <input
+                type="color"
+                value={props.textColor}
+                onChange={(e) => setProp((props: any) => props.textColor = e.target.value)}
+                style={{ width: '100%', height: '40px', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer' }}
+              />
+            </div>
           </>
         )}
 
@@ -201,7 +251,7 @@ const HeroSectionSettings = () => {
               </label>
               <input
                 type="range"
-                min="200"
+                min="0"
                 max="1000"
                 step="50"
                 value={props.minHeight}
@@ -246,18 +296,19 @@ const HeroSectionSettings = () => {
   );
 };
 
-HeroSection.craft = {
-  displayName: 'Hero Section',
+ContactSection.craft = {
+  displayName: 'Contact Section',
   props: {
-    title: 'Benvenuti',
-    subtitle: 'Il tuo sottotitolo',
-    backgroundColor: '#667eea',
-    minHeight: 400,
+    title: 'Contact Us',
+    subtitle: 'Get in touch with us',
+    backgroundColor: '#f9fafb',
+    textColor: '#1a1a1a',
     paddingTop: 60,
     paddingBottom: 60,
-    background: {}
+    minHeight: 0,
+    background: {},
   },
   related: {
-    toolbar: HeroSectionSettings
-  }
+    toolbar: ContactSectionSettings,
+  },
 };

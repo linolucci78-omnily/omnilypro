@@ -33,6 +33,7 @@ import DatabaseDashboard from './components/Admin/DatabaseDashboard'
 import SupportDashboard from './components/Admin/SupportDashboard'
 import BrandingDashboard from './components/Admin/BrandingDashboard'
 import WebsiteManager from './components/Admin/WebsiteManager'
+import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
@@ -102,10 +103,14 @@ function App() {
   // Check for public site rendering mode
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
+
+  // 🧪 TESTING: Force SiteRendererPage mode when accessing /test-public-site
+  const isTestingPublicSite = window.location.pathname === '/test-public-site';
+
   const isPublicSite = parts.length > 1 && !['www', 'localhost', 'app', 'admin'].includes(parts[0]);
 
-  if (isPublicSite) {
-    console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage');
+  if (isPublicSite || isTestingPublicSite) {
+    console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage', { isTestingPublicSite });
     return (
       <Router>
         <AuthProvider>
@@ -202,6 +207,7 @@ function App() {
               <Route path="support" element={<SupportDashboard />} />
               <Route path="branding" element={<BrandingDashboard />} />
               <Route path="websites" element={<WebsiteManager />} />
+              <Route path="websites-v2" element={<WebsiteManagerV2 />} />
             </Route>
             <Route path="/sign/:signatureId" element={
               <React.Suspense fallback={<div>Caricamento...</div>}>

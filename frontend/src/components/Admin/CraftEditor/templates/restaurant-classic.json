@@ -1,0 +1,256 @@
+{
+  "ROOT": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "background": "#ffffff",
+      "padding": 0,
+      "flexDirection": "column",
+      "alignItems": "stretch",
+      "justifyContent": "flex-start",
+      "gap": 0
+    },
+    "displayName": "Container",
+    "custom": {},
+    "hidden": false,
+    "nodes": ["hero-section", "features-section", "menu-section", "gallery-section", "contact-section"],
+    "linkedNodes": {}
+  },
+  "hero-section": {
+    "type": {
+      "resolvedName": "HeroSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Benvenuti nel Nostro Ristorante",
+      "subtitle": "Autentica Cucina Italiana nel Cuore della Città",
+      "backgroundImage": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200",
+      "height": "600px",
+      "showCTA": true,
+      "ctaText": "Scopri il Menu",
+      "textAlign": "center",
+      "overlay": true,
+      "overlayOpacity": 0.4
+    },
+    "displayName": "Hero Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "features-section": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Perché Sceglierci",
+      "subtitle": "La nostra promessa di qualità",
+      "features": [
+        {
+          "id": "1",
+          "icon": "zap",
+          "title": "Ingredienti Freschi",
+          "description": "Utilizziamo solo ingredienti freschi e di stagione, selezionati con cura dai migliori fornitori locali"
+        },
+        {
+          "id": "2",
+          "icon": "heart",
+          "title": "Ricette Tradizionali",
+          "description": "Le nostre ricette sono tramandate da generazioni, mantenendo viva la tradizione culinaria italiana"
+        },
+        {
+          "id": "3",
+          "icon": "award",
+          "title": "Chef Stellati",
+          "description": "Il nostro team di chef vanta anni di esperienza e riconoscimenti internazionali"
+        }
+      ],
+      "columns": 3,
+      "backgroundColor": "#f8fafc",
+      "textColor": "#1e293b",
+      "accentColor": "#3b82f6"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "menu-section": {
+    "type": {
+      "resolvedName": "MenuSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Il Nostro Menu",
+      "subtitle": "Scopri le nostre specialità",
+      "items": [
+        {
+          "id": "1",
+          "name": "Pizza Margherita",
+          "description": "Mozzarella fresca, salsa di pomodoro, basilico",
+          "price": 12.99,
+          "image": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400"
+        },
+        {
+          "id": "2",
+          "name": "Pasta alla Carbonara",
+          "description": "Uova, pecorino romano, guanciale, pepe nero",
+          "price": 14.99,
+          "image": "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400"
+        },
+        {
+          "id": "3",
+          "name": "Tiramisù",
+          "description": "Dessert italiano classico con mascarpone",
+          "price": 7.99,
+          "image": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400"
+        },
+        {
+          "id": "4",
+          "name": "Insalata Caprese",
+          "description": "Pomodori, mozzarella, basilico, olio d'oliva",
+          "price": 9.99,
+          "image": "https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?w=400"
+        },
+        {
+          "id": "5",
+          "name": "Risotto ai Funghi",
+          "description": "Riso carnaroli, funghi porcini, parmigiano",
+          "price": 16.99,
+          "image": "https://images.unsplash.com/photo-1476124369491-c39f6ea122f9?w=400"
+        },
+        {
+          "id": "6",
+          "name": "Panna Cotta",
+          "description": "Dolce al cucchiaio con salsa ai frutti di bosco",
+          "price": 6.99,
+          "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400"
+        }
+      ],
+      "columns": 3,
+      "showImages": true,
+      "showPrices": true,
+      "backgroundColor": "#ffffff",
+      "textColor": "#1e293b",
+      "accentColor": "#3b82f6"
+    },
+    "displayName": "Menu Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "gallery-section": {
+    "type": {
+      "resolvedName": "GallerySection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "La Nostra Galleria",
+      "subtitle": "I momenti più belli del nostro ristorante",
+      "images": [
+        {
+          "id": "1",
+          "src": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop",
+          "alt": "Interno ristorante",
+          "caption": "L'atmosfera accogliente del nostro ristorante"
+        },
+        {
+          "id": "2",
+          "src": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=400&fit=crop",
+          "alt": "Piatto gourmet",
+          "caption": "Le nostre creazioni culinarie"
+        },
+        {
+          "id": "3",
+          "src": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop",
+          "alt": "Ingredienti freschi",
+          "caption": "Ingredienti freschi e di qualità"
+        },
+        {
+          "id": "4",
+          "src": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop",
+          "alt": "Pizza napoletana",
+          "caption": "Pizza cotta nel forno a legna"
+        },
+        {
+          "id": "5",
+          "src": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&h=400&fit=crop",
+          "alt": "Pasta fresca",
+          "caption": "Pasta fatta in casa ogni giorno"
+        },
+        {
+          "id": "6",
+          "src": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop",
+          "alt": "Dessert",
+          "caption": "Dolci artigianali preparati al momento"
+        }
+      ],
+      "columns": 3,
+      "gap": 20,
+      "backgroundColor": "#f8fafc",
+      "textColor": "#1e293b",
+      "accentColor": "#3b82f6",
+      "imageHeight": 300,
+      "imageObjectFit": "cover",
+      "showCaptions": true,
+      "borderRadius": 12,
+      "hoverEffect": "zoom"
+    },
+    "displayName": "Gallery Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "contact-section": {
+    "type": {
+      "resolvedName": "ContactSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Contattaci",
+      "subtitle": "Siamo qui per te",
+      "description": "Compila il modulo per prenotare un tavolo o per qualsiasi informazione",
+      "showForm": true,
+      "showMap": true,
+      "backgroundColor": "#ffffff",
+      "textColor": "#1e293b",
+      "accentColor": "#3b82f6",
+      "contactInfo": [
+        {
+          "id": "1",
+          "type": "email",
+          "label": "Email",
+          "value": "info@ristorante.it"
+        },
+        {
+          "id": "2",
+          "type": "phone",
+          "label": "Telefono",
+          "value": "+39 02 1234 5678"
+        },
+        {
+          "id": "3",
+          "type": "address",
+          "label": "Indirizzo",
+          "value": "Via Roma 123, 20100 Milano, Italia"
+        }
+      ]
+    },
+    "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  }
+}

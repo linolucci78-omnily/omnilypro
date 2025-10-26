@@ -1,78 +1,110 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { useNode, Element } from '@craftjs/core';
-import { Container } from '../components/Container';
-import { Text } from '../components/Text';
-import { Button } from '../components/Button';
-import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
+import { useNode } from '@craftjs/core';
 import { FileText, Palette, Settings } from 'lucide-react';
+import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
 
-export interface HeroSectionProps {
+interface Feature {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+interface FeaturesSectionProps {
   title?: string;
   subtitle?: string;
+  features?: Feature[];
   backgroundColor?: string;
-  minHeight?: number;
+  textColor?: string;
+  columns?: number;
   paddingTop?: number;
   paddingBottom?: number;
+  minHeight?: number;
   background?: BackgroundSettings;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
-  title = 'Benvenuti',
-  subtitle = 'Il tuo sottotitolo',
-  backgroundColor = '#667eea',
-  minHeight = 400,
+export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
+  title = 'Our Features',
+  subtitle = 'Discover what makes us special',
+  features = [
+    { title: 'Feature 1', description: 'Description for feature 1' },
+    { title: 'Feature 2', description: 'Description for feature 2' },
+    { title: 'Feature 3', description: 'Description for feature 3' },
+  ],
+  backgroundColor = '#ffffff',
+  textColor = '#1a1a1a',
+  columns = 3,
   paddingTop = 60,
   paddingBottom = 60,
-  background = {}
+  minHeight = 0,
+  background = {},
 }) => {
-  const {
-    connectors: { connect, drag }
-  } = useNode();
+  const { connectors: { connect, drag } } = useNode();
 
   const backgroundStyles = getBackgroundStyles(background);
   const overlayStyles = getOverlayStyles(background);
 
   return (
-    <div
-      ref={(ref) => connect(drag(ref as HTMLElement))}
+    <section
+      ref={(ref) => {
+        if (ref) {
+          connect(drag(ref));
+        }
+      }}
       style={{
         ...backgroundStyles,
-        background: backgroundStyles.background || `linear-gradient(135deg, ${backgroundColor} 0%, #764ba2 100%)`,
-        minHeight: `${minHeight}px`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: backgroundStyles.background || backgroundColor,
+        backgroundColor: backgroundStyles.backgroundColor || backgroundColor,
+        color: textColor,
         paddingTop: `${paddingTop}px`,
         paddingBottom: `${paddingBottom}px`,
-        paddingLeft: '20px',
-        paddingRight: '20px',
+        minHeight: minHeight ? `${minHeight}px` : 'auto',
         position: 'relative',
       }}
     >
       {overlayStyles && <div style={{ ...overlayStyles }} />}
-      <Element
-        id="hero-container"
-        is={Container}
-        canvas
-        background="transparent"
-        padding={20}
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        gap={20}
-        custom={{ displayName: 'Hero Content' }}
-      >
-        <Element id="hero-title" is={Text} text={title} fontSize={48} fontWeight={700} color="#ffffff" textAlign="center" />
-        <Element id="hero-subtitle" is={Text} text={subtitle} fontSize={20} fontWeight={400} color="#ffffff" textAlign="center" />
-        <Element id="hero-button" is={Button} text="Scopri di più" backgroundColor="#ffffff" color="#667eea" />
-      </Element>
-    </div>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <h2 style={{ fontSize: '36px', marginBottom: '15px', fontWeight: 'bold' }}>
+            {title}
+          </h2>
+          <p style={{ fontSize: '18px', opacity: 0.8 }}>
+            {subtitle}
+          </p>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            gap: '30px',
+          }}
+        >
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              style={{
+                padding: '30px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '8px',
+                textAlign: 'center',
+              }}
+            >
+              <h3 style={{ fontSize: '24px', marginBottom: '15px', fontWeight: '600' }}>
+                {feature.title}
+              </h3>
+              <p style={{ fontSize: '16px', opacity: 0.8 }}>
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
-// HeroSection Settings Toolbar - TIPO ELEMENTOR
-const HeroSectionSettings = () => {
+// FeaturesSection Settings Toolbar - TIPO ELEMENTOR
+const FeaturesSectionSettings = () => {
   const { actions: { setProp }, props } = useNode((node) => ({
     props: node.data.props
   }));
@@ -158,6 +190,21 @@ const HeroSectionSettings = () => {
                 }}
               />
             </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
+                Numero Colonne: {props.columns}
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={props.columns}
+                onChange={(e) => setProp((props: any) => props.columns = parseInt(e.target.value))}
+                style={{ width: '100%' }}
+              />
+            </div>
           </>
         )}
 
@@ -189,6 +236,18 @@ const HeroSectionSettings = () => {
                 Usato se non imposti un'immagine di background
               </p>
             </div>
+
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
+                Colore Testo
+              </label>
+              <input
+                type="color"
+                value={props.textColor}
+                onChange={(e) => setProp((props: any) => props.textColor = e.target.value)}
+                style={{ width: '100%', height: '40px', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer' }}
+              />
+            </div>
           </>
         )}
 
@@ -201,7 +260,7 @@ const HeroSectionSettings = () => {
               </label>
               <input
                 type="range"
-                min="200"
+                min="0"
                 max="1000"
                 step="50"
                 value={props.minHeight}
@@ -246,18 +305,20 @@ const HeroSectionSettings = () => {
   );
 };
 
-HeroSection.craft = {
-  displayName: 'Hero Section',
+FeaturesSection.craft = {
+  displayName: 'Features Section',
   props: {
-    title: 'Benvenuti',
-    subtitle: 'Il tuo sottotitolo',
-    backgroundColor: '#667eea',
-    minHeight: 400,
+    title: 'Our Features',
+    subtitle: 'Discover what makes us special',
+    backgroundColor: '#ffffff',
+    textColor: '#1a1a1a',
+    columns: 3,
     paddingTop: 60,
     paddingBottom: 60,
-    background: {}
+    minHeight: 0,
+    background: {},
   },
   related: {
-    toolbar: HeroSectionSettings
-  }
+    toolbar: FeaturesSectionSettings,
+  },
 };

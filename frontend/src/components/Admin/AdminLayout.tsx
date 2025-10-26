@@ -29,7 +29,8 @@ import {
   Target,
   Clock,
   UserCog,
-  FileSignature
+  FileSignature,
+  Sparkles
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -108,7 +109,8 @@ const AdminLayout = () => {
       group: 'Personalizzazione',
       items: [
         { path: '/admin/branding', icon: Palette, label: 'Brand & Temi' },
-        { path: '/admin/websites', icon: Globe, label: 'Gestione Siti' },
+        { path: '/admin/websites-v2', icon: Sparkles, label: 'Gestione Siti V2 (NEW)' },
+        { path: '/admin/websites', icon: Globe, label: 'Gestione Siti (OLD)' },
         { path: '/admin/domains', icon: Globe, label: 'Domini', disabled: true },
         { path: '/admin/emails', icon: Mail, label: 'Email Templates' },
         { path: '/admin/reports', icon: FileText, label: 'Report' }

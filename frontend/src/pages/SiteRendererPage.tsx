@@ -20,7 +20,13 @@ const SiteRendererPage: React.FC = () => {
       try {
         // 1. Get subdomain from hostname
         const hostname = window.location.hostname;
-        const subdomain = hostname.split('.')[0];
+        let subdomain = hostname.split('.')[0];
+
+        // 🧪 TESTING: If on localhost with /test-public-site, use test subdomain
+        if (hostname === 'localhost' && window.location.pathname === '/test-public-site') {
+          subdomain = 'saporiecolori'; // Hardcoded per testing locale
+          console.log('🧪 TESTING MODE: Using test subdomain:', subdomain);
+        }
 
         console.log('🌐 SiteRendererPage - Hostname:', hostname);
         console.log('🔍 SiteRendererPage - Subdomain:', subdomain);
@@ -82,7 +88,16 @@ const SiteRendererPage: React.FC = () => {
         }
 
         // Get complete website with pages, sections, and components
+        console.log('📦 Fetching complete website data for ID:', siteData.id);
         const completeWebsite = await directusClient.getWebsiteComplete(siteData.id);
+        console.log('📦 Complete website data received:', {
+          id: completeWebsite.id,
+          site_name: completeWebsite.site_name,
+          has_grapesjs_components: !!completeWebsite.grapesjs_components,
+          grapesjs_components_length: completeWebsite.grapesjs_components?.length,
+          has_pages: !!completeWebsite.pages,
+          pages_count: completeWebsite.pages?.length,
+        });
         setWebsiteData(completeWebsite);
 
         // Fetch organization name from Supabase (optional, non-blocking)
@@ -181,7 +196,65 @@ const SiteRendererPage: React.FC = () => {
     );
   }
 
-  // Map template component_path to actual component
+  // Debug: Log what data we have
+  console.log('🔍 Website data check:', {
+    hasCraftData: !!websiteData.grapesjs_components,
+    craftDataLength: websiteData.grapesjs_components?.length,
+    hasGrapesJsHtml: !!websiteData.grapesjs_html,
+    templatePath: websiteData.template?.component_path,
+  });
+
+  // Check if website has Craft.js data (stored in grapesjs_components)
+  if (websiteData.grapesjs_components) {
+    console.log('🎨 Rendering Craft.js website');
+
+    // Import Craft.js renderer dynamically
+    const CraftRenderer = React.lazy(() => import('../components/CraftRenderer'));
+
+    return (
+      <React.Suspense fallback={
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#ffffff'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '3px solid #e2e8f0',
+            borderTopColor: '#3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+        </div>
+      }>
+        <CraftRenderer data={websiteData.grapesjs_components} />
+      </React.Suspense>
+    );
+  }
+
+  // Fallback: Check if website has old GrapesJS HTML
+  if (websiteData.grapesjs_html) {
+    console.log('🎨 Rendering GrapesJS custom HTML (legacy)');
+
+    // Include CSS in the HTML
+    const htmlWithCss = websiteData.grapesjs_css
+      ? `<style>${websiteData.grapesjs_css}</style>${websiteData.grapesjs_html}`
+      : websiteData.grapesjs_html;
+
+    return (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: htmlWithCss
+        }}
+      />
+    );
+  }
+
+  // Otherwise, use React template component
+  console.log('📄 Rendering React template component (fallback)');
   const templatePath = websiteData.template?.component_path || 'RestaurantClassic';
   const TemplateComponent = templates[templatePath] || templates['RestaurantClassic'];
 

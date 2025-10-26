@@ -149,9 +149,31 @@ const PublicSite: React.FC = () => {
     'restaurant-classic': RestaurantClassic,
   };
 
-  // Check if website has custom GrapesJS HTML
+  // Debug: Log what data we have
+  console.log('🔍 Website data check:', {
+    hasCraftData: !!website.grapesjs_components,
+    craftDataLength: website.grapesjs_components?.length,
+    hasGrapesJsHtml: !!website.grapesjs_html,
+    templatePath: website.template?.component_path,
+  });
+
+  // Check if website has Craft.js data (stored in grapesjs_components)
+  if (website.grapesjs_components) {
+    console.log('🎨 Rendering Craft.js website');
+
+    // Import Craft.js renderer dynamically
+    const CraftRenderer = React.lazy(() => import('../components/CraftRenderer'));
+
+    return (
+      <React.Suspense fallback={<PageLoader />}>
+        <CraftRenderer data={website.grapesjs_components} />
+      </React.Suspense>
+    );
+  }
+
+  // Fallback: Check if website has old GrapesJS HTML
   if (website.grapesjs_html) {
-    console.log('🎨 Rendering GrapesJS custom HTML');
+    console.log('🎨 Rendering GrapesJS custom HTML (legacy)');
 
     // Include CSS in the HTML
     const htmlWithCss = website.grapesjs_css
@@ -168,7 +190,7 @@ const PublicSite: React.FC = () => {
   }
 
   // Otherwise, use React template component
-  console.log('📄 Rendering React template component');
+  console.log('📄 Rendering React template component (fallback)');
   const TemplateComponent = templateMap[website.template?.component_path || 'RestaurantClassic'] || RestaurantClassic;
 
   return <TemplateComponent website={website} organizationName={organizationName} />;

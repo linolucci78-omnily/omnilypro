@@ -1,5 +1,49 @@
 /* Craft Editor Styles */
 
+/* Omnily Visual Editor Main Container */
+.omnily-visual-editor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Loading State */
+.omnily-editor-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  z-index: 10000;
+}
+
+.omnily-editor-loading .loader {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.omnily-editor-loading p {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #6b7280;
+}
+
 .craft-editor-wrapper {
   position: fixed;
   top: 0;
@@ -283,7 +327,9 @@
 .craft-panel-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
+  max-height: 100%;
 }
 
 /* SETTINGS */
@@ -291,6 +337,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-bottom: 20px;
 }
 
 .craft-settings-item {
@@ -338,4 +385,206 @@
 /* LAYERS PANEL */
 .craft-layers-panel .craft-panel-content {
   padding: 0;
+}
+
+/* IMAGE HOVER EFFECTS */
+.menu-item-image-zoom:hover {
+  transform: scale(1.1);
+}
+
+.menu-item-image-brightness:hover {
+  filter: brightness(1.3);
+}
+
+.menu-item-image-grayscale:hover {
+  filter: grayscale(100%);
+}
+
+.menu-item-image-none {
+  /* No hover effect */
+}
+
+/* EDITOR MODE - Indicatori visivi per elementi */
+.craft-canvas [data-cy] {
+  position: relative;
+}
+
+/* Outline sottile su hover per tutti gli elementi draggabili */
+.craft-canvas [data-cy]:hover {
+  outline: 2px dashed #3b82f6 !important;
+  outline-offset: -2px;
+}
+
+/* Outline più forte quando selezionato */
+.craft-canvas [data-cy].component-selected {
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: -3px;
+}
+
+/* Label con nome componente su hover */
+.craft-canvas [data-cy]:hover::before {
+  content: attr(data-cy);
+  position: absolute;
+  top: -24px;
+  left: 0;
+  background: #3b82f6;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 1000;
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ===== OMNILY VISUAL EDITOR SPECIFIC STYLES ===== */
+
+/* Toolbar */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  flex-shrink: 0;
+  min-height: 60px;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #374151;
+  color: #ffffff;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-btn-save {
+  background: #10b981;
+}
+
+.toolbar-btn-save:hover:not(:disabled) {
+  background: #059669;
+}
+
+.toolbar-btn-close {
+  background: #ef4444;
+}
+
+.toolbar-btn-close:hover {
+  background: #dc2626;
+}
+
+/* Editor Content */
+.editor-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebars */
+.editor-sidebar {
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-sidebar-left {
+  width: 280px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.editor-sidebar-right {
+  width: 320px;
+  min-width: 320px;
+  border-left: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Canvas */
+.editor-canvas {
+  flex: 1;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+}
+
+.editor-canvas > div {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+}
+
+/* Settings Panel */
+.craft-settings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.craft-settings .craft-panel-header {
+  padding: 16px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.craft-settings .craft-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.craft-settings .craft-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }

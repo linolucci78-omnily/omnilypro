@@ -8,7 +8,11 @@
  * - Section Components
  */
 
-const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://omnilypro-directus.onrender.com';
+// Use proxy in development to avoid CORS issues
+const isDevelopment = import.meta.env.DEV;
+const DIRECTUS_URL = isDevelopment
+  ? '/api/directus'  // Proxy route in development
+  : (import.meta.env.VITE_DIRECTUS_URL || 'https://omnilypro-directus.onrender.com');
 const DIRECTUS_TOKEN = import.meta.env.VITE_DIRECTUS_TOKEN || 'ejtLayi_fWbvPXQ1Afax78ym7TvvfXDz';
 
 // ============================================
@@ -119,6 +123,12 @@ class DirectusClient {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    console.log('🔑 Directus Request:', {
+      endpoint,
+      baseUrl: this.baseUrl,
+      token: this.token ? `${this.token.substring(0, 10)}...` : 'MISSING',
+    });
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers: {
@@ -130,7 +140,13 @@ class DirectusClient {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error('❌ Directus Error:', { status: response.status, error });
       throw new Error(`Directus API Error: ${error}`);
+    }
+
+    // DELETE requests might return no content (204)
+    if (response.status === 204 || options.method === 'DELETE') {
+      return undefined as T;
     }
 
     const data = await response.json();
@@ -149,12 +165,13 @@ class DirectusClient {
   }
 
   async getWebsiteById(websiteId: number): Promise<DirectusWebsite> {
-    return this.request<DirectusWebsite>(`/items/organizations_websites/${websiteId}`);
+    // Request all fields explicitly to ensure grapesjs_components is included
+    return this.request<DirectusWebsite>(`/items/organizations_websites/${websiteId}?fields=*`);
   }
 
   async getWebsiteComplete(websiteId: number): Promise<DirectusWebsiteComplete> {
-    // First get the website
-    const website = await this.request<DirectusWebsite>(`/items/organizations_websites/${websiteId}`);
+    // First get the website with all fields (including grapesjs_components)
+    const website = await this.request<DirectusWebsite>(`/items/organizations_websites/${websiteId}?fields=*`);
 
     // Then get pages with sections and components
     const pageFilter = JSON.stringify({ website_id: { _eq: websiteId } });
@@ -201,10 +218,25 @@ class DirectusClient {
   }
 
   async updateWebsite(websiteId: number, data: Partial<DirectusWebsite>): Promise<DirectusWebsite> {
-    return this.request<DirectusWebsite>(`/items/organizations_websites/${websiteId}`, {
+    console.log('💾 DirectusClient.updateWebsite:', {
+      websiteId,
+      dataKeys: Object.keys(data),
+      hasGrapesJsComponents: !!data.grapesjs_components,
+      grapesJsComponentsLength: data.grapesjs_components?.length,
+      grapesJsComponentsPreview: data.grapesjs_components?.substring(0, 100),
+    });
+
+    const result = await this.request<DirectusWebsite>(`/items/organizations_websites/${websiteId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+
+    console.log('✅ DirectusClient.updateWebsite result:', {
+      id: result.id,
+      hasGrapesJsComponents: !!result.grapesjs_components,
+    });
+
+    return result;
   }
 
   async deleteWebsite(websiteId: number): Promise<void> {
@@ -520,11 +552,14 @@ class DirectusClient {
       text_align: 'left',
     });
 
-    // Aggiungi piatti di esempio
+    // Aggiungi piatti di esempio PROFESSIONALI
     const piatti = [
-      { name: 'Piatto 1', description: 'Descrizione del piatto 1', price: 12.00 },
-      { name: 'Piatto 2', description: 'Descrizione del piatto 2', price: 15.00 },
-      { name: 'Piatto 3', description: 'Descrizione del piatto 3', price: 18.00 },
+      { name: 'Margherita DOC', description: 'Pomodoro San Marzano, mozzarella di bufala, basilico fresco', price: 8.50 },
+      { name: 'Diavola', description: 'Pomodoro, mozzarella, salame piccante, olio EVO', price: 9.50 },
+      { name: 'Capricciosa', description: 'Pomodoro, mozzarella, prosciutto cotto, funghi, carciofi, olive', price: 11.00 },
+      { name: 'Quattro Formaggi', description: 'Mozzarella, gorgonzola, parmigiano, taleggio', price: 10.50 },
+      { name: 'Prosciutto e Funghi', description: 'Pomodoro, mozzarella, prosciutto cotto, funghi champignon', price: 10.00 },
+      { name: 'Vegetariana', description: 'Pomodoro, mozzarella, melanzane, zucchine, peperoni, rucola', price: 9.50 },
     ];
 
     for (let i = 0; i < piatti.length; i++) {
