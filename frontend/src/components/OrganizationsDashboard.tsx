@@ -11,6 +11,7 @@ import CardManagementPanel from './CardManagementPanel'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import EmailMarketingPanel from './EmailMarketingPanel'
+import GiftCertificatesPanel from './GiftCertificatesPanel'
 import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import ConfirmModal from './UI/ConfirmModal'
@@ -532,6 +533,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
   const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
+  const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
 
   // Funzioni per gestire il slide panel
@@ -1752,6 +1754,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'members', icon: Users, label: 'Clienti', feature: null },
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
+      { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
@@ -2986,7 +2989,47 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             </div>
           </div>
         )
-      
+
+      case 'gift-certificates':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <CreditCard size={24} />
+              <h2>Gift Certificates</h2>
+              <p>Gestisci gift certificates, codici promozionali e buoni regalo</p>
+            </div>
+            <div className="cards-grid">
+              <div className="feature-card">
+                <h3>🎁 Gestione Gift Certificates</h3>
+                <p>Emetti, valida e gestisci gift certificates per i tuoi clienti</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowGiftCertificatesPanel(true)}
+                >
+                  <CreditCard size={18} />
+                  Apri Gestionale
+                </button>
+              </div>
+              <div className="feature-card">
+                <h3>📊 Statistiche</h3>
+                <p>Visualizza le performance dei gift certificates emessi</p>
+                <button className="btn-primary">Visualizza Report</button>
+              </div>
+              <div className="feature-card">
+                <h3>⚙️ Configurazione</h3>
+                <p>Configura template, validità e impostazioni gift certificates</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowAccountSettingsPanel(true)}
+                >
+                  <Settings size={18} />
+                  Configura
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         return (
           <div className="dashboard-content">
@@ -3372,6 +3415,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           // Chiudi anche EmailMarketingPanel se aperto per forzare refresh dei dati
           setShowEmailMarketingPanel(false)
         }}
+      />
+
+      {/* Gift Certificates Panel */}
+      <GiftCertificatesPanel
+        isOpen={showGiftCertificatesPanel}
+        onClose={() => setShowGiftCertificatesPanel(false)}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || ''}
       />
 
       {/* Confirm Modal */}

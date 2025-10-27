@@ -1,0 +1,189 @@
+/* Gift Certificate Details Modal */
+.gc-details-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Details Sections */
+.details-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.details-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Detail Grid */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item.highlight {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px solid #fbbf24;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  word-break: break-word;
+}
+
+.detail-value.code-display {
+  font-family: 'Courier New', monospace;
+  font-size: 1.25rem;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+}
+
+.detail-value.amount {
+  font-size: 1.5rem;
+  color: #10b981;
+}
+
+.detail-value.amount.large {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.detail-value.message {
+  background: #f9fafb;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid #3b82f6;
+  font-style: italic;
+  color: #4b5563;
+}
+
+/* Usage Bar */
+.usage-bar {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.usage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.usage-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Metadata */
+.metadata-content {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.metadata-content pre {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gc-details-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .detail-item.full-width {
+    grid-column: 1;
+  }
+
+  .detail-value.code-display {
+    font-size: 1rem;
+  }
+
+  .detail-value.amount.large {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}

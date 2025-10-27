@@ -299,6 +299,7 @@ export interface CreateGiftCertificateRequest {
   valid_until?: string;
   issue_type: GiftCertificateIssueType;
   metadata?: Record<string, any>;
+  send_email?: boolean; // Whether to send email notification
 }
 
 export interface CreateGiftCertificateResponse {

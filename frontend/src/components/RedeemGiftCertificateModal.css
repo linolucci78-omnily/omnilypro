@@ -1,0 +1,455 @@
+/**
+ * Redeem Gift Certificate Modal Styles
+ * Responsive Desktop/POS design
+ */
+
+/* Modal Container */
+.redeem-gc-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  width: 90%;
+  max-width: 550px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+/* Certificate Info */
+.certificate-info {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e5e7eb;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row.highlight {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  margin: 0 -1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-value.code {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  font-size: 0.9rem;
+}
+
+.info-value.amount {
+  font-size: 1.75rem;
+  color: #10b981;
+}
+
+/* Percentage Options */
+.percentage-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.percentage-btn {
+  padding: 1rem 0.5rem;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.percentage-btn:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.percentage-btn.active {
+  border-color: #10b981;
+  background: #10b981;
+  color: white;
+}
+
+.percentage-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.percentage-amount {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.percentage-btn.active .percentage-amount {
+  opacity: 0.95;
+}
+
+/* Amount Input */
+.amount-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.amount-input {
+  width: 100%;
+  padding: 1rem 1.25rem 1rem 3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  text-align: right;
+}
+
+.amount-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.amount-input:disabled {
+  background: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.amount-input.error {
+  border-color: #ef4444;
+}
+
+/* Balance Preview */
+.balance-preview {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  border: 2px solid #e5e7eb;
+}
+
+.preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.preview-row span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.preview-amount {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.preview-row.deduction {
+  color: #ef4444;
+}
+
+.preview-row.deduction .preview-amount {
+  color: #ef4444;
+}
+
+.preview-row.total {
+  border-top: 2px solid #e5e7eb;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.preview-row.total .preview-amount.new {
+  font-size: 1.5rem;
+  color: #10b981;
+}
+
+/* Confirmation Screen */
+.confirmation-screen {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.confirmation-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.confirmation-screen h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.confirmation-screen p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+}
+
+.confirmation-details {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e5e7eb;
+  text-align: left;
+}
+
+.confirmation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.95rem;
+}
+
+.confirmation-row:last-child {
+  border-bottom: none;
+}
+
+.confirmation-row.highlight {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  margin: 0 -1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border-bottom: none;
+}
+
+.conf-code {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.conf-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.confirmation-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.confirmation-warning svg {
+  flex-shrink: 0;
+}
+
+/* Primary Button Confirmation Style */
+.btn-primary.confirm {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary.confirm:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+/* ============================================================================
+   POS MODE (Touch-friendly)
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .redeem-gc-modal {
+    width: 95%;
+    max-width: none;
+    max-height: 95vh;
+  }
+
+  .certificate-info {
+    padding: 1.5rem;
+  }
+
+  .info-row {
+    padding: 1rem 0;
+  }
+
+  .info-row.highlight {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .info-value.amount {
+    font-size: 2rem;
+  }
+
+  .percentage-options {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .percentage-btn {
+    padding: 1.25rem 0.75rem;
+    font-size: 1.1rem;
+    min-height: 70px;
+  }
+
+  .percentage-amount {
+    font-size: 0.85rem;
+  }
+
+  .amount-input {
+    padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+    font-size: 2rem;
+    min-height: 70px;
+  }
+
+  .currency-symbol {
+    left: 1.5rem;
+    font-size: 1.75rem;
+  }
+
+  .balance-preview {
+    padding: 1.5rem;
+  }
+
+  .preview-row {
+    padding: 0.875rem 0;
+    font-size: 1.05rem;
+  }
+
+  .preview-amount {
+    font-size: 1.2rem;
+  }
+
+  .preview-row.total .preview-amount.new {
+    font-size: 1.75rem;
+  }
+
+  .confirmation-icon {
+    width: 96px;
+    height: 96px;
+  }
+
+  .confirmation-icon svg {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .confirmation-screen h3 {
+    font-size: 1.6rem;
+  }
+
+  .confirmation-screen p {
+    font-size: 1.05rem;
+  }
+
+  .conf-amount {
+    font-size: 1.75rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 60px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 480px) {
+  .percentage-options {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .percentage-btn {
+    padding: 0.875rem 0.25rem;
+    font-size: 0.9rem;
+  }
+
+  .percentage-amount {
+    font-size: 0.7rem;
+  }
+
+  .info-value.code,
+  .conf-code {
+    font-size: 0.75rem;
+  }
+}

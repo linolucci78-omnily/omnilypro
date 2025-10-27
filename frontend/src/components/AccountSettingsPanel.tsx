@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Building2, Gift, Award, Palette, AlertTriangle, Upload, CreditCard } from 'lucide-react';
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel';
 import { organizationService } from '../services/organizationService';
+import { giftCertificatesService } from '../services/giftCertificatesService';
 import { supabase } from '../lib/supabase';
 import './AccountSettingsPanel.css';
 
@@ -48,6 +49,20 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
     // Branding
     logo_url: '',
     primary_color: '#ef4444',
+
+    // Gift Certificates
+    gc_enabled: true,
+    gc_code_prefix: 'GIFT',
+    gc_min_amount: 10,
+    gc_max_amount: 1000,
+    gc_preset_amounts: '25, 50, 100, 250',
+    gc_default_validity_days: 365,
+    gc_send_email_on_issue: true,
+    gc_send_email_on_redeem: false,
+    gc_send_reminder_before_expiry: true,
+    gc_max_validation_attempts: 5,
+    gc_lockout_duration_minutes: 30,
+    gc_default_terms: 'Questo gift certificate è valido per acquisti presso la nostra attività. Non è rimborsabile in denaro e non può essere sostituito in caso di smarrimento o furto. Valido fino alla data di scadenza indicata.',
     secondary_color: '#dc2626'
   });
 
@@ -84,7 +99,20 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
         enable_tier_system: organization.enable_tier_system ?? true,
         logo_url: organization.logo_url || '',
         primary_color: organization.primary_color || '#ef4444',
-        secondary_color: organization.secondary_color || '#dc2626'
+        secondary_color: organization.secondary_color || '#dc2626',
+        // Gift Certificates - defaults
+        gc_enabled: true,
+        gc_code_prefix: 'GIFT',
+        gc_min_amount: 10,
+        gc_max_amount: 1000,
+        gc_preset_amounts: '25, 50, 100, 250',
+        gc_default_validity_days: 365,
+        gc_send_email_on_issue: true,
+        gc_send_email_on_redeem: false,
+        gc_send_reminder_before_expiry: true,
+        gc_max_validation_attempts: 5,
+        gc_lockout_duration_minutes: 30,
+        gc_default_terms: 'Questo gift certificate è valido per acquisti presso la nostra attività. Non è rimborsabile in denaro e non può essere sostituito in caso di smarrimento o furto. Valido fino alla data di scadenza indicata.'
       });
 
       if (organization.scheduled_points_reset) {
@@ -94,6 +122,38 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
       }
     }
   }, [organization]);
+
+  // Load gift certificate settings
+  useEffect(() => {
+    const loadGiftCertSettings = async () => {
+      if (organization?.id) {
+        try {
+          const settings = await giftCertificatesService.getSettings(organization.id);
+          if (settings) {
+            setFormData(prev => ({
+              ...prev,
+              gc_enabled: settings.is_enabled ?? true,
+              gc_code_prefix: settings.code_prefix || 'GIFT',
+              gc_min_amount: 10, // Not in DB, using default
+              gc_max_amount: settings.max_amount_per_certificate || 1000,
+              gc_preset_amounts: '25, 50, 100, 250', // Not in DB, using default
+              gc_default_validity_days: 365, // Not in DB, using default
+              gc_send_email_on_issue: settings.send_email_on_issue ?? true,
+              gc_send_email_on_redeem: settings.send_email_on_redeem ?? false,
+              gc_send_reminder_before_expiry: settings.send_reminder_before_expiry ?? true,
+              gc_max_validation_attempts: settings.max_validation_attempts || 5,
+              gc_lockout_duration_minutes: settings.lockout_duration_minutes || 30,
+              gc_default_terms: settings.default_terms_conditions || 'Questo gift certificate è valido per acquisti presso la nostra attività. Non è rimborsabile in denaro e non può essere sostituito in caso di smarrimento o furto. Valido fino alla data di scadenza indicata.'
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading gift certificate settings:', error);
+        }
+      }
+    };
+
+    loadGiftCertSettings();
+  }, [organization?.id]);
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -198,6 +258,19 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
           logo_url: formData.logo_url,
           primary_color: formData.primary_color,
           secondary_color: formData.secondary_color
+        });
+      } else if (activeTab === 'giftcerts') {
+        await giftCertificatesService.upsertSettings(organization.id, {
+          organization_id: organization.id,
+          is_enabled: formData.gc_enabled,
+          code_prefix: formData.gc_code_prefix,
+          max_amount_per_certificate: formData.gc_max_amount,
+          send_email_on_issue: formData.gc_send_email_on_issue,
+          send_email_on_redeem: formData.gc_send_email_on_redeem,
+          send_reminder_before_expiry: formData.gc_send_reminder_before_expiry,
+          max_validation_attempts: formData.gc_max_validation_attempts,
+          lockout_duration_minutes: formData.gc_lockout_duration_minutes,
+          default_terms_conditions: formData.gc_default_terms
         });
       }
 
@@ -749,8 +822,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                 <label className="toggle-label">
                   <input
                     type="checkbox"
-                    checked={true}
-                    onChange={() => {}}
+                    checked={formData.gc_enabled}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gc_enabled: e.target.checked }))}
                   />
                   <span>Abilita Sistema Gift Certificates</span>
                 </label>
@@ -765,7 +838,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                 <input
                   type="text"
                   placeholder="GIFT"
-                  defaultValue="GIFT"
+                  value={formData.gc_code_prefix}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gc_code_prefix: e.target.value }))}
                   maxLength={10}
                 />
                 <p className="form-help">
@@ -780,7 +854,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                   <input
                     type="number"
                     placeholder="10"
-                    defaultValue="10"
+                    value={formData.gc_min_amount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gc_min_amount: parseFloat(e.target.value) || 0 }))}
                     min="1"
                   />
                 </div>
@@ -789,7 +864,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                   <input
                     type="number"
                     placeholder="1000"
-                    defaultValue="1000"
+                    value={formData.gc_max_amount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gc_max_amount: parseFloat(e.target.value) || 0 }))}
                     min="1"
                   />
                 </div>
@@ -801,7 +877,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                 <input
                   type="text"
                   placeholder="25, 50, 100, 250"
-                  defaultValue="25, 50, 100, 250"
+                  value={formData.gc_preset_amounts}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gc_preset_amounts: e.target.value }))}
                 />
                 <p className="form-help">
                   Importi suggeriti per creazione rapida (separati da virgola)
@@ -814,7 +891,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                 <input
                   type="number"
                   placeholder="365"
-                  defaultValue="365"
+                  value={formData.gc_default_validity_days}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gc_default_validity_days: parseInt(e.target.value) || 0 }))}
                   min="1"
                 />
                 <p className="form-help">
@@ -828,24 +906,24 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                 <label className="toggle-label">
                   <input
                     type="checkbox"
-                    checked={true}
-                    onChange={() => {}}
+                    checked={formData.gc_send_email_on_issue}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gc_send_email_on_issue: e.target.checked }))}
                   />
                   <span>Invia email quando viene emesso un gift certificate</span>
                 </label>
                 <label className="toggle-label">
                   <input
                     type="checkbox"
-                    checked={false}
-                    onChange={() => {}}
+                    checked={formData.gc_send_email_on_redeem}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gc_send_email_on_redeem: e.target.checked }))}
                   />
                   <span>Invia email quando viene riscattato</span>
                 </label>
                 <label className="toggle-label">
                   <input
                     type="checkbox"
-                    checked={true}
-                    onChange={() => {}}
+                    checked={formData.gc_send_reminder_before_expiry}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gc_send_reminder_before_expiry: e.target.checked }))}
                   />
                   <span>Invia reminder prima della scadenza</span>
                 </label>
@@ -860,7 +938,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                     <input
                       type="number"
                       placeholder="5"
-                      defaultValue="5"
+                      value={formData.gc_max_validation_attempts}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gc_max_validation_attempts: parseInt(e.target.value) || 0 }))}
                       min="1"
                     />
                   </div>
@@ -869,7 +948,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                     <input
                       type="number"
                       placeholder="30"
-                      defaultValue="30"
+                      value={formData.gc_lockout_duration_minutes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gc_lockout_duration_minutes: parseInt(e.target.value) || 0 }))}
                       min="1"
                     />
                   </div>
@@ -885,7 +965,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                 <textarea
                   rows={4}
                   placeholder="Inserisci i termini e condizioni..."
-                  defaultValue="Questo gift certificate è valido per acquisti presso la nostra attività. Non è rimborsabile in denaro e non può essere sostituito in caso di smarrimento o furto. Valido fino alla data di scadenza indicata."
+                  value={formData.gc_default_terms}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gc_default_terms: e.target.value }))}
                 />
               </div>
 

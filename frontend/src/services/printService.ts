@@ -285,6 +285,175 @@ export class ZCSPrintService {
       }
     }
   }
+
+  /**
+   * Print Gift Certificate voucher
+   */
+  async printGiftCertificate(data: {
+    code: string
+    amount: number
+    recipientName?: string
+    recipientEmail?: string
+    validUntil?: string
+    personalMessage?: string
+    issuedAt: string
+    organizationName: string
+  }): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('Printer not initialized')
+      return false
+    }
+
+    try {
+      const lines: string[] = [
+        '',
+        this.centerText('🎁 GIFT CERTIFICATE 🎁'),
+        this.centerText(data.organizationName),
+        this.createSeparatorLine(),
+        '',
+        this.centerText('BUONO REGALO'),
+        '',
+        this.centerText(`VALORE: ${this.formatPrice(data.amount)}`),
+        '',
+        this.createSeparatorLine(),
+        '',
+        `Codice: ${data.code}`,
+        `Emesso il: ${this.formatDateTime(new Date(data.issuedAt))}`,
+      ]
+
+      if (data.validUntil) {
+        lines.push(`Valido fino: ${this.formatDateTime(new Date(data.validUntil))}`)
+      }
+
+      if (data.recipientName) {
+        lines.push('')
+        lines.push(`Beneficiario: ${data.recipientName}`)
+      }
+
+      if (data.recipientEmail) {
+        lines.push(`Email: ${data.recipientEmail}`)
+      }
+
+      if (data.personalMessage) {
+        lines.push('')
+        lines.push('Messaggio:')
+        lines.push(data.personalMessage)
+      }
+
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('Presenta questo voucher'))
+      lines.push(this.centerText('per utilizzare il buono'))
+      lines.push('')
+
+      const headerText = lines.join('\n')
+
+      return new Promise((resolve) => {
+        (window as any).omnilyGiftCertPrintHandler = (result: any) => {
+          if (result.success) {
+            // Print QR code after text
+            const qrData = `GIFTCERT:${data.code}:${data.amount}`;
+
+            (window as any).omnilyGiftQRPrintHandler = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('Gift certificate printed successfully')
+                resolve(true)
+              } else {
+                console.error('QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilyGiftQRPrintHandler')
+          } else {
+            console.error('Gift certificate text print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(headerText, 'omnilyGiftCertPrintHandler')
+      })
+
+    } catch (error) {
+      console.error('Gift certificate print error:', error)
+      return false
+    }
+  }
+
+  /**
+   * Print Gift Certificate redemption receipt
+   */
+  async printGiftCertificateRedemption(data: {
+    code: string
+    amountRedeemed: number
+    balanceBefore: number
+    balanceAfter: number
+    cashierName: string
+    timestamp: Date
+    organizationName: string
+  }): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('Printer not initialized')
+      return false
+    }
+
+    try {
+      const receiptData = {
+        storeName: data.organizationName,
+        storeAddress: this.printConfig.storeAddress,
+        storePhone: this.printConfig.storePhone,
+        storeTax: this.printConfig.storeTax,
+        logoBase64: this.printConfig.logoBase64,
+        receiptNumber: `GC-${data.code}`,
+        timestamp: this.formatDateTime(data.timestamp),
+        cashier: data.cashierName,
+        items: [{
+          name: 'RISCATTO GIFT CERTIFICATE',
+          quantity: 1,
+          price: data.amountRedeemed,
+          total: data.amountRedeemed
+        }],
+        subtotal: data.amountRedeemed,
+        tax: 0,
+        total: data.amountRedeemed,
+        paymentMethod: 'Gift Certificate',
+        customFooter: [
+          '',
+          this.createSeparatorLine(),
+          `Codice GC: ${data.code}`,
+          `Saldo prima: ${this.formatPrice(data.balanceBefore)}`,
+          `Riscattato: ${this.formatPrice(data.amountRedeemed)}`,
+          `Saldo residuo: ${this.formatPrice(data.balanceAfter)}`,
+          '',
+          data.balanceAfter > 0
+            ? this.centerText('Saldo rimanente utilizzabile')
+            : this.centerText('Gift Certificate completamente utilizzato')
+        ].join('\n'),
+        qrData: `GCREDEEM:${data.code}:${data.amountRedeemed}`
+      };
+
+      return new Promise((resolve) => {
+        (window as any).omnilyGCRedeemPrintHandler = (result: any) => {
+          if (result.success) {
+            console.log('GC redemption receipt printed successfully')
+            resolve(true)
+          } else {
+            console.error('GC redemption receipt print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printReceipt(
+          JSON.stringify(receiptData),
+          'omnilyGCRedeemPrintHandler'
+        )
+      })
+
+    } catch (error) {
+      console.error('GC redemption print error:', error)
+      return false
+    }
+  }
 }
 
 export const createPrintService = (config: PrintConfig): ZCSPrintService => {

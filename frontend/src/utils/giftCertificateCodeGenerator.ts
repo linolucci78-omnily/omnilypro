@@ -116,9 +116,7 @@ export async function generateGiftCertificateQRCode(
   };
 
   const qrOptions = {
-    errorCorrectionLevel: options.errorCorrectionLevel || 'M',
-    type: 'image/png' as const,
-    quality: 1,
+    errorCorrectionLevel: (options.errorCorrectionLevel || 'M') as 'L' | 'M' | 'Q' | 'H',
     margin: options.margin || 2,
     width: options.size || 300,
     color: {
@@ -130,6 +128,28 @@ export async function generateGiftCertificateQRCode(
   try {
     // Generate QR code as data URL
     const dataUrl = await QRCode.toDataURL(JSON.stringify(qrData), qrOptions);
+    return dataUrl;
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    throw new Error('Failed to generate QR code');
+  }
+}
+
+/**
+ * Generate QR code data URL from code string (simplified version)
+ * Used when we only have the code and need a quick QR
+ */
+export async function generateQRCodeDataURL(code: string): Promise<string> {
+  try {
+    const dataUrl = await QRCode.toDataURL(code, {
+      errorCorrectionLevel: 'M',
+      margin: 2,
+      width: 300,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
     return dataUrl;
   } catch (error) {
     console.error('Error generating QR code:', error);

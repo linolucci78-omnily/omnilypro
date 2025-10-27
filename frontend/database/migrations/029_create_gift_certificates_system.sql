@@ -282,9 +282,9 @@ CREATE POLICY "Super admins can do everything on gift_certificates"
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.role = 'super_admin'
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.role = 'super_admin'
     )
   );
 
@@ -294,9 +294,9 @@ CREATE POLICY "Org users can view own org gift_certificates"
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificates.organization_id
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificates.organization_id
     )
   );
 
@@ -305,10 +305,10 @@ CREATE POLICY "Org admins/managers can insert gift_certificates"
   FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificates.organization_id
-      AND ou.role IN ('org_admin', 'manager', 'super_admin')
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificates.organization_id
+      AND organization_users.role IN ('org_admin', 'manager', 'super_admin')
     )
   );
 
@@ -317,10 +317,10 @@ CREATE POLICY "Org admins/managers can update gift_certificates"
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificates.organization_id
-      AND ou.role IN ('org_admin', 'manager', 'super_admin')
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificates.organization_id
+      AND organization_users.role IN ('org_admin', 'manager', 'super_admin')
     )
   );
 
@@ -329,10 +329,10 @@ CREATE POLICY "Org admins can delete gift_certificates"
   FOR DELETE
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificates.organization_id
-      AND ou.role IN ('org_admin', 'super_admin')
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificates.organization_id
+      AND organization_users.role IN ('org_admin', 'super_admin')
     )
   );
 
@@ -345,9 +345,9 @@ CREATE POLICY "Super admins can do everything on transactions"
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.role = 'super_admin'
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.role = 'super_admin'
     )
   );
 
@@ -356,9 +356,9 @@ CREATE POLICY "Org users can view own org transactions"
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_transactions.organization_id
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_transactions.organization_id
     )
   );
 
@@ -367,9 +367,9 @@ CREATE POLICY "Org users can insert transactions"
   FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_transactions.organization_id
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_transactions.organization_id
     )
   );
 
@@ -382,9 +382,9 @@ CREATE POLICY "Super admins can do everything on templates"
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.role = 'super_admin'
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.role = 'super_admin'
     )
   );
 
@@ -393,9 +393,9 @@ CREATE POLICY "Org users can view own org templates"
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_templates.organization_id
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_templates.organization_id
     )
   );
 
@@ -404,10 +404,10 @@ CREATE POLICY "Org admins can manage templates"
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_templates.organization_id
-      AND ou.role IN ('org_admin', 'super_admin')
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_templates.organization_id
+      AND organization_users.role IN ('org_admin', 'super_admin')
     )
   );
 
@@ -420,9 +420,9 @@ CREATE POLICY "Super admins can do everything on settings"
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.role = 'super_admin'
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.role = 'super_admin'
     )
   );
 
@@ -431,9 +431,9 @@ CREATE POLICY "Org users can view own org settings"
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_settings.organization_id
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_settings.organization_id
     )
   );
 
@@ -442,10 +442,10 @@ CREATE POLICY "Org admins can manage settings"
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_settings.organization_id
-      AND ou.role IN ('org_admin', 'super_admin')
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_settings.organization_id
+      AND organization_users.role IN ('org_admin', 'super_admin')
     )
   );
 
@@ -458,9 +458,9 @@ CREATE POLICY "Super admins can view all audit logs"
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.role = 'super_admin'
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.role = 'super_admin'
     )
   );
 
@@ -469,10 +469,10 @@ CREATE POLICY "Org admins can view own org audit logs"
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM organization_users ou
-      WHERE ou.user_id = auth.uid()
-      AND ou.organization_id = gift_certificate_audit_log.organization_id
-      AND ou.role IN ('org_admin', 'super_admin')
+      SELECT 1 FROM organization_users
+      WHERE organization_users.user_id = auth.uid()
+      AND organization_users.org_id = gift_certificate_audit_log.organization_id
+      AND organization_users.role IN ('org_admin', 'super_admin')
     )
   );
 

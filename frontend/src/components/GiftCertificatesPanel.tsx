@@ -21,41 +21,51 @@ import {
   Eye
 } from 'lucide-react';
 import './GiftCertificatesPanel.css';
+import { giftCertificatesService } from '../services/giftCertificatesService';
+import type { GiftCertificate, GiftCertificateStats, CreateGiftCertificateRequest } from '../types/giftCertificate';
+import IssueGiftCertificateModal from './IssueGiftCertificateModal';
+import ValidateGiftCertificateModal from './ValidateGiftCertificateModal';
+import RedeemGiftCertificateModal from './RedeemGiftCertificateModal';
+import GiftCertificateDetailsModal from './GiftCertificateDetailsModal';
 
 interface GiftCertificatesPanelProps {
   isOpen: boolean;
   onClose: () => void;
   organizationId: string;
   organizationName: string;
+  printService?: any; // ZCSPrintService instance
 }
 
-interface GiftCertificate {
-  id: string;
-  code: string;
-  original_amount: number;
-  current_balance: number;
-  status: 'active' | 'partially_used' | 'fully_used' | 'expired' | 'cancelled';
-  recipient_name?: string;
-  recipient_email?: string;
-  issued_at: string;
-  valid_until?: string;
-}
 
 const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
   isOpen,
   onClose,
   organizationId,
-  organizationName
+  organizationName,
+  printService
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [certificates, setCertificates] = useState<GiftCertificate[]>([]);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<GiftCertificateStats>({
     total_issued: 0,
     total_value_issued: 0,
+    active_count: 0,
     active_balance: 0,
+    total_redeemed: 0,
+    fully_used_count: 0,
+    expired_count: 0,
+    avg_certificate_value: 0,
     redemption_rate: 0
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Modal states
+  const [showIssueModal, setShowIssueModal] = useState(false);
+  const [showValidateModal, setShowValidateModal] = useState(false);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState<GiftCertificate | null>(null);
 
   useEffect(() => {
     if (isOpen && organizationId) {
@@ -66,38 +76,16 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
 
   const loadCertificates = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // TODO: Implement API call
-      // const data = await giftCertificatesService.getAll(organizationId);
-      // setCertificates(data);
-
-      // Mock data for now
-      setCertificates([
-        {
-          id: '1',
-          code: 'GIFT-A8F9-K3L7-M2N4',
-          original_amount: 50,
-          current_balance: 15,
-          status: 'partially_used',
-          recipient_name: 'Mario Rossi',
-          recipient_email: 'mario@example.com',
-          issued_at: '2024-11-01T10:00:00Z',
-          valid_until: '2025-12-31T23:59:59Z'
-        },
-        {
-          id: '2',
-          code: 'GIFT-B3K8-P9M2-L4N7',
-          original_amount: 100,
-          current_balance: 100,
-          status: 'active',
-          recipient_name: 'Laura Bianchi',
-          recipient_email: 'laura@example.com',
-          issued_at: '2024-10-15T14:30:00Z',
-          valid_until: '2025-10-15T23:59:59Z'
-        }
-      ]);
-    } catch (error) {
+      const response = await giftCertificatesService.getAll(organizationId, {
+        search_code: searchTerm || undefined
+      });
+      setCertificates(response.data);
+    } catch (error: any) {
       console.error('Error loading certificates:', error);
+      setError('Errore nel caricamento dei gift certificates');
+      setCertificates([]);
     } finally {
       setLoading(false);
     }
@@ -105,18 +93,9 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
 
   const loadStats = async () => {
     try {
-      // TODO: Implement API call
-      // const data = await giftCertificatesService.getStats(organizationId);
-      // setStats(data);
-
-      // Mock data
-      setStats({
-        total_issued: 147,
-        total_value_issued: 12500,
-        active_balance: 8400,
-        redemption_rate: 76
-      });
-    } catch (error) {
+      const data = await giftCertificatesService.getStats(organizationId);
+      setStats(data);
+    } catch (error: any) {
       console.error('Error loading stats:', error);
     }
   };
@@ -159,6 +138,113 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
+  };
+
+  // Modal handlers
+  const handleIssueGiftCertificate = async (data: CreateGiftCertificateRequest) => {
+    try {
+      const response = await giftCertificatesService.create(data);
+      await loadCertificates();
+      await loadStats();
+      setShowIssueModal(false);
+      return response;
+    } catch (error: any) {
+      console.error('Error issuing gift certificate:', error);
+      throw error;
+    }
+  };
+
+  const handleValidateGiftCertificate = async (code: string) => {
+    try {
+      const result = await giftCertificatesService.validate({
+        code,
+        organization_id: organizationId
+      });
+      return result;
+    } catch (error: any) {
+      console.error('Error validating gift certificate:', error);
+      throw error;
+    }
+  };
+
+  const handleOpenRedeemModal = (certificate: GiftCertificate) => {
+    setSelectedCertificate(certificate);
+    setShowValidateModal(false);
+    setShowRedeemModal(true);
+  };
+
+  const handleRedeemGiftCertificate = async (amount: number) => {
+    if (!selectedCertificate) return;
+
+    try {
+      await giftCertificatesService.redeem({
+        code: selectedCertificate.code,
+        organization_id: organizationId,
+        amount
+      });
+
+      await loadCertificates();
+      await loadStats();
+      setShowRedeemModal(false);
+      setSelectedCertificate(null);
+    } catch (error: any) {
+      console.error('Error redeeming gift certificate:', error);
+      throw error;
+    }
+  };
+
+  // Handler for View Details button
+  const handleViewDetails = (certificate: GiftCertificate) => {
+    setSelectedCertificate(certificate);
+    setShowDetailsModal(true);
+  };
+
+  // Handler for Print Voucher button
+  const handlePrintVoucher = async (certificate: GiftCertificate) => {
+    if (!printService) {
+      console.warn('Print service not available');
+      return;
+    }
+
+    try {
+      await printService.printGiftCertificate({
+        code: certificate.code,
+        amount: certificate.original_amount,
+        recipientName: certificate.recipient_name,
+        recipientEmail: certificate.recipient_email,
+        validUntil: certificate.valid_until,
+        personalMessage: certificate.personal_message,
+        issuedAt: certificate.issued_at,
+        organizationName
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+    }
+  };
+
+  // Handler for Send Email button
+  const handleSendEmail = async (certificate: GiftCertificate) => {
+    if (!certificate.recipient_email) {
+      console.warn('No recipient email available');
+      return;
+    }
+
+    try {
+      // Email sending is handled automatically by backend when enabled in settings
+      // This button is just visual feedback that email can be resent
+      console.log('Email notification triggered for certificate:', certificate.code);
+
+      // TODO: Implement resend email API endpoint if needed
+      // await giftCertificatesService.resendEmail(certificate.id);
+    } catch (error) {
+      console.error('Email error:', error);
+    }
+  };
+
+  // Handler for Validate button
+  const handleValidateFromCard = (certificate: GiftCertificate) => {
+    setSelectedCertificate(certificate);
+    setShowValidateModal(true);
   };
 
   const filteredCertificates = certificates.filter(cert =>
@@ -218,7 +304,7 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
         <div className="gift-certificates-panel-actions">
           <button
             className="gift-certificates-action-btn gift-certificates-action-btn-primary"
-            onClick={() => {/* TODO: Open new certificate modal */}}
+            onClick={() => setShowIssueModal(true)}
           >
             <Plus size={20} />
             Nuovo Gift Certificate
@@ -226,7 +312,7 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
 
           <button
             className="gift-certificates-action-btn gift-certificates-action-btn-secondary"
-            onClick={() => {/* TODO: Open validate modal */}}
+            onClick={() => setShowValidateModal(true)}
           >
             <QrCode size={20} />
             Valida Codice
@@ -320,16 +406,33 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
 
                 {/* Card Actions */}
                 <div className="cert-card-actions">
-                  <button className="cert-action-btn" title="Visualizza dettagli">
+                  <button
+                    className="cert-action-btn"
+                    title="Visualizza dettagli"
+                    onClick={() => handleViewDetails(cert)}
+                  >
                     <Eye size={18} />
                   </button>
-                  <button className="cert-action-btn" title="Stampa voucher">
+                  <button
+                    className="cert-action-btn"
+                    title="Stampa voucher"
+                    onClick={() => handlePrintVoucher(cert)}
+                  >
                     <Printer size={18} />
                   </button>
-                  <button className="cert-action-btn" title="Invia email">
+                  <button
+                    className="cert-action-btn"
+                    title="Invia email"
+                    onClick={() => handleSendEmail(cert)}
+                    disabled={!cert.recipient_email}
+                  >
                     <Mail size={18} />
                   </button>
-                  <button className="cert-action-btn primary" title="Valida">
+                  <button
+                    className="cert-action-btn primary"
+                    title="Valida"
+                    onClick={() => handleValidateFromCard(cert)}
+                  >
                     <CheckCircle size={18} />
                   </button>
                 </div>
@@ -338,6 +441,50 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <IssueGiftCertificateModal
+        isOpen={showIssueModal}
+        onClose={() => setShowIssueModal(false)}
+        onIssue={handleIssueGiftCertificate}
+        organizationId={organizationId}
+        organizationName={organizationName}
+        presetAmounts={[25, 50, 100, 150, 200, 500]}
+        printService={printService}
+      />
+
+      <ValidateGiftCertificateModal
+        isOpen={showValidateModal}
+        onClose={() => setShowValidateModal(false)}
+        onValidate={handleValidateGiftCertificate}
+        onRedeem={handleOpenRedeemModal}
+        organizationId={organizationId}
+        organizationName={organizationName}
+        printService={printService}
+      />
+
+      <RedeemGiftCertificateModal
+        isOpen={showRedeemModal}
+        certificate={selectedCertificate}
+        onClose={() => {
+          setShowRedeemModal(false);
+          setSelectedCertificate(null);
+        }}
+        onRedeem={handleRedeemGiftCertificate}
+        organizationId={organizationId}
+        organizationName={organizationName}
+        printService={printService}
+      />
+
+      <GiftCertificateDetailsModal
+        isOpen={showDetailsModal}
+        certificate={selectedCertificate}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedCertificate(null);
+        }}
+        organizationName={organizationName}
+      />
     </>
   );
 };

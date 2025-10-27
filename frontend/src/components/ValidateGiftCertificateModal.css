@@ -1,0 +1,394 @@
+/**
+ * Validate Gift Certificate Modal Styles
+ * Responsive Desktop/POS design
+ */
+
+/* Modal Container */
+.validate-gc-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  width: 90%;
+  max-width: 650px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+/* Input Section */
+.input-section {
+  margin-bottom: 1.5rem;
+}
+
+.code-input-wrapper {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.code-input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.code-input:disabled {
+  background: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.validate-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.validate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.validate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* QR Scan Section */
+.qr-scan-section {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.qr-scan-btn {
+  width: 100%;
+  padding: 1.25rem;
+  background: white;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.qr-scan-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.qr-scan-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qr-scan-btn.scanning {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #3b82f6;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.qr-scan-btn svg {
+  flex-shrink: 0;
+}
+
+.qr-hint {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Validation Result */
+.validation-result {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 2px solid #e5e7eb;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.status-icon {
+  margin: 0 auto 1rem;
+  animation: scaleIn 0.3s ease;
+}
+
+.status-icon.success {
+  color: #10b981;
+}
+
+.status-icon.warning {
+  color: #f59e0b;
+}
+
+.status-icon.error {
+  color: #ef4444;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.status-message {
+  margin-bottom: 1.5rem;
+}
+
+.status-message h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.status-message p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.status-message.success {
+  color: #10b981;
+}
+
+.status-message.warning {
+  color: #f59e0b;
+}
+
+.status-message.error {
+  color: #ef4444;
+}
+
+/* Certificate Details */
+.certificate-details {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row.highlight {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  margin: 0 -1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  border-bottom: none;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.detail-label svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: right;
+}
+
+.detail-value.code {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  font-size: 0.9rem;
+}
+
+.detail-value.amount {
+  font-size: 1.5rem;
+  color: #10b981;
+}
+
+/* Usage Progress */
+.usage-progress {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.progress-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  transition: width 0.5s ease;
+}
+
+/* ============================================================================
+   POS MODE (Touch-friendly)
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .validate-gc-modal {
+    width: 95%;
+    max-width: none;
+    max-height: 95vh;
+  }
+
+  .code-input {
+    padding: 1.25rem;
+    font-size: 1.25rem;
+    min-height: 60px;
+  }
+
+  .validate-btn {
+    padding: 1.25rem 2rem;
+    font-size: 1.1rem;
+    min-height: 60px;
+  }
+
+  .qr-scan-btn {
+    padding: 1.5rem;
+    font-size: 1.1rem;
+    min-height: 70px;
+  }
+
+  .qr-scan-btn svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .status-icon {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .status-message h3 {
+    font-size: 1.4rem;
+  }
+
+  .certificate-details {
+    padding: 1.25rem;
+  }
+
+  .detail-row {
+    padding: 1rem 0;
+  }
+
+  .detail-row.highlight {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .detail-label {
+    font-size: 1rem;
+  }
+
+  .detail-value {
+    font-size: 1.1rem;
+  }
+
+  .detail-value.amount {
+    font-size: 1.75rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 60px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 480px) {
+  .code-input-wrapper {
+    flex-direction: column;
+  }
+
+  .validate-btn {
+    width: 100%;
+  }
+
+  .detail-value.code {
+    font-size: 0.75rem;
+  }
+}
