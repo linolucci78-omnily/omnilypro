@@ -1636,7 +1636,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       const printService = new ZCSPrintService({
         storeName: currentOrganization.name,
         storeAddress: currentOrganization.address || '',
-        storePhone: currentOrganization.phone_number || '',
+        storePhone: currentOrganization.phone || '',
         storeTax: currentOrganization.partita_iva || '',
         paperWidth: 384,
         fontSizeNormal: 24,
