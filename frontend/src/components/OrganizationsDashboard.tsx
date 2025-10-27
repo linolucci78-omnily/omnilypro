@@ -1632,6 +1632,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Initialize Print Service for POS
   useEffect(() => {
+    console.log('🔍 Print Service Init Check:', {
+      isPOSMode,
+      hasOrganization: !!currentOrganization,
+      orgName: currentOrganization?.name,
+      hasPrintService: !!printService
+    });
+
     if (isPOSMode && currentOrganization && !printService) {
       console.log('🔧 Initializing print service for Gift Certificates...');
       const newPrintService = new ZCSPrintService({
@@ -1653,6 +1660,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           console.error('❌ Failed to initialize print service');
         }
       });
+    } else {
+      console.log('⚠️ Print service NOT initialized - conditions not met');
     }
   }, [isPOSMode, currentOrganization, printService]);
 
