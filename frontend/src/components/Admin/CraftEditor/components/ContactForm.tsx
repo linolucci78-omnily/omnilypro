@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { Type, Palette, Maximize2, Mail, ChevronDown, ChevronUp, Send, Trash2 } from 'lucide-react';
+import { useConfirm } from '../../../../hooks/useConfirm';
+import { ConfirmModal } from '../../../ConfirmModal';
 
 export interface ContactFormProps {
   // Campi Form
@@ -161,8 +163,21 @@ const ContactFormSettings: React.FC = () => {
     'Open Sans, sans-serif',
   ];
 
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
+
   return (
     <div>
+      <ConfirmModal
+        isOpen={isOpen}
+        title={options?.title}
+        message={options?.message || ''}
+        confirmText={options?.confirmText}
+        cancelText={options?.cancelText}
+        type={options?.type}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+
       {/* Header con pulsante elimina */}
       <div style={{
         display: 'flex',
@@ -178,9 +193,14 @@ const ContactFormSettings: React.FC = () => {
         </h3>
         <button
           onClick={() => {
-            if (window.confirm('Sei sicuro di voler eliminare questo form di contatto?')) {
-              deleteNode();
-            }
+            confirm({
+              title: 'Elimina Form',
+              message: 'Sei sicuro di voler eliminare questo form di contatto?',
+              type: 'danger',
+              confirmText: 'Elimina',
+              cancelText: 'Annulla',
+              onConfirm: () => deleteNode()
+            });
           }}
           style={{
             display: 'flex',

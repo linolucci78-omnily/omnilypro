@@ -404,39 +404,51 @@
   /* No hover effect */
 }
 
-/* EDITOR MODE - Indicatori visivi per elementi */
+/* EDITOR MODE - Indicatori visivi per elementi - STILE ELEMENTOR */
 .craft-canvas [data-cy] {
   position: relative;
+  transition: all 0.2s ease;
 }
 
-/* Outline sottile su hover per tutti gli elementi draggabili */
+/* Hover sottile blu come Elementor */
 .craft-canvas [data-cy]:hover {
-  outline: 2px dashed #3b82f6 !important;
-  outline-offset: -2px;
+  outline: 2px solid #93c5fd !important;
+  outline-offset: 0px;
+  cursor: pointer;
 }
 
-/* Outline più forte quando selezionato */
-.craft-canvas [data-cy].component-selected {
-  outline: 3px solid #3b82f6 !important;
-  outline-offset: -3px;
+/* Selezione forte blu come Elementor */
+.craft-canvas [data-cy].component-selected,
+.craft-canvas .node-selected {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 0px;
+  box-shadow: 0 0 0 1px #3b82f6, 0 0 10px rgba(59, 130, 246, 0.3) !important;
 }
 
-/* Label con nome componente su hover */
-.craft-canvas [data-cy]:hover::before {
+/* Label con nome componente stile Elementor */
+.craft-canvas [data-cy]:hover::before,
+.craft-canvas .node-selected::before {
   content: attr(data-cy);
   position: absolute;
-  top: -24px;
-  left: 0;
+  top: -28px;
+  left: -2px;
   background: #3b82f6;
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 3px 3px 0 0;
   font-size: 11px;
   font-weight: 600;
-  z-index: 1000;
+  z-index: 10000;
   white-space: nowrap;
   pointer-events: none;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: 0.3px;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+/* Nasconde label su hover se già selezionato */
+.craft-canvas .node-selected:hover::before {
+  background: #2563eb;
 }
 
 /* ===== OMNILY VISUAL EDITOR SPECIFIC STYLES ===== */

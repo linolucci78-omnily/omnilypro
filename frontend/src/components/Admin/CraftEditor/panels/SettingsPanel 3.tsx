@@ -2,11 +2,9 @@
 import React from 'react';
 import { useEditor } from '@craftjs/core';
 import { useConfirm } from '../../../../hooks/useConfirm';
-import ConfirmModal from '../../../UI/ConfirmModal';
 
-// Settings panel with custom ConfirmModal integration
 export const SettingsPanel: React.FC = () => {
-  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
+  const { confirm, ConfirmDialog } = useConfirm();
   const { selected, isEnabled, actions } = useEditor((state, query) => {
     // state.events.selected is a Set, we need to get the first (and only) element
     const selectedSet = state.events.selected;
@@ -103,16 +101,7 @@ export const SettingsPanel: React.FC = () => {
           </div>
         )}
       </div>
-      <ConfirmModal
-        isOpen={isOpen}
-        title={options?.title}
-        message={options?.message || ''}
-        confirmText={options?.confirmText}
-        cancelText={options?.cancelText}
-        type={options?.type}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
+      <ConfirmDialog />
     </div>
   );
 };

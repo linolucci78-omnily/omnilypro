@@ -1,22 +1,38 @@
 {
   "ROOT": {
-    "type": "Container",
+    "type": { "resolvedName": "Container" },
     "isCanvas": true,
-    "props": {},
+    "props": {
+      "padding": 0,
+      "margin": 0,
+      "background": {}
+    },
     "displayName": "Container",
     "custom": {},
     "hidden": false,
-    "nodes": ["hero-salon", "features-salon", "contact-salon"],
+    "nodes": ["hero-salon", "features-salon", "gallery-salon", "pricing-salon", "services-salon", "testimonials-salon", "contact-salon", "footer-salon"],
     "linkedNodes": {}
   },
   "hero-salon": {
-    "type": "HeroSection",
+    "type": { "resolvedName": "HeroSection" },
     "isCanvas": false,
     "props": {
       "title": "Bellezza e Stile",
       "subtitle": "Il tuo salone di fiducia dal 2010",
       "backgroundColor": "#d4a574",
-      "minHeight": 500
+      "minHeight": 600,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "sectionId": "hero",
+      "background": {
+        "type": "image",
+        "backgroundImage": "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200",
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "overlayEnabled": true,
+        "overlayColor": "#d4a574",
+        "overlayOpacity": 0.7
+      }
     },
     "displayName": "Hero Section",
     "custom": {},
@@ -26,34 +42,186 @@
     "linkedNodes": {}
   },
   "features-salon": {
-    "type": "FeaturesSection",
+    "type": { "resolvedName": "FeaturesSection" },
     "isCanvas": false,
     "props": {
       "title": "I Nostri Servizi",
-      "subtitle": "Bellezza e cura professionale",
+      "subtitle": "Cura professionale e prodotti di qualità",
       "features": [
         {
           "title": "💇 Taglio & Piega",
-          "description": "Styling personalizzato per ogni occasione"
+          "description": "Styling personalizzato per ogni occasione e tipo di capello"
         },
         {
           "title": "🎨 Colorazione",
-          "description": "Tecniche moderne e prodotti premium"
+          "description": "Tecniche moderne con prodotti premium senza ammoniaca"
         },
         {
           "title": "✨ Trattamenti",
-          "description": "Cura e rigenerazione dei capelli"
+          "description": "Cura e rigenerazione profonda dei capelli danneggiati"
         },
         {
           "title": "💅 Manicure & Pedicure",
-          "description": "Mani e piedi sempre perfetti"
+          "description": "Mani e piedi sempre perfetti con smalti di ultima generazione"
         }
       ],
       "backgroundColor": "#ffffff",
       "textColor": "#1a1a1a",
       "columns": 2,
       "paddingTop": 80,
-      "paddingBottom": 80
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "sectionId": "servizi",
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "services-salon": {
+    "type": { "resolvedName": "FeaturesSection" },
+    "isCanvas": false,
+    "props": {
+      "title": "Perché Sceglierci",
+      "subtitle": "Esperienza e qualità al tuo servizio",
+      "features": [
+        {
+          "title": "👨‍🎨 Professionisti Certificati",
+          "description": "Staff qualificato con aggiornamenti costanti"
+        },
+        {
+          "title": "🌿 Prodotti Naturali",
+          "description": "Utilizziamo solo prodotti biologici certificati"
+        },
+        {
+          "title": "⏰ Orari Flessibili",
+          "description": "Aperti anche la domenica su appuntamento"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "sectionId": "perche",
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "gallery-salon": {
+    "type": { "resolvedName": "GallerySection" },
+    "isCanvas": false,
+    "props": {
+      "title": "I Nostri Lavori",
+      "subtitle": "Creatività e passione in ogni acconciatura",
+      "sectionId": "galleria",
+      "images": [
+        "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600",
+        "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600",
+        "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=600",
+        "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=600",
+        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600",
+        "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600"
+      ],
+      "columns": 3,
+      "backgroundColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {}
+    },
+    "displayName": "Gallery Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "pricing-salon": {
+    "type": { "resolvedName": "FeaturesSection" },
+    "isCanvas": false,
+    "props": {
+      "title": "Listino Prezzi",
+      "subtitle": "Servizi di qualità a prezzi trasparenti",
+      "features": [
+        {
+          "title": "Taglio Donna - €35",
+          "description": "Taglio personalizzato con consulenza di stile inclusa"
+        },
+        {
+          "title": "Taglio Uomo - €25",
+          "description": "Taglio classico o moderno con finishing"
+        },
+        {
+          "title": "Piega - €30",
+          "description": "Asciugatura professionale con prodotti premium"
+        },
+        {
+          "title": "Colore Completo - da €60",
+          "description": "Colorazione totale con prodotti senza ammoniaca"
+        },
+        {
+          "title": "Meches/Balayage - da €80",
+          "description": "Tecniche moderne per un effetto naturale"
+        },
+        {
+          "title": "Trattamenti - da €40",
+          "description": "Ricostruzione, cheratina, botox per capelli"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "sectionId": "prezzi",
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "testimonials-salon": {
+    "type": { "resolvedName": "FeaturesSection" },
+    "isCanvas": false,
+    "props": {
+      "title": "Cosa Dicono i Nostri Clienti",
+      "subtitle": "La soddisfazione dei clienti è la nostra priorità",
+      "features": [
+        {
+          "title": "⭐⭐⭐⭐⭐ Maria R.",
+          "description": "\"Professionalità e cortesia! Vado da loro da anni e non li cambierei mai. Consigliatissimo!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Giulia S.",
+          "description": "\"Finalmente ho trovato chi capisce i miei capelli! Il balayage è venuto perfetto, proprio come volevo.\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Marco T.",
+          "description": "\"Ambiente accogliente, personale preparato. Il taglio è sempre impeccabile. Top!\""
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "sectionId": "recensioni",
+      "background": {}
     },
     "displayName": "Features Section",
     "custom": {},
@@ -63,17 +231,65 @@
     "linkedNodes": {}
   },
   "contact-salon": {
-    "type": "ContactSection",
+    "type": { "resolvedName": "ContactSection" },
     "isCanvas": false,
     "props": {
       "title": "Prenota un Appuntamento",
       "subtitle": "Ti aspettiamo nel nostro salone",
-      "backgroundColor": "#f3f4f6",
-      "textColor": "#1a1a1a",
+      "backgroundColor": "#d4a574",
+      "textColor": "#ffffff",
       "paddingTop": 80,
-      "paddingBottom": 80
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "sectionId": "contatti",
+      "background": {}
     },
     "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "footer-salon": {
+    "type": { "resolvedName": "FooterSection" },
+    "isCanvas": false,
+    "props": {
+      "backgroundColor": "#1a1a1a",
+      "textColor": "#ffffff",
+      "sectionId": "footer",
+      "columns": [
+        {
+          "title": "Orari di Apertura",
+          "items": [
+            "Lunedì - Venerdì: 9:00 - 19:00",
+            "Sabato: 9:00 - 18:00",
+            "Domenica: Su appuntamento"
+          ]
+        },
+        {
+          "title": "Contatti",
+          "items": [
+            "📍 Via Roma 123, Milano",
+            "📞 +39 02 1234567",
+            "✉️ info@salone.it"
+          ]
+        },
+        {
+          "title": "Seguici",
+          "items": [
+            "Instagram: @salonebellezza",
+            "Facebook: Salone Bellezza",
+            "TikTok: @salonestyle"
+          ]
+        }
+      ],
+      "paddingTop": 60,
+      "paddingBottom": 60,
+      "minHeight": 0,
+      "background": {}
+    },
+    "displayName": "Footer Section",
     "custom": {},
     "parent": "ROOT",
     "hidden": false,

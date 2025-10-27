@@ -1,22 +1,56 @@
 {
   "ROOT": {
-    "type": "Container",
+    "type": {
+      "resolvedName": "Container"
+    },
     "isCanvas": true,
-    "props": {},
+    "props": {
+      "padding": 0,
+      "margin": 0,
+      "background": {}
+    },
     "displayName": "Container",
     "custom": {},
     "hidden": false,
-    "nodes": ["hero-gym", "features-gym", "contact-gym"],
+    "nodes": [
+      "hero-gym",
+      "features-gym",
+      "classes-gym",
+      "gallery-gym",
+      "trainers-gym",
+      "pricing-gym",
+      "testimonials-gym",
+      "contact-gym",
+      "footer-gym"
+    ],
     "linkedNodes": {}
   },
   "hero-gym": {
-    "type": "HeroSection",
+    "type": {
+      "resolvedName": "HeroSection"
+    },
     "isCanvas": false,
     "props": {
       "title": "Trasforma il Tuo Corpo",
-      "subtitle": "Raggiungi i tuoi obiettivi fitness con noi",
-      "backgroundColor": "#1a1a1a",
-      "minHeight": 500
+      "subtitle": "Fitness professionale, risultati garantiti",
+      "ctaText": "Prova Gratuita",
+      "ctaLink": "#contact",
+      "backgroundColor": "#ff6b35",
+      "textColor": "#ffffff",
+      "minHeight": 650,
+      "paddingTop": 100,
+      "paddingBottom": 100,
+      "background": {
+        "type": "image",
+        "backgroundImage": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200",
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "overlayEnabled": true,
+        "overlayColor": "#000000",
+        "overlayOpacity": 0.4,
+        "sectionId": "hero"
+      },
+      "sectionId": "hero"
     },
     "displayName": "Hero Section",
     "custom": {},
@@ -26,34 +60,244 @@
     "linkedNodes": {}
   },
   "features-gym": {
-    "type": "FeaturesSection",
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
     "isCanvas": false,
     "props": {
-      "title": "I Nostri Servizi",
-      "subtitle": "Tutto quello di cui hai bisogno per allenarti",
+      "title": "Perché Scegliere La Nostra Palestra",
+      "subtitle": "Attrezzature moderne e personal trainer certificati",
       "features": [
         {
-          "title": "💪 Sala Pesi",
-          "description": "Attrezzature moderne e professionali"
+          "title": "💪 Attrezzature Top",
+          "description": "Macchinari Technogym di ultima generazione per ogni tipo di allenamento"
         },
         {
-          "title": "🏃 Cardio Training",
-          "description": "Tapis roulant, bike e stepper di ultima generazione"
+          "title": "👥 Personal Trainer",
+          "description": "Staff qualificato con certificazioni internazionali per seguirti passo dopo passo"
+        },
+        {
+          "title": "🕐 Orari Flessibili",
+          "description": "Aperto 7 giorni su 7 dalle 6:00 alle 23:00, anche nei festivi"
         },
         {
           "title": "🧘 Corsi di Gruppo",
-          "description": "Yoga, Pilates, Zumba e molto altro"
-        },
-        {
-          "title": "👨‍🏫 Personal Trainer",
-          "description": "Allenamento personalizzato con esperti certificati"
+          "description": "Oltre 40 corsi settimanali: yoga, pilates, spinning, zumba e molto altro"
         }
       ],
       "backgroundColor": "#ffffff",
       "textColor": "#1a1a1a",
       "columns": 2,
       "paddingTop": 80,
-      "paddingBottom": 80
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "servizi"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "classes-gym": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "I Nostri Corsi",
+      "subtitle": "Trova l'attività perfetta per te",
+      "features": [
+        {
+          "title": "🔥 Functional Training",
+          "description": "Allenamento funzionale ad alta intensità per bruciare calorie e tonificare"
+        },
+        {
+          "title": "🚴 Spinning",
+          "description": "Ciclismo indoor con musica motivante e istruttori energici"
+        },
+        {
+          "title": "🧘 Yoga & Pilates",
+          "description": "Equilibrio, flessibilità e benessere mentale"
+        },
+        {
+          "title": "🥊 Boxe & Kickboxing",
+          "description": "Scarica stress e allena tutto il corpo con gli sport da combattimento"
+        },
+        {
+          "title": "💃 Zumba & Dance",
+          "description": "Divertiti ballando e brucia calorie senza accorgertene"
+        },
+        {
+          "title": "🏋️ CrossFit",
+          "description": "Allenamento ad alta intensità per atleti di ogni livello"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "gallery-gym": {
+    "type": {
+      "resolvedName": "GallerySection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "La Nostra Struttura",
+      "subtitle": "Ambiente moderno e accogliente",
+      "images": [
+        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600",
+        "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600",
+        "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600",
+        "https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600",
+        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600",
+        "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600"
+      ],
+      "columns": 3,
+      "backgroundColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "galleria"
+    },
+    "displayName": "Gallery Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "trainers-gym": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "I Nostri Trainer",
+      "subtitle": "Professionisti al tuo servizio",
+      "features": [
+        {
+          "title": "💪 Alex Forte",
+          "description": "Personal Trainer certificato ISSA, specializzato in bodybuilding e ipertrofia muscolare"
+        },
+        {
+          "title": "🏃 Sara Sprint",
+          "description": "Coach atletica e preparazione fisica, esperta in functional training"
+        },
+        {
+          "title": "🧘 Laura Zen",
+          "description": "Istruttrice yoga e pilates con certificazione internazionale"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "pricing-gym": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Piani e Abbonamenti",
+      "subtitle": "Scegli la soluzione migliore per te",
+      "features": [
+        {
+          "title": "Base - €39/mese",
+          "description": "Accesso sala pesi e cardio in orari liberi"
+        },
+        {
+          "title": "Premium - €59/mese",
+          "description": "Accesso illimitato + tutti i corsi di gruppo inclusi"
+        },
+        {
+          "title": "VIP - €89/mese",
+          "description": "Premium + 4 sedute Personal Training al mese"
+        },
+        {
+          "title": "Ingresso Singolo - €15",
+          "description": "Prova la palestra per un giorno"
+        },
+        {
+          "title": "10 Ingressi - €120",
+          "description": "Massima flessibilità senza vincoli"
+        },
+        {
+          "title": "Annuale - €390",
+          "description": "12 mesi al prezzo di 10, risparmia €78!"
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "prezzi"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "testimonials-gym": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Storie di Successo",
+      "subtitle": "I risultati dei nostri atleti",
+      "features": [
+        {
+          "title": "⭐⭐⭐⭐⭐ Marco D.",
+          "description": "\"In 6 mesi ho perso 15kg e guadagnato tanta energia. I trainer sono fantastici!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Elena C.",
+          "description": "\"Ambiente pulito e professionale. I corsi sono vari e sempre coinvolgenti!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Luca P.",
+          "description": "\"Migliore palestra della zona! Attrezzature top e staff preparato.\""
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "recensioni"
     },
     "displayName": "Features Section",
     "custom": {},
@@ -63,17 +307,69 @@
     "linkedNodes": {}
   },
   "contact-gym": {
-    "type": "ContactSection",
+    "type": {
+      "resolvedName": "ContactSection"
+    },
     "isCanvas": false,
     "props": {
-      "title": "Inizia Oggi",
-      "subtitle": "Prenota una prova gratuita",
-      "backgroundColor": "#f3f4f6",
-      "textColor": "#1a1a1a",
+      "title": "Inizia Oggi il Tuo Percorso",
+      "subtitle": "Prima seduta gratuita con personal trainer incluso",
+      "backgroundColor": "#ff6b35",
+      "textColor": "#ffffff",
       "paddingTop": 80,
-      "paddingBottom": 80
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "contatti"
     },
     "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "footer-gym": {
+    "type": {
+      "resolvedName": "FooterSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "backgroundColor": "#1a1a1a",
+      "textColor": "#ffffff",
+      "columns": [
+        {
+          "title": "Orari",
+          "items": [
+            "Lunedì - Venerdì: 6:00 - 23:00",
+            "Sabato - Domenica: 8:00 - 20:00",
+            "Festivi: 9:00 - 18:00"
+          ]
+        },
+        {
+          "title": "Dove Siamo",
+          "items": [
+            "📍 Via dello Sport 88, Torino",
+            "📞 +39 011 9876543",
+            "✉️ info@powerfitnessclub.it"
+          ]
+        },
+        {
+          "title": "Social",
+          "items": [
+            "Instagram: @powerfitnessclub",
+            "Facebook: Power Fitness Club",
+            "YouTube: Power Fitness"
+          ]
+        }
+      ],
+      "paddingTop": 60,
+      "paddingBottom": 60,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "footer"
+    },
+    "displayName": "Footer Section",
     "custom": {},
     "parent": "ROOT",
     "hidden": false,

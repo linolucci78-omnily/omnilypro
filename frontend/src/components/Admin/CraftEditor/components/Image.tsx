@@ -4,6 +4,8 @@ import { useNode } from '@craftjs/core';
 import { Trash2 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { ColorPicker } from './ColorPicker';
+import { useConfirm } from '../../../../hooks/useConfirm';
+import ConfirmModal from '../../../UI/ConfirmModal';
 
 interface ImageProps {
   src?: string;
@@ -19,6 +21,8 @@ interface ImageProps {
 
 // Settings Panel - Defined first
 const ImageSettings = () => {
+  const confirmHook = useConfirm();
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = confirmHook;
   const {
     actions: { setProp, delete: deleteNode },
     props,
@@ -26,17 +30,34 @@ const ImageSettings = () => {
     props: node.data.props,
   }));
 
+  console.log('🖼️ ImageSettings - confirm function:', typeof confirm, confirm);
+
   return (
     <div style={{ padding: '16px' }}>
+      <ConfirmModal
+        isOpen={isOpen}
+        title={options?.title}
+        message={options?.message || ''}
+        confirmText={options?.confirmText}
+        cancelText={options?.cancelText}
+        type={options?.type}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600' }}>
           🖼️ Image Settings
         </h3>
         <button
           onClick={() => {
-            if (window.confirm('Sei sicuro di voler eliminare questa immagine?')) {
-              deleteNode();
-            }
+            confirm({
+              title: 'Elimina Immagine',
+              message: 'Sei sicuro di voler eliminare questa immagine?',
+              confirmText: 'Elimina',
+              cancelText: 'Annulla',
+              type: 'danger',
+              onConfirm: () => deleteNode()
+            });
           }}
           style={{
             display: 'flex',
@@ -311,6 +332,6 @@ Image.craft = {
     boxShadow: undefined,
   },
   related: {
-    settings: ImageSettings,
+    toolbar: ImageSettings,
   },
 };

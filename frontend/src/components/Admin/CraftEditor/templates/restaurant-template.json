@@ -1,0 +1,328 @@
+{
+  "ROOT": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "padding": 0,
+      "margin": 0,
+      "background": {}
+    },
+    "displayName": "Container",
+    "custom": {},
+    "hidden": false,
+    "nodes": [
+      "hero-restaurant",
+      "features-restaurant",
+      "menu-preview",
+      "gallery-restaurant",
+      "chef-section",
+      "testimonials-restaurant",
+      "contact-restaurant",
+      "footer-restaurant"
+    ],
+    "linkedNodes": {}
+  },
+  "hero-restaurant": {
+    "type": {
+      "resolvedName": "HeroSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Sapori Autentici",
+      "subtitle": "La tradizione italiana nel cuore della città dal 1985",
+      "ctaText": "Prenota un Tavolo",
+      "ctaLink": "#contact",
+      "backgroundColor": "#1a1a1a",
+      "textColor": "#ffffff",
+      "minHeight": 650,
+      "paddingTop": 100,
+      "paddingBottom": 100,
+      "background": {
+        "type": "image",
+        "backgroundImage": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200",
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "overlayEnabled": true,
+        "overlayColor": "#000000",
+        "overlayOpacity": 0.5,
+        "sectionId": "hero"
+      },
+      "sectionId": "hero"
+    },
+    "displayName": "Hero Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "features-restaurant": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Perché Scegliere Il Nostro Ristorante",
+      "subtitle": "Qualità, tradizione e passione in ogni piatto",
+      "features": [
+        {
+          "title": "🍝 Cucina Tradizionale",
+          "description": "Ricette autentiche tramandate di generazione in generazione dalla nostra famiglia"
+        },
+        {
+          "title": "🥗 Ingredienti Freschi",
+          "description": "Solo prodotti locali e di stagione selezionati ogni giorno dai migliori fornitori"
+        },
+        {
+          "title": "👨‍🍳 Chef Esperti",
+          "description": "Un team appassionato con oltre 20 anni di esperienza nella cucina italiana"
+        },
+        {
+          "title": "🍷 Cantina Selezionata",
+          "description": "Oltre 100 etichette di vini italiani e internazionali accuratamente selezionati"
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 2,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "servizi"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "menu-preview": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Il Nostro Menu",
+      "subtitle": "Piatti della tradizione preparati con maestria",
+      "features": [
+        {
+          "title": "Antipasti - da €12",
+          "description": "Bruschette miste, taglieri di salumi e formaggi DOP, carpacci di manzo"
+        },
+        {
+          "title": "Primi Piatti - da €14",
+          "description": "Pasta fresca fatta in casa, risotti cremosi, zuppe tradizionali"
+        },
+        {
+          "title": "Secondi - da €18",
+          "description": "Carni alla griglia, pesce fresco del giorno, specialità regionali"
+        },
+        {
+          "title": "Dolci - da €8",
+          "description": "Tiramisù della casa, panna cotta, dolci della tradizione italiana"
+        },
+        {
+          "title": "Menu Degustazione - €45",
+          "description": "5 portate con abbinamento vini incluso, un viaggio nella cucina italiana"
+        },
+        {
+          "title": "Menu Bambini - €15",
+          "description": "Piatti dedicati ai più piccoli, pasta al pomodoro, cotoletta e patatine"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "gallery-restaurant": {
+    "type": {
+      "resolvedName": "GallerySection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "I Nostri Piatti",
+      "subtitle": "Arte culinaria italiana",
+      "images": [
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
+        "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600",
+        "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600",
+        "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600",
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600",
+        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600"
+      ],
+      "columns": 3,
+      "backgroundColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "galleria"
+    },
+    "displayName": "Gallery Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "chef-section": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Il Nostro Team",
+      "subtitle": "Passione e dedizione in cucina",
+      "features": [
+        {
+          "title": "👨‍🍳 Chef Giuseppe Rossi",
+          "description": "Executive Chef con 25 anni di esperienza, specializzato in cucina regionale italiana"
+        },
+        {
+          "title": "👨‍🍳 Sous Chef Marco Bianchi",
+          "description": "Esperto in preparazione di pasta fresca e secondi di carne"
+        },
+        {
+          "title": "🍰 Pastry Chef Laura Conti",
+          "description": "Specialista in dolci tradizionali italiani e pasticceria moderna"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {}
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "testimonials-restaurant": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Recensioni dei Clienti",
+      "subtitle": "La vostra soddisfazione è la nostra ricompensa",
+      "features": [
+        {
+          "title": "⭐⭐⭐⭐⭐ Luca M.",
+          "description": "\"Il miglior ristorante italiano della zona! Prodotti freschi e cucina eccellente. Ci torniamo sempre!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Anna P.",
+          "description": "\"Ambiente accogliente e personale cordiale. I ravioli fatti in casa sono spettacolari!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Roberto F.",
+          "description": "\"Qualità-prezzo imbattibile. Porzioni generose e sapori autentici. Consigliatissimo!\""
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "recensioni"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "contact-restaurant": {
+    "type": {
+      "resolvedName": "ContactSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Prenota il Tuo Tavolo",
+      "subtitle": "Ti aspettiamo per un'esperienza culinaria indimenticabile",
+      "backgroundColor": "#1a1a1a",
+      "textColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "contatti"
+    },
+    "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "footer-restaurant": {
+    "type": {
+      "resolvedName": "FooterSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "backgroundColor": "#0a0a0a",
+      "textColor": "#ffffff",
+      "columns": [
+        {
+          "title": "Orari",
+          "items": [
+            "Martedì - Domenica: 12:00 - 15:00 / 19:00 - 23:00",
+            "Lunedì: Chiuso",
+            "Prenotazione consigliata"
+          ]
+        },
+        {
+          "title": "Dove Siamo",
+          "items": [
+            "📍 Piazza Garibaldi 45, Roma",
+            "📞 +39 06 1234567",
+            "✉️ info@ristoranterossi.it"
+          ]
+        },
+        {
+          "title": "Social",
+          "items": [
+            "Instagram: @ristoranterossi",
+            "Facebook: Ristorante Rossi",
+            "TripAdvisor: ⭐⭐⭐⭐⭐"
+          ]
+        }
+      ],
+      "paddingTop": 60,
+      "paddingBottom": 60,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "footer"
+    },
+    "displayName": "Footer Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  }
+}

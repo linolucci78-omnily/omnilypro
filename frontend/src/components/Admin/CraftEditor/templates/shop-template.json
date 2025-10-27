@@ -1,0 +1,342 @@
+{
+  "ROOT": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "padding": 0,
+      "margin": 0,
+      "background": {}
+    },
+    "displayName": "Container",
+    "custom": {},
+    "hidden": false,
+    "nodes": [
+      "hero-shop",
+      "features-shop",
+      "products-shop",
+      "gallery-shop",
+      "categories-shop",
+      "testimonials-shop",
+      "contact-shop",
+      "footer-shop"
+    ],
+    "linkedNodes": {}
+  },
+  "hero-shop": {
+    "type": {
+      "resolvedName": "HeroSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Shopping di Qualità",
+      "subtitle": "Scopri le nostre collezioni esclusive",
+      "ctaText": "Scopri i Prodotti",
+      "ctaLink": "#products",
+      "backgroundColor": "#6a4c93",
+      "textColor": "#ffffff",
+      "minHeight": 600,
+      "paddingTop": 90,
+      "paddingBottom": 90,
+      "background": {
+        "type": "image",
+        "backgroundImage": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200",
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "overlayEnabled": true,
+        "overlayColor": "#6a4c93",
+        "overlayOpacity": 0.5,
+        "sectionId": "hero"
+      },
+      "sectionId": "hero"
+    },
+    "displayName": "Hero Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "features-shop": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Perché Scegliere Noi",
+      "subtitle": "Qualità, stile e servizio impeccabile",
+      "features": [
+        {
+          "title": "✨ Prodotti Selezionati",
+          "description": "Solo articoli di qualità da brand affidabili e trend del momento"
+        },
+        {
+          "title": "🚚 Spedizione Gratuita",
+          "description": "Consegna gratuita per ordini superiori a €50, veloce e sicura"
+        },
+        {
+          "title": "↩️ Resi Facili",
+          "description": "30 giorni per cambiare idea, reso gratuito e rimborso garantito"
+        },
+        {
+          "title": "💳 Pagamenti Sicuri",
+          "description": "Carta di credito, PayPal, bonifico - transazioni protette SSL"
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 2,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "servizi"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "products-shop": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Prodotti in Evidenza",
+      "subtitle": "Le nostre migliori offerte",
+      "features": [
+        {
+          "title": "👕 T-Shirt Premium - €29.90",
+          "description": "100% cotone organico, disponibile in 8 colori"
+        },
+        {
+          "title": "👖 Jeans Slim Fit - €79.90",
+          "description": "Denim stretch di alta qualità, vestibilità perfetta"
+        },
+        {
+          "title": "👟 Sneakers Casual - €89.90",
+          "description": "Comode e trendy, ideali per tutti i giorni"
+        },
+        {
+          "title": "🎒 Zaino Urban - €59.90",
+          "description": "Capiente e resistente, perfetto per lavoro e tempo libero"
+        },
+        {
+          "title": "⌚ Smartwatch - €149.90",
+          "description": "Fitness tracker, notifiche, impermeabile"
+        },
+        {
+          "title": "🎧 Cuffie Wireless - €99.90",
+          "description": "Audio HD, cancellazione del rumore, 30h di autonomia"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "prodotti"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "gallery-shop": {
+    "type": {
+      "resolvedName": "GallerySection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Le Nostre Collezioni",
+      "subtitle": "Stile e qualità in ogni prodotto",
+      "images": [
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
+        "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600",
+        "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=600",
+        "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600",
+        "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600"
+      ],
+      "columns": 3,
+      "backgroundColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "galleria"
+    },
+    "displayName": "Gallery Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "categories-shop": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Categorie Popolari",
+      "subtitle": "Trova quello che cerchi",
+      "features": [
+        {
+          "title": "👔 Abbigliamento Uomo",
+          "description": "T-shirt, camicie, giacche, pantaloni e molto altro"
+        },
+        {
+          "title": "👗 Abbigliamento Donna",
+          "description": "Vestiti, gonne, top, pantaloni e accessori"
+        },
+        {
+          "title": "👟 Scarpe",
+          "description": "Sneakers, stivali, sandali per lui e lei"
+        },
+        {
+          "title": "🎒 Accessori",
+          "description": "Zaini, borse, portafogli, cinture"
+        },
+        {
+          "title": "⌚ Tecnologia",
+          "description": "Smartwatch, cuffie, speaker, gadget"
+        },
+        {
+          "title": "💎 Gioielli",
+          "description": "Collane, bracciali, orecchini, anelli"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "categorie"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "testimonials-shop": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Recensioni Clienti",
+      "subtitle": "Oltre 5000 clienti soddisfatti",
+      "features": [
+        {
+          "title": "⭐⭐⭐⭐⭐ Martina S.",
+          "description": "\"Prodotti di ottima qualità e consegna velocissima! Tornerò sicuramente!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Andrea T.",
+          "description": "\"Servizio clienti eccezionale, mi hanno aiutato a scegliere la taglia giusta.\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Giulia R.",
+          "description": "\"Prezzi competitivi e prodotti all'ultima moda. Consigliatissimo!\""
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "recensioni"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "contact-shop": {
+    "type": {
+      "resolvedName": "ContactSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Resta Aggiornato",
+      "subtitle": "Iscriviti alla newsletter per offerte esclusive",
+      "backgroundColor": "#6a4c93",
+      "textColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "contatti"
+    },
+    "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "footer-shop": {
+    "type": {
+      "resolvedName": "FooterSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "backgroundColor": "#1a1a1a",
+      "textColor": "#ffffff",
+      "columns": [
+        {
+          "title": "Servizio Clienti",
+          "items": [
+            "Lunedì - Venerdì: 9:00 - 18:00",
+            "Sabato: 10:00 - 16:00",
+            "Email: assistenza@shop.it"
+          ]
+        },
+        {
+          "title": "Contatti",
+          "items": [
+            "📍 Via del Commercio 56, Bologna",
+            "📞 +39 051 8765432",
+            "✉️ info@urbanstyleshop.it"
+          ]
+        },
+        {
+          "title": "Seguici",
+          "items": [
+            "Instagram: @urbanstyleshop",
+            "Facebook: Urban Style Shop",
+            "TikTok: @urbanstyle"
+          ]
+        }
+      ],
+      "paddingTop": 60,
+      "paddingBottom": 60,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "footer"
+    },
+    "displayName": "Footer Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  }
+}

@@ -3,6 +3,8 @@ import React, { type ReactNode } from 'react';
 import { useNode } from '@craftjs/core';
 import { Trash2, Square, Maximize2 } from 'lucide-react';
 import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from './BackgroundControls';
+import { useConfirm } from '../../../../hooks/useConfirm';
+import { ConfirmModal } from '../../../ConfirmModal';
 
 export interface SectionProps {
   children?: ReactNode;
@@ -26,8 +28,21 @@ const SectionSettings = () => {
     props: node.data.props,
   }));
 
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
+
   return (
     <div>
+      <ConfirmModal
+        isOpen={isOpen}
+        title={options?.title}
+        message={options?.message || ''}
+        confirmText={options?.confirmText}
+        cancelText={options?.cancelText}
+        type={options?.type}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+
       {/* Header con pulsante elimina */}
       <div style={{
         display: 'flex',
@@ -43,9 +58,14 @@ const SectionSettings = () => {
         </h3>
         <button
           onClick={() => {
-            if (window.confirm('Sei sicuro di voler eliminare questa sezione?')) {
-              deleteNode();
-            }
+            confirm({
+              title: 'Elimina Sezione',
+              message: 'Sei sicuro di voler eliminare questa sezione?',
+              type: 'danger',
+              confirmText: 'Elimina',
+              cancelText: 'Annulla',
+              onConfirm: () => deleteNode()
+            });
           }}
           style={{
             display: 'flex',

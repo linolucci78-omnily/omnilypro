@@ -4,6 +4,8 @@ import { useNode, useEditor } from '@craftjs/core';
 import { Menu, Trash2, Plus, X, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import { ImageUploader } from './ImageUploader';
+import { useConfirm } from '../../../../hooks/useConfirm';
+import { ConfirmModal } from '../../../ConfirmModal';
 
 export interface MenuItem {
   id: string;
@@ -141,8 +143,21 @@ const NavigationSettings: React.FC = () => {
     );
   };
 
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
+
   return (
     <div>
+      <ConfirmModal
+        isOpen={isOpen}
+        title={options?.title}
+        message={options?.message || ''}
+        confirmText={options?.confirmText}
+        cancelText={options?.cancelText}
+        type={options?.type}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+
       {/* Header */}
       <div style={{
         display: 'flex',
@@ -158,9 +173,14 @@ const NavigationSettings: React.FC = () => {
         </h3>
         <button
           onClick={() => {
-            if (window.confirm('Sei sicuro di voler eliminare questo menu?')) {
-              deleteNode();
-            }
+            confirm({
+              title: 'Elimina Menu',
+              message: 'Sei sicuro di voler eliminare questo menu di navigazione?',
+              type: 'danger',
+              confirmText: 'Elimina',
+              cancelText: 'Annulla',
+              onConfirm: () => deleteNode()
+            });
           }}
           style={{
             display: 'flex',

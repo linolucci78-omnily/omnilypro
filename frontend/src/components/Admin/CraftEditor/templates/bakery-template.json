@@ -1,0 +1,342 @@
+{
+  "ROOT": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "padding": 0,
+      "margin": 0,
+      "background": {}
+    },
+    "displayName": "Container",
+    "custom": {},
+    "hidden": false,
+    "nodes": [
+      "hero-bakery",
+      "features-bakery",
+      "products-bakery",
+      "gallery-bakery",
+      "pricing-bakery",
+      "testimonials-bakery",
+      "contact-bakery",
+      "footer-bakery"
+    ],
+    "linkedNodes": {}
+  },
+  "hero-bakery": {
+    "type": {
+      "resolvedName": "HeroSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Pane e Dolci Artigianali",
+      "subtitle": "La tradizione del forno dal 1960",
+      "ctaText": "Scopri i Prodotti",
+      "ctaLink": "#products",
+      "backgroundColor": "#f4a261",
+      "textColor": "#ffffff",
+      "minHeight": 600,
+      "paddingTop": 90,
+      "paddingBottom": 90,
+      "background": {
+        "type": "image",
+        "backgroundImage": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200",
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "overlayEnabled": true,
+        "overlayColor": "#f4a261",
+        "overlayOpacity": 0.6,
+        "sectionId": "hero"
+      },
+      "sectionId": "hero"
+    },
+    "displayName": "Hero Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "features-bakery": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "La Nostra Filosofia",
+      "subtitle": "Ingredienti genuini e lavorazione artigianale",
+      "features": [
+        {
+          "title": "🌾 Farine Biologiche",
+          "description": "Solo farine selezionate da agricoltura biologica italiana"
+        },
+        {
+          "title": "👨‍🍳 Ricette Tradizionali",
+          "description": "Metodi di lavorazione tramandati da tre generazioni"
+        },
+        {
+          "title": "🕐 Fresco Ogni Giorno",
+          "description": "Produzione quotidiana di pane e dolci, sfornati più volte al giorno"
+        },
+        {
+          "title": "❤️ Senza Conservanti",
+          "description": "Prodotti naturali al 100%, senza additivi chimici"
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 2,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "servizi"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "products-bakery": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "I Nostri Prodotti",
+      "subtitle": "Bontà artigianale per ogni momento della giornata",
+      "features": [
+        {
+          "title": "🥖 Pane Tradizionale",
+          "description": "Pane casereccio, integrale, ai cereali, filoncini e focacce"
+        },
+        {
+          "title": "🥐 Pasticceria Fresca",
+          "description": "Cornetti, paste, torte e dolci da forno preparati ogni mattina"
+        },
+        {
+          "title": "🎂 Torte su Ordinazione",
+          "description": "Torte personalizzate per compleanni, matrimoni e eventi speciali"
+        },
+        {
+          "title": "🍕 Pizze e Focacce",
+          "description": "Pizza al taglio, focacce farcite e calzoni caldi tutto il giorno"
+        },
+        {
+          "title": "🍪 Biscotti Artigianali",
+          "description": "Cantuccini, amaretti, biscotti al burro fatti come una volta"
+        },
+        {
+          "title": "🍞 Panini e Tramezzini",
+          "description": "Perfetti per la pausa pranzo, con ingredienti freschi e di qualità"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "prodotti"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "gallery-bakery": {
+    "type": {
+      "resolvedName": "GallerySection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Le Nostre Specialità",
+      "subtitle": "Guarda le nostre creazioni",
+      "images": [
+        "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600",
+        "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600",
+        "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=600",
+        "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=600",
+        "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600",
+        "https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=600"
+      ],
+      "columns": 3,
+      "backgroundColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "galleria"
+    },
+    "displayName": "Gallery Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "pricing-bakery": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Alcuni Prezzi",
+      "subtitle": "Qualità artigianale a prezzi giusti",
+      "features": [
+        {
+          "title": "Pane Casereccio (1kg) - €3.50",
+          "description": "Croccante fuori, morbido dentro, perfetto per ogni pasto"
+        },
+        {
+          "title": "Cornetti Freschi - €1.20",
+          "description": "Sfogliati al burro, disponibili vuoti o con crema"
+        },
+        {
+          "title": "Focaccia (1kg) - €8.00",
+          "description": "Alta e soffice, condita con olio extra vergine"
+        },
+        {
+          "title": "Torta Personalizzata - da €35",
+          "description": "Torte su misura per le tue occasioni speciali"
+        },
+        {
+          "title": "Pizza al Taglio (€/kg) - €14",
+          "description": "Classica, con pomodoro e mozzarella di qualità"
+        },
+        {
+          "title": "Biscotti Artigianali (€/kg) - €18",
+          "description": "Cantuccini, amaretti e biscotti vari fatti a mano"
+        }
+      ],
+      "backgroundColor": "#f9fafb",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "prezzi"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "testimonials-bakery": {
+    "type": {
+      "resolvedName": "FeaturesSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Cosa Dicono i Clienti",
+      "subtitle": "La fiducia dei nostri clienti è il nostro orgoglio",
+      "features": [
+        {
+          "title": "⭐⭐⭐⭐⭐ Francesca L.",
+          "description": "\"Il pane migliore della città! Fragrante e genuino, come quello della nonna.\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Paolo M.",
+          "description": "\"Cornetti fantastici e torte stupende. Punto di riferimento per tutte le occasioni!\""
+        },
+        {
+          "title": "⭐⭐⭐⭐⭐ Chiara B.",
+          "description": "\"Qualità eccezionale e personale sempre gentile. Ci vado ogni giorno!\""
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 3,
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "recensioni"
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "contact-bakery": {
+    "type": {
+      "resolvedName": "ContactSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Ordina le Tue Specialità",
+      "subtitle": "Prenota torte e prodotti speciali",
+      "backgroundColor": "#f4a261",
+      "textColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "contatti"
+    },
+    "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "footer-bakery": {
+    "type": {
+      "resolvedName": "FooterSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "backgroundColor": "#2d2d2d",
+      "textColor": "#ffffff",
+      "columns": [
+        {
+          "title": "Orari",
+          "items": [
+            "Lunedì - Sabato: 6:30 - 20:00",
+            "Domenica: 7:00 - 13:00",
+            "Festivi: 7:00 - 13:00"
+          ]
+        },
+        {
+          "title": "Dove Siamo",
+          "items": [
+            "📍 Corso Italia 234, Napoli",
+            "📞 +39 081 5551234",
+            "✉️ info@panificiononnalucia.it"
+          ]
+        },
+        {
+          "title": "Seguici",
+          "items": [
+            "Instagram: @panificioartigianale",
+            "Facebook: Panificio Nonna Lucia",
+            "Telegram: @panedolci"
+          ]
+        }
+      ],
+      "paddingTop": 60,
+      "paddingBottom": 60,
+      "minHeight": 0,
+      "background": {},
+      "sectionId": "footer"
+    },
+    "displayName": "Footer Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  }
+}

@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { FileText, Palette, Settings } from 'lucide-react';
 import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
+import { getResponsivePadding } from '../utils/responsive';
+import { useViewport } from '../contexts/ViewportContext';
 
 interface ContactSectionProps {
   title?: string;
@@ -13,6 +15,7 @@ interface ContactSectionProps {
   paddingBottom?: number;
   minHeight?: number;
   background?: BackgroundSettings;
+  sectionId?: string; // ID per ancore di navigazione
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({
@@ -24,29 +27,51 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   paddingBottom = 60,
   minHeight = 0,
   background = {},
+  sectionId = 'contact',
 }) => {
-  const { connectors: { connect, drag } } = useNode();
+  const {
+    connectors: { connect, drag },
+    selected
+  } = useNode((node) => ({
+    selected: node.events.selected
+  }));
+
+  const { viewportMode } = useViewport();
 
   const backgroundStyles = getBackgroundStyles(background);
   const overlayStyles = getOverlayStyles(background);
 
+  // Calculate responsive values
+  const responsivePaddingTop = getResponsivePadding(paddingTop, viewportMode);
+  const responsivePaddingBottom = getResponsivePadding(paddingBottom, viewportMode);
+  const responsiveMinHeight = minHeight && viewportMode === 'mobile' ? minHeight * 0.6 : minHeight && viewportMode === 'tablet' ? minHeight * 0.8 : minHeight;
+
+  // Build style object without conflicts
+  const sectionStyle: React.CSSProperties = {
+    ...backgroundStyles,
+    color: textColor,
+    paddingTop: `${responsivePaddingTop}px`,
+    paddingBottom: `${responsivePaddingBottom}px`,
+    minHeight: responsiveMinHeight ? `${responsiveMinHeight}px` : 'auto',
+    position: 'relative',
+  };
+
+  // Only add backgroundColor if no background was set
+  if (!backgroundStyles.background && !backgroundStyles.backgroundImage) {
+    sectionStyle.backgroundColor = backgroundColor;
+  }
+
   return (
     <section
+      id={sectionId}
+      className={selected ? 'node-selected' : ''}
+      data-cy="Contact Section"
       ref={(ref) => {
         if (ref) {
           connect(drag(ref));
         }
       }}
-      style={{
-        ...backgroundStyles,
-        background: backgroundStyles.background || backgroundColor,
-        backgroundColor: backgroundStyles.backgroundColor || backgroundColor,
-        color: textColor,
-        paddingTop: `${paddingTop}px`,
-        paddingBottom: `${paddingBottom}px`,
-        minHeight: minHeight ? `${minHeight}px` : 'auto',
-        position: 'relative',
-      }}
+      style={sectionStyle}
     >
       {overlayStyles && <div style={{ ...overlayStyles }} />}
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px', position: 'relative', zIndex: 1 }}>
@@ -161,6 +186,29 @@ const ContactSectionSettings = () => {
         {/* CONTENUTO TAB */}
         {activeTab === 'content' && (
           <>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
+                ID Sezione (per link menu)
+              </label>
+              <input
+                type="text"
+                value={props.sectionId}
+                onChange={(e) => setProp((props: any) => props.sectionId = e.target.value)}
+                placeholder="es: contact, contatti, get-in-touch"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  marginBottom: '16px'
+                }}
+              />
+              <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 16px 0' }}>
+                Usa questo ID nei link del menu (es: #contact, #contatti)
+              </p>
+            </div>
+
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
                 Titolo
@@ -307,6 +355,7 @@ ContactSection.craft = {
     paddingBottom: 60,
     minHeight: 0,
     background: {},
+    sectionId: 'contact',
   },
   related: {
     toolbar: ContactSectionSettings,

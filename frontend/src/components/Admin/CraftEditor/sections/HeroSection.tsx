@@ -6,6 +6,8 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
 import { FileText, Palette, Settings } from 'lucide-react';
+import { getResponsivePadding } from '../utils/responsive';
+import { useViewport } from '../contexts/ViewportContext';
 
 export interface HeroSectionProps {
   title?: string;
@@ -15,6 +17,7 @@ export interface HeroSectionProps {
   paddingTop?: number;
   paddingBottom?: number;
   background?: BackgroundSettings;
+  sectionId?: string; // ID per le ancore di navigazione
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -24,31 +27,52 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   minHeight = 400,
   paddingTop = 60,
   paddingBottom = 60,
-  background = {}
+  background = {},
+  sectionId = 'hero'
 }) => {
   const {
-    connectors: { connect, drag }
-  } = useNode();
+    connectors: { connect, drag },
+    selected
+  } = useNode((node) => ({
+    selected: node.events.selected
+  }));
+
+  const { viewportMode } = useViewport();
 
   const backgroundStyles = getBackgroundStyles(background);
   const overlayStyles = getOverlayStyles(background);
 
+  // Calculate responsive values based on viewportMode
+  const responsiveMinHeight = viewportMode === 'mobile' ? minHeight * 0.6 : viewportMode === 'tablet' ? minHeight * 0.8 : minHeight;
+  const responsivePaddingTop = getResponsivePadding(paddingTop, viewportMode);
+  const responsivePaddingBottom = getResponsivePadding(paddingBottom, viewportMode);
+
+  // Build style object without conflicts
+  const sectionStyle: React.CSSProperties = {
+    ...backgroundStyles,
+    minHeight: `${responsiveMinHeight}px`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: `${responsivePaddingTop}px`,
+    paddingBottom: `${responsivePaddingBottom}px`,
+    paddingLeft: viewportMode === 'mobile' ? '15px' : '20px',
+    paddingRight: viewportMode === 'mobile' ? '15px' : '20px',
+    position: 'relative',
+  };
+
+  // Only add background gradient if no background was set
+  if (!backgroundStyles.background && !backgroundStyles.backgroundImage) {
+    sectionStyle.background = `linear-gradient(135deg, ${backgroundColor} 0%, #764ba2 100%)`;
+  }
+
   return (
     <div
+      id={sectionId}
+      className={selected ? 'node-selected' : ''}
       ref={(ref) => connect(drag(ref as HTMLElement))}
-      style={{
-        ...backgroundStyles,
-        background: backgroundStyles.background || `linear-gradient(135deg, ${backgroundColor} 0%, #764ba2 100%)`,
-        minHeight: `${minHeight}px`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: `${paddingTop}px`,
-        paddingBottom: `${paddingBottom}px`,
-        paddingLeft: '20px',
-        paddingRight: '20px',
-        position: 'relative',
-      }}
+      style={sectionStyle}
+      data-cy="Hero Section"
     >
       {overlayStyles && <div style={{ ...overlayStyles }} />}
       <Element
@@ -123,6 +147,29 @@ const HeroSectionSettings = () => {
         {/* CONTENUTO TAB */}
         {activeTab === 'content' && (
           <>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
+                ID Sezione (per link menu)
+              </label>
+              <input
+                type="text"
+                value={props.sectionId}
+                onChange={(e) => setProp((props: any) => props.sectionId = e.target.value)}
+                placeholder="es: hero, about, services"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  marginBottom: '16px'
+                }}
+              />
+              <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 16px 0' }}>
+                Usa questo ID nei link del menu (es: #hero, #about)
+              </p>
+            </div>
+
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '6px' }}>
                 Titolo

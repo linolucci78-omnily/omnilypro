@@ -4,6 +4,8 @@ import { useNode } from '@craftjs/core';
 import { Trash2, Box, Maximize2 } from 'lucide-react';
 import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from './BackgroundControls';
 import { ColorPicker } from './ColorPicker';
+import { useConfirm } from '../../../../hooks/useConfirm';
+import ConfirmModal from '../../../UI/ConfirmModal';
 
 export interface ContainerProps {
   children?: ReactNode;
@@ -28,6 +30,7 @@ export interface ContainerProps {
 }
 
 const ContainerSettings = () => {
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
   const {
     actions: { setProp, delete: deleteNode },
     props,
@@ -37,6 +40,16 @@ const ContainerSettings = () => {
 
   return (
     <div>
+      <ConfirmModal
+        isOpen={isOpen}
+        title={options?.title}
+        message={options?.message || ''}
+        confirmText={options?.confirmText}
+        cancelText={options?.cancelText}
+        type={options?.type}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
       {/* Header con pulsante elimina */}
       <div style={{
         display: 'flex',
@@ -52,9 +65,14 @@ const ContainerSettings = () => {
         </h3>
         <button
           onClick={() => {
-            if (window.confirm('Sei sicuro di voler eliminare questo container?')) {
-              deleteNode();
-            }
+            confirm({
+              title: 'Elimina Container',
+              message: 'Sei sicuro di voler eliminare questo container e tutto il suo contenuto?',
+              confirmText: 'Elimina',
+              cancelText: 'Annulla',
+              type: 'danger',
+              onConfirm: () => deleteNode()
+            });
           }}
           style={{
             display: 'flex',

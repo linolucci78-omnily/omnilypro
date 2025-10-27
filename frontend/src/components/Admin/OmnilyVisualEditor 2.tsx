@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Editor, Frame, Element } from '@craftjs/core';
-import { X, Save, Eye, EyeOff, Undo, Redo, Layers, Monitor, Tablet, Smartphone } from 'lucide-react';
+import { X, Save, Eye, EyeOff, Undo, Redo, Layers } from 'lucide-react';
 import { directusClient } from '../../lib/directus';
 
 // Import Craft components
@@ -27,9 +27,6 @@ import { FooterSection } from './CraftEditor/sections/FooterSection';
 import { Toolbox } from './CraftEditor/panels/Toolbox';
 import { SettingsPanel } from './CraftEditor/panels/SettingsPanel';
 
-// Import Context
-import { ViewportProvider } from './CraftEditor/contexts/ViewportContext';
-
 import './CraftEditor/styles.css';
 
 interface OmnilyVisualEditorProps {
@@ -47,8 +44,7 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
   const [saving, setSaving] = useState(false);
   const [websiteData, setWebsiteData] = useState<any>(null);
   const [previewMode, setPreviewMode] = useState(false);
-  const [showLayers, setShowLayers] = useState(true); // Always show settings panel by default
-  const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [showLayers, setShowLayers] = useState(true);
 
   useEffect(() => {
     loadWebsite();
@@ -143,46 +139,6 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
           </div>
 
           <div className="toolbar-center">
-            {/* Device Preview Buttons */}
-            <div style={{ display: 'flex', gap: '4px', marginRight: '16px', background: '#1f2937', padding: '4px', borderRadius: '6px' }}>
-              <button
-                className="toolbar-btn"
-                onClick={() => setViewportMode('desktop')}
-                title="Anteprima Desktop"
-                style={{
-                  backgroundColor: viewportMode === 'desktop' ? '#3b82f6' : 'transparent',
-                  padding: '6px 12px',
-                  minWidth: 'auto'
-                }}
-              >
-                <Monitor size={18} />
-              </button>
-              <button
-                className="toolbar-btn"
-                onClick={() => setViewportMode('tablet')}
-                title="Anteprima Tablet"
-                style={{
-                  backgroundColor: viewportMode === 'tablet' ? '#3b82f6' : 'transparent',
-                  padding: '6px 12px',
-                  minWidth: 'auto'
-                }}
-              >
-                <Tablet size={18} />
-              </button>
-              <button
-                className="toolbar-btn"
-                onClick={() => setViewportMode('mobile')}
-                title="Anteprima Mobile"
-                style={{
-                  backgroundColor: viewportMode === 'mobile' ? '#3b82f6' : 'transparent',
-                  padding: '6px 12px',
-                  minWidth: 'auto'
-                }}
-              >
-                <Smartphone size={18} />
-              </button>
-            </div>
-
             <button
               className="toolbar-btn"
               onClick={() => setPreviewMode(!previewMode)}
@@ -195,13 +151,9 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
             <button
               className="toolbar-btn"
               onClick={() => setShowLayers(!showLayers)}
-              title={showLayers ? "Nascondi Pannello Impostazioni" : "Mostra Pannello Impostazioni"}
-              style={{
-                backgroundColor: showLayers ? '#3b82f6' : '#374151'
-              }}
+              title="Mostra/Nascondi Layers"
             >
               <Layers size={18} />
-              {showLayers ? 'Nascondi' : 'Mostra'} Pannello
             </button>
           </div>
 
@@ -238,45 +190,22 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
           )}
 
           {/* Main Canvas */}
-          <div className="editor-canvas" style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-            padding: '20px',
-            overflowY: 'auto',
-            overflowX: 'hidden'
-          }}>
-            <div style={{
-              width: viewportMode === 'mobile' ? '375px' : viewportMode === 'tablet' ? '768px' : '100%',
-              maxWidth: viewportMode === 'desktop' ? '1200px' : undefined,
-              margin: '0 auto',
-              background: '#ffffff',
-              boxShadow: viewportMode !== 'desktop' ? '0 4px 6px rgba(0, 0, 0, 0.1)' : 'none',
-              borderRadius: viewportMode !== 'desktop' ? '8px' : '0',
-              overflow: 'visible',
-              transition: 'all 0.3s ease',
-              minHeight: '100%'
-            }}>
-              <ViewportProvider viewportMode={viewportMode}>
-                <Frame data={websiteData?.craftjs_content}>
-                  <Element is={Container} canvas>
-                    <Element is={HeroSection} />
-                    <Element is={FeaturesSection} />
-                    <Element is={ContactSection} />
-                  </Element>
-                </Frame>
-              </ViewportProvider>
-            </div>
+          <div className="editor-canvas">
+            <Frame data={websiteData?.craftjs_content}>
+              <Element is={Container} canvas>
+                <Element is={HeroSection} />
+                <Element is={FeaturesSection} />
+                <Element is={ContactSection} />
+              </Element>
+            </Frame>
           </div>
 
           {/* Right Sidebar - Settings */}
           {!previewMode && showLayers && (
-            <div className="editor-sidebar editor-sidebar-right" style={{ background: '#f9fafb' }}>
-              {console.log('✅ Rendering SettingsPanel', { previewMode, showLayers })}
+            <div className="editor-sidebar editor-sidebar-right">
               <SettingsPanel />
             </div>
           )}
-          {(!showLayers || previewMode) && console.log('❌ Settings Panel HIDDEN', { previewMode, showLayers })}
         </div>
       </Editor>
     </div>

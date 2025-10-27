@@ -110,17 +110,6 @@ export interface DirectusWebsiteComplete extends DirectusWebsite {
 // Template types
 export type TemplateType = 'restaurant' | 'salon' | 'gym' | 'bakery' | 'shop' | 'generic';
 
-export interface DirectusWebsiteTemplate {
-  id?: number;
-  template_type: TemplateType;
-  name: string;
-  description?: string;
-  craftjs_content: string;
-  preview_image?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
 // ============================================
 // API CLIENT
 // ============================================
@@ -222,13 +211,7 @@ class DirectusClient {
     site_name: string;
     domain?: string;
     published?: boolean;
-    craftjs_content?: string;
   }): Promise<DirectusWebsite> {
-    console.log('🎨 Creating website with craftjs_content:', {
-      hasCraftjsContent: !!data.craftjs_content,
-      craftjsContentLength: data.craftjs_content?.length,
-      craftjsContentPreview: data.craftjs_content?.substring(0, 200)
-    });
     return this.request<DirectusWebsite>('/items/organizations_websites', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -454,8 +437,6 @@ class DirectusClient {
     siteName: string,
     templateType: TemplateType
   ): Promise<DirectusWebsiteComplete> {
-    console.log('🏗️ Creazione sito da template:', { siteName, templateType });
-
     // 1. Genera il dominio dal nome sito (slug)
     const domain = siteName
       .toLowerCase()
@@ -468,8 +449,6 @@ class DirectusClient {
 
     // 2. Carica il template Craft.js specifico
     const craftjsContent = await this.loadCraftJsTemplate(templateType);
-    console.log('📦 craftjs_content caricato, lunghezza:', craftjsContent.length);
-    console.log('📦 Primi 200 caratteri:', craftjsContent.substring(0, 200));
 
     // 3. Crea il sito con dominio e contenuto Craft.js
     const website = await this.createWebsite({
@@ -480,169 +459,41 @@ class DirectusClient {
       craftjs_content: craftjsContent,
     });
 
-    console.log('✅ Sito creato con ID:', website.id);
-
-    // 4. Verifica che il contenuto sia stato salvato
-    const verificaSito = await this.getWebsiteById(website.id);
-    console.log('🔍 Verifica sito salvato - ha craftjs_content?', !!verificaSito.craftjs_content);
-    if (verificaSito.craftjs_content) {
-      const contentStr = typeof verificaSito.craftjs_content === 'string'
-        ? verificaSito.craftjs_content
-        : JSON.stringify(verificaSito.craftjs_content);
-      console.log('🔍 Lunghezza craftjs_content salvato:', contentStr.length);
-      console.log('🔍 Primi 200 caratteri salvati:', contentStr.substring(0, 200));
-    }
-
-    // 5. Ritorna il sito completo
+    // 4. Ritorna il sito completo
     return this.getWebsiteComplete(website.id);
   }
 
-  // ============================================
-  // WEBSITE TEMPLATES - Gestione template su Directus
-  // ============================================
-
-  async getWebsiteTemplate(templateType: TemplateType): Promise<DirectusWebsiteTemplate | null> {
-    try {
-      console.log('🔍 Cerco template su Directus:', templateType);
-      const response = await this.request<{ data: DirectusWebsiteTemplate[] }>(
-        `/items/website_templates?filter[template_type][_eq]=${templateType}&limit=1`
-      );
-
-      if (!response.data || response.data.length === 0) {
-        console.warn(`⚠️ Template "${templateType}" non trovato su Directus`);
-        return null;
-      }
-
-      console.log('✅ Template trovato su Directus');
-      return response.data[0];
-    } catch (error) {
-      console.error('❌ Errore recupero template da Directus:', error);
-      return null;
-    }
-  }
-
-  async createWebsiteTemplate(template: Omit<DirectusWebsiteTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<DirectusWebsiteTemplate> {
-    console.log('💾 Salvo template su Directus:', template.template_type);
-    const response = await this.request<{ data: DirectusWebsiteTemplate }>('/items/website_templates', {
-      method: 'POST',
-      body: JSON.stringify(template),
-    });
-    console.log('✅ Template salvato su Directus');
-    return response.data;
-  }
-
-  async updateWebsiteTemplate(id: number, template: Partial<DirectusWebsiteTemplate>): Promise<DirectusWebsiteTemplate> {
-    console.log('🔄 Aggiorno template su Directus:', id);
-    const response = await this.request<{ data: DirectusWebsiteTemplate }>(`/items/website_templates/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(template),
-    });
-    console.log('✅ Template aggiornato su Directus');
-    return response.data;
-  }
-
-  async syncTemplateToDirectus(templateType: TemplateType): Promise<DirectusWebsiteTemplate> {
-    console.log('🔄 Sincronizzazione template con Directus:', templateType);
-
-    // 1. Carica il template JSON dal file
-    let templateJson;
-    let templateName;
-
-    switch (templateType) {
-      case 'restaurant':
-        templateJson = await import('../components/Admin/CraftEditor/templates/restaurant-template.json');
-        templateName = 'Ristorante';
-        break;
-      case 'salon':
-        templateJson = await import('../components/Admin/CraftEditor/templates/salon-template.json');
-        templateName = 'Parrucchiere';
-        break;
-      case 'gym':
-        templateJson = await import('../components/Admin/CraftEditor/templates/gym-template.json');
-        templateName = 'Palestra';
-        break;
-      case 'bakery':
-        templateJson = await import('../components/Admin/CraftEditor/templates/bakery-template.json');
-        templateName = 'Panetteria';
-        break;
-      case 'shop':
-        templateJson = await import('../components/Admin/CraftEditor/templates/shop-template.json');
-        templateName = 'Negozio';
-        break;
-      default:
-        templateJson = await import('../components/Admin/CraftEditor/templates/generic-template.json');
-        templateName = 'Generico';
-    }
-
-    const craftjsContent = JSON.stringify(templateJson.default || templateJson);
-
-    // 2. Verifica se esiste già su Directus
-    const existing = await this.getWebsiteTemplate(templateType);
-
-    if (existing) {
-      // Aggiorna
-      return await this.updateWebsiteTemplate(existing.id!, {
-        craftjs_content: craftjsContent,
-        name: templateName,
-      });
-    } else {
-      // Crea nuovo
-      return await this.createWebsiteTemplate({
-        template_type: templateType,
-        name: templateName,
-        craftjs_content: craftjsContent,
-        description: `Template per ${templateName.toLowerCase()}`,
-      });
-    }
-  }
-
   private async loadCraftJsTemplate(templateType: TemplateType): Promise<string> {
+    const templateFiles: Record<TemplateType, string> = {
+      restaurant: '/src/components/Admin/CraftEditor/templates/restaurant-template.json',
+      salon: '/src/components/Admin/CraftEditor/templates/salon-template-new.json',
+      gym: '/src/components/Admin/CraftEditor/templates/gym-template-new.json',
+      bakery: '/src/components/Admin/CraftEditor/templates/bakery-template.json',
+      shop: '/src/components/Admin/CraftEditor/templates/shop-template.json',
+      generic: '/src/components/Admin/CraftEditor/templates/restaurant-template.json', // Fallback
+    };
+
     try {
-      console.log('🎨 Caricamento template Craft.js:', templateType);
-      let templateJson;
-
-      switch (templateType) {
-        case 'restaurant':
-          templateJson = await import('../components/Admin/CraftEditor/templates/restaurant-template.json');
-          break;
-        case 'salon':
-          templateJson = await import('../components/Admin/CraftEditor/templates/salon-template.json');
-          break;
-        case 'gym':
-          templateJson = await import('../components/Admin/CraftEditor/templates/gym-template.json');
-          break;
-        case 'bakery':
-          templateJson = await import('../components/Admin/CraftEditor/templates/bakery-template.json');
-          break;
-        case 'shop':
-          templateJson = await import('../components/Admin/CraftEditor/templates/shop-template.json');
-          break;
-        default:
-          templateJson = await import('../components/Admin/CraftEditor/templates/generic-template.json');
-      }
-
-      const content = JSON.stringify(templateJson.default || templateJson);
-      console.log('✅ Template caricato dal file, lunghezza:', content.length);
-      return content;
+      const templatePath = templateFiles[templateType];
+      const response = await fetch(templatePath);
+      const templateJson = await response.json();
+      return JSON.stringify(templateJson);
     } catch (error) {
-      console.error('❌ Errore caricamento template:', templateType, error);
-      return this.getEmptyTemplate();
+      console.error('Error loading template:', error);
+      // Fallback to default empty template
+      return JSON.stringify({
+        ROOT: {
+          type: { resolvedName: 'Container' },
+          isCanvas: true,
+          props: {},
+          displayName: 'Container',
+          custom: {},
+          hidden: false,
+          nodes: [],
+          linkedNodes: {},
+        },
+      });
     }
-  }
-
-  private getEmptyTemplate(): string {
-    return JSON.stringify({
-      ROOT: {
-        type: { resolvedName: 'Container' },
-        isCanvas: true,
-        props: {},
-        displayName: 'Container',
-        custom: {},
-        hidden: false,
-        nodes: [],
-        linkedNodes: {},
-      },
-    });
   }
 
   private async createTemplateContent(

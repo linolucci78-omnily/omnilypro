@@ -4,6 +4,8 @@ import { useNode, Element } from '@craftjs/core';
 import { SelectionIndicator, getSelectionStyles } from '../components/SelectionIndicator';
 import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from '../components/BackgroundControls';
 import { Type, Palette, Layout, Maximize2, Sparkles, Image as ImageIcon, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { getResponsivePadding } from '../utils/responsive';
+import { useViewport } from '../contexts/ViewportContext';
 
 interface MenuItem {
   name: string;
@@ -753,6 +755,16 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
     dom: state.dom
   }));
 
+  const { viewportMode } = useViewport();
+
+  // Calculate responsive values
+  const responsiveColumns = viewportMode === 'mobile' ? 1 : viewportMode === 'tablet' ? Math.min(columns, 2) : columns;
+  const responsivePaddingTop = getResponsivePadding(paddingTop, viewportMode);
+  const responsivePaddingBottom = getResponsivePadding(paddingBottom, viewportMode);
+  const responsivePaddingLeft = getResponsivePadding(paddingLeft, viewportMode);
+  const responsivePaddingRight = getResponsivePadding(paddingRight, viewportMode);
+  const responsiveGap = viewportMode === 'mobile' ? gap * 0.6 : viewportMode === 'tablet' ? gap * 0.8 : gap;
+
   const width = dom ? dom.clientWidth : 0;
   const height = dom ? dom.clientHeight : 0;
 
@@ -762,7 +774,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
       style={{
         backgroundColor,
         color: textColor,
-        padding: `${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px`,
+        padding: `${responsivePaddingTop}px ${responsivePaddingRight}px ${responsivePaddingBottom}px ${responsivePaddingLeft}px`,
         position: 'relative',
         ...getSelectionStyles(selected),
         ...getBackgroundStyles({ backgroundImage, backgroundSize, backgroundPosition, backgroundAttachment }),
@@ -799,8 +811,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
         {/* Menu Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(auto-fit, minmax(${columns === 1 ? '100%' : '300px'}, 1fr))`,
-          gap: `${gap}px`,
+          gridTemplateColumns: `repeat(auto-fit, minmax(${responsiveColumns === 1 ? '100%' : '300px'}, 1fr))`,
+          gap: `${responsiveGap}px`,
         }}>
           {items.map((item, index) => (
             <div

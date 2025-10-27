@@ -1,0 +1,45 @@
+{
+  "ROOT": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "padding": 0,
+      "margin": 0,
+      "background": {}
+    },
+    "displayName": "Container",
+    "custom": {},
+    "hidden": false,
+    "nodes": ["hero-section"],
+    "linkedNodes": {}
+  },
+  "hero-section": {
+    "type": {
+      "resolvedName": "HeroSection"
+    },
+    "isCanvas": false,
+    "props": {
+      "title": "Benvenuto",
+      "subtitle": "Il tuo nuovo sito web",
+      "ctaText": "Scopri di più",
+      "ctaLink": "#contact",
+      "backgroundColor": "#667eea",
+      "textColor": "#ffffff",
+      "paddingTop": 80,
+      "paddingBottom": 80,
+      "minHeight": 500,
+      "background": {
+        "type": "color",
+        "color": "#667eea"
+      }
+    },
+    "displayName": "Hero Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  }
+}

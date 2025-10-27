@@ -1,0 +1,83 @@
+{
+  "ROOT": {
+    "type": "Container",
+    "isCanvas": true,
+    "props": {},
+    "displayName": "Container",
+    "custom": {},
+    "hidden": false,
+    "nodes": ["hero-salon", "features-salon", "contact-salon"],
+    "linkedNodes": {}
+  },
+  "hero-salon": {
+    "type": "HeroSection",
+    "isCanvas": false,
+    "props": {
+      "title": "Bellezza e Stile",
+      "subtitle": "Il tuo salone di fiducia dal 2010",
+      "backgroundColor": "#d4a574",
+      "minHeight": 500
+    },
+    "displayName": "Hero Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "features-salon": {
+    "type": "FeaturesSection",
+    "isCanvas": false,
+    "props": {
+      "title": "I Nostri Servizi",
+      "subtitle": "Bellezza e cura professionale",
+      "features": [
+        {
+          "title": "💇 Taglio & Piega",
+          "description": "Styling personalizzato per ogni occasione"
+        },
+        {
+          "title": "🎨 Colorazione",
+          "description": "Tecniche moderne e prodotti premium"
+        },
+        {
+          "title": "✨ Trattamenti",
+          "description": "Cura e rigenerazione dei capelli"
+        },
+        {
+          "title": "💅 Manicure & Pedicure",
+          "description": "Mani e piedi sempre perfetti"
+        }
+      ],
+      "backgroundColor": "#ffffff",
+      "textColor": "#1a1a1a",
+      "columns": 2,
+      "paddingTop": 80,
+      "paddingBottom": 80
+    },
+    "displayName": "Features Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "contact-salon": {
+    "type": "ContactSection",
+    "isCanvas": false,
+    "props": {
+      "title": "Prenota un Appuntamento",
+      "subtitle": "Ti aspettiamo nel nostro salone",
+      "backgroundColor": "#f3f4f6",
+      "textColor": "#1a1a1a",
+      "paddingTop": 80,
+      "paddingBottom": 80
+    },
+    "displayName": "Contact Section",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  }
+}
