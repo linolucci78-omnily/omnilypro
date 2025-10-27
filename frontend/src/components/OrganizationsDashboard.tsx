@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { supabase, organizationsApi, customersApi, nfcCardsApi, customerActivitiesApi } from '../lib/supabase'
 import type { Organization, Customer, Reward } from '../lib/supabase'
 import { rewardsService } from '../services/rewardsService'
+import { ZCSPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal } from 'lucide-react'
@@ -535,6 +536,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
+
+  // Print Service for POS
+  const printServiceRef = useRef<ZCSPrintService | null>(null)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -1625,6 +1629,29 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       };
     }
   }, [isPOSMode, activeSection]);
+
+  // Initialize Print Service for POS
+  useEffect(() => {
+    if (isPOSMode && currentOrganization && !printServiceRef.current) {
+      const printService = new ZCSPrintService({
+        storeName: currentOrganization.name,
+        storeAddress: currentOrganization.address || '',
+        storePhone: currentOrganization.phone_number || '',
+        storeTax: currentOrganization.partita_iva || '',
+        paperWidth: 384,
+        fontSizeNormal: 24,
+        fontSizeLarge: 32,
+        printDensity: 3
+      });
+
+      printService.initialize().then(success => {
+        if (success) {
+          console.log('✅ Print service initialized for Gift Certificates');
+          printServiceRef.current = printService;
+        }
+      });
+    }
+  }, [isPOSMode, currentOrganization]);
 
   // Intercept ALL console logs when in pos-integration section AND monitor is enabled
   useEffect(() => {
@@ -3430,6 +3457,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={() => setShowGiftCertificatesPanel(false)}
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
+        printService={printServiceRef.current}
       />
 
       {/* Confirm Modal */}
