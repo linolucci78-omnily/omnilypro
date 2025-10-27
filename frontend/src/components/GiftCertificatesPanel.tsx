@@ -204,13 +204,18 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
 
   // Handler for Print Voucher button (POS with printer)
   const handlePrintVoucher = async (certificate: GiftCertificate) => {
+    console.log('🖨️ handlePrintVoucher called');
+    console.log('🖨️ printService available?', !!printService);
+    console.log('🖨️ printService object:', printService);
+
     if (!printService) {
-      console.warn('Print service not available, generating PDF instead');
+      console.warn('⚠️ Print service not available, generating PDF instead');
       await handleDownloadPDF(certificate);
       return;
     }
 
     try {
+      console.log('🖨️ Calling printService.printGiftCertificate...');
       await printService.printGiftCertificate({
         code: certificate.code,
         amount: certificate.original_amount,
@@ -221,8 +226,9 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
         issuedAt: certificate.issued_at,
         organizationName
       });
+      console.log('✅ Print completed successfully');
     } catch (error) {
-      console.error('Print error:', error);
+      console.error('❌ Print error:', error);
     }
   };
 

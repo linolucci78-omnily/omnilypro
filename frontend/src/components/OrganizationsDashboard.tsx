@@ -538,7 +538,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
 
   // Print Service for POS
-  const printServiceRef = useRef<ZCSPrintService | null>(null)
+  const [printService, setPrintService] = useState<ZCSPrintService | null>(null)
 
   // Funzioni per gestire il slide panel
   const handleCustomerClick = (customer: Customer) => {
@@ -1632,8 +1632,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   // Initialize Print Service for POS
   useEffect(() => {
-    if (isPOSMode && currentOrganization && !printServiceRef.current) {
-      const printService = new ZCSPrintService({
+    if (isPOSMode && currentOrganization && !printService) {
+      console.log('🔧 Initializing print service for Gift Certificates...');
+      const newPrintService = new ZCSPrintService({
         storeName: currentOrganization.name,
         storeAddress: currentOrganization.address || '',
         storePhone: currentOrganization.phone || '',
@@ -1644,14 +1645,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         printDensity: 3
       });
 
-      printService.initialize().then(success => {
+      newPrintService.initialize().then(success => {
         if (success) {
           console.log('✅ Print service initialized for Gift Certificates');
-          printServiceRef.current = printService;
+          setPrintService(newPrintService);
+        } else {
+          console.error('❌ Failed to initialize print service');
         }
       });
     }
-  }, [isPOSMode, currentOrganization]);
+  }, [isPOSMode, currentOrganization, printService]);
 
   // Intercept ALL console logs when in pos-integration section AND monitor is enabled
   useEffect(() => {
@@ -3457,7 +3460,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={() => setShowGiftCertificatesPanel(false)}
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
-        printService={printServiceRef.current}
+        printService={printService}
       />
 
       {/* Confirm Modal */}
