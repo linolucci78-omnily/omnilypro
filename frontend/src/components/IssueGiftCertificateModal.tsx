@@ -179,8 +179,12 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
     try {
       const response = await onIssue(formData);
 
+      console.log('✅ Gift certificate created:', response);
+      console.log('🖨️ Print check - autoPrint:', autoPrint, 'printService:', !!printService, 'certificate:', !!response?.gift_certificate);
+
       // Auto-print if enabled and printService available
-      if (autoPrint && printService && response.gift_certificate) {
+      if (autoPrint && printService && response?.gift_certificate) {
+        console.log('🖨️ Attempting to print gift certificate...');
         try {
           await printService.printGiftCertificate({
             code: response.gift_certificate.code,
@@ -192,10 +196,17 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
             issuedAt: response.gift_certificate.issued_at,
             organizationName
           });
+          console.log('✅ Print successful!');
         } catch (printError) {
-          console.error('Print error:', printError);
+          console.error('❌ Print error:', printError);
           // Don't block the flow if print fails
         }
+      } else {
+        console.log('⚠️ Print skipped:', {
+          autoPrint,
+          hasPrintService: !!printService,
+          hasCertificate: !!response?.gift_certificate
+        });
       }
 
       onClose();
