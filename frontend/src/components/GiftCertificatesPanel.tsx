@@ -18,8 +18,11 @@ import {
   QrCode,
   Printer,
   Mail,
-  Eye
+  Eye,
+  Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 import './GiftCertificatesPanel.css';
 import { giftCertificatesService } from '../services/giftCertificatesService';
 import type { GiftCertificate, GiftCertificateStats, CreateGiftCertificateRequest } from '../types/giftCertificate';
@@ -199,10 +202,11 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
     setShowDetailsModal(true);
   };
 
-  // Handler for Print Voucher button
+  // Handler for Print Voucher button (POS with printer)
   const handlePrintVoucher = async (certificate: GiftCertificate) => {
     if (!printService) {
-      console.warn('Print service not available');
+      console.warn('Print service not available, generating PDF instead');
+      await handleDownloadPDF(certificate);
       return;
     }
 
@@ -219,6 +223,99 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
       });
     } catch (error) {
       console.error('Print error:', error);
+    }
+  };
+
+  // Handler for Download PDF (Desktop alternative)
+  const handleDownloadPDF = async (certificate: GiftCertificate) => {
+    try {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Generate QR code
+      const qrCodeDataURL = await QRCode.toDataURL(certificate.code, {
+        width: 200,
+        margin: 2,
+        errorCorrectionLevel: 'H'
+      });
+
+      // Add content to PDF
+      pdf.setFontSize(24);
+      pdf.text('🎁 GIFT CERTIFICATE 🎁', 105, 30, { align: 'center' });
+
+      pdf.setFontSize(16);
+      pdf.text(organizationName, 105, 45, { align: 'center' });
+
+      pdf.setFontSize(12);
+      pdf.text('_______________________________________________', 105, 50, { align: 'center' });
+
+      pdf.setFontSize(20);
+      pdf.text('BUONO REGALO', 105, 65, { align: 'center' });
+
+      const formattedAmount = new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(certificate.original_amount);
+
+      pdf.setFontSize(28);
+      pdf.text(`VALORE: ${formattedAmount}`, 105, 80, { align: 'center' });
+
+      pdf.setFontSize(12);
+      pdf.text('_______________________________________________', 105, 85, { align: 'center' });
+
+      // Certificate details
+      pdf.setFontSize(11);
+      let yPos = 100;
+
+      pdf.text(`Codice: ${certificate.code}`, 20, yPos);
+      yPos += 8;
+
+      const issuedDate = new Date(certificate.issued_at).toLocaleDateString('it-IT');
+      pdf.text(`Emesso il: ${issuedDate}`, 20, yPos);
+      yPos += 8;
+
+      if (certificate.valid_until) {
+        const validDate = new Date(certificate.valid_until).toLocaleDateString('it-IT');
+        pdf.text(`Valido fino al: ${validDate}`, 20, yPos);
+        yPos += 8;
+      }
+
+      if (certificate.recipient_name) {
+        yPos += 5;
+        pdf.text(`Beneficiario: ${certificate.recipient_name}`, 20, yPos);
+        yPos += 8;
+      }
+
+      if (certificate.recipient_email) {
+        pdf.text(`Email: ${certificate.recipient_email}`, 20, yPos);
+        yPos += 8;
+      }
+
+      if (certificate.personal_message) {
+        yPos += 5;
+        pdf.text('Messaggio:', 20, yPos);
+        yPos += 8;
+        const splitMessage = pdf.splitTextToSize(certificate.personal_message, 170);
+        pdf.text(splitMessage, 20, yPos);
+        yPos += splitMessage.length * 6;
+      }
+
+      // Add QR code
+      yPos += 10;
+      pdf.addImage(qrCodeDataURL, 'PNG', 55, yPos, 100, 100);
+
+      yPos += 110;
+      pdf.setFontSize(10);
+      pdf.text('Presenta questo voucher per utilizzare il buono', 105, yPos, { align: 'center' });
+      pdf.text('Scansiona il QR code per riscattare rapidamente', 105, yPos + 6, { align: 'center' });
+
+      // Save PDF
+      pdf.save(`gift-certificate-${certificate.code}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
     }
   };
 
