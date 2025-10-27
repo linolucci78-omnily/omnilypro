@@ -133,7 +133,9 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
     setError(null);
 
     try {
-      const result = await onValidate(code);
+      // Remove dashes and trim spaces before validation
+      const cleanCode = code.replace(/-/g, '').trim();
+      const result = await onValidate(cleanCode);
       setValidationResult(result);
 
       if (!result.valid) {
