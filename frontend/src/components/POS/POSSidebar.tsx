@@ -59,13 +59,13 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   }, [isOpen]);
 
   const handleSignOut = async () => {
-    console.log('=ª LOGOUT SIDEBAR CLICKED!');
+    console.log('=ï¿½ LOGOUT SIDEBAR CLICKED!');
     try {
-      console.log('=ª Setting POS mode flag from sidebar...');
+      console.log('=ï¿½ Setting POS mode flag from sidebar...');
       localStorage.setItem('pos-mode', 'true');
-      console.log('=ª Calling signOut from sidebar...');
+      console.log('=ï¿½ Calling signOut from sidebar...');
       await signOut();
-      console.log('=ª SignOut success from sidebar');
+      console.log('=ï¿½ SignOut success from sidebar');
     } catch (error) {
       console.error('L Errore logout sidebar:', error);
     }
@@ -86,8 +86,9 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'dashboard', icon: MdDashboard, label: 'Dashboard', feature: null },
     { id: 'stamps', icon: MdLoyalty, label: 'Tessere Punti', feature: null },
     { id: 'members', icon: MdPeople, label: 'Clienti', feature: null },
-    { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
+    { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedeltï¿½', feature: 'loyaltyTiers' },
     { id: 'rewards', icon: MdCardGiftcard, label: 'Premi', feature: 'rewards' },
+    { id: 'gift-certificates', icon: MdCardGiftcard, label: 'Gift Certificates', feature: null },
     { id: 'categories', icon: MdCategory, label: 'Categorie', feature: 'categories' },
     { id: 'marketing-campaigns', icon: MdEmail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
     { id: 'team-management', icon: MdPersonAdd, label: 'Gestione Team', feature: 'teamManagement' },
@@ -146,10 +147,10 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
           className="pos-sidebar-backdrop"
           onClick={() => {
             if (backdropActive) {
-              console.log('<­ BACKDROP CLICKED!');
+              console.log('<ï¿½ BACKDROP CLICKED!');
               onClose();
             } else {
-              console.log('<­ BACKDROP IGNORED (too early)');
+              console.log('<ï¿½ BACKDROP IGNORED (too early)');
             }
           }}
         />
