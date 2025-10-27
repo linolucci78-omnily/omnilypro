@@ -3000,7 +3000,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             </div>
             <div className="cards-grid">
               <div className="feature-card">
-                <h3>🎁 Gestione Gift Certificates</h3>
+                <h3>Gestione Gift Certificates</h3>
                 <p>Emetti, valida e gestisci gift certificates per i tuoi clienti</p>
                 <button
                   className="btn-primary"
@@ -3011,12 +3011,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 </button>
               </div>
               <div className="feature-card">
-                <h3>📊 Statistiche</h3>
+                <h3>Statistiche</h3>
                 <p>Visualizza le performance dei gift certificates emessi</p>
                 <button className="btn-primary">Visualizza Report</button>
               </div>
               <div className="feature-card">
-                <h3>⚙️ Configurazione</h3>
+                <h3>Configurazione</h3>
                 <p>Configura template, validità e impostazioni gift certificates</p>
                 <button
                   className="btn-primary"
@@ -3288,6 +3288,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             >
               <Target size={20} />
               <span>Test Tessere</span>
+            </button>
+            <button
+              className={`pos-nav-tab ${activeSection === 'gift-certificates' ? 'active' : ''}`}
+              onClick={() => handleSectionChange('gift-certificates')}
+            >
+              <CreditCard size={20} />
+              <span>Gift Certificates</span>
             </button>
           </div>
         </div>

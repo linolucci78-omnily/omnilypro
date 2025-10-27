@@ -360,7 +360,10 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
         {/* Header */}
         <div className="gift-certificates-panel-header">
           <div className="gift-certificates-header-info">
-            <h2>🎁 Gift Certificates</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <CreditCard size={28} />
+              <h2>Gift Certificates</h2>
+            </div>
             <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9, fontSize: '0.95rem' }}>
               {organizationName}
             </p>
