@@ -32,6 +32,7 @@ import { FeaturesSection } from '../sections/FeaturesSection';
 import { ContactSection } from '../sections/ContactSection';
 import { GallerySection } from '../sections/GallerySection';
 import { FooterSection } from '../sections/FooterSection';
+import { LoyaltySection } from '../sections/LoyaltySection';
 
 export const Toolbox: React.FC = () => {
   const { connectors } = useEditor();
@@ -169,6 +170,30 @@ export const Toolbox: React.FC = () => {
             >
               <FileText size={20} className="craft-toolbox-icon" />
               <span className="craft-toolbox-label">Footer</span>
+            </div>
+
+            {/* Loyalty Section */}
+            <div
+              ref={(ref) => {
+                if (ref) {
+                  connectors.create(
+                    ref,
+                    <Element
+                      is={LoyaltySection}
+                      canvas
+                    />
+                  );
+                }
+              }}
+              className="craft-toolbox-item"
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+                border: '2px solid #f59e0b',
+                animation: 'glow 2s ease-in-out infinite'
+              }}
+            >
+              <Sparkles size={20} className="craft-toolbox-icon" style={{ color: '#fff' }} />
+              <span className="craft-toolbox-label" style={{ color: '#fff', fontWeight: '700' }}>Fidelity</span>
             </div>
 
             {/* Navigation Menu */}

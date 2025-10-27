@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { Type, Palette, Maximize2, Mail, ChevronDown, ChevronUp, Send, Trash2 } from 'lucide-react';
 import { useConfirm } from '../../../../hooks/useConfirm';
-import { ConfirmModal } from '../../../ConfirmModal';
+import ConfirmModal from '../../../UI/ConfirmModal';
 
 export interface ContactFormProps {
   // Campi Form

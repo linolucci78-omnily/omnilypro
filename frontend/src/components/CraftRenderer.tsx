@@ -7,9 +7,18 @@ import { Container } from './Admin/CraftEditor/components/Container';
 import { Text } from './Admin/CraftEditor/components/Text';
 import { Button } from './Admin/CraftEditor/components/Button';
 import { Image } from './Admin/CraftEditor/components/Image';
+import { Section } from './Admin/CraftEditor/components/Section';
+import { Row } from './Admin/CraftEditor/components/Row';
+import { Column } from './Admin/CraftEditor/components/Column';
+import { Navigation } from './Admin/CraftEditor/components/Navigation';
+import { ContactForm } from './Admin/CraftEditor/components/ContactForm';
 import { HeroSection } from './Admin/CraftEditor/sections/HeroSection';
 import { MenuSection } from './Admin/CraftEditor/sections/MenuSection';
 import { FeaturesSection } from './Admin/CraftEditor/sections/FeaturesSection';
+import { ContactSection } from './Admin/CraftEditor/sections/ContactSection';
+import { GallerySection } from './Admin/CraftEditor/sections/GallerySection';
+import { FooterSection } from './Admin/CraftEditor/sections/FooterSection';
+import { LoyaltySection } from './Admin/CraftEditor/sections/LoyaltySection';
 
 interface CraftRendererProps {
   data: string; // JSON serializzato da Craft.js
@@ -58,9 +67,18 @@ const CraftRenderer: React.FC<CraftRendererProps> = ({ data }) => {
           Text,
           Button,
           Image,
+          Section,
+          Row,
+          Column,
+          Navigation,
+          ContactForm,
           HeroSection,
           MenuSection,
           FeaturesSection,
+          ContactSection,
+          GallerySection,
+          FooterSection,
+          LoyaltySection
         }}
         enabled={false} // IMPORTANTE: disabilita editing
       >

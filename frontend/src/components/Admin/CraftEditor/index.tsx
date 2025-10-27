@@ -29,6 +29,7 @@ export { ContactSection } from './sections/ContactSection';
 export { GallerySection } from './sections/GallerySection';
 export { MenuSection } from './sections/MenuSection';
 export { FooterSection } from './sections/FooterSection';
+export { LoyaltySection } from './sections/LoyaltySection';
 
 // Panels
 export { Toolbox } from './panels/Toolbox';

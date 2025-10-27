@@ -6,60 +6,72 @@
  */
 
 // ============================================================================
-// ENUMS
+// TYPES AND CONSTANTS
 // ============================================================================
 
-export enum GiftCertificateStatus {
-  ACTIVE = 'active',
-  PARTIALLY_USED = 'partially_used',
-  FULLY_USED = 'fully_used',
-  EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
-  SUSPENDED = 'suspended'
-}
+export const GiftCertificateStatus = {
+  ACTIVE: 'active',
+  PARTIALLY_USED: 'partially_used',
+  FULLY_USED: 'fully_used',
+  EXPIRED: 'expired',
+  CANCELLED: 'cancelled',
+  SUSPENDED: 'suspended'
+} as const;
 
-export enum GiftCertificateIssueType {
-  PURCHASED = 'purchased',
-  PROMOTIONAL = 'promotional',
-  REDEEMED_POINTS = 'redeemed_points',
-  REFUND = 'refund',
-  GIFT = 'gift'
-}
+export type GiftCertificateStatus = typeof GiftCertificateStatus[keyof typeof GiftCertificateStatus];
 
-export enum GiftCertificateTransactionType {
-  ISSUED = 'issued',
-  REDEEMED = 'redeemed',
-  REFUNDED = 'refunded',
-  CANCELLED = 'cancelled',
-  ADJUSTMENT = 'adjustment',
-  EXPIRED = 'expired'
-}
+export const GiftCertificateIssueType = {
+  PURCHASED: 'purchased',
+  PROMOTIONAL: 'promotional',
+  REDEEMED_POINTS: 'redeemed_points',
+  REFUND: 'refund',
+  GIFT: 'gift'
+} as const;
 
-export enum GiftCertificateTemplateType {
-  BIRTHDAY = 'birthday',
-  CHRISTMAS = 'christmas',
-  EASTER = 'easter',
-  VALENTINES = 'valentines',
-  GENERIC = 'generic',
-  CUSTOM = 'custom'
-}
+export type GiftCertificateIssueType = typeof GiftCertificateIssueType[keyof typeof GiftCertificateIssueType];
 
-export enum GiftCertificateCodeFormat {
-  ALPHANUMERIC = 'alphanumeric',
-  NUMERIC = 'numeric',
-  CUSTOM = 'custom'
-}
+export const GiftCertificateTransactionType = {
+  ISSUED: 'issued',
+  REDEEMED: 'redeemed',
+  REFUNDED: 'refunded',
+  CANCELLED: 'cancelled',
+  ADJUSTMENT: 'adjustment',
+  EXPIRED: 'expired'
+} as const;
 
-export enum GiftCertificateAuditAction {
-  CREATED = 'created',
-  VALIDATED = 'validated',
-  REDEEMED = 'redeemed',
-  CANCELLED = 'cancelled',
-  MODIFIED = 'modified',
-  VIEWED = 'viewed',
-  PRINTED = 'printed',
-  EMAILED = 'emailed'
-}
+export type GiftCertificateTransactionType = typeof GiftCertificateTransactionType[keyof typeof GiftCertificateTransactionType];
+
+export const GiftCertificateTemplateType = {
+  BIRTHDAY: 'birthday',
+  CHRISTMAS: 'christmas',
+  EASTER: 'easter',
+  VALENTINES: 'valentines',
+  GENERIC: 'generic',
+  CUSTOM: 'custom'
+} as const;
+
+export type GiftCertificateTemplateType = typeof GiftCertificateTemplateType[keyof typeof GiftCertificateTemplateType];
+
+export const GiftCertificateCodeFormat = {
+  ALPHANUMERIC: 'alphanumeric',
+  NUMERIC: 'numeric',
+  CUSTOM: 'custom'
+} as const;
+
+export type GiftCertificateCodeFormat = typeof GiftCertificateCodeFormat[keyof typeof GiftCertificateCodeFormat];
+
+export const GiftCertificateAuditAction = {
+  CREATED: 'created',
+  VALIDATED: 'validated',
+  REDEEMED: 'redeemed',
+  CANCELLED: 'cancelled',
+  MODIFIED: 'modified',
+  VIEWED: 'viewed',
+  PRINTED: 'printed',
+  EMAILED: 'emailed'
+} as const;
+
+export type GiftCertificateAuditAction = typeof GiftCertificateAuditAction[keyof typeof GiftCertificateAuditAction] | string;
 
 // ============================================================================
 // MAIN INTERFACES

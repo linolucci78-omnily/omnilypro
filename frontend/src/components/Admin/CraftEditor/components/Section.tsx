@@ -4,7 +4,7 @@ import { useNode } from '@craftjs/core';
 import { Trash2, Square, Maximize2 } from 'lucide-react';
 import { BackgroundControls, getBackgroundStyles, getOverlayStyles, type BackgroundSettings } from './BackgroundControls';
 import { useConfirm } from '../../../../hooks/useConfirm';
-import { ConfirmModal } from '../../../ConfirmModal';
+import ConfirmModal from '../../../UI/ConfirmModal';
 
 export interface SectionProps {
   children?: ReactNode;

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Editor, Frame, Element } from '@craftjs/core';
 import { X, Save, Eye, EyeOff, Undo, Redo, Layers, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { directusClient } from '../../lib/directus';
+import { useToast } from '../../contexts/ToastContext';
 
 // Import Craft components
 import { Container } from './CraftEditor/components/Container';
@@ -22,6 +23,7 @@ import { ContactSection } from './CraftEditor/sections/ContactSection';
 import { GallerySection } from './CraftEditor/sections/GallerySection';
 import { MenuSection } from './CraftEditor/sections/MenuSection';
 import { FooterSection } from './CraftEditor/sections/FooterSection';
+import { LoyaltySection } from './CraftEditor/sections/LoyaltySection';
 
 // Import Panels
 import { Toolbox } from './CraftEditor/panels/Toolbox';
@@ -43,6 +45,7 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
   onClose,
   onSave
 }) => {
+  const { showSuccess, showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [websiteData, setWebsiteData] = useState<any>(null);
@@ -72,7 +75,7 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
       setWebsiteData(data);
     } catch (error) {
       console.error('Error loading website:', error);
-      alert('Errore nel caricamento del sito');
+      showError('Errore nel caricamento', 'Impossibile caricare il sito web');
     } finally {
       setLoading(false);
     }
@@ -81,19 +84,25 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
   const handleSave = async (query: any) => {
     try {
       setSaving(true);
+      console.log('🔄 Inizio salvataggio...');
       const json = query.serialize();
+      console.log('📦 JSON serializzato:', json);
+      console.log('📊 Numero di nodi:', Object.keys(json).length);
 
       await directusClient.updateWebsiteContent(websiteId, {
         craftjs_content: json
       });
+      console.log('✅ Salvataggio su Directus completato');
 
       await onSave();
-      alert(' Sito salvato con successo!');
+      console.log('✅ Callback onSave completata');
+      showSuccess('Sito salvato!', 'Tutte le modifiche sono state salvate con successo');
     } catch (error) {
-      console.error('Error saving website:', error);
-      alert('L Errore nel salvataggio del sito');
+      console.error('❌ Errore durante il salvataggio:', error);
+      showError('Errore nel salvataggio', error.message || 'Si è verificato un errore durante il salvataggio');
     } finally {
       setSaving(false);
+      console.log('🏁 Processo di salvataggio terminato');
     }
   };
 
@@ -124,7 +133,8 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
           ContactSection,
           GallerySection,
           MenuSection,
-          FooterSection
+          FooterSection,
+          LoyaltySection
         }}
         enabled={!previewMode}
         onNodesChange={(query) => {

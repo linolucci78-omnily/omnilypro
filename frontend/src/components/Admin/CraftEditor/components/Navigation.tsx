@@ -5,7 +5,7 @@ import { Menu, Trash2, Plus, X, GripVertical, ChevronDown, ChevronUp } from 'luc
 import { ColorPicker } from './ColorPicker';
 import { ImageUploader } from './ImageUploader';
 import { useConfirm } from '../../../../hooks/useConfirm';
-import { ConfirmModal } from '../../../ConfirmModal';
+import ConfirmModal from '../../../UI/ConfirmModal';
 
 export interface MenuItem {
   id: string;
