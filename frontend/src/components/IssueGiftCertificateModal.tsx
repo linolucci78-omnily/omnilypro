@@ -67,9 +67,12 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
+      console.log('🔍 IssueGiftCertificateModal opened');
+      console.log('🖨️ printService available?', !!printService);
+      console.log('🖨️ printService object:', printService);
       resetForm();
     }
-  }, [isOpen, organizationId]);
+  }, [isOpen, organizationId, printService]);
 
   const resetForm = () => {
     setFormData({

@@ -47,6 +47,12 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
   organizationName,
   printService
 }) => {
+  // Debug logging for print service
+  useEffect(() => {
+    console.log('🔍 GiftCertificatesPanel - printService:', !!printService);
+    console.log('🔍 GiftCertificatesPanel - printService object:', printService);
+  }, [printService]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [certificates, setCertificates] = useState<GiftCertificate[]>([]);
   const [stats, setStats] = useState<GiftCertificateStats>({
