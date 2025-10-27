@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Gift, Award, Palette, AlertTriangle, Upload } from 'lucide-react';
+import { X, Building2, Gift, Award, Palette, AlertTriangle, Upload, CreditCard } from 'lucide-react';
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel';
 import { organizationService } from '../services/organizationService';
 import { supabase } from '../lib/supabase';
@@ -12,7 +12,7 @@ interface AccountSettingsPanelProps {
   onUpdate: () => void;
 }
 
-type TabType = 'details' | 'loyalty' | 'tiers' | 'branding' | 'points';
+type TabType = 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts';
 
 const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
   isOpen,
@@ -291,7 +291,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
     { id: 'loyalty' as TabType, label: 'Sistema Loyalty', icon: Gift },
     { id: 'tiers' as TabType, label: 'Livelli', icon: Award },
     { id: 'branding' as TabType, label: 'Branding', icon: Palette },
-    { id: 'points' as TabType, label: 'Gestione Punti', icon: AlertTriangle }
+    { id: 'points' as TabType, label: 'Gestione Punti', icon: AlertTriangle },
+    { id: 'giftcerts' as TabType, label: 'Gift Certificates', icon: CreditCard }
   ];
 
   return (
@@ -732,6 +733,185 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Gift Certificates Configuration */}
+          {activeTab === 'giftcerts' && (
+            <div className="settings-section">
+              <h3>🎁 Configurazione Gift Certificates</h3>
+              <p className="section-description">
+                Configura il sistema di Gift Certificates per la tua attività
+              </p>
+
+              {/* Abilitazione Sistema */}
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    onChange={() => {}}
+                  />
+                  <span>Abilita Sistema Gift Certificates</span>
+                </label>
+                <p className="form-help">
+                  Attiva o disattiva la funzionalità Gift Certificates per la tua organizzazione
+                </p>
+              </div>
+
+              {/* Codice Prefix */}
+              <div className="form-group">
+                <label>Prefisso Codice *</label>
+                <input
+                  type="text"
+                  placeholder="GIFT"
+                  defaultValue="GIFT"
+                  maxLength={10}
+                />
+                <p className="form-help">
+                  Prefisso da usare per i codici (es. GIFT-XXXX-XXXX-XXXX)
+                </p>
+              </div>
+
+              {/* Importi */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Importo Minimo (€)</label>
+                  <input
+                    type="number"
+                    placeholder="10"
+                    defaultValue="10"
+                    min="1"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Importo Massimo (€)</label>
+                  <input
+                    type="number"
+                    placeholder="1000"
+                    defaultValue="1000"
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              {/* Importi Preset */}
+              <div className="form-group">
+                <label>Importi Preset</label>
+                <input
+                  type="text"
+                  placeholder="25, 50, 100, 250"
+                  defaultValue="25, 50, 100, 250"
+                />
+                <p className="form-help">
+                  Importi suggeriti per creazione rapida (separati da virgola)
+                </p>
+              </div>
+
+              {/* Validità Default */}
+              <div className="form-group">
+                <label>Validità Default (giorni)</label>
+                <input
+                  type="number"
+                  placeholder="365"
+                  defaultValue="365"
+                  min="1"
+                />
+                <p className="form-help">
+                  Numero di giorni di validità per i nuovi gift certificate
+                </p>
+              </div>
+
+              {/* Email Automatiche */}
+              <div className="form-group">
+                <h4>Email Automatiche</h4>
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    onChange={() => {}}
+                  />
+                  <span>Invia email quando viene emesso un gift certificate</span>
+                </label>
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={false}
+                    onChange={() => {}}
+                  />
+                  <span>Invia email quando viene riscattato</span>
+                </label>
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    onChange={() => {}}
+                  />
+                  <span>Invia reminder prima della scadenza</span>
+                </label>
+              </div>
+
+              {/* Limiti Sicurezza */}
+              <div className="form-group">
+                <h4>Sicurezza e Limiti</h4>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Max tentativi validazione</label>
+                    <input
+                      type="number"
+                      placeholder="5"
+                      defaultValue="5"
+                      min="1"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Blocco per (minuti)</label>
+                    <input
+                      type="number"
+                      placeholder="30"
+                      defaultValue="30"
+                      min="1"
+                    />
+                  </div>
+                </div>
+                <p className="form-help">
+                  Protezione anti-frode: blocca temporaneamente dopo troppi tentativi falliti
+                </p>
+              </div>
+
+              {/* Termini e Condizioni */}
+              <div className="form-group">
+                <label>Termini e Condizioni Default</label>
+                <textarea
+                  rows={4}
+                  placeholder="Inserisci i termini e condizioni..."
+                  defaultValue="Questo gift certificate è valido per acquisti presso la nostra attività. Non è rimborsabile in denaro e non può essere sostituito in caso di smarrimento o furto. Valido fino alla data di scadenza indicata."
+                />
+              </div>
+
+              {/* Info Box */}
+              <div style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                border: '1px solid #fbbf24',
+                borderRadius: '12px',
+                padding: '1rem',
+                marginTop: '2rem'
+              }}>
+                <p style={{ margin: 0, color: '#92400e', fontSize: '0.95rem' }}>
+                  💡 <strong>Nota:</strong> Le modifiche a queste impostazioni si applicano solo ai nuovi gift certificate.
+                  I gift certificate già emessi mantengono le impostazioni originali.
+                </p>
+              </div>
+
+              {/* Save Button */}
+              <button
+                className="btn-primary"
+                onClick={handleSave}
+                disabled={saving}
+                style={{ marginTop: '2rem' }}
+              >
+                {saving ? 'Salvataggio...' : 'Salva Configurazione'}
+              </button>
             </div>
           )}
         </div>
