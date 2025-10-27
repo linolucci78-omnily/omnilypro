@@ -150,19 +150,30 @@ export class GiftCertificatesService {
    */
   async getByCode(code: string, organizationId: string): Promise<GiftCertificate | null> {
     try {
+      // Clean the code: remove dashes and spaces, convert to uppercase
+      const cleanCode = code.replace(/[-\s]/g, '').toUpperCase();
+
+      console.log(`🔍 Searching for gift certificate - Input: "${code}", Clean: "${cleanCode}"`);
+
+      // Try to find by matching with or without dashes
       const { data, error } = await supabase
         .from('gift_certificates')
         .select('*')
-        .eq('code', code.toUpperCase())
         .eq('organization_id', organizationId)
-        .single();
+        .or(`code.eq.${code.toUpperCase()},code.eq.${cleanCode}`)
+        .maybeSingle();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
+      if (error && error.code !== 'PGRST116') {
         console.error('Failed to get gift certificate by code:', error);
         throw error;
       }
 
+      if (!data) {
+        console.log(`❌ No gift certificate found for code: ${code}`);
+        return null;
+      }
+
+      console.log(`✅ Found gift certificate: ${data.code}`);
       return data;
     } catch (error: any) {
       console.error('Error in GiftCertificatesService.getByCode:', error);
