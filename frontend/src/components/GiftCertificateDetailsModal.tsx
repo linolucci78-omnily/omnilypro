@@ -19,6 +19,7 @@ import {
   Clock,
   FileText
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import './GiftCertificateDetailsModal.css';
 import type { GiftCertificate } from '../types/giftCertificate';
 
@@ -124,6 +125,21 @@ const GiftCertificateDetailsModal: React.FC<GiftCertificateDetailsModalProps> = 
                 </div>
                 <div className="detail-value">
                   {getStatusBadge(certificate.status)}
+                </div>
+              </div>
+
+              <div className="detail-item full-width" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1.5rem', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
+                <div className="detail-label">
+                  QR Code per Riscatto
+                </div>
+                <QRCodeSVG
+                  value={certificate.code}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+                <div style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center' }}>
+                  Scansiona questo codice per riscattare il gift certificate
                 </div>
               </div>
             </div>
