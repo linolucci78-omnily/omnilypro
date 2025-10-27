@@ -89,7 +89,7 @@ const OmnilyVisualEditor: React.FC<OmnilyVisualEditorProps> = ({
       console.log('📦 JSON serializzato:', json);
       console.log('📊 Numero di nodi:', Object.keys(json).length);
 
-      await directusClient.updateWebsiteContent(websiteId, {
+      await directusClient.updateWebsite(websiteId, {
         craftjs_content: json
       });
       console.log('✅ Salvataggio su Directus completato');
