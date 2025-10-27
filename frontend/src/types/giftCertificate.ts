@@ -200,9 +200,13 @@ export interface GiftCertificateSettings {
   code_format: GiftCertificateCodeFormat;
 
   // Limits
+  min_amount_per_certificate?: number;
   max_amount_per_certificate?: number;
   max_certificates_per_day?: number;
   max_balance_per_customer?: number;
+
+  // Default validity
+  default_validity_days?: number;
 
   // Email automation
   send_email_on_issue: boolean;
