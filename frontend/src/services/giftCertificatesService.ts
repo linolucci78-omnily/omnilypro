@@ -303,7 +303,7 @@ export class GiftCertificatesService {
   }
 
   /**
-   * Send gift certificate email via email_logs table
+   * Send gift certificate email via edge function
    */
   private async sendGiftCertificateEmail(params: {
     organization_id: string;
@@ -312,6 +312,8 @@ export class GiftCertificatesService {
   }): Promise<void> {
     try {
       const { organization_id, gift_certificate, qr_code_url } = params;
+
+      console.log('📧 Preparing to send gift certificate email...');
 
       // Get organization email settings
       const { data: settings } = await supabase
@@ -322,7 +324,7 @@ export class GiftCertificatesService {
 
       // Check if email sending is enabled
       if (settings && !settings.send_email_on_issue) {
-        console.log('Email sending disabled for organization');
+        console.log('⚠️ Email sending disabled for organization');
         return;
       }
 
@@ -335,35 +337,34 @@ export class GiftCertificatesService {
 
       const organizationName = org?.name || 'Omnily PRO';
 
-      // Create email log entry - will be processed by edge function or trigger
-      const { error } = await supabase
-        .from('email_logs')
-        .insert({
+      // Call edge function directly
+      console.log('📤 Calling send-email edge function...');
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
           organization_id,
           template_type: 'gift_certificate_issued',
           to_email: gift_certificate.recipient_email!,
           to_name: gift_certificate.recipient_name || gift_certificate.recipient_email!,
-          subject: `🎁 Hai ricevuto un Gift Certificate da ${organizationName}!`,
-          status: 'pending',
-          payload: {
+          dynamic_data: {
             gift_certificate_code: gift_certificate.code,
             amount: gift_certificate.original_amount,
-            recipient_name: gift_certificate.recipient_name,
-            personal_message: gift_certificate.personal_message,
-            valid_until: gift_certificate.valid_until,
+            recipient_name: gift_certificate.recipient_name || 'Cliente',
+            personal_message: gift_certificate.personal_message || '',
+            valid_until: gift_certificate.valid_until ? new Date(gift_certificate.valid_until).toLocaleDateString('it-IT') : 'N/A',
             qr_code_url: qr_code_url,
             organization_name: organizationName
           }
-        });
+        }
+      });
 
       if (error) {
-        console.error('Failed to create email log:', error);
+        console.error('❌ Error calling send-email function:', error);
         throw error;
       }
 
-      console.log('✅ Gift certificate email queued for sending');
+      console.log('✅ Gift certificate email sent successfully:', data);
     } catch (error: any) {
-      console.error('Error in sendGiftCertificateEmail:', error);
+      console.error('❌ Error in sendGiftCertificateEmail:', error);
       throw error;
     }
   }
