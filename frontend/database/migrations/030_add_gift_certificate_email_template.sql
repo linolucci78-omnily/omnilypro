@@ -2,6 +2,11 @@
 -- Description: Creates email template for gift certificate issued notifications
 -- Date: 2025-10-28
 
+-- Delete existing template if exists (global template only)
+DELETE FROM email_templates
+WHERE organization_id IS NULL
+AND template_type = 'gift_certificate_issued';
+
 -- Insert gift certificate issued email template
 INSERT INTO email_templates (
   organization_id,
@@ -203,16 +208,7 @@ Questa email è stata inviata da {{organization_name}}
   ARRAY['organization_name', 'recipient_name', 'amount', 'gift_certificate_code', 'valid_until', 'personal_message', 'qr_code_url', 'logo_url', 'primary_color', 'secondary_color'],
   NOW(),
   NOW()
-)
-ON CONFLICT (organization_id, template_type)
-WHERE organization_id IS NULL
-DO UPDATE SET
-  html_body = EXCLUDED.html_body,
-  text_body = EXCLUDED.text_body,
-  subject = EXCLUDED.subject,
-  variables = EXCLUDED.variables,
-  is_active = EXCLUDED.is_active,
-  updated_at = NOW();
+);
 
 -- Success message
 DO $$
