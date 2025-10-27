@@ -152,15 +152,16 @@ export class GiftCertificatesService {
     try {
       // Clean the code: remove dashes and spaces, convert to uppercase
       const cleanCode = code.replace(/[-\s]/g, '').toUpperCase();
+      const upperCode = code.toUpperCase();
 
       console.log(`🔍 Searching for gift certificate - Input: "${code}", Clean: "${cleanCode}"`);
 
-      // Try to find by matching with or without dashes
-      const { data, error } = await supabase
+      // First try: exact match with the input as-is
+      let { data, error } = await supabase
         .from('gift_certificates')
         .select('*')
         .eq('organization_id', organizationId)
-        .or(`code.eq.${code.toUpperCase()},code.eq.${cleanCode}`)
+        .eq('code', upperCode)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -168,13 +169,38 @@ export class GiftCertificatesService {
         throw error;
       }
 
-      if (!data) {
-        console.log(`❌ No gift certificate found for code: ${code}`);
-        return null;
+      if (data) {
+        console.log(`✅ Found gift certificate (exact match): ${data.code}`);
+        return data;
       }
 
-      console.log(`✅ Found gift certificate: ${data.code}`);
-      return data;
+      // Second try: search in database where stored code without dashes matches clean code
+      console.log(`🔍 Trying to find by matching cleaned codes...`);
+
+      // Get all certificates for this org and filter in JS
+      const { data: allCerts, error: allError } = await supabase
+        .from('gift_certificates')
+        .select('*')
+        .eq('organization_id', organizationId);
+
+      if (allError) {
+        console.error('Failed to get certificates:', allError);
+        throw allError;
+      }
+
+      // Find certificate where the cleaned version of the stored code matches our cleaned input
+      const matchingCert = allCerts?.find(cert => {
+        const storedClean = cert.code.replace(/[-\s]/g, '').toUpperCase();
+        return storedClean === cleanCode;
+      });
+
+      if (matchingCert) {
+        console.log(`✅ Found gift certificate (cleaned match): ${matchingCert.code}`);
+        return matchingCert;
+      }
+
+      console.log(`❌ No gift certificate found for code: ${code}`);
+      return null;
     } catch (error: any) {
       console.error('Error in GiftCertificatesService.getByCode:', error);
       throw error;
