@@ -280,7 +280,7 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
         <div className="modal-header">
           <div className="modal-header-content">
             <QrCode size={24} />
-            <h2>🔍 Valida Gift Certificate</h2>
+            <h2>Valida Gift Certificate</h2>
           </div>
           <button onClick={onClose} className="modal-close-btn" disabled={isValidating}>
             <X size={24} />

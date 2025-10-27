@@ -91,7 +91,7 @@ const GiftCertificateDetailsModal: React.FC<GiftCertificateDetailsModalProps> = 
         <div className="modal-header">
           <div className="modal-header-content">
             <CreditCard size={24} />
-            <h2>📋 Dettagli Gift Certificate</h2>
+            <h2>Dettagli Gift Certificate</h2>
           </div>
           <button onClick={onClose} className="modal-close-btn">
             <X size={24} />

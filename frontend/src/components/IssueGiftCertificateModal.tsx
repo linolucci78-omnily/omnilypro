@@ -220,7 +220,7 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
         <div className="modal-header">
           <div className="modal-header-content">
             <CreditCard size={24} />
-            <h2>🎁 Emetti Gift Certificate</h2>
+            <h2>Emetti Gift Certificate</h2>
           </div>
           <button onClick={onClose} className="modal-close-btn" disabled={isSubmitting}>
             <X size={24} />

@@ -21,6 +21,50 @@
   animation: slideUp 0.3s ease;
 }
 
+/* Modal Header */
+.redeem-gc-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: none;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  border-radius: 16px 16px 0 0;
+}
+
+.redeem-gc-modal .modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.redeem-gc-modal .modal-header-content svg {
+  color: white;
+}
+
+.redeem-gc-modal .modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.redeem-gc-modal .modal-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  color: white;
+}
+
+.redeem-gc-modal .modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
 /* Certificate Info */
 .certificate-info {
   background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);

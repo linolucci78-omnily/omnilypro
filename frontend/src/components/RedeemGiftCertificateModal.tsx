@@ -170,7 +170,7 @@ const RedeemGiftCertificateModal: React.FC<RedeemGiftCertificateModalProps> = ({
         <div className="modal-header">
           <div className="modal-header-content">
             <DollarSign size={24} />
-            <h2>💰 Riscatta Gift Certificate</h2>
+            <h2>Riscatta Gift Certificate</h2>
           </div>
           <button onClick={onClose} className="modal-close-btn" disabled={isRedeeming}>
             <X size={24} />
