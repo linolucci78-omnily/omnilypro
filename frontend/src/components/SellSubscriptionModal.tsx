@@ -10,7 +10,6 @@ import {
   X,
   Search,
   User,
-  Plus,
   CreditCard,
   Wallet,
   Banknote,
@@ -65,10 +64,6 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
   const [customerSearch, setCustomerSearch] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [newCustomerName, setNewCustomerName] = useState('');
-  const [newCustomerPhone, setNewCustomerPhone] = useState('');
-  const [newCustomerEmail, setNewCustomerEmail] = useState('');
-  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
 
   // Template selection
   const [selectedTemplate, setSelectedTemplate] = useState<SubscriptionTemplate | null>(null);
@@ -100,10 +95,6 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
     setCustomerSearch('');
     setCustomers([]);
     setSelectedCustomer(null);
-    setNewCustomerName('');
-    setNewCustomerPhone('');
-    setNewCustomerEmail('');
-    setShowNewCustomerForm(false);
     setSelectedTemplate(null);
     setPaymentMethod('cash');
     setCreatedSubscription(null);
@@ -111,10 +102,8 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
 
   const searchCustomers = async () => {
     try {
-      // TODO: Replace with actual Supabase query
-      // This is a placeholder implementation
-      const { data: supabaseClient } = await import('../lib/directus');
-      const { data, error } = await supabaseClient
+      const { supabase } = await import('../lib/supabase');
+      const { data, error } = await supabase
         .from('customers')
         .select('id, name, email, phone')
         .eq('organization_id', organizationId)
@@ -126,43 +115,6 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
     } catch (err) {
       console.error('Error searching customers:', err);
       setCustomers([]);
-    }
-  };
-
-  const handleCreateCustomer = async () => {
-    if (!newCustomerName.trim()) {
-      setError('Nome cliente obbligatorio');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // TODO: Replace with actual Supabase insert
-      const { data: supabaseClient } = await import('../lib/directus');
-      const { data, error } = await supabaseClient
-        .from('customers')
-        .insert({
-          organization_id: organizationId,
-          name: newCustomerName.trim(),
-          phone: newCustomerPhone.trim() || null,
-          email: newCustomerEmail.trim() || null,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setSelectedCustomer(data);
-      setShowNewCustomerForm(false);
-      setStep('template');
-    } catch (err: any) {
-      console.error('Error creating customer:', err);
-      setError(err.message || 'Errore durante la creazione del cliente');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -295,106 +247,54 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
           {/* Step 1: Customer Selection */}
           {step === 'customer' && (
             <div className="customer-selection">
-              {!showNewCustomerForm ? (
-                <>
-                  <div className="search-wrapper">
-                    <Search size={20} className="search-icon" />
-                    <input
-                      type="text"
-                      placeholder="Cerca cliente per nome, telefono o email..."
-                      value={customerSearch}
-                      onChange={(e) => setCustomerSearch(e.target.value)}
-                      className="search-input"
-                      autoFocus
-                    />
-                  </div>
+              <div className="search-wrapper">
+                <Search size={20} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Cerca cliente per nome, telefono o email..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className="search-input"
+                  autoFocus
+                />
+              </div>
 
-                  {customers.length > 0 && (
-                    <div className="customers-list">
-                      {customers.map(customer => (
-                        <div
-                          key={customer.id}
-                          className="customer-item"
-                          onClick={() => handleSelectCustomer(customer)}
-                        >
-                          <User size={20} />
-                          <div className="customer-info">
-                            <div className="customer-name">{customer.name}</div>
-                            {customer.phone && (
-                              <div className="customer-detail">{customer.phone}</div>
-                            )}
-                            {customer.email && (
-                              <div className="customer-detail">{customer.email}</div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+              {customers.length > 0 ? (
+                <div className="customers-list">
+                  {customers.map(customer => (
+                    <div
+                      key={customer.id}
+                      className="customer-item"
+                      onClick={() => handleSelectCustomer(customer)}
+                    >
+                      <User size={20} />
+                      <div className="customer-info">
+                        <div className="customer-name">{customer.name}</div>
+                        {customer.phone && (
+                          <div className="customer-detail">{customer.phone}</div>
+                        )}
+                        {customer.email && (
+                          <div className="customer-detail">{customer.email}</div>
+                        )}
+                      </div>
                     </div>
-                  )}
-
-                  <button
-                    className="btn-new-customer"
-                    onClick={() => setShowNewCustomerForm(true)}
-                  >
-                    <Plus size={20} />
-                    Nuovo Cliente
-                  </button>
-                </>
+                  ))}
+                </div>
+              ) : customerSearch.length >= 2 ? (
+                <div className="empty-state">
+                  <User size={48} style={{ opacity: 0.3 }} />
+                  <p>Nessun cliente trovato</p>
+                  <small style={{ opacity: 0.7 }}>
+                    Crea nuovi clienti dalle impostazioni dell'organizzazione
+                  </small>
+                </div>
               ) : (
-                <div className="new-customer-form">
-                  <h3>Nuovo Cliente</h3>
-
-                  <div className="form-group">
-                    <label>Nome *</label>
-                    <input
-                      type="text"
-                      value={newCustomerName}
-                      onChange={(e) => setNewCustomerName(e.target.value)}
-                      placeholder="Nome completo"
-                      className="form-input"
-                      autoFocus
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Telefono</label>
-                    <input
-                      type="tel"
-                      value={newCustomerPhone}
-                      onChange={(e) => setNewCustomerPhone(e.target.value)}
-                      placeholder="+39 333 1234567"
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      value={newCustomerEmail}
-                      onChange={(e) => setNewCustomerEmail(e.target.value)}
-                      placeholder="email@example.com"
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-actions">
-                    <button
-                      className="btn-secondary"
-                      onClick={() => setShowNewCustomerForm(false)}
-                      disabled={loading}
-                    >
-                      Annulla
-                    </button>
-                    <button
-                      className="btn-primary"
-                      onClick={handleCreateCustomer}
-                      disabled={loading || !newCustomerName.trim()}
-                    >
-                      {loading ? <Loader size={20} className="spinning" /> : <Check size={20} />}
-                      Crea e Continua
-                    </button>
-                  </div>
+                <div className="empty-state">
+                  <User size={48} style={{ opacity: 0.3 }} />
+                  <p>Cerca un cliente per iniziare</p>
+                  <small style={{ opacity: 0.7 }}>
+                    Digita almeno 2 caratteri per cercare
+                  </small>
                 </div>
               )}
             </div>
