@@ -114,11 +114,25 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
         }, {} as Record<string, number>);
         console.log('📊 Certificate statuses:', statusCounts);
 
-        const active = allCerts.filter(c => c.status === 'active');
-        const redeemed = allCerts.filter(c => c.status === 'redeemed');
+        // Active: only certificates with full balance
+        const active = allCerts.filter(c => c.current_balance > 0 && c.current_balance === c.original_amount);
+
+        // Redeemed: certificates that have been used (partially or fully)
+        // Status can be 'partially_used' or 'fully_used'
+        const redeemed = allCerts.filter(c =>
+          c.status === 'partially_used' ||
+          c.status === 'fully_used' ||
+          c.current_balance < c.original_amount
+        );
+
         const thisMonth = allCerts.filter(c => new Date(c.issued_at) >= monthStart);
 
-        console.log('📊 Filtered counts:', { active: active.length, redeemed: redeemed.length, thisMonth: thisMonth.length });
+        console.log('📊 Filtered counts:', {
+          active: active.length,
+          redeemed: redeemed.length,
+          thisMonth: thisMonth.length,
+          totalCerts: allCerts.length
+        });
 
         // Get unique organizations
         const uniqueOrgs = new Set(allCerts.map(c => c.organization_id));
@@ -223,7 +237,9 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
 
     const matchesStatus =
       statusFilter === 'all' ||
-      cert.status === statusFilter;
+      (statusFilter === 'active' && cert.current_balance > 0 && cert.current_balance === cert.original_amount) ||
+      (statusFilter === 'used' && (cert.status === 'partially_used' || cert.status === 'fully_used' || cert.current_balance < cert.original_amount)) ||
+      (statusFilter === 'expired' && cert.status === 'expired');
 
     const matchesOrg =
       selectedOrg === 'all' ||
