@@ -1799,7 +1799,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
-      { id: 'subscriptions', icon: Package, label: 'Abbonamenti', feature: null },
+      { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
@@ -3564,8 +3564,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             maxHeight: '100vh',
             height: '100vh',
             overflowY: 'auto',
-            width: '90vw',
-            maxWidth: '800px',
+            width: '100vw',
+            maxWidth: '100vw',
             position: 'fixed',
             right: 0,
             top: 0,
@@ -3608,14 +3608,81 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 Guide dettagliate per l'utilizzo dei vari componenti di Omnily
               </p>
 
+              {/* Indice */}
+              <div style={{
+                background: '#f9fafb',
+                border: '2px solid #e5e7eb',
+                borderRadius: '12px',
+                padding: 'clamp(1rem, 3vw, 1.5rem)',
+                marginBottom: '2rem'
+              }}>
+                <h3 style={{
+                  margin: '0 0 1rem 0',
+                  fontSize: 'clamp(1rem, 3vw, 1.25rem)',
+                  color: '#1f2937',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  📑 Indice
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <a href="#membership-guide" style={{
+                    color: '#ef4444',
+                    textDecoration: 'none',
+                    fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem',
+                    borderRadius: '8px',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'white'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                    <Package size={18} />
+                    1. Sistema Membership
+                  </a>
+                  <div style={{
+                    color: '#9ca3af',
+                    fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem',
+                    fontStyle: 'italic'
+                  }}>
+                    <CreditCard size={18} />
+                    2. Gift Certificates (In arrivo...)
+                  </div>
+                  <div style={{
+                    color: '#9ca3af',
+                    fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem',
+                    fontStyle: 'italic'
+                  }}>
+                    <Settings size={18} />
+                    3. Sistema Pagamenti (In arrivo...)
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {/* Membership Guide */}
-                <div style={{
+                <div id="membership-guide" style={{
                   background: 'white',
                   border: '2px solid #ef4444',
                   borderRadius: '12px',
                   padding: '1.5rem',
-                  boxShadow: '0 4px 6px rgba(239, 68, 68, 0.1)'
+                  boxShadow: '0 4px 6px rgba(239, 68, 68, 0.1)',
+                  scrollMarginTop: '2rem'
                 }}>
                   <div style={{
                     width: '60px',
