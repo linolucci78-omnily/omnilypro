@@ -417,17 +417,29 @@ export class ZCSPrintService {
         tax: 0,
         total: data.amountRedeemed,
         paymentMethod: 'Gift Certificate',
+        // Add balance info as custom header (shown before items)
+        customHeader: [
+          this.createSeparatorLine(),
+          `Codice GC: ${data.code}`,
+          `Saldo iniziale: ${this.formatPrice(data.balanceBefore)}`,
+          this.createSeparatorLine(),
+          ''
+        ].join('\n'),
         customFooter: [
           '',
           this.createSeparatorLine(),
-          `Codice GC: ${data.code}`,
-          `Saldo prima: ${this.formatPrice(data.balanceBefore)}`,
-          `Riscattato: ${this.formatPrice(data.amountRedeemed)}`,
-          `Saldo residuo: ${this.formatPrice(data.balanceAfter)}`,
+          this.centerText('RIEPILOGO GIFT CERTIFICATE'),
+          this.createSeparatorLine(),
+          `Saldo prima: €${this.formatPrice(data.balanceBefore)}`,
+          `Importo riscattato: -€${this.formatPrice(data.amountRedeemed)}`,
+          this.createSeparatorLine(),
+          `SALDO RESIDUO: €${this.formatPrice(data.balanceAfter)}`,
+          this.createSeparatorLine(),
           '',
           data.balanceAfter > 0
-            ? this.centerText('Saldo rimanente utilizzabile')
-            : this.centerText('Gift Certificate completamente utilizzato')
+            ? this.centerText('✓ Saldo rimanente utilizzabile')
+            : this.centerText('✓ Gift Certificate completamente utilizzato'),
+          ''
         ].join('\n'),
         qrData: `GCREDEEM:${data.code}:${data.amountRedeemed}`
       };
