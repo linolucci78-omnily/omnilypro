@@ -368,12 +368,16 @@ class SubscriptionsService {
     request: CreateCustomerSubscriptionRequest
   ): Promise<SubscriptionResponse<CustomerSubscription>> {
     try {
+      console.log('🔵 Creating subscription with request:', request);
+
       // Get template to calculate end_date
       const template = await this.getTemplate(request.template_id);
+      console.log('📋 Template loaded:', template.name);
 
       // Calculate end_date based on template duration
       const startDate = request.start_date ? new Date(request.start_date) : new Date();
       const endDate = this.calculateEndDate(startDate, template.duration_type, template.duration_value);
+      console.log('📅 Date range:', startDate.toISOString(), '->', endDate.toISOString());
 
       // Calculate next_renewal_date if auto_renewable
       const nextRenewalDate = template.auto_renewable ? endDate : null;
@@ -388,6 +392,8 @@ class SubscriptionsService {
         currency: template.currency
       };
 
+      console.log('💾 Inserting subscription data:', subscriptionData);
+
       const { data, error } = await supabase
         .from('customer_subscriptions')
         .insert([subscriptionData])
@@ -398,7 +404,10 @@ class SubscriptionsService {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
 
       console.log('✅ Subscription created:', data.subscription_code);
 
