@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Mail, User, DollarSign, Calendar, FileText, AlertCircle, Printer } from 'lucide-react';
 import './IssueGiftCertificateModal.css';
+import { createPrintService } from '../services/printService';
 import type {
   CreateGiftCertificateRequest,
   CreateGiftCertificateResponse,
@@ -68,11 +69,9 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       console.log('🔍 IssueGiftCertificateModal opened');
-      console.log('🖨️ printService available?', !!printService);
-      console.log('🖨️ printService object:', printService);
       resetForm();
     }
-  }, [isOpen, organizationId, printService]);
+  }, [isOpen, organizationId]);
 
   const resetForm = () => {
     setFormData({
@@ -183,23 +182,47 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
       const response = await onIssue(formData);
 
       console.log('✅ Gift certificate created:', response);
-      console.log('🖨️ Print check - autoPrint:', autoPrint, 'printService:', !!printService, 'certificate:', !!response?.gift_certificate);
+      console.log('🖨️ Print check - autoPrint:', autoPrint, 'certificate:', !!response?.gift_certificate);
 
-      // Auto-print if enabled and printService available
-      if (autoPrint && printService && response?.gift_certificate) {
+      // Auto-print if enabled and certificate created
+      if (autoPrint && response?.gift_certificate) {
         console.log('🖨️ Attempting to print gift certificate...');
         try {
-          await printService.printGiftCertificate({
-            code: response.gift_certificate.code,
-            amount: response.gift_certificate.original_amount,
-            recipientName: response.gift_certificate.recipient_name,
-            recipientEmail: response.gift_certificate.recipient_email,
-            validUntil: response.gift_certificate.valid_until,
-            personalMessage: response.gift_certificate.personal_message,
-            issuedAt: response.gift_certificate.issued_at,
-            organizationName
-          });
-          console.log('✅ Print successful!');
+          // Create print service on-the-fly (same approach as sales printing)
+          const printConfig = {
+            storeName: organizationName,
+            storeAddress: '',
+            storePhone: '',
+            storeTax: '',
+            paperWidth: 384, // 58mm
+            fontSizeNormal: 24,
+            fontSizeLarge: 30,
+            printDensity: 0
+          };
+
+          const printService = createPrintService(printConfig);
+          const initialized = await printService.initialize();
+
+          if (initialized) {
+            const printed = await printService.printGiftCertificate({
+              code: response.gift_certificate.code,
+              amount: response.gift_certificate.original_amount,
+              recipientName: response.gift_certificate.recipient_name,
+              recipientEmail: response.gift_certificate.recipient_email,
+              validUntil: response.gift_certificate.valid_until,
+              personalMessage: response.gift_certificate.personal_message,
+              issuedAt: response.gift_certificate.issued_at,
+              organizationName
+            });
+
+            if (printed) {
+              console.log('✅ Gift certificate printed successfully!');
+            } else {
+              console.error('❌ Print failed');
+            }
+          } else {
+            console.error('❌ Failed to initialize print service');
+          }
         } catch (printError) {
           console.error('❌ Print error:', printError);
           // Don't block the flow if print fails
@@ -207,7 +230,6 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
       } else {
         console.log('⚠️ Print skipped:', {
           autoPrint,
-          hasPrintService: !!printService,
           hasCertificate: !!response?.gift_certificate
         });
       }
