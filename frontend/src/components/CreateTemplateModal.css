@@ -38,7 +38,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -101,7 +101,7 @@
 }
 
 .step-item.active .step-number {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   transform: scale(1.1);
 }
@@ -118,7 +118,7 @@
 }
 
 .step-item.active .step-label {
-  color: #667eea;
+  color: #ef4444;
   font-weight: 600;
 }
 
@@ -192,7 +192,7 @@
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -221,7 +221,7 @@
 .price-input {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #667eea;
+  color: #ef4444;
 }
 
 /* Subscription Types Grid */
@@ -241,13 +241,13 @@
 }
 
 .subscription-type-card:hover {
-  border-color: #667eea;
+  border-color: #ef4444;
   background: #f3f4f6;
 }
 
 .subscription-type-card.active {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -275,7 +275,7 @@
 
 .btn-add-tag {
   padding: 0.875rem 1.5rem;
-  background: #667eea;
+  background: #ef4444;
   color: white;
   border: none;
   border-radius: 12px;
@@ -301,7 +301,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: #667eea;
+  background: #ef4444;
   color: white;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -348,13 +348,13 @@
 }
 
 .weekday-btn:hover {
-  border-color: #667eea;
+  border-color: #ef4444;
   background: #f3f4f6;
 }
 
 .weekday-btn.active {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -376,7 +376,7 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #ef4444;
 }
 
 /* Template Summary */
@@ -420,7 +420,7 @@
 
 .summary-item strong.price {
   font-size: 1.25rem;
-  color: #667eea;
+  color: #ef4444;
 }
 
 /* Footer Actions */
@@ -459,7 +459,7 @@
 }
 
 .btn-next {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 

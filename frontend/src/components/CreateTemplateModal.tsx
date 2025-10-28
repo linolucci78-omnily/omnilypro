@@ -11,7 +11,7 @@ import {
   Package,
   Calendar,
   TrendingUp,
-  DollarSign,
+  Euro,
   Clock,
   Tag,
   Check,

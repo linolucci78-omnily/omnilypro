@@ -38,7 +38,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -101,7 +101,7 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -154,7 +154,7 @@
 
 .code-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -164,7 +164,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -257,7 +257,7 @@
 .detail-code {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #667eea;
+  color: #ef4444;
   letter-spacing: 0.5px;
 }
 
@@ -273,7 +273,7 @@
 }
 
 .detail-icon {
-  color: #667eea;
+  color: #ef4444;
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
@@ -319,7 +319,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   border-radius: 8px;
   color: white;
 }
@@ -368,7 +368,7 @@
 
 .btn-use-subscription,
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -380,8 +380,8 @@
 
 .btn-try-again {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #ef4444;
+  border: 2px solid #ef4444;
 }
 
 .btn-try-again:hover {
@@ -400,8 +400,8 @@
 
 .btn-print {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #ef4444;
+  border: 2px solid #ef4444;
   margin-bottom: 1rem;
 }
 
@@ -427,7 +427,7 @@
 }
 
 .btn-back-text:hover {
-  color: #667eea;
+  color: #ef4444;
 }
 
 /* Error Message */
@@ -481,7 +481,7 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -569,12 +569,12 @@
 }
 
 .summary-item.highlight .summary-label {
-  color: #667eea;
+  color: #ef4444;
   font-weight: 600;
 }
 
 .summary-item.highlight .summary-value {
-  color: #667eea;
+  color: #ef4444;
   font-size: 1.125rem;
 }
 

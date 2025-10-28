@@ -17,7 +17,7 @@ import {
   QrCode,
   Settings as SettingsIcon,
   Calendar,
-  DollarSign
+  Euro
 } from 'lucide-react';
 import { subscriptionsService } from '../services/subscriptionsService';
 import type {
@@ -183,7 +183,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Package size={28} />
               <div>
-                <h2>Abbonamenti</h2>
+                <h2>Membership</h2>
                 <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>
                   {organizationName}
                 </p>
@@ -206,7 +206,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
           </div>
           <div className="subscriptions-stat-item">
             <div className="subscriptions-stat-icon">
-              <DollarSign size={24} />
+              <Euro size={24} />
             </div>
             <div className="subscriptions-stat-number" style={{ fontSize: '1.25rem' }}>
               {formatCurrency(stats.total_revenue)}
@@ -229,7 +229,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
             onClick={() => setShowSellSubscriptionModal(true)}
           >
             <Plus size={20} />
-            Vendi Abbonamento
+            Vendi Membership
           </button>
 
           <button
@@ -248,7 +248,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
             onClick={() => setActiveTab('subscriptions')}
           >
             <CreditCard size={18} />
-            Abbonamenti Attivi
+            Membership Attive
           </button>
           <button
             className={`subscriptions-tab ${activeTab === 'templates' ? 'active' : ''}`}
@@ -296,7 +296,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
                   {subscriptions.length === 0 ? (
                     <div className="empty-state">
                       <Package size={48} style={{ opacity: 0.3 }} />
-                      <p>Nessun abbonamento attivo</p>
+                      <p>Nessuna membership attiva</p>
                     </div>
                   ) : (
                     subscriptions.map(sub => (
@@ -384,13 +384,13 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
                       </div>
                       <div className="stat-card-content">
                         <div className="stat-card-value">{stats.total_active}</div>
-                        <div className="stat-card-label">Abbonamenti Attivi</div>
+                        <div className="stat-card-label">Membership Attive</div>
                       </div>
                     </div>
 
                     <div className="stat-card">
                       <div className="stat-card-icon revenue">
-                        <DollarSign size={24} />
+                        <Euro size={24} />
                       </div>
                       <div className="stat-card-content">
                         <div className="stat-card-value">{formatCurrency(stats.total_revenue)}</div>

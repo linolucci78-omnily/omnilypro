@@ -23,7 +23,11 @@ import {
   Phone,
   FileText,
   Download,
-  Upload
+  Upload,
+  BookOpen,
+  Package,
+  CreditCard,
+  Gift
 } from 'lucide-react'
 import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
@@ -77,7 +81,7 @@ const SupportDashboard: React.FC = () => {
   const [agents, setAgents] = useState<SupportAgent[]>([])
   const [messages, setMessages] = useState<TicketMessage[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'tickets' | 'agents' | 'reports'>('tickets')
+  const [activeTab, setActiveTab] = useState<'tickets' | 'agents' | 'reports' | 'docs'>('tickets')
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -389,6 +393,13 @@ const SupportDashboard: React.FC = () => {
         >
           <FileText size={16} />
           Report
+        </button>
+        <button
+          className={`tab ${activeTab === 'docs' ? 'active' : ''}`}
+          onClick={() => setActiveTab('docs')}
+        >
+          <BookOpen size={16} />
+          Documentazione
         </button>
       </div>
 
@@ -717,6 +728,191 @@ const SupportDashboard: React.FC = () => {
                 <p>Grafico distribuzione categorie</p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'docs' && (
+        <div className="dashboard-section">
+          <div className="section-header">
+            <h2>Documentazione Componenti</h2>
+            <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
+              Guide dettagliate per l'utilizzo dei vari componenti di Omnily
+            </p>
+          </div>
+
+          <div className="docs-container" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '1.5rem',
+            marginTop: '1.5rem'
+          }}>
+
+            {/* Membership Guide */}
+            <div className="doc-card" style={{
+              background: 'white',
+              border: '2px solid #e5e7eb',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
+            }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <Package size={32} />
+              </div>
+
+              <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.25rem', color: '#1f2937' }}>
+                Sistema Membership
+              </h3>
+
+              <p style={{ color: '#6b7280', lineHeight: '1.6', marginBottom: '1rem' }}>
+                Sistema completo per la gestione di membership e abbonamenti dei clienti.
+              </p>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid #e5e7eb'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <Check size={16} style={{ color: '#10b981', marginTop: '0.25rem', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                    <strong>Crea Template:</strong> Definisci diversi tipi di membership (mensile, annuale, pacchetti)
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <Check size={16} style={{ color: '#10b981', marginTop: '0.25rem', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                    <strong>Vendi Membership:</strong> Associa membership ai clienti con codice univoco
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <Check size={16} style={{ color: '#10b981', marginTop: '0.25rem', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                    <strong>Valida Utilizzo:</strong> Scansiona QR code o inserisci manualmente il codice
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <Check size={16} style={{ color: '#10b981', marginTop: '0.25rem', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                    <strong>Monitora Statistiche:</strong> Visualizza ricavi, utilizzi e membership in scadenza
+                  </span>
+                </div>
+              </div>
+
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.75rem',
+                background: '#fef3f2',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                color: '#991b1b'
+              }}>
+                <strong>Nota:</strong> I limiti giornalieri si resettano automaticamente a mezzanotte
+              </div>
+            </div>
+
+            {/* Gift Certificates - Coming Soon */}
+            <div className="doc-card" style={{
+              background: 'white',
+              border: '2px solid #e5e7eb',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              opacity: 0.6
+            }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <Gift size={32} />
+              </div>
+
+              <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.25rem', color: '#1f2937' }}>
+                Gift Certificates
+              </h3>
+
+              <p style={{ color: '#6b7280', lineHeight: '1.6' }}>
+                Documentazione completa per la gestione dei buoni regalo digitali.
+              </p>
+
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.75rem',
+                background: '#f3f4f6',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontStyle: 'italic'
+              }}>
+                In arrivo...
+              </div>
+            </div>
+
+            {/* Payment System - Coming Soon */}
+            <div className="doc-card" style={{
+              background: 'white',
+              border: '2px solid #e5e7eb',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              opacity: 0.6
+            }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <CreditCard size={32} />
+              </div>
+
+              <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.25rem', color: '#1f2937' }}>
+                Sistema Pagamenti
+              </h3>
+
+              <p style={{ color: '#6b7280', lineHeight: '1.6' }}>
+                Guida all'integrazione e gestione dei metodi di pagamento.
+              </p>
+
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.75rem',
+                background: '#f3f4f6',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontStyle: 'italic'
+              }}>
+                In arrivo...
+              </div>
+            </div>
+
           </div>
         </div>
       )}

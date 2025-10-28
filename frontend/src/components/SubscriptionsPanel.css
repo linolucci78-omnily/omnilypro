@@ -47,7 +47,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -92,7 +92,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -135,7 +135,7 @@
 }
 
 .subscriptions-action-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
@@ -146,8 +146,8 @@
 
 .subscriptions-action-btn-secondary {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #ef4444;
+  border: 2px solid #ef4444;
 }
 
 .subscriptions-action-btn-secondary:hover {
@@ -179,13 +179,13 @@
 }
 
 .subscriptions-tab:hover {
-  color: #667eea;
+  color: #ef4444;
   background: #f9fafb;
 }
 
 .subscriptions-tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: #ef4444;
+  border-bottom-color: #ef4444;
 }
 
 /* Search */
@@ -216,7 +216,7 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -263,7 +263,7 @@
 }
 
 .subscription-card:hover {
-  border-color: #667eea;
+  border-color: #ef4444;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -321,7 +321,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -346,7 +346,7 @@
 }
 
 .template-card:hover {
-  border-color: #667eea;
+  border-color: #ef4444;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -367,7 +367,7 @@
 .template-price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #667eea;
+  color: #ef4444;
 }
 
 .template-description {
@@ -432,7 +432,7 @@
 }
 
 .stat-card-icon.revenue {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 .stat-card-icon.usage {

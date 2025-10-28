@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Migration scripts with sensitive keys (DO NOT COMMIT)
+run-migration.js
+run-migration-simple.js
+check-schema.js
+verify-migration.js

@@ -5,7 +5,7 @@ import {
   Package,
   CreditCard,
   Calendar,
-  DollarSign,
+  Euro,
   Users,
   Check,
   AlertTriangle,
@@ -531,7 +531,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     fontWeight: '500',
                     color: '#374151'
                   }}>
-                    <DollarSign size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                    <Euro size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
                     Sconto (%)
                   </label>
                   <input

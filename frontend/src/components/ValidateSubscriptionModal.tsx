@@ -5,7 +5,7 @@
  * Flow: Scan/enter code → Validate → Select item → Confirm usage → Print receipt
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   QrCode,
@@ -19,9 +19,11 @@ import {
   Clock,
   Tag,
   Loader,
-  Printer
+  Printer,
+  CreditCard
 } from 'lucide-react';
 import { subscriptionsService } from '../services/subscriptionsService';
+import { nfcCardsApi } from '../lib/supabase';
 import type {
   SubscriptionValidationResult,
   CustomerSubscription,
@@ -37,7 +39,7 @@ interface ValidateSubscriptionModalProps {
   printService?: any;
 }
 
-type Step = 'scan' | 'valid' | 'invalid' | 'select-item' | 'success';
+type Step = 'scan' | 'select-subscription' | 'valid' | 'invalid' | 'select-item' | 'success';
 
 const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   isOpen,
@@ -49,6 +51,11 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   const [step, setStep] = useState<Step>('scan');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // NFC
+  const [isReadingNFC, setIsReadingNFC] = useState(false);
+  const [customerSubscriptions, setCustomerSubscriptions] = useState<CustomerSubscription[]>([]);
+  const busyRef = useRef(false);
 
   // Subscription code
   const [subscriptionCode, setSubscriptionCode] = useState('');
@@ -77,10 +84,72 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     }
   }, [isOpen]);
 
+  // Setup NFC handler
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS && isOpen) {
+      (window as any).validateSubscriptionNFCHandler = async (rawResult: any) => {
+        console.log('🔵 NFC CALLBACK - Membership Validation - Raw result:', rawResult);
+
+        let result = rawResult;
+        if (typeof rawResult === 'string') {
+          try {
+            result = JSON.parse(rawResult);
+          } catch (e) {
+            console.error('❌ Failed to parse NFC result:', e);
+            result = { success: false, error: 'Parse failed' };
+          }
+        }
+
+        setIsReadingNFC(false);
+
+        if (result && result.success) {
+          console.log('✅ NFC SUCCESS - Card UID:', result.cardNo || result.rfUid);
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("1", "150");
+          }
+
+          const cardUID = result.cardNo || result.rfUid;
+          if (!cardUID) {
+            console.error("UID della tessera non trovato");
+            if ((window as any).OmnilyPOS.showToast) {
+              (window as any).OmnilyPOS.showToast('Errore: UID non letto');
+            }
+            return;
+          }
+
+          await handleNFCCardRead(cardUID);
+        } else {
+          console.log('❌ NFC FAILED - Error:', result?.error);
+          if ((window as any).OmnilyPOS.beep) {
+            (window as any).OmnilyPOS.beep("3", "50");
+          }
+          if ((window as any).OmnilyPOS.showToast) {
+            (window as any).OmnilyPOS.showToast(result?.error || 'Lettura NFC fallita');
+          }
+        }
+      };
+
+      console.log('📡 NFC Handler registered: validateSubscriptionNFCHandler');
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        const bridge = (window as any).OmnilyPOS;
+        if (bridge && bridge.stopNFCReading) {
+          bridge.stopNFCReading();
+          console.log("🧹 CLEANUP: Lettura NFC fermata");
+        }
+        delete (window as any).validateSubscriptionNFCHandler;
+      }
+    };
+  }, [isOpen, organizationId]);
+
   const resetForm = () => {
     setStep('scan');
     setLoading(false);
     setError(null);
+    setIsReadingNFC(false);
+    setCustomerSubscriptions([]);
     setSubscriptionCode('');
     setValidationResult(null);
     setSubscription(null);
@@ -92,18 +161,98 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     setRemainingUses({});
   };
 
-  const handleScan = async () => {
-    if (!subscriptionCode.trim()) {
-      setError('Inserisci un codice abbonamento');
+  const handleReadNFC = () => {
+    if (busyRef.current) {
+      console.log('⚠️ NFC read already in progress');
       return;
     }
 
+    if (typeof window === 'undefined' || !(window as any).OmnilyPOS) {
+      setError('Bridge Android non disponibile');
+      return;
+    }
+
+    const bridge = (window as any).OmnilyPOS;
+    if (!bridge.readNFCCard) {
+      setError('Funzione NFC non disponibile');
+      return;
+    }
+
+    busyRef.current = true;
+    setIsReadingNFC(true);
+    setError(null);
+
+    console.log('🔵 Starting NFC read...');
+    bridge.readNFCCard('validateSubscriptionNFCHandler');
+  };
+
+  const handleNFCCardRead = async (cardUID: string) => {
+    busyRef.current = false;
+    console.log('🔍 Looking for customer with NFC UID:', cardUID);
+
+    try {
+      setLoading(true);
+
+      // Get NFC card with customer info
+      const nfcCard = await nfcCardsApi.getByUID(organizationId, cardUID);
+
+      if (!nfcCard || !nfcCard.customer) {
+        setError('Tessera non associata a nessun cliente');
+        if ((window as any).OmnilyPOS?.showToast) {
+          (window as any).OmnilyPOS.showToast('Tessera non associata');
+        }
+        return;
+      }
+
+      console.log('✅ Customer found:', nfcCard.customer.name);
+
+      // Get active subscriptions for this customer
+      const response = await subscriptionsService.getSubscriptions({
+        organization_id: organizationId,
+        customer_id: nfcCard.customer.id,
+        status: ['active', 'paused']
+      });
+
+      if (!response.data || response.data.length === 0) {
+        setError(`Nessuna membership attiva per ${nfcCard.customer.name}`);
+        if ((window as any).OmnilyPOS?.showToast) {
+          (window as any).OmnilyPOS.showToast('Nessuna membership attiva');
+        }
+        return;
+      }
+
+      console.log(`✅ Found ${response.data.length} subscription(s) for customer`);
+      setCustomerSubscriptions(response.data);
+
+      // If only one subscription, select it automatically
+      if (response.data.length === 1) {
+        const sub = response.data[0];
+        setSubscriptionCode(sub.subscription_code);
+        await validateSubscription(sub.subscription_code);
+      } else {
+        // Multiple subscriptions - let user choose
+        setStep('select-subscription');
+      }
+    } catch (err: any) {
+      console.error('❌ Error reading NFC card:', err);
+      setError(err.message || 'Errore durante la lettura della tessera');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectSubscription = async (sub: CustomerSubscription) => {
+    setSubscriptionCode(sub.subscription_code);
+    await validateSubscription(sub.subscription_code);
+  };
+
+  const validateSubscription = async (code: string) => {
     setLoading(true);
     setError(null);
 
     try {
       const result = await subscriptionsService.validateSubscription({
-        subscription_code: subscriptionCode.trim(),
+        subscription_code: code,
         organization_id: organizationId
       });
 
@@ -124,6 +273,15 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleScan = async () => {
+    if (!subscriptionCode.trim()) {
+      setError('Inserisci un codice membership');
+      return;
+    }
+
+    await validateSubscription(subscriptionCode.trim());
   };
 
   const handleUseSubscription = async () => {
@@ -245,8 +403,8 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
         {/* Header */}
         <div className="validate-subscription-header">
           <div className="validate-subscription-header-info">
-            <QrCode size={24} />
-            <h2>Valida Abbonamento</h2>
+            <Package size={24} />
+            <h2>Valida Membership</h2>
           </div>
           <button onClick={onClose} className="validate-subscription-close-btn">
             <X size={24} />
@@ -266,38 +424,152 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
           {step === 'scan' && (
             <div className="scan-section">
               <div className="scan-icon-wrapper">
-                <QrCode size={64} />
+                {isReadingNFC ? <CreditCard size={64} className="spinning" /> : <QrCode size={64} />}
               </div>
 
-              <h3>Scansiona o Inserisci Codice</h3>
+              <h3>{isReadingNFC ? 'Avvicina Tessera NFC...' : 'Scansiona o Inserisci Codice'}</h3>
               <p className="scan-description">
-                Scansiona il QR code dell'abbonamento o inserisci manualmente il codice
+                {isReadingNFC
+                  ? 'Avvicina la tessera NFC del cliente al lettore'
+                  : 'Scansiona il QR code, usa la tessera NFC o inserisci manualmente il codice'}
               </p>
 
-              <div className="code-input-wrapper">
-                <input
-                  type="text"
-                  placeholder="SUB-2024-00001"
-                  value={subscriptionCode}
-                  onChange={(e) => setSubscriptionCode(e.target.value.toUpperCase())}
-                  onKeyPress={(e) => e.key === 'Enter' && handleScan()}
-                  className="code-input"
-                  autoFocus
-                />
+              {!isReadingNFC && (
+                <>
+                  <div className="code-input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="SUB-2024-00001"
+                      value={subscriptionCode}
+                      onChange={(e) => setSubscriptionCode(e.target.value.toUpperCase())}
+                      onKeyPress={(e) => e.key === 'Enter' && handleScan()}
+                      className="code-input"
+                      autoFocus
+                    />
+                  </div>
+
+                  <button
+                    className="btn-validate"
+                    onClick={handleScan}
+                    disabled={loading || !subscriptionCode.trim()}
+                  >
+                    {loading ? <Loader size={20} className="spinning" /> : <Search size={20} />}
+                    Valida Membership
+                  </button>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    margin: '1rem 0',
+                    color: '#6b7280',
+                    fontSize: '0.875rem'
+                  }}>
+                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+                    <span>oppure</span>
+                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+                  </div>
+
+                  <button
+                    className="btn-validate"
+                    onClick={handleReadNFC}
+                    disabled={loading}
+                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                  >
+                    <CreditCard size={20} />
+                    Usa Tessera NFC
+                  </button>
+                </>
+              )}
+
+              {isReadingNFC && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    setIsReadingNFC(false);
+                    busyRef.current = false;
+                    if ((window as any).OmnilyPOS?.stopNFCReading) {
+                      (window as any).OmnilyPOS.stopNFCReading();
+                    }
+                  }}
+                >
+                  Annulla
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Step 2: Select Subscription (when customer has multiple) */}
+          {step === 'select-subscription' && customerSubscriptions.length > 0 && (
+            <div className="select-item-section">
+              <h3>Seleziona Membership</h3>
+              <p className="scan-description">
+                Il cliente ha {customerSubscriptions.length} membership attive. Seleziona quale utilizzare:
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+                {customerSubscriptions.map((sub) => (
+                  <div
+                    key={sub.id}
+                    onClick={() => handleSelectSubscription(sub)}
+                    style={{
+                      padding: '1rem',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      background: 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#ef4444';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                      <div style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937' }}>
+                        {sub.template?.name || 'N/A'}
+                      </div>
+                      {getStatusBadge(sub.status)}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#374151' }}>Codice:</div>
+                        <div>{sub.subscription_code}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#374151' }}>Scadenza:</div>
+                        <div>{formatDate(sub.end_date)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#374151' }}>Utilizzi:</div>
+                        <div>{sub.usage_count} / {sub.template?.total_limit || '∞'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#374151' }}>Cliente:</div>
+                        <div>{sub.customer?.name || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <button
-                className="btn-validate"
-                onClick={handleScan}
-                disabled={loading || !subscriptionCode.trim()}
+                className="btn-back-text"
+                onClick={() => setStep('scan')}
+                style={{ marginTop: '1.5rem' }}
               >
-                {loading ? <Loader size={20} className="spinning" /> : <Search size={20} />}
-                Valida Abbonamento
+                Torna Indietro
               </button>
             </div>
           )}
 
-          {/* Step 2: Valid Subscription */}
+          {/* Step 3: Valid Subscription */}
           {step === 'valid' && subscription && template && (
             <div className="validation-result valid">
               <div className="result-icon success">

@@ -5,7 +5,7 @@ import { rewardsService } from '../services/rewardsService'
 import { ZCSPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
@@ -88,6 +88,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showRewardModal, setShowRewardModal] = useState(false)
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null)
   const [rewardModalLoading, setRewardModalLoading] = useState(false)
+  const [showDocsModal, setShowDocsModal] = useState(false)
 
   // Hardware monitoring state
   const [hardwareStatus, setHardwareStatus] = useState({
@@ -3021,14 +3022,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             </div>
             <div className="cards-grid">
               <div className="feature-card">
+                <HelpCircle size={48} style={{ color: '#3b82f6', marginBottom: '1rem' }} />
                 <h3>Centro Assistenza</h3>
                 <p>Trova risposte alle domande più frequenti</p>
                 <button className="btn-primary">Esplora</button>
               </div>
               <div className="feature-card">
+                <Mail size={48} style={{ color: '#10b981', marginBottom: '1rem' }} />
                 <h3>Contatta il Supporto</h3>
                 <p>Richiedi assistenza tecnica personalizzata</p>
                 <button className="btn-primary">Contatta</button>
+              </div>
+              <div className="feature-card" onClick={() => setShowDocsModal(true)} style={{ cursor: 'pointer' }}>
+                <BookOpen size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
+                <h3>Documentazione</h3>
+                <p>Guide dettagliate per utilizzare Membership e altri componenti</p>
+                <button className="btn-primary">Leggi Guide</button>
               </div>
             </div>
           </div>
@@ -3545,6 +3554,403 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationName={currentOrganization?.name || ''}
         printService={printService}
       />
+
+      {/* Documentation Modal */}
+      {showDocsModal && (
+        <>
+          <div className="modal-overlay" onClick={() => setShowDocsModal(false)} style={{ zIndex: 9998 }} />
+          <div className="modal docs-modal" style={{
+            zIndex: 9999,
+            maxHeight: '100vh',
+            height: '100vh',
+            overflowY: 'auto',
+            width: '90vw',
+            maxWidth: '800px',
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            borderRadius: '0',
+            transform: 'none'
+          }}>
+            <div className="modal-header" style={{
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              color: 'white',
+              padding: '1.5rem 2rem',
+              borderBottom: 'none'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <BookOpen size={28} />
+                <h2 style={{ margin: 0, color: 'white', fontSize: 'clamp(1.25rem, 3vw, 1.5rem)' }}>Documentazione</h2>
+              </div>
+              <button onClick={() => setShowDocsModal(false)} className="close-btn" style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}>
+                <X size={24} color="white" />
+              </button>
+            </div>
+            <div className="modal-content" style={{ padding: '1.5rem' }}>
+              <p style={{
+                color: '#6b7280',
+                marginBottom: '1.5rem',
+                fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)',
+                lineHeight: '1.6'
+              }}>
+                Guide dettagliate per l'utilizzo dei vari componenti di Omnily
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Membership Guide */}
+                <div style={{
+                  background: 'white',
+                  border: '2px solid #ef4444',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  boxShadow: '0 4px 6px rgba(239, 68, 68, 0.1)'
+                }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1rem'
+                  }}>
+                    <Package size={32} />
+                  </div>
+
+                  <h3 style={{
+                    margin: '0 0 0.75rem 0',
+                    fontSize: 'clamp(1.125rem, 3vw, 1.5rem)',
+                    color: '#1f2937',
+                    fontWeight: 'bold'
+                  }}>
+                    Come Funzionano le Membership
+                  </h3>
+
+                  <p style={{
+                    color: '#1f2937',
+                    lineHeight: '1.8',
+                    marginBottom: '1rem',
+                    fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                    background: '#f8fafc',
+                    padding: 'clamp(0.75rem, 2vw, 1rem)',
+                    borderRadius: '8px',
+                    border: '2px solid #e2e8f0'
+                  }}>
+                    <strong style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)' }}>Cos'è una Membership?</strong><br/>
+                    È come un abbonamento in palestra: il cliente paga una volta e può usare i tuoi servizi per un periodo di tempo (es. 30 giorni), con un numero massimo di volte al giorno o in totale.
+                  </p>
+
+                  <p style={{
+                    color: '#1f2937',
+                    lineHeight: '1.8',
+                    marginBottom: '1.5rem',
+                    fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                    background: '#f0f9ff',
+                    padding: 'clamp(0.75rem, 2vw, 1rem)',
+                    borderRadius: '8px',
+                    border: '2px solid #bfdbfe'
+                  }}>
+                    <strong style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)' }}>Esempio pratico:</strong><br/>
+                    • Palestra: "Abbonamento Mensile 50€" → 1 ingresso/giorno per 30 giorni<br/>
+                    • Bar: "Colazione Mensile 30€" → 1 colazione/giorno per 30 giorni<br/>
+                    • Parrucchiere: "Pacchetto 10 Tagli 100€" → 10 tagli senza scadenza
+                  </p>
+
+                  {/* Passo 1 */}
+                  <div style={{ marginBottom: '1.5rem', padding: '1.25rem', background: '#f0f9ff', borderLeft: '4px solid #3b82f6', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: '#1e40af', fontSize: '1.125rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 'bold' }}>
+                      <span style={{
+                        background: '#3b82f6',
+                        color: 'white',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        flexShrink: 0
+                      }}>1</span>
+                      PRIMO PASSO: Crea un Template (Modello di Abbonamento)
+                    </h4>
+
+                    <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #bfdbfe' }}>
+                      <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.9375rem', color: '#1e293b', lineHeight: '1.8', fontWeight: 500 }}>
+                        <strong>📍 Dove andare:</strong>
+                      </p>
+                      <ol style={{ margin: '0', paddingLeft: '1.25rem', fontSize: '0.9375rem', lineHeight: '1.8', color: '#334155' }}>
+                        <li>Guarda il <strong>menu sulla sinistra</strong> dello schermo</li>
+                        <li>Cerca e clicca su <strong>"Membership"</strong> (icona con pacchetto)</li>
+                        <li>Si apre un pannello grande sulla destra</li>
+                        <li>In alto vedi 3 tab: clicca su <strong>"Template"</strong></li>
+                        <li>Clicca il bottone <strong>"+ Crea Nuovo Template"</strong></li>
+                      </ol>
+                    </div>
+
+                    <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                      <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.9375rem', color: '#1e293b', lineHeight: '1.8', fontWeight: 500 }}>
+                        <strong>✏️ Cosa compilare nel form:</strong>
+                      </p>
+                      <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: '1.8' }}>
+                        <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
+                          <strong>Nome Template:</strong><br/>
+                          Dai un nome chiaro. Es: "Abbonamento Mensile Palestra", "Colazioni 30 Giorni", "Pacchetto 10 Tagli"
+                        </div>
+
+                        <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
+                          <strong>Descrizione:</strong><br/>
+                          Spiega cosa include. Es: "Accesso illimitato alla palestra per 30 giorni, max 1 ingresso al giorno"
+                        </div>
+
+                        <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
+                          <strong>Prezzo:</strong><br/>
+                          Quanto costa. Es: 50 (il sistema aggiunge automaticamente €)
+                        </div>
+
+                        <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
+                          <strong>Durata:</strong><br/>
+                          Quanto tempo dura. Scegli il numero e il periodo (giorni/mesi/anni)<br/>
+                          Es: 30 giorni, oppure 1 mese, oppure 1 anno
+                        </div>
+
+                        <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #10b981', background: '#f0fdf4', padding: '0.5rem', borderRadius: '4px' }}>
+                          <strong>Limite Giornaliero (OPZIONALE):</strong><br/>
+                          Quante volte al giorno può usarlo il cliente?<br/>
+                          • Lascia vuoto = illimitato<br/>
+                          • Metti 1 = solo una volta al giorno<br/>
+                          • Metti 2 = massimo 2 volte al giorno
+                        </div>
+
+                        <div style={{ paddingLeft: '1rem', borderLeft: '3px solid #10b981', background: '#f0fdf4', padding: '0.5rem', borderRadius: '4px' }}>
+                          <strong>Limite Totale (OPZIONALE):</strong><br/>
+                          Quante volte IN TOTALE può usarlo?<br/>
+                          • Lascia vuoto = illimitato<br/>
+                          • Metti 10 = solo 10 volte in tutto<br/>
+                          • Metti 20 = massimo 20 volte in tutto
+                        </div>
+                      </div>
+                    </div>
+
+                    <p style={{ margin: '1rem 0 0 0', fontSize: '0.875rem', color: '#1e40af', fontWeight: 600 }}>
+                      ✅ Quando hai finito, clicca "Salva" e il template è pronto!
+                    </p>
+                  </div>
+
+                  {/* Passo 2 */}
+                  <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f0fdf4', borderLeft: '4px solid #10b981', borderRadius: '8px' }}>
+                    <h4 style={{ margin: '0 0 0.75rem 0', color: '#065f46', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{
+                        background: '#10b981',
+                        color: 'white',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.875rem',
+                        fontWeight: 'bold'
+                      }}>2</span>
+                      Vendi una Membership al Cliente
+                    </h4>
+                    <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.875rem', color: '#1e293b', lineHeight: '1.6' }}>
+                      Clicca su <strong>"Vendi Membership"</strong> nella sezione Membership.
+                    </p>
+                    <div style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6' }}>
+                      <strong>Cosa fare:</strong>
+                      <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
+                        <li>Seleziona il <strong>cliente</strong> dalla lista</li>
+                        <li>Scegli il <strong>template</strong> da vendere</li>
+                        <li>Conferma il <strong>pagamento</strong></li>
+                        <li>Il sistema genera automaticamente un <strong>codice univoco</strong> e un <strong>QR code</strong></li>
+                        <li>Stampa o invia al cliente il codice membership</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Passo 3 */}
+                  <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#fef2f2', borderLeft: '4px solid #ef4444', borderRadius: '8px' }}>
+                    <h4 style={{ margin: '0 0 0.75rem 0', color: '#991b1b', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{
+                        background: '#ef4444',
+                        color: 'white',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.875rem',
+                        fontWeight: 'bold'
+                      }}>3</span>
+                      Valida l'Utilizzo del Cliente
+                    </h4>
+                    <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.875rem', color: '#1e293b', lineHeight: '1.6' }}>
+                      Quando il cliente arriva, clicca su <strong>"Valida Utilizzo"</strong>.
+                    </p>
+                    <div style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6' }}>
+                      <strong>Due modi per validare:</strong>
+                      <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
+                        <li><strong>Scansiona QR Code:</strong> Usa la fotocamera per scansionare il QR code del cliente</li>
+                        <li><strong>Inserisci Codice:</strong> Digita manualmente il codice membership (es. SUB-ABC123)</li>
+                      </ul>
+                      <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                        <strong>Il sistema controlla:</strong>
+                        <ul style={{ margin: '0.5rem 0 0 1rem', paddingLeft: 0 }}>
+                          <li>✓ Membership valida e attiva</li>
+                          <li>✓ Non scaduta</li>
+                          <li>✓ Limite giornaliero non superato</li>
+                          <li>✓ Utilizzi totali disponibili</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Passo 4 */}
+                  <div style={{ marginBottom: '1rem', padding: '1rem', background: '#fefce8', borderLeft: '4px solid #eab308', borderRadius: '8px' }}>
+                    <h4 style={{ margin: '0 0 0.75rem 0', color: '#854d0e', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{
+                        background: '#eab308',
+                        color: 'white',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.875rem',
+                        fontWeight: 'bold'
+                      }}>4</span>
+                      Monitora Statistiche
+                    </h4>
+                    <p style={{ margin: '0', fontSize: '0.875rem', color: '#1e293b', lineHeight: '1.6' }}>
+                      Nel tab <strong>"Statistiche"</strong> puoi vedere: ricavi totali, membership attive, in scadenza (7 giorni), utilizzi del mese, e tasso di rinnovo.
+                    </p>
+                  </div>
+
+                  <div style={{
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    background: '#fef3f2',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    color: '#991b1b',
+                    border: '2px solid #fecaca'
+                  }}>
+                    <strong>⚠️ Importante:</strong>
+                    <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
+                      <li>I limiti giornalieri si resettano automaticamente a mezzanotte</li>
+                      <li>Le membership scadute non possono essere utilizzate</li>
+                      <li>Un cliente può avere più membership attive contemporaneamente</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Gift Certificates - Coming Soon */}
+                <div style={{
+                  background: 'white',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  opacity: 0.6
+                }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1rem'
+                  }}>
+                    <Gift size={32} />
+                  </div>
+
+                  <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.25rem', color: '#1f2937' }}>
+                    Gift Certificates
+                  </h3>
+
+                  <p style={{ color: '#6b7280', lineHeight: '1.6', fontSize: '0.875rem' }}>
+                    Documentazione completa per la gestione dei buoni regalo digitali.
+                  </p>
+
+                  <div style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem',
+                    background: '#f3f4f6',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    fontStyle: 'italic'
+                  }}>
+                    In arrivo...
+                  </div>
+                </div>
+
+                {/* Payment System - Coming Soon */}
+                <div style={{
+                  background: 'white',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  opacity: 0.6
+                }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1rem'
+                  }}>
+                    <CreditCard size={32} />
+                  </div>
+
+                  <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.25rem', color: '#1f2937' }}>
+                    Sistema Pagamenti
+                  </h3>
+
+                  <p style={{ color: '#6b7280', lineHeight: '1.6', fontSize: '0.875rem' }}>
+                    Guida all'integrazione e gestione dei metodi di pagamento.
+                  </p>
+
+                  <div style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem',
+                    background: '#f3f4f6',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    fontStyle: 'italic'
+                  }}>
+                    In arrivo...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Confirm Modal */}
       <ConfirmModal

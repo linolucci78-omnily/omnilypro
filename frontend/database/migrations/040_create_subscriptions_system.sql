@@ -348,7 +348,7 @@ CREATE POLICY "Users can view templates of their organizations"
   ON subscription_templates FOR SELECT
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
     )
   );
@@ -357,7 +357,7 @@ CREATE POLICY "Admins can manage templates"
   ON subscription_templates FOR ALL
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
       AND role IN ('owner', 'admin')
     )
@@ -368,7 +368,7 @@ CREATE POLICY "Users can view subscriptions of their organizations"
   ON customer_subscriptions FOR SELECT
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
     )
   );
@@ -377,7 +377,7 @@ CREATE POLICY "Users can manage subscriptions of their organizations"
   ON customer_subscriptions FOR ALL
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
     )
   );
@@ -387,7 +387,7 @@ CREATE POLICY "Users can view usages of their organizations"
   ON subscription_usages FOR SELECT
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
     )
   );
@@ -396,7 +396,7 @@ CREATE POLICY "Users can insert usages for their organizations"
   ON subscription_usages FOR INSERT
   WITH CHECK (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
     )
   );
@@ -408,7 +408,7 @@ CREATE POLICY "Users can view renewals of their organizations"
     subscription_id IN (
       SELECT id FROM customer_subscriptions
       WHERE organization_id IN (
-        SELECT organization_id FROM organization_members
+        SELECT org_id FROM organization_users
         WHERE user_id = auth.uid()
       )
     )
@@ -420,7 +420,7 @@ CREATE POLICY "Users can insert renewals for their organizations"
     subscription_id IN (
       SELECT id FROM customer_subscriptions
       WHERE organization_id IN (
-        SELECT organization_id FROM organization_members
+        SELECT org_id FROM organization_users
         WHERE user_id = auth.uid()
       )
     )
@@ -431,7 +431,7 @@ CREATE POLICY "Users can view settings of their organizations"
   ON subscription_settings FOR SELECT
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
     )
   );
@@ -440,7 +440,7 @@ CREATE POLICY "Admins can manage settings"
   ON subscription_settings FOR ALL
   USING (
     organization_id IN (
-      SELECT organization_id FROM organization_members
+      SELECT org_id FROM organization_users
       WHERE user_id = auth.uid()
       AND role IN ('owner', 'admin')
     )
