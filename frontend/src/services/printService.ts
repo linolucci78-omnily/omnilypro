@@ -419,74 +419,66 @@ export class ZCSPrintService {
     }
 
     try {
-      const receiptData = {
-        storeName: data.organizationName,
-        storeAddress: this.printConfig.storeAddress,
-        storePhone: this.printConfig.storePhone,
-        storeTax: this.printConfig.storeTax,
-        logoBase64: this.printConfig.logoBase64,
-        receiptNumber: `GC-${data.code}`,
-        timestamp: this.formatDateTime(data.timestamp),
-        cashier: data.cashierName,
-        items: [{
-          name: 'RISCATTO GIFT CERTIFICATE',
-          quantity: 1,
-          price: data.amountRedeemed,
-          total: data.amountRedeemed
-        }],
-        subtotal: data.amountRedeemed,
-        tax: 0,
-        total: data.amountRedeemed,
-        paymentMethod: 'Gift Certificate',
-        // Add balance info as custom header (shown before items)
-        customHeader: [
-          this.createSeparatorLine(),
-          `Codice GC: ${data.code}`,
-          `Saldo iniziale: ${this.formatPrice(data.balanceBefore)}`,
-          this.createSeparatorLine(),
-          ''
-        ].join('\n'),
-        customFooter: [
-          '',
-          this.createSeparatorLine(),
-          this.centerText('RIEPILOGO GIFT CERTIFICATE'),
-          this.createSeparatorLine(),
-          `Saldo prima: €${this.formatPrice(data.balanceBefore)}`,
-          `Importo riscattato: -€${this.formatPrice(data.amountRedeemed)}`,
-          this.createSeparatorLine(),
-          `SALDO RESIDUO: €${this.formatPrice(data.balanceAfter)}`,
-          this.createSeparatorLine(),
-          '',
-          data.balanceAfter > 0
-            ? this.centerText('✓ Saldo rimanente utilizzabile')
-            : this.centerText('✓ Gift Certificate completamente utilizzato'),
-          ''
-        ].join('\n'),
-        qrData: `GCREDEEM:${data.code}:${data.amountRedeemed}`
-      };
+      // Use printText() instead of printReceipt() to ensure balance info is printed
+      // (similar to printGiftCertificate which works correctly)
+      const lines: string[] = [
+        '',
+        this.centerText('🎁 RISCATTO GIFT CERTIFICATE 🎁'),
+        this.centerText(data.organizationName),
+        this.createSeparatorLine(),
+        '',
+        `Ricevuta: GC-${data.code}`,
+        `Data: ${this.formatDateTime(data.timestamp)}`,
+        `Cassiere: ${data.cashierName}`,
+        '',
+        this.createSeparatorLine(),
+        `Codice GC: ${data.code}`,
+        this.createSeparatorLine(),
+        '',
+        'IMPORTO RISCATTATO',
+        `€${this.formatPrice(data.amountRedeemed)}`,
+        '',
+        this.createSeparatorLine(),
+        this.centerText('RIEPILOGO GIFT CERTIFICATE'),
+        this.createSeparatorLine(),
+        '',
+        `Saldo prima:          €${this.formatPrice(data.balanceBefore)}`,
+        `Importo riscattato:  -€${this.formatPrice(data.amountRedeemed)}`,
+        this.createSeparatorLine(),
+        `SALDO RESIDUO:        €${this.formatPrice(data.balanceAfter)}`,
+        this.createSeparatorLine(),
+        '',
+        data.balanceAfter > 0
+          ? this.centerText('✓ Saldo rimanente utilizzabile')
+          : this.centerText('✓ Gift Certificate completamente utilizzato'),
+        '',
+        this.centerText('Grazie!'),
+        ''
+      ];
+
+      const receiptText = lines.join('\n');
 
       console.log('🖨️ Gift Certificate Redemption Receipt Data:', {
         code: data.code,
         amountRedeemed: data.amountRedeemed,
         balanceBefore: data.balanceBefore,
         balanceAfter: data.balanceAfter,
-        hasCustomFooter: !!receiptData.customFooter,
-        customFooterLength: receiptData.customFooter?.length || 0
+        textLength: receiptText.length
       });
 
       return new Promise((resolve) => {
         (window as any).omnilyGCRedeemPrintHandler = (result: any) => {
           if (result.success) {
-            console.log('GC redemption receipt printed successfully')
+            console.log('✅ GC redemption receipt printed successfully')
             resolve(true)
           } else {
-            console.error('GC redemption receipt print failed:', result.error)
+            console.error('❌ GC redemption receipt print failed:', result.error)
             resolve(false)
           }
         }
 
-        (window as any).OmnilyPOS.printReceipt(
-          JSON.stringify(receiptData),
+        (window as any).OmnilyPOS.printText(
+          receiptText,
           'omnilyGCRedeemPrintHandler'
         )
       })
