@@ -425,18 +425,41 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   Seleziona le categorie che possono essere utilizzate con questa membership
                 </small>
                 {availableCategories.length > 0 ? (
-                  <div className="categories-grid">
-                    {availableCategories.map(category => (
-                      <label key={category} className="category-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={includedCategories.includes(category)}
-                          onChange={() => toggleIncludedCategory(category)}
-                        />
-                        <span>{category}</span>
-                      </label>
-                    ))}
-                  </div>
+                  <>
+                    <select
+                      className="form-select"
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          toggleIncludedCategory(e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                    >
+                      <option value="">Aggiungi categoria...</option>
+                      {availableCategories
+                        .filter(cat => !includedCategories.includes(cat))
+                        .map(category => (
+                          <option key={category} value={category}>{category}</option>
+                        ))
+                      }
+                    </select>
+                    {includedCategories.length > 0 && (
+                      <div className="tags-list" style={{ marginTop: '0.75rem' }}>
+                        {includedCategories.map(category => (
+                          <span key={category} className="tag">
+                            {category}
+                            <button
+                              type="button"
+                              onClick={() => toggleIncludedCategory(category)}
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="empty-categories">
                     <Package size={24} style={{ opacity: 0.3 }} />
@@ -452,18 +475,41 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   Seleziona le categorie che NON possono essere utilizzate
                 </small>
                 {availableCategories.length > 0 ? (
-                  <div className="categories-grid">
-                    {availableCategories.map(category => (
-                      <label key={category} className="category-checkbox excluded">
-                        <input
-                          type="checkbox"
-                          checked={excludedCategories.includes(category)}
-                          onChange={() => toggleExcludedCategory(category)}
-                        />
-                        <span>{category}</span>
-                      </label>
-                    ))}
-                  </div>
+                  <>
+                    <select
+                      className="form-select"
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          toggleExcludedCategory(e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                    >
+                      <option value="">Aggiungi categoria esclusa...</option>
+                      {availableCategories
+                        .filter(cat => !excludedCategories.includes(cat))
+                        .map(category => (
+                          <option key={category} value={category}>{category}</option>
+                        ))
+                      }
+                    </select>
+                    {excludedCategories.length > 0 && (
+                      <div className="tags-list" style={{ marginTop: '0.75rem' }}>
+                        {excludedCategories.map(category => (
+                          <span key={category} className="tag excluded">
+                            {category}
+                            <button
+                              type="button"
+                              onClick={() => toggleExcludedCategory(category)}
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="empty-categories">
                     <Package size={24} style={{ opacity: 0.3 }} />
