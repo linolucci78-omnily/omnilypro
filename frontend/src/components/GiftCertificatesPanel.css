@@ -185,7 +185,7 @@
 .gift-certificates-stat-item {
   text-align: center;
   padding: 2rem 1.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: #ffffff;
   border: 2px solid transparent;
   border-radius: 20px;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);

@@ -3,6 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Handlebars from 'https://esm.sh/handlebars@4.7.8'
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
@@ -162,8 +163,8 @@ serve(async (req) => {
 
     console.log('✅ Template loaded:', emailTemplate.id)
 
-    // 5. Sostituisci variabili nel template
-    console.log('🔄 Replacing template variables...')
+    // 5. Sostituisci variabili nel template con Handlebars
+    console.log('🔄 Replacing template variables with Handlebars...')
 
     // Aggiungi colori del branding alle variabili
     const allVariables = {
@@ -173,21 +174,19 @@ serve(async (req) => {
       logo_url: emailSettings.logo_url || ''
     }
 
-    let subject = emailTemplate.subject
-    let html_body = emailTemplate.html_body
-    let text_body = emailTemplate.text_body || ''
+    console.log('📊 Template variables:', Object.keys(allVariables))
 
-    // Replace variabili formato {{variable_name}}
-    Object.keys(allVariables).forEach(key => {
-      const regex = new RegExp(`{{${key}}}`, 'g')
-      const value = String(allVariables[key] || '')
+    // Compila i template con Handlebars
+    const subjectTemplate = Handlebars.compile(emailTemplate.subject)
+    const htmlTemplate = Handlebars.compile(emailTemplate.html_body)
+    const textTemplate = Handlebars.compile(emailTemplate.text_body || '')
 
-      subject = subject.replace(regex, value)
-      html_body = html_body.replace(regex, value)
-      text_body = text_body.replace(regex, value)
-    })
+    // Applica le variabili
+    const subject = subjectTemplate(allVariables)
+    const html_body = htmlTemplate(allVariables)
+    const text_body = textTemplate(allVariables)
 
-    console.log('✅ Variables replaced')
+    console.log('✅ Variables replaced with Handlebars')
 
     // 6. Ottieni API Key Resend (org o globale)
     const resendApiKey = emailSettings.resend_api_key || Deno.env.get('RESEND_API_KEY')

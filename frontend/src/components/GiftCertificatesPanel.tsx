@@ -11,6 +11,7 @@ import {
   CreditCard,
   TrendingUp,
   DollarSign,
+  Euro,
   CheckCircle,
   Clock,
   Plus,
@@ -398,9 +399,6 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
               <CreditCard size={28} />
               <h2>Gift Certificates</h2>
             </div>
-            <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9, fontSize: '0.95rem' }}>
-              {organizationName}
-            </p>
           </div>
           <button onClick={onClose} className="gift-certificates-panel-close-btn">
             <X size={24} />
@@ -418,9 +416,9 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
           </div>
           <div className="gift-certificates-stat-item">
             <div className="gift-certificates-stat-icon">
-              <DollarSign size={24} />
+              <Euro size={24} />
             </div>
-            <div className="gift-certificates-stat-number">
+            <div className="gift-certificates-stat-number" style={{ fontSize: '1.25rem' }}>
               {formatCurrency(stats.active_balance)}
             </div>
             <div className="gift-certificates-stat-label">In Uso</div>
