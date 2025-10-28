@@ -25,6 +25,7 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import './GiftCertificatesPanel.css';
 import { giftCertificatesService } from '../services/giftCertificatesService';
+import { createPrintService } from '../services/printService';
 import type { GiftCertificate, GiftCertificateStats, CreateGiftCertificateRequest } from '../types/giftCertificate';
 import IssueGiftCertificateModal from './IssueGiftCertificateModal';
 import ValidateGiftCertificateModal from './ValidateGiftCertificateModal';
@@ -211,18 +212,32 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
   // Handler for Print Voucher button (POS with printer)
   const handlePrintVoucher = async (certificate: GiftCertificate) => {
     console.log('🖨️ handlePrintVoucher called');
-    console.log('🖨️ printService available?', !!printService);
-    console.log('🖨️ printService object:', printService);
-
-    if (!printService) {
-      console.warn('⚠️ Print service not available, generating PDF instead');
-      await handleDownloadPDF(certificate);
-      return;
-    }
 
     try {
+      // Create print service on-the-fly (same approach as sales and new gift certificates)
+      console.log('🖨️ Creating printService on-the-fly...');
+      const printConfig = {
+        storeName: organizationName,
+        storeAddress: '',
+        storePhone: '',
+        storeTax: '',
+        paperWidth: 384, // 58mm
+        fontSizeNormal: 24,
+        fontSizeLarge: 30,
+        printDensity: 0
+      };
+
+      const printService = createPrintService(printConfig);
+      const initialized = await printService.initialize();
+
+      if (!initialized) {
+        console.warn('⚠️ Print service initialization failed, generating PDF instead');
+        await handleDownloadPDF(certificate);
+        return;
+      }
+
       console.log('🖨️ Calling printService.printGiftCertificate...');
-      await printService.printGiftCertificate({
+      const printed = await printService.printGiftCertificate({
         code: certificate.code,
         amount: certificate.original_amount,
         recipientName: certificate.recipient_name,
@@ -232,9 +247,16 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
         issuedAt: certificate.issued_at,
         organizationName
       });
-      console.log('✅ Print completed successfully');
+
+      if (printed) {
+        console.log('✅ Print completed successfully');
+      } else {
+        console.error('❌ Print failed');
+      }
     } catch (error) {
       console.error('❌ Print error:', error);
+      // Fallback to PDF if printing fails
+      await handleDownloadPDF(certificate);
     }
   };
 
