@@ -624,37 +624,61 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                 </select>
               </div>
 
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={formData.renewable_manually || false}
-                    onChange={(e) => setFormData({ ...formData, renewable_manually: e.target.checked })}
-                  />
-                  <span>Rinnovabile manualmente</span>
-                </label>
+              {/* Renewal Settings Card */}
+              <div className="settings-card">
+                <h4 className="settings-card-title">⚙️ Opzioni di Rinnovo</h4>
+                <div className="toggle-group">
+                  <div className="toggle-item">
+                    <div className="toggle-label">
+                      <span>Rinnovabile manualmente</span>
+                      <small>Il cliente può rinnovare quando vuole</small>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={formData.renewable_manually || false}
+                        onChange={(e) => setFormData({ ...formData, renewable_manually: e.target.checked })}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div className="toggle-item">
+                    <div className="toggle-label">
+                      <span>Rinnovo automatico</span>
+                      <small>Si rinnova automaticamente alla scadenza</small>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={formData.auto_renewable || false}
+                        onChange={(e) => setFormData({ ...formData, auto_renewable: e.target.checked })}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={formData.auto_renewable || false}
-                    onChange={(e) => setFormData({ ...formData, auto_renewable: e.target.checked })}
-                  />
-                  <span>Rinnovo automatico</span>
-                </label>
-              </div>
-
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_active !== false}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  />
-                  <span>Attivo</span>
-                </label>
+              {/* Status Card */}
+              <div className="settings-card">
+                <h4 className="settings-card-title">📊 Stato Template</h4>
+                <div className="toggle-group">
+                  <div className="toggle-item">
+                    <div className="toggle-label">
+                      <span>Template attivo</span>
+                      <small>Visibile e acquistabile dai clienti</small>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_active !== false}
+                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               {/* Summary */}
