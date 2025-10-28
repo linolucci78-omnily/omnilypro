@@ -3401,6 +3401,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <CreditCard size={20} />
               <span>Gift Certificates</span>
             </button>
+            <button
+              className={`pos-nav-tab ${activeSection === 'subscriptions' ? 'active' : ''}`}
+              onClick={() => handleSectionChange('subscriptions')}
+            >
+              <Package size={20} />
+              <span>Membership</span>
+            </button>
           </div>
         </div>
       )}
