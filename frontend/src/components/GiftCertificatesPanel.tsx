@@ -32,6 +32,7 @@ import IssueGiftCertificateModal from './IssueGiftCertificateModal';
 import ValidateGiftCertificateModal from './ValidateGiftCertificateModal';
 import RedeemGiftCertificateModal from './RedeemGiftCertificateModal';
 import GiftCertificateDetailsModal from './GiftCertificateDetailsModal';
+import ConfirmationModal from './ConfirmationModal';
 
 interface GiftCertificatesPanelProps {
   isOpen: boolean;
@@ -77,6 +78,12 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<GiftCertificate | null>(null);
+
+  // Confirmation modal state
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationType, setConfirmationType] = useState<'success' | 'error' | 'warning'>('success');
+  const [confirmationTitle, setConfirmationTitle] = useState('');
+  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   useEffect(() => {
     if (isOpen && organizationId) {
@@ -357,19 +364,38 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
   // Handler for Send Email button
   const handleSendEmail = async (certificate: GiftCertificate) => {
     if (!certificate.recipient_email) {
-      console.warn('No recipient email available');
+      setConfirmationType('warning');
+      setConfirmationTitle('Email Non Disponibile');
+      setConfirmationMessage('Questo certificato non ha un indirizzo email associato.');
+      setShowConfirmation(true);
       return;
     }
 
     try {
-      // Email sending is handled automatically by backend when enabled in settings
-      // This button is just visual feedback that email can be resent
-      console.log('Email notification triggered for certificate:', certificate.code);
+      console.log('📤 Sending email for certificate:', certificate.code);
 
-      // TODO: Implement resend email API endpoint if needed
-      // await giftCertificatesService.resendEmail(certificate.id);
-    } catch (error) {
+      // Call resend email service
+      const result = await giftCertificatesService.resendEmail(certificate.id, organizationId);
+
+      if (result.success) {
+        // Show success modal
+        setConfirmationType('success');
+        setConfirmationTitle('Email Inviata!');
+        setConfirmationMessage(result.message || 'L\'email è stata inviata con successo al destinatario.');
+        setShowConfirmation(true);
+      } else {
+        // Show error modal
+        setConfirmationType('error');
+        setConfirmationTitle('Errore Invio Email');
+        setConfirmationMessage(result.message || 'Si è verificato un errore durante l\'invio dell\'email.');
+        setShowConfirmation(true);
+      }
+    } catch (error: any) {
       console.error('Email error:', error);
+      setConfirmationType('error');
+      setConfirmationTitle('Errore Invio Email');
+      setConfirmationMessage(error.message || 'Si è verificato un errore imprevisto durante l\'invio dell\'email.');
+      setShowConfirmation(true);
     }
   };
 
@@ -616,6 +642,16 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
           setSelectedCertificate(null);
         }}
         organizationName={organizationName}
+      />
+
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        type={confirmationType}
+        title={confirmationTitle}
+        message={confirmationMessage}
+        onClose={() => setShowConfirmation(false)}
+        autoClose={true}
+        autoCloseDelay={3000}
       />
     </>
   );

@@ -396,6 +396,96 @@ export class GiftCertificatesService {
   }
 
   /**
+   * Resend gift certificate email
+   */
+  async resendEmail(
+    id: string,
+    organizationId: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('📤 Resending gift certificate email:', { id, organizationId });
+
+      // Get certificate details
+      const certificate = await this.getById(id, organizationId);
+
+      if (!certificate.recipient_email) {
+        throw new Error('Nessun indirizzo email disponibile per questo certificato');
+      }
+
+      // Get organization name
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', organizationId)
+        .single();
+
+      const organizationName = org?.name || 'Omnily PRO';
+
+      // Generate QR code data URL
+      const qrCodeData = certificate.qr_code_data || await generateQRCodeDataURL(certificate.code);
+
+      // Call edge function to send email
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          organization_id: organizationId,
+          template_type: 'gift_certificate_issued',
+          to_email: certificate.recipient_email,
+          to_name: certificate.recipient_name || certificate.recipient_email,
+          dynamic_data: {
+            gift_certificate_code: certificate.code,
+            amount: certificate.original_amount,
+            recipient_name: certificate.recipient_name || 'Cliente',
+            personal_message: certificate.personal_message || '',
+            valid_until: certificate.valid_until ? new Date(certificate.valid_until).toLocaleDateString('it-IT') : 'N/A',
+            qr_code_url: qrCodeData,
+            organization_name: organizationName
+          }
+        }
+      });
+
+      if (error) {
+        console.error('❌ Error calling send-email function:', error);
+        throw new Error(error.message || 'Errore durante l\'invio dell\'email');
+      }
+
+      console.log('✅ Gift certificate email resent successfully:', data);
+
+      // Log audit
+      await this.logAudit({
+        gift_certificate_id: id,
+        organization_id: organizationId,
+        action: 'email_resent',
+        metadata: {
+          recipient_email: certificate.recipient_email,
+          email_result: data
+        },
+        success: true
+      });
+
+      return {
+        success: true,
+        message: 'Email inviata con successo!'
+      };
+    } catch (error: any) {
+      console.error('❌ Error in resendEmail:', error);
+
+      // Log failed audit
+      await this.logAudit({
+        gift_certificate_id: id,
+        organization_id: organizationId,
+        action: 'email_resent',
+        metadata: { error: error.message },
+        success: false
+      });
+
+      return {
+        success: false,
+        message: error.message || 'Errore durante l\'invio dell\'email'
+      };
+    }
+  }
+
+  /**
    * Update gift certificate
    */
   async update(
