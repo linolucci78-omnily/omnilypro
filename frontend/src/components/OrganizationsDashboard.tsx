@@ -14,6 +14,7 @@ import AccountSettingsPanel from './AccountSettingsPanel'
 import EmailMarketingPanel from './EmailMarketingPanel'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
 import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
+import SubscriptionsPanel from './SubscriptionsPanel'
 import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import ConfirmModal from './UI/ConfirmModal'
@@ -537,6 +538,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showGiftCertificatesStatsModal, setShowGiftCertificatesStatsModal] = useState(false)
+  const [showSubscriptionsPanel, setShowSubscriptionsPanel] = useState(false)
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
 
   // Print Service for POS
@@ -1796,6 +1798,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
+      { id: 'subscriptions', icon: Package, label: 'Abbonamenti', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
@@ -3077,6 +3080,52 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         )
 
+      case 'subscriptions':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Package size={24} />
+              <h2>Abbonamenti</h2>
+              <p>Gestisci abbonamenti universali per qualsiasi tipo di attività</p>
+            </div>
+            <div className="cards-grid">
+              <div className="feature-card">
+                <h3>Gestione Abbonamenti</h3>
+                <p>Crea template, vendi e valida abbonamenti per i tuoi clienti</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowSubscriptionsPanel(true)}
+                >
+                  <Package size={18} />
+                  Apri Gestionale
+                </button>
+              </div>
+              <div className="feature-card">
+                <h3>Template Personalizzati</h3>
+                <p>Crea abbonamenti adatti alla tua attività (pizze, caffè, palestra, etc.)</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowSubscriptionsPanel(true)}
+                >
+                  <Plus size={18} />
+                  Crea Template
+                </button>
+              </div>
+              <div className="feature-card">
+                <h3>Statistiche e Report</h3>
+                <p>Monitora vendite, utilizzi e performance dei tuoi abbonamenti</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowSubscriptionsPanel(true)}
+                >
+                  <BarChart3 size={18} />
+                  Visualizza Report
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         return (
           <div className="dashboard-content">
@@ -3486,6 +3535,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={() => setShowGiftCertificatesStatsModal(false)}
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
+      />
+
+      {/* Subscriptions Panel */}
+      <SubscriptionsPanel
+        isOpen={showSubscriptionsPanel}
+        onClose={() => setShowSubscriptionsPanel(false)}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || ''}
+        printService={printService}
       />
 
       {/* Confirm Modal */}
