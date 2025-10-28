@@ -94,9 +94,12 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
   const loadGlobalStats = async () => {
     try {
       // Load all certificates
+      console.log('📊 Loading global stats...');
       const { data: allCerts, error } = await supabase
         .from('gift_certificates')
         .select('*');
+
+      console.log('📊 Gift certificates loaded:', { count: allCerts?.length, error });
 
       if (error) throw error;
 
@@ -104,9 +107,18 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
+        // Log all statuses to see what we have
+        const statusCounts = allCerts.reduce((acc, c) => {
+          acc[c.status] = (acc[c.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        console.log('📊 Certificate statuses:', statusCounts);
+
         const active = allCerts.filter(c => c.status === 'active');
         const redeemed = allCerts.filter(c => c.status === 'redeemed');
         const thisMonth = allCerts.filter(c => new Date(c.issued_at) >= monthStart);
+
+        console.log('📊 Filtered counts:', { active: active.length, redeemed: redeemed.length, thisMonth: thisMonth.length });
 
         // Get unique organizations
         const uniqueOrgs = new Set(allCerts.map(c => c.organization_id));
@@ -129,6 +141,7 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
 
   const loadCertificates = async () => {
     try {
+      console.log('📋 Loading certificates list...');
       const { data, error } = await supabase
         .from('gift_certificates')
         .select(`
@@ -137,6 +150,8 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
         `)
         .order('issued_at', { ascending: false })
         .limit(100);
+
+      console.log('📋 Certificates list loaded:', { count: data?.length, error });
 
       if (error) throw error;
 
@@ -481,8 +496,10 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
                         className="action-btn"
                         title="Visualizza dettagli"
                         onClick={() => {
+                          console.log('👁️ Eye button clicked for certificate:', cert.code);
                           setSelectedCert(cert);
                           setShowDetailsModal(true);
+                          console.log('👁️ Modal state updated:', { showDetailsModal: true });
                         }}
                       >
                         <Eye size={16} />
@@ -497,8 +514,9 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
       </div>
 
       {/* Details Modal */}
-      {showDetailsModal && selectedCert && (
+      {showDetailsModal && selectedCert ? (
         <>
+          {console.log('🎭 Rendering modal for certificate:', selectedCert.code)}
           <div className="modal-overlay" onClick={() => setShowDetailsModal(false)} />
           <div className="admin-gc-details-modal">
             <div className="modal-header">
@@ -661,6 +679,8 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
             </div>
           </div>
         </>
+      ) : (
+        console.log('🎭 Modal NOT rendering:', { showDetailsModal, hasSelectedCert: !!selectedCert })
       )}
     </div>
   );
