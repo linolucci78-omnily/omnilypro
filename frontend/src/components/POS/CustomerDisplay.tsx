@@ -27,6 +27,7 @@ const CustomerDisplay: React.FC = () => {
   const [celebrationData, setCelebrationData] = useState<any>(null);
   const [salePreview, setSalePreview] = useState<any>(null);
   const [saleProcessing, setSaleProcessing] = useState<any>(null);
+  const [giftCertificate, setGiftCertificate] = useState<any>(null);
 
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
@@ -72,6 +73,17 @@ const CustomerDisplay: React.FC = () => {
         console.log('🔄 Elaborazione transazione ricevuta:', event.data.processing);
         setSaleProcessing(event.data.processing);
         setSalePreview(null); // Nascondi preview durante elaborazione
+      } else if (event.data.type === 'GIFT_CERTIFICATE_VALIDATED') {
+        console.log('🎁 Gift Certificate validato ricevuto:', event.data.giftCertificate);
+        setGiftCertificate(event.data.giftCertificate);
+        setSalePreview(null);
+        setSaleProcessing(null);
+        setShowCelebration(false);
+
+        // Nascondi dopo 8 secondi
+        setTimeout(() => {
+          setGiftCertificate(null);
+        }, 8000);
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -461,6 +473,100 @@ const CustomerDisplay: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        ) : giftCertificate ? (
+          // Gift Certificate Display - COMPATTA per 4"
+          <div style={{
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            padding: '1.5rem',
+            borderRadius: '12px',
+            textAlign: 'center',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: '1rem'
+          }}>
+            {/* Icona Gift Certificate */}
+            <div style={{
+              fontSize: '3rem'
+            }}>
+              🎁
+            </div>
+
+            {/* Titolo */}
+            <h2 style={{
+              margin: 0,
+              fontSize: '1.8rem',
+              fontWeight: 'bold'
+            }}>
+              Gift Certificate Valido!
+            </h2>
+
+            {/* Codice */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              padding: '1rem',
+              borderRadius: '8px',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              letterSpacing: '2px'
+            }}>
+              {giftCertificate.code}
+            </div>
+
+            {/* Saldo Disponibile - GRANDE */}
+            <div style={{
+              background: 'white',
+              color: '#10b981',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              marginTop: '0.5rem'
+            }}>
+              <div style={{
+                fontSize: '1rem',
+                marginBottom: '0.5rem',
+                opacity: 0.8
+              }}>
+                Saldo Disponibile
+              </div>
+              <div style={{
+                fontSize: '3.5rem',
+                fontWeight: 'bold',
+                lineHeight: 1
+              }}>
+                €{giftCertificate.balance.toFixed(2)}
+              </div>
+            </div>
+
+            {/* Recipient (se presente) */}
+            {giftCertificate.recipientName && (
+              <div style={{
+                fontSize: '1.2rem',
+                opacity: 0.9
+              }}>
+                Per: {giftCertificate.recipientName}
+              </div>
+            )}
+
+            {/* Messaggio */}
+            <div style={{
+              fontSize: '1rem',
+              opacity: 0.8,
+              animation: 'pulse 2s infinite'
+            }}>
+              ✅ Pronto per essere utilizzato
+            </div>
+
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes pulse {
+                  0%, 100% { opacity: 0.6; }
+                  50% { opacity: 1; }
+                }
+              `
+            }} />
           </div>
         ) : (
           // Welcome Screen
