@@ -212,18 +212,18 @@ serve(async (req) => {
           const base64Data = matches[2]
 
           // Add as inline attachment with CID
+          // NOTE: Resend uses filename as CID reference, not a separate 'id' field
           attachments.push({
-            filename: 'qr-code.png',
+            filename: 'qrcode.png',
             content: base64Data,
             content_type: mimeType,
-            disposition: 'inline',
-            id: 'qrcode' // This is the CID
+            disposition: 'inline'
           })
 
-          // Replace data URL in HTML with cid reference
+          // Replace data URL in HTML with cid reference using filename
           finalHtmlBody = html_body.replace(
             dynamic_data.qr_code_url,
-            'cid:qrcode'
+            'cid:qrcode.png'
           )
 
           console.log('✅ QR code converted to inline attachment')
