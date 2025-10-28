@@ -72,6 +72,8 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
   const [step, setStep] = useState<Step>('basic');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdTemplateName, setCreatedTemplateName] = useState('');
 
   // Form data
   const [formData, setFormData] = useState<CreateSubscriptionTemplateRequest>({
@@ -108,6 +110,8 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
     setStep('basic');
     setLoading(false);
     setError(null);
+    setShowSuccess(false);
+    setCreatedTemplateName('');
     setFormData({
       organization_id: organizationId,
       name: '',
@@ -177,16 +181,27 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
         allowed_hours: (timeStart && timeEnd) ? { start: timeStart, end: timeEnd } : undefined
       };
 
+      console.log('📝 Creating template:', request);
       const response = await subscriptionsService.createTemplate(request);
+      console.log('✅ Template creation response:', response);
 
       if (!response.success) {
         throw new Error(response.error || 'Errore durante la creazione del template');
       }
 
-      onSuccess();
-      onClose();
+      // Show success message
+      setCreatedTemplateName(formData.name);
+      setShowSuccess(true);
+
+      // Call onSuccess after showing message
+      setTimeout(() => {
+        onSuccess();
+        setTimeout(() => {
+          onClose();
+        }, 300);
+      }, 2000);
     } catch (err: any) {
-      console.error('Error creating template:', err);
+      console.error('❌ Error creating template:', err);
       setError(err.message || 'Errore durante la creazione del template');
     } finally {
       setLoading(false);
@@ -272,8 +287,21 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
             </div>
           )}
 
+          {/* Success Message */}
+          {showSuccess && (
+            <div className="success-section">
+              <div className="success-icon">
+                <Check size={48} />
+              </div>
+              <h3>Template Creato!</h3>
+              <div className="success-message">
+                Il template <strong>{createdTemplateName}</strong> è stato creato con successo.
+              </div>
+            </div>
+          )}
+
           {/* Step 1: Basic Info */}
-          {step === 'basic' && (
+          {!showSuccess && step === 'basic' && (
             <div className="form-step">
               <h3>Informazioni Base</h3>
 
@@ -319,7 +347,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
           )}
 
           {/* Step 2: Duration & Limits */}
-          {step === 'duration' && (
+          {!showSuccess && step === 'duration' && (
             <div className="form-step">
               <h3>Durata e Limiti</h3>
 
@@ -391,7 +419,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
           )}
 
           {/* Step 3: Restrictions */}
-          {step === 'restrictions' && (
+          {!showSuccess && step === 'restrictions' && (
             <div className="form-step">
               <h3>Restrizioni</h3>
 
@@ -520,7 +548,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
           )}
 
           {/* Step 4: Pricing */}
-          {step === 'pricing' && (
+          {!showSuccess && step === 'pricing' && (
             <div className="form-step">
               <h3>Prezzo e Impostazioni</h3>
 
@@ -628,38 +656,40 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="create-template-footer">
-          {step !== 'basic' && (
-            <button
-              className="btn-footer btn-back"
-              onClick={handleBack}
-              disabled={loading}
-            >
-              <ChevronLeft size={20} />
-              Indietro
-            </button>
-          )}
+        {!showSuccess && (
+          <div className="create-template-footer">
+            {step !== 'basic' && (
+              <button
+                className="btn-footer btn-back"
+                onClick={handleBack}
+                disabled={loading}
+              >
+                <ChevronLeft size={20} />
+                Indietro
+              </button>
+            )}
 
-          {step !== 'pricing' ? (
-            <button
-              className="btn-footer btn-next"
-              onClick={handleNext}
-              disabled={loading}
-            >
-              Avanti
-              <ChevronRight size={20} />
-            </button>
-          ) : (
-            <button
-              className="btn-footer btn-create"
-              onClick={handleCreate}
-              disabled={loading}
-            >
-              {loading ? <Loader size={20} className="spinning" /> : <Check size={20} />}
-              Crea Template
-            </button>
-          )}
-        </div>
+            {step !== 'pricing' ? (
+              <button
+                className="btn-footer btn-next"
+                onClick={handleNext}
+                disabled={loading}
+              >
+                Avanti
+                <ChevronRight size={20} />
+              </button>
+            ) : (
+              <button
+                className="btn-footer btn-create"
+                onClick={handleCreate}
+                disabled={loading}
+              >
+                {loading ? <Loader size={20} className="spinning" /> : <Check size={20} />}
+                Crea Template
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
