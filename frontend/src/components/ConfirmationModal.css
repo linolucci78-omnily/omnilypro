@@ -32,7 +32,7 @@
 @keyframes slideDownFromTop {
   from {
     opacity: 0;
-    transform: translate(-50%, -60%);
+    transform: translate(-50%, calc(-50% + 100vh));
   }
   to {
     opacity: 1;
