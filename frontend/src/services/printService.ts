@@ -465,6 +465,15 @@ export class ZCSPrintService {
         qrData: `GCREDEEM:${data.code}:${data.amountRedeemed}`
       };
 
+      console.log('🖨️ Gift Certificate Redemption Receipt Data:', {
+        code: data.code,
+        amountRedeemed: data.amountRedeemed,
+        balanceBefore: data.balanceBefore,
+        balanceAfter: data.balanceAfter,
+        hasCustomFooter: !!receiptData.customFooter,
+        customFooterLength: receiptData.customFooter?.length || 0
+      });
+
       return new Promise((resolve) => {
         (window as any).omnilyGCRedeemPrintHandler = (result: any) => {
           if (result.success) {
