@@ -32,6 +32,7 @@ import EmailTemplatesDashboard from './components/Admin/EmailTemplatesDashboard'
 import DatabaseDashboard from './components/Admin/DatabaseDashboard'
 import SupportDashboard from './components/Admin/SupportDashboard'
 import BrandingDashboard from './components/Admin/BrandingDashboard'
+import AdminGiftCertificatesDashboard from './components/Admin/AdminGiftCertificatesDashboard'
 import WebsiteManager from './components/Admin/WebsiteManager'
 import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
@@ -208,6 +209,7 @@ function App() {
               <Route path="branding" element={<BrandingDashboard />} />
               <Route path="websites" element={<WebsiteManager />} />
               <Route path="websites-v2" element={<WebsiteManagerV2 />} />
+              <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
             </Route>
             <Route path="/sign/:signatureId" element={
               <React.Suspense fallback={<div>Caricamento...</div>}>
