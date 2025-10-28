@@ -307,46 +307,11 @@ export class GiftCertificatesService {
       // Send email if enabled and recipient has email
       if (request.recipient_email && request.send_email !== false) {
         try {
-          // Upload QR code to Supabase Storage for email
-          let qrCodeUrl = '';
-          try {
-            // Convert data URL to blob
-            const base64Data = qrCodeData.split(',')[1];
-            const binaryData = atob(base64Data);
-            const arrayBuffer = new Uint8Array(binaryData.length);
-            for (let i = 0; i < binaryData.length; i++) {
-              arrayBuffer[i] = binaryData.charCodeAt(i);
-            }
-            const blob = new Blob([arrayBuffer], { type: 'image/png' });
-
-            // Upload to Supabase Storage
-            const fileName = `qr-codes/${request.organization_id}/${code}.png`;
-            const { error: uploadError } = await supabase.storage
-              .from('public')
-              .upload(fileName, blob, {
-                contentType: 'image/png',
-                upsert: true
-              });
-
-            if (!uploadError) {
-              // Get public URL
-              const { data: urlData } = supabase.storage
-                .from('public')
-                .getPublicUrl(fileName);
-
-              qrCodeUrl = urlData.publicUrl;
-              console.log('✅ QR code uploaded to storage for email:', qrCodeUrl);
-            }
-          } catch (error) {
-            console.warn('⚠️ Error uploading QR code to storage:', error);
-            // Continue with data URL as fallback
-            qrCodeUrl = qrCodeData;
-          }
-
+          // Pass QR code data URL - will be converted to inline attachment by edge function
           await this.sendGiftCertificateEmail({
             organization_id: request.organization_id,
             gift_certificate: data,
-            qr_code_url: qrCodeUrl
+            qr_code_url: qrCodeData
           });
         } catch (emailError) {
           console.error('Failed to send gift certificate email:', emailError);
@@ -457,45 +422,8 @@ export class GiftCertificatesService {
 
       const organizationName = org?.name || 'Omnily PRO';
 
-      // Generate QR code and upload to Supabase Storage for email
-      let qrCodeUrl = '';
-      try {
-        const qrCodeData = certificate.qr_code_data || await generateQRCodeDataURL(certificate.code);
-
-        // Convert data URL to blob
-        const base64Data = qrCodeData.split(',')[1];
-        const binaryData = atob(base64Data);
-        const arrayBuffer = new Uint8Array(binaryData.length);
-        for (let i = 0; i < binaryData.length; i++) {
-          arrayBuffer[i] = binaryData.charCodeAt(i);
-        }
-        const blob = new Blob([arrayBuffer], { type: 'image/png' });
-
-        // Upload to Supabase Storage
-        const fileName = `qr-codes/${organizationId}/${certificate.code}.png`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('public')
-          .upload(fileName, blob, {
-            contentType: 'image/png',
-            upsert: true // Replace if exists
-          });
-
-        if (uploadError) {
-          console.warn('⚠️ Failed to upload QR code to storage:', uploadError);
-          // Continue without QR code in email
-        } else {
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from('public')
-            .getPublicUrl(fileName);
-
-          qrCodeUrl = urlData.publicUrl;
-          console.log('✅ QR code uploaded to storage:', qrCodeUrl);
-        }
-      } catch (error) {
-        console.warn('⚠️ Error generating/uploading QR code:', error);
-        // Continue without QR code in email
-      }
+      // Generate QR code as data URL (will be converted to inline attachment by edge function)
+      const qrCodeData = certificate.qr_code_data || await generateQRCodeDataURL(certificate.code);
 
       // Call edge function to send email
       const { data, error } = await supabase.functions.invoke('send-email', {
@@ -510,7 +438,7 @@ export class GiftCertificatesService {
             recipient_name: certificate.recipient_name || 'Cliente',
             personal_message: certificate.personal_message || '',
             valid_until: certificate.valid_until ? new Date(certificate.valid_until).toLocaleDateString('it-IT') : 'N/A',
-            qr_code_url: qrCodeUrl, // Use hosted URL instead of data URL
+            qr_code_url: qrCodeData, // Pass data URL - will be converted to inline attachment by edge function
             organization_name: organizationName
           }
         }

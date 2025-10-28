@@ -197,21 +197,60 @@ serve(async (req) => {
 
     // 7. Invia email via Resend
     console.log('📤 Sending email via Resend...')
-    const resendPayload = {
+
+    // Check if qr_code_url is a data URL and convert to attachment
+    const attachments: any[] = []
+    let finalHtmlBody = html_body
+
+    if (dynamic_data.qr_code_url && dynamic_data.qr_code_url.startsWith('data:')) {
+      console.log('📎 Converting QR code data URL to inline attachment...')
+      try {
+        // Extract base64 data from data URL
+        const matches = dynamic_data.qr_code_url.match(/^data:([^;]+);base64,(.+)$/)
+        if (matches) {
+          const mimeType = matches[1]
+          const base64Data = matches[2]
+
+          // Add as inline attachment with CID
+          attachments.push({
+            filename: 'qr-code.png',
+            content: base64Data,
+            content_type: mimeType,
+            disposition: 'inline',
+            id: 'qrcode' // This is the CID
+          })
+
+          // Replace data URL in HTML with cid reference
+          finalHtmlBody = html_body.replace(
+            dynamic_data.qr_code_url,
+            'cid:qrcode'
+          )
+
+          console.log('✅ QR code converted to inline attachment')
+        }
+      } catch (error) {
+        console.error('⚠️ Error converting QR code to attachment:', error)
+        // Continue without QR code
+      }
+    }
+
+    const resendPayload: any = {
       from: `${emailSettings.from_name} <${emailSettings.from_email}>`,
       to: [to_email],
       subject: subject,
-      html: html_body,
+      html: finalHtmlBody,
       ...(text_body && { text: text_body }),
-      ...(emailSettings.reply_to_email && { reply_to: emailSettings.reply_to_email })
+      ...(emailSettings.reply_to_email && { reply_to: emailSettings.reply_to_email }),
+      ...(attachments.length > 0 && { attachments })
     }
 
     console.log('📧 Resend payload:', {
       from: resendPayload.from,
       to: resendPayload.to,
       subject: resendPayload.subject,
-      has_html: !!html_body,
-      has_text: !!text_body
+      has_html: !!finalHtmlBody,
+      has_text: !!text_body,
+      has_attachments: attachments.length > 0
     })
 
     const resendResponse = await fetch(RESEND_API_URL, {
