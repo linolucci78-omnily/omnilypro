@@ -488,6 +488,162 @@ export class ZCSPrintService {
       return false
     }
   }
+
+  /**
+   * Print subscription voucher/card
+   */
+  async printSubscriptionVoucher(data: {
+    subscription_code: string
+    customer_name: string
+    template_name: string
+    start_date: string
+    end_date: string
+    daily_limit?: number
+    total_limit?: number
+    organizationName: string
+  }): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('❌ Printer not initialized')
+      return false
+    }
+
+    try {
+      const lines: string[] = [
+        '',
+        this.centerText('🎫 ABBONAMENTO 🎫'),
+        this.centerText(data.organizationName),
+        this.createSeparatorLine(),
+        '',
+        `Codice: ${data.subscription_code}`,
+        `Cliente: ${data.customer_name}`,
+        `Abbonamento: ${data.template_name}`,
+        '',
+        this.createSeparatorLine(),
+        `Valido da: ${this.formatDateTime(new Date(data.start_date))}`,
+        `Valido fino: ${this.formatDateTime(new Date(data.end_date))}`,
+        ''
+      ]
+
+      if (data.daily_limit) {
+        lines.push(`Limite giornaliero: ${data.daily_limit} utilizzi`)
+      }
+
+      if (data.total_limit) {
+        lines.push(`Limite totale: ${data.total_limit} utilizzi`)
+      }
+
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('Presenta questo voucher'))
+      lines.push(this.centerText('per utilizzare l\'abbonamento'))
+      lines.push('')
+
+      const headerText = lines.join('\n')
+
+      return new Promise((resolve) => {
+        (window as any).omnilySubPrintHandler = (result: any) => {
+          if (result.success) {
+            // Print QR code
+            const qrData = `SUB:${data.subscription_code}`
+
+            (window as any).omnilySubQRHandler = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('✅ Subscription voucher printed successfully')
+                resolve(true)
+              } else {
+                console.error('❌ QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilySubQRHandler')
+          } else {
+            console.error('❌ Subscription voucher print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(headerText, 'omnilySubPrintHandler')
+      })
+    } catch (error) {
+      console.error('Subscription voucher print error:', error)
+      return false
+    }
+  }
+
+  /**
+   * Print subscription usage receipt
+   */
+  async printSubscriptionUsage(data: {
+    subscription_code: string
+    customer_name: string
+    template_name: string
+    item_name: string
+    remaining_daily?: number
+    remaining_total?: number
+    cashier: string
+    organizationName: string
+  }): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('❌ Printer not initialized')
+      return false
+    }
+
+    try {
+      const lines: string[] = [
+        '',
+        this.centerText('UTILIZZO ABBONAMENTO'),
+        this.centerText(data.organizationName),
+        this.createSeparatorLine(),
+        '',
+        `Ricevuta: ${Date.now()}`,
+        `Data: ${this.formatDateTime(new Date())}`,
+        `Cassiere: ${data.cashier}`,
+        '',
+        this.createSeparatorLine(),
+        `Codice: ${data.subscription_code}`,
+        `Cliente: ${data.customer_name}`,
+        `Abbonamento: ${data.template_name}`,
+        '',
+        this.createSeparatorLine(),
+        'ARTICOLO UTILIZZATO',
+        `${data.item_name}`,
+        '',
+        this.createSeparatorLine()
+      ]
+
+      if (data.remaining_daily !== undefined) {
+        lines.push(`Utilizzi rimanenti oggi: ${data.remaining_daily}`)
+      }
+
+      if (data.remaining_total !== undefined) {
+        lines.push(`Utilizzi rimanenti totali: ${data.remaining_total}`)
+      }
+
+      lines.push('')
+      lines.push(this.centerText('Grazie!'))
+      lines.push('')
+
+      const receiptText = lines.join('\n')
+
+      return new Promise((resolve) => {
+        (window as any).omnilySubUsagePrintHandler = (result: any) => {
+          if (result.success) {
+            console.log('✅ Subscription usage receipt printed')
+            resolve(true)
+          } else {
+            console.error('❌ Receipt print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(receiptText, 'omnilySubUsagePrintHandler')
+      })
+    } catch (error) {
+      console.error('Subscription usage print error:', error)
+      return false
+    }
+  }
 }
 
 export const createPrintService = (config: PrintConfig): ZCSPrintService => {

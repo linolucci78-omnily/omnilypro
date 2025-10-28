@@ -25,6 +25,9 @@ import type {
   CustomerSubscription,
   SubscriptionStats
 } from '../types/subscription';
+import SellSubscriptionModal from './SellSubscriptionModal';
+import ValidateSubscriptionModal from './ValidateSubscriptionModal';
+import CreateTemplateModal from './CreateTemplateModal';
 import './SubscriptionsPanel.css';
 
 interface SubscriptionsPanelProps {
@@ -443,10 +446,42 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
         </div>
       </div>
 
-      {/* TODO: Modals will be added in next files */}
-      {/* <CreateTemplateModal /> */}
-      {/* <SellSubscriptionModal /> */}
-      {/* <ValidateSubscriptionModal /> */}
+      {/* Modals */}
+      <SellSubscriptionModal
+        isOpen={showSellSubscriptionModal}
+        onClose={() => setShowSellSubscriptionModal(false)}
+        organizationId={organizationId}
+        organizationName={organizationName}
+        templates={templates}
+        onSuccess={(subscription) => {
+          setShowSellSubscriptionModal(false);
+          loadSubscriptions();
+          loadStats();
+        }}
+        printService={printService}
+      />
+
+      <ValidateSubscriptionModal
+        isOpen={showValidateModal}
+        onClose={() => setShowValidateModal(false)}
+        organizationId={organizationId}
+        onSuccess={() => {
+          setShowValidateModal(false);
+          loadSubscriptions();
+          loadStats();
+        }}
+        printService={printService}
+      />
+
+      <CreateTemplateModal
+        isOpen={showCreateTemplateModal}
+        onClose={() => setShowCreateTemplateModal(false)}
+        organizationId={organizationId}
+        onSuccess={() => {
+          setShowCreateTemplateModal(false);
+          loadTemplates();
+        }}
+      />
     </>
   );
 };
