@@ -77,14 +77,15 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       resetForm();
+      loadAllCustomers();
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (customerSearch.length >= 2) {
       searchCustomers();
-    } else {
-      setCustomers([]);
+    } else if (customerSearch.length === 0) {
+      loadAllCustomers();
     }
   }, [customerSearch]);
 
@@ -100,6 +101,24 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
     setCreatedSubscription(null);
   };
 
+  const loadAllCustomers = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, email, phone')
+        .eq('organization_id', organizationId)
+        .order('name', { ascending: true })
+        .limit(50);
+
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (err) {
+      console.error('Error loading customers:', err);
+      setCustomers([]);
+    }
+  };
+
   const searchCustomers = async () => {
     try {
       const { supabase } = await import('../lib/supabase');
@@ -108,7 +127,8 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
         .select('id, name, email, phone')
         .eq('organization_id', organizationId)
         .or(`name.ilike.%${customerSearch}%,phone.ilike.%${customerSearch}%,email.ilike.%${customerSearch}%`)
-        .limit(10);
+        .order('name', { ascending: true })
+        .limit(50);
 
       if (error) throw error;
       setCustomers(data || []);
@@ -280,20 +300,12 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
                     </div>
                   ))}
                 </div>
-              ) : customerSearch.length >= 2 ? (
+              ) : (
                 <div className="empty-state">
                   <User size={48} style={{ opacity: 0.3 }} />
                   <p>Nessun cliente trovato</p>
                   <small style={{ opacity: 0.7 }}>
                     Crea nuovi clienti dalle impostazioni dell'organizzazione
-                  </small>
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <User size={48} style={{ opacity: 0.3 }} />
-                  <p>Cerca un cliente per iniziare</p>
-                  <small style={{ opacity: 0.7 }}>
-                    Digita almeno 2 caratteri per cercare
                   </small>
                 </div>
               )}
