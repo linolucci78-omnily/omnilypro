@@ -366,6 +366,15 @@ export class GiftCertificatesService {
 
       // Call edge function directly
       console.log('📤 Calling send-email edge function...');
+      console.log('📤 Request payload:', {
+        organization_id,
+        template_type: 'gift_certificate_issued',
+        to_email: gift_certificate.recipient_email,
+        to_name: gift_certificate.recipient_name || gift_certificate.recipient_email,
+        has_qr_code: !!qr_code_url,
+        qr_code_size: qr_code_url?.length || 0
+      });
+
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           organization_id,
@@ -385,13 +394,45 @@ export class GiftCertificatesService {
       });
 
       if (error) {
-        console.error('❌ Error calling send-email function:', error);
-        throw error;
+        console.error('❌ Error calling send-email function:', {
+          error,
+          error_message: error.message,
+          error_details: JSON.stringify(error, null, 2),
+          context: error.context || 'No context',
+          status: (error as any).status || 'No status'
+        });
+
+        // Try to extract more info from the error
+        let errorMessage = 'Errore durante l\'invio dell\'email';
+        if (error.message) {
+          if (error.message.includes('Template not found')) {
+            errorMessage = 'Template email non trovato. Verificare configurazione email templates.';
+          } else if (error.message.includes('Email service is disabled')) {
+            errorMessage = 'Servizio email disabilitato per questa organizzazione.';
+          } else if (error.message.includes('Daily email limit')) {
+            errorMessage = 'Limite giornaliero email raggiunto.';
+          } else if (error.message.includes('Resend API')) {
+            errorMessage = 'Errore API Resend. Verificare configurazione API key.';
+          } else if (error.message.includes('No email settings')) {
+            errorMessage = 'Configurazione email non trovata. Configurare Email Settings.';
+          } else {
+            errorMessage = `Errore email: ${error.message}`;
+          }
+        }
+
+        const detailedError = new Error(errorMessage);
+        (detailedError as any).originalError = error;
+        throw detailedError;
       }
 
       console.log('✅ Gift certificate email sent successfully:', data);
     } catch (error: any) {
-      console.error('❌ Error in sendGiftCertificateEmail:', error);
+      console.error('❌ Error in sendGiftCertificateEmail:', {
+        error,
+        message: error.message,
+        stack: error.stack,
+        originalError: error.originalError
+      });
       throw error;
     }
   }
