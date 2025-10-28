@@ -13,6 +13,7 @@ import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import EmailMarketingPanel from './EmailMarketingPanel'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
+import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
 import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import ConfirmModal from './UI/ConfirmModal'
@@ -535,6 +536,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
   const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
+  const [showGiftCertificatesStatsModal, setShowGiftCertificatesStatsModal] = useState(false)
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
 
   // Print Service for POS
@@ -3052,7 +3054,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="feature-card">
                 <h3>Statistiche</h3>
                 <p>Visualizza le performance dei gift certificates emessi</p>
-                <button className="btn-primary">Visualizza Report</button>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowGiftCertificatesStatsModal(true)}
+                >
+                  <BarChart3 size={18} />
+                  Visualizza Report
+                </button>
               </div>
               <div className="feature-card">
                 <h3>Configurazione</h3>
@@ -3470,6 +3478,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
         printService={printService}
+      />
+
+      {/* Gift Certificates Stats Modal */}
+      <GiftCertificatesStatsModal
+        isOpen={showGiftCertificatesStatsModal}
+        onClose={() => setShowGiftCertificatesStatsModal(false)}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || ''}
       />
 
       {/* Confirm Modal */}
