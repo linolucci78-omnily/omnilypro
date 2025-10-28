@@ -24,7 +24,8 @@ import {
   Phone,
   QrCode,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  X
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { GiftCertificate } from '../../types/giftCertificate';
@@ -68,6 +69,8 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'used' | 'expired'>('all');
   const [selectedOrg, setSelectedOrg] = useState<string>('all');
+  const [selectedCert, setSelectedCert] = useState<GiftCertificate | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -410,6 +413,7 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
               <th>Beneficiario</th>
               <th>Importo Originale</th>
               <th>Saldo Attuale</th>
+              <th>Riscattato</th>
               <th>Stato</th>
               <th>Emesso</th>
               <th>Scadenza</th>
@@ -419,7 +423,7 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
           <tbody>
             {filteredCertificates.length === 0 ? (
               <tr>
-                <td colSpan={9} className="no-data">
+                <td colSpan={10} className="no-data">
                   <AlertCircle size={48} />
                   <p>Nessun gift certificate trovato</p>
                 </td>
@@ -455,6 +459,9 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
                   </td>
                   <td className="amount-cell">{formatCurrency(cert.original_amount)}</td>
                   <td className="amount-cell balance">{formatCurrency(cert.current_balance)}</td>
+                  <td className="amount-cell redeemed">
+                    {formatCurrency(cert.original_amount - cert.current_balance)}
+                  </td>
                   <td>{getStatusBadge(cert.status)}</td>
                   <td>
                     <div className="date-cell">
@@ -470,7 +477,14 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
                   </td>
                   <td>
                     <div className="table-actions">
-                      <button className="action-btn" title="Visualizza dettagli">
+                      <button
+                        className="action-btn"
+                        title="Visualizza dettagli"
+                        onClick={() => {
+                          setSelectedCert(cert);
+                          setShowDetailsModal(true);
+                        }}
+                      >
                         <Eye size={16} />
                       </button>
                     </div>
@@ -481,6 +495,173 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedCert && (
+        <>
+          <div className="modal-overlay" onClick={() => setShowDetailsModal(false)} />
+          <div className="admin-gc-details-modal">
+            <div className="modal-header">
+              <div className="modal-header-content">
+                <CreditCard size={24} />
+                <h2>Dettagli Gift Certificate</h2>
+              </div>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="modal-close-btn"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <label>
+                    <QrCode size={18} />
+                    Codice
+                  </label>
+                  <div className="detail-value code">{selectedCert.code}</div>
+                </div>
+
+                <div className="detail-item">
+                  <label>
+                    <Building2 size={18} />
+                    Organizzazione
+                  </label>
+                  <div className="detail-value">
+                    {(selectedCert as any).organization?.name || 'N/A'}
+                  </div>
+                </div>
+
+                <div className="detail-item">
+                  <label>
+                    <User size={18} />
+                    Beneficiario
+                  </label>
+                  <div className="detail-value">
+                    {selectedCert.recipient_name || 'N/A'}
+                  </div>
+                </div>
+
+                {selectedCert.recipient_email && (
+                  <div className="detail-item">
+                    <label>
+                      <Mail size={18} />
+                      Email
+                    </label>
+                    <div className="detail-value">{selectedCert.recipient_email}</div>
+                  </div>
+                )}
+
+                {selectedCert.recipient_phone && (
+                  <div className="detail-item">
+                    <label>
+                      <Phone size={18} />
+                      Telefono
+                    </label>
+                    <div className="detail-value">{selectedCert.recipient_phone}</div>
+                  </div>
+                )}
+
+                <div className="detail-item highlight">
+                  <label>
+                    <DollarSign size={18} />
+                    Importo Originale
+                  </label>
+                  <div className="detail-value amount">
+                    {formatCurrency(selectedCert.original_amount)}
+                  </div>
+                </div>
+
+                <div className="detail-item highlight">
+                  <label>
+                    <TrendingUp size={18} />
+                    Saldo Disponibile
+                  </label>
+                  <div className="detail-value amount">
+                    {formatCurrency(selectedCert.current_balance)}
+                  </div>
+                </div>
+
+                <div className="detail-item highlight">
+                  <label>
+                    <CheckCircle size={18} />
+                    Importo Riscattato
+                  </label>
+                  <div className="detail-value amount redeemed">
+                    {formatCurrency(selectedCert.original_amount - selectedCert.current_balance)}
+                  </div>
+                </div>
+
+                <div className="detail-item">
+                  <label>Stato</label>
+                  <div className="detail-value">{getStatusBadge(selectedCert.status)}</div>
+                </div>
+
+                <div className="detail-item">
+                  <label>
+                    <Calendar size={18} />
+                    Data Emissione
+                  </label>
+                  <div className="detail-value">{formatDate(selectedCert.issued_at)}</div>
+                </div>
+
+                <div className="detail-item">
+                  <label>
+                    <Clock size={18} />
+                    Valido Fino Al
+                  </label>
+                  <div className="detail-value">{formatDate(selectedCert.valid_until)}</div>
+                </div>
+
+                {selectedCert.personal_message && (
+                  <div className="detail-item full-width">
+                    <label>Messaggio Personale</label>
+                    <div className="detail-value message">
+                      {selectedCert.personal_message}
+                    </div>
+                  </div>
+                )}
+
+                {/* Usage Progress Bar */}
+                {selectedCert.original_amount > 0 && (
+                  <div className="detail-item full-width">
+                    <label>Progresso Utilizzo</label>
+                    <div className="usage-progress">
+                      <div className="progress-info">
+                        <span>
+                          {Math.round((1 - selectedCert.current_balance / selectedCert.original_amount) * 100)}% utilizzato
+                        </span>
+                        <span>
+                          {formatCurrency(selectedCert.original_amount - selectedCert.current_balance)} / {formatCurrency(selectedCert.original_amount)}
+                        </span>
+                      </div>
+                      <div className="progress-bar">
+                        <div
+                          className="progress-fill"
+                          style={{
+                            width: `${((selectedCert.original_amount - selectedCert.current_balance) / selectedCert.original_amount) * 100}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="btn-secondary"
+              >
+                Chiudi
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

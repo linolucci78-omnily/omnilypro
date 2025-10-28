@@ -467,3 +467,221 @@
     min-width: 900px;
   }
 }
+
+/* Redeemed Amount Column */
+.amount-cell.redeemed {
+  color: #8b5cf6;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Details Modal */
+.admin-gc-details-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  max-width: 800px;
+  width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translate(-50%, calc(-50% + 100vh));
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+.admin-gc-details-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-gc-details-modal .modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-gc-details-modal .modal-header-content h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.admin-gc-details-modal .modal-close-btn {
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.admin-gc-details-modal .modal-close-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.admin-gc-details-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.admin-gc-details-modal .detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.admin-gc-details-modal .detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-gc-details-modal .detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.admin-gc-details-modal .detail-item.highlight {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-gc-details-modal .detail-item label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-gc-details-modal .detail-value {
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.admin-gc-details-modal .detail-value.code {
+  background: #f3f4f6;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.admin-gc-details-modal .detail-value.amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: #10b981;
+}
+
+.admin-gc-details-modal .detail-value.amount.redeemed {
+  color: #8b5cf6;
+}
+
+.admin-gc-details-modal .detail-value.message {
+  background: #f9fafb;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.admin-gc-details-modal .usage-progress {
+  margin-top: 0.5rem;
+}
+
+.admin-gc-details-modal .progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.admin-gc-details-modal .progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.admin-gc-details-modal .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.admin-gc-details-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .admin-gc-details-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .admin-gc-details-modal .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .admin-gc-details-modal .modal-header,
+  .admin-gc-details-modal .modal-body,
+  .admin-gc-details-modal .modal-footer {
+    padding: 1rem;
+  }
+}
