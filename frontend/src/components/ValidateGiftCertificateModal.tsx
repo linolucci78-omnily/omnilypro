@@ -150,22 +150,21 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
       if (!result.valid) {
         setError(result.error_message || 'Gift certificate non valido');
       } else if (result.gift_certificate) {
-        // Invia messaggio al Customer Display
+        // Invia messaggio al Customer Display tramite funzione globale
         console.log('📤 Invio messaggio al Customer Display...');
         try {
-          const customerDisplayWindow = window.open('', 'customer_display');
-          if (customerDisplayWindow) {
-            customerDisplayWindow.postMessage({
+          if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            (window as any).updateCustomerDisplay({
               type: 'GIFT_CERTIFICATE_VALIDATED',
               giftCertificate: {
                 code: result.gift_certificate.code,
                 balance: result.gift_certificate.current_balance,
                 recipientName: result.gift_certificate.recipient_name
               }
-            }, '*');
-            console.log('✅ Messaggio inviato al Customer Display');
+            });
+            console.log('✅ Messaggio inviato al Customer Display via updateCustomerDisplay');
           } else {
-            console.log('⚠️ Customer Display non trovato');
+            console.warn('⚠️ updateCustomerDisplay non disponibile');
           }
         } catch (error) {
           console.error('❌ Errore invio messaggio:', error);

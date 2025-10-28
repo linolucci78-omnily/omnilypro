@@ -184,6 +184,26 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
       console.log('✅ Gift certificate created:', response);
       console.log('🖨️ Print check - autoPrint:', autoPrint, 'certificate:', !!response?.gift_certificate);
 
+      // Invia messaggio al Customer Display
+      if (response?.gift_certificate) {
+        try {
+          console.log('📤 Invio messaggio emissione al Customer Display...');
+          if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            (window as any).updateCustomerDisplay({
+              type: 'GIFT_CERTIFICATE_ISSUED',
+              issuance: {
+                code: response.gift_certificate.code,
+                amount: response.gift_certificate.original_amount,
+                recipientName: response.gift_certificate.recipient_name
+              }
+            });
+            console.log('✅ Messaggio emissione inviato al Customer Display');
+          }
+        } catch (displayError) {
+          console.error('❌ Errore invio al customer display:', displayError);
+        }
+      }
+
       // Auto-print if enabled and certificate created
       if (autoPrint && response?.gift_certificate) {
         console.log('🖨️ Attempting to print gift certificate...');

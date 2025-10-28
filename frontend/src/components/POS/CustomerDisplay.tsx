@@ -75,7 +75,7 @@ const CustomerDisplay: React.FC = () => {
         setSalePreview(null); // Nascondi preview durante elaborazione
       } else if (event.data.type === 'GIFT_CERTIFICATE_VALIDATED') {
         console.log('🎁 Gift Certificate validato ricevuto:', event.data.giftCertificate);
-        setGiftCertificate(event.data.giftCertificate);
+        setGiftCertificate({ ...event.data.giftCertificate, isValidation: true });
         setSalePreview(null);
         setSaleProcessing(null);
         setShowCelebration(false);
@@ -84,6 +84,28 @@ const CustomerDisplay: React.FC = () => {
         setTimeout(() => {
           setGiftCertificate(null);
         }, 8000);
+      } else if (event.data.type === 'GIFT_CERTIFICATE_REDEEMED') {
+        console.log('💰 Gift Certificate riscattato ricevuto:', event.data.redemption);
+        setGiftCertificate({ ...event.data.redemption, isRedemption: true });
+        setSalePreview(null);
+        setSaleProcessing(null);
+        setShowCelebration(false);
+
+        // Nascondi dopo 6 secondi
+        setTimeout(() => {
+          setGiftCertificate(null);
+        }, 6000);
+      } else if (event.data.type === 'GIFT_CERTIFICATE_ISSUED') {
+        console.log('🎟️ Gift Certificate emesso ricevuto:', event.data.issuance);
+        setGiftCertificate({ ...event.data.issuance, isIssuance: true });
+        setSalePreview(null);
+        setSaleProcessing(null);
+        setShowCelebration(false);
+
+        // Nascondi dopo 7 secondi
+        setTimeout(() => {
+          setGiftCertificate(null);
+        }, 7000);
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -477,7 +499,11 @@ const CustomerDisplay: React.FC = () => {
         ) : giftCertificate ? (
           // Gift Certificate Display - COMPATTA per 4"
           <div style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            background: giftCertificate.isRedemption
+              ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' // Blu per riscatto
+              : giftCertificate.isIssuance
+              ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' // Arancione per emissione
+              : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', // Verde per validazione
             color: 'white',
             padding: '1.5rem',
             borderRadius: '12px',
@@ -492,7 +518,7 @@ const CustomerDisplay: React.FC = () => {
             <div style={{
               fontSize: '3rem'
             }}>
-              🎁
+              {giftCertificate.isRedemption ? '💰' : giftCertificate.isIssuance ? '🎟️' : '🎁'}
             </div>
 
             {/* Titolo */}
@@ -501,7 +527,7 @@ const CustomerDisplay: React.FC = () => {
               fontSize: '1.8rem',
               fontWeight: 'bold'
             }}>
-              Gift Certificate Valido!
+              {giftCertificate.isRedemption ? 'Riscatto Completato!' : giftCertificate.isIssuance ? 'Gift Certificate Emesso!' : 'Gift Certificate Valido!'}
             </h2>
 
             {/* Codice */}
@@ -516,48 +542,144 @@ const CustomerDisplay: React.FC = () => {
               {giftCertificate.code}
             </div>
 
-            {/* Saldo Disponibile - GRANDE */}
-            <div style={{
-              background: 'white',
-              color: '#10b981',
-              padding: '1.5rem',
-              borderRadius: '12px',
-              marginTop: '0.5rem'
-            }}>
-              <div style={{
-                fontSize: '1rem',
-                marginBottom: '0.5rem',
-                opacity: 0.8
-              }}>
-                Saldo Disponibile
-              </div>
-              <div style={{
-                fontSize: '3.5rem',
-                fontWeight: 'bold',
-                lineHeight: 1
-              }}>
-                €{giftCertificate.balance.toFixed(2)}
-              </div>
-            </div>
+            {/* Display diverso per validazione vs riscatto vs emissione */}
+            {giftCertificate.isRedemption ? (
+              // Visualizzazione RISCATTO
+              <>
+                {/* Importo Riscattato */}
+                <div style={{
+                  background: 'white',
+                  color: '#3b82f6',
+                  padding: '1.5rem',
+                  borderRadius: '12px',
+                  marginTop: '0.5rem'
+                }}>
+                  <div style={{
+                    fontSize: '1rem',
+                    marginBottom: '0.5rem',
+                    opacity: 0.8
+                  }}>
+                    Importo Riscattato
+                  </div>
+                  <div style={{
+                    fontSize: '3.5rem',
+                    fontWeight: 'bold',
+                    lineHeight: 1
+                  }}>
+                    €{giftCertificate.amountRedeemed.toFixed(2)}
+                  </div>
+                </div>
 
-            {/* Recipient (se presente) */}
-            {giftCertificate.recipientName && (
-              <div style={{
-                fontSize: '1.2rem',
-                opacity: 0.9
-              }}>
-                Per: {giftCertificate.recipientName}
-              </div>
+                {/* Saldo Rimanente */}
+                <div style={{
+                  fontSize: '1.2rem',
+                  opacity: 0.9,
+                  marginTop: '0.5rem'
+                }}>
+                  Saldo rimanente: <strong>€{giftCertificate.balanceAfter.toFixed(2)}</strong>
+                </div>
+
+                {/* Messaggio */}
+                <div style={{
+                  fontSize: '1rem',
+                  opacity: 0.8
+                }}>
+                  ✅ Transazione completata
+                </div>
+              </>
+            ) : giftCertificate.isIssuance ? (
+              // Visualizzazione EMISSIONE
+              <>
+                {/* Importo Gift Certificate */}
+                <div style={{
+                  background: 'white',
+                  color: '#f59e0b',
+                  padding: '1.5rem',
+                  borderRadius: '12px',
+                  marginTop: '0.5rem'
+                }}>
+                  <div style={{
+                    fontSize: '1rem',
+                    marginBottom: '0.5rem',
+                    opacity: 0.8
+                  }}>
+                    Valore Gift Certificate
+                  </div>
+                  <div style={{
+                    fontSize: '3.5rem',
+                    fontWeight: 'bold',
+                    lineHeight: 1
+                  }}>
+                    €{giftCertificate.amount.toFixed(2)}
+                  </div>
+                </div>
+
+                {/* Recipient (se presente) */}
+                {giftCertificate.recipientName && (
+                  <div style={{
+                    fontSize: '1.2rem',
+                    opacity: 0.9,
+                    marginTop: '0.5rem'
+                  }}>
+                    Per: <strong>{giftCertificate.recipientName}</strong>
+                  </div>
+                )}
+
+                {/* Messaggio */}
+                <div style={{
+                  fontSize: '1rem',
+                  opacity: 0.8
+                }}>
+                  🎉 Gift Certificate emesso con successo!
+                </div>
+              </>
+            ) : (
+              // Visualizzazione VALIDAZIONE
+              <>
+                {/* Saldo Disponibile - GRANDE */}
+                <div style={{
+                  background: 'white',
+                  color: '#10b981',
+                  padding: '1.5rem',
+                  borderRadius: '12px',
+                  marginTop: '0.5rem'
+                }}>
+                  <div style={{
+                    fontSize: '1rem',
+                    marginBottom: '0.5rem',
+                    opacity: 0.8
+                  }}>
+                    Saldo Disponibile
+                  </div>
+                  <div style={{
+                    fontSize: '3.5rem',
+                    fontWeight: 'bold',
+                    lineHeight: 1
+                  }}>
+                    €{giftCertificate.balance.toFixed(2)}
+                  </div>
+                </div>
+
+                {/* Recipient (se presente) */}
+                {giftCertificate.recipientName && (
+                  <div style={{
+                    fontSize: '1.2rem',
+                    opacity: 0.9
+                  }}>
+                    Per: {giftCertificate.recipientName}
+                  </div>
+                )}
+
+                {/* Messaggio */}
+                <div style={{
+                  fontSize: '1rem',
+                  opacity: 0.8,
+                  animation: 'pulse 2s infinite'
+                }}>
+                  ✅ Pronto per essere utilizzato
+                </div>
+              </>
             )}
-
-            {/* Messaggio */}
-            <div style={{
-              fontSize: '1rem',
-              opacity: 0.8,
-              animation: 'pulse 2s infinite'
-            }}>
-              ✅ Pronto per essere utilizzato
-            </div>
 
             <style dangerouslySetInnerHTML={{
               __html: `

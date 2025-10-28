@@ -111,6 +111,24 @@ const RedeemGiftCertificateModal: React.FC<RedeemGiftCertificateModalProps> = ({
 
       await onRedeem(amount);
 
+      // Invia messaggio al Customer Display
+      try {
+        console.log('📤 Invio messaggio riscatto al Customer Display...');
+        if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+          (window as any).updateCustomerDisplay({
+            type: 'GIFT_CERTIFICATE_REDEEMED',
+            redemption: {
+              code: certificate.code,
+              amountRedeemed: amount,
+              balanceAfter
+            }
+          });
+          console.log('✅ Messaggio riscatto inviato al Customer Display');
+        }
+      } catch (displayError) {
+        console.error('❌ Errore invio al customer display:', displayError);
+      }
+
       // Auto-print redemption receipt
       try {
         console.log('🖨️ Creating printService for redemption receipt...');
