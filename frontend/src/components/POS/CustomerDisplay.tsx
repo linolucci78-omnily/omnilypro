@@ -497,7 +497,7 @@ const CustomerDisplay: React.FC = () => {
             )}
           </div>
         ) : giftCertificate ? (
-          // Gift Certificate Display - COMPATTA per 4"
+          // Gift Certificate Display - ULTRA COMPATTA per 4"
           <div style={{
             background: giftCertificate.isRedemption
               ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' // Blu per riscatto
@@ -505,64 +505,65 @@ const CustomerDisplay: React.FC = () => {
               ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' // Arancione per emissione
               : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', // Verde per validazione
             color: 'white',
-            padding: '1.5rem',
-            borderRadius: '12px',
+            padding: '0.8rem',
+            borderRadius: '8px',
             textAlign: 'center',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            gap: '1rem'
+            gap: '0.5rem'
           }}>
-            {/* Icona Gift Certificate */}
+            {/* Icona Gift Certificate - PIÙ PICCOLA */}
             <div style={{
-              fontSize: '3rem'
+              fontSize: '2rem'
             }}>
               {giftCertificate.isRedemption ? '💰' : giftCertificate.isIssuance ? '🎟️' : '🎁'}
             </div>
 
-            {/* Titolo */}
+            {/* Titolo - PIÙ PICCOLO */}
             <h2 style={{
               margin: 0,
-              fontSize: '1.8rem',
-              fontWeight: 'bold'
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              lineHeight: 1.2
             }}>
-              {giftCertificate.isRedemption ? 'Riscatto Completato!' : giftCertificate.isIssuance ? 'Gift Certificate Emesso!' : 'Gift Certificate Valido!'}
+              {giftCertificate.isRedemption ? 'Riscatto OK!' : giftCertificate.isIssuance ? 'Emesso!' : 'Gift Certificate'}
             </h2>
 
-            {/* Codice */}
+            {/* Codice - PIÙ COMPATTO */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.2)',
-              padding: '1rem',
-              borderRadius: '8px',
-              fontSize: '1.5rem',
+              padding: '0.5rem',
+              borderRadius: '6px',
+              fontSize: '1rem',
               fontWeight: 'bold',
-              letterSpacing: '2px'
+              letterSpacing: '1px'
             }}>
               {giftCertificate.code}
             </div>
 
-            {/* Display diverso per validazione vs riscatto vs emissione */}
+            {/* Display diverso per validazione vs riscatto vs emissione - COMPATTO */}
             {giftCertificate.isRedemption ? (
-              // Visualizzazione RISCATTO
+              // Visualizzazione RISCATTO - COMPATTA
               <>
-                {/* Importo Riscattato */}
+                {/* Importo Riscattato - RIDOTTO */}
                 <div style={{
                   background: 'white',
                   color: '#3b82f6',
-                  padding: '1.5rem',
-                  borderRadius: '12px',
-                  marginTop: '0.5rem'
+                  padding: '0.8rem',
+                  borderRadius: '8px',
+                  marginTop: '0.3rem'
                 }}>
                   <div style={{
-                    fontSize: '1rem',
-                    marginBottom: '0.5rem',
+                    fontSize: '0.75rem',
+                    marginBottom: '0.3rem',
                     opacity: 0.8
                   }}>
-                    Importo Riscattato
+                    Riscattato
                   </div>
                   <div style={{
-                    fontSize: '3.5rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
                     lineHeight: 1
                   }}>
@@ -570,43 +571,34 @@ const CustomerDisplay: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Saldo Rimanente */}
+                {/* Saldo Rimanente - RIDOTTO */}
                 <div style={{
-                  fontSize: '1.2rem',
-                  opacity: 0.9,
-                  marginTop: '0.5rem'
+                  fontSize: '0.85rem',
+                  opacity: 0.9
                 }}>
-                  Saldo rimanente: <strong>€{giftCertificate.balanceAfter.toFixed(2)}</strong>
-                </div>
-
-                {/* Messaggio */}
-                <div style={{
-                  fontSize: '1rem',
-                  opacity: 0.8
-                }}>
-                  ✅ Transazione completata
+                  Residuo: <strong>€{giftCertificate.balanceAfter.toFixed(2)}</strong>
                 </div>
               </>
             ) : giftCertificate.isIssuance ? (
-              // Visualizzazione EMISSIONE
+              // Visualizzazione EMISSIONE - COMPATTA
               <>
-                {/* Importo Gift Certificate */}
+                {/* Importo Gift Certificate - RIDOTTO */}
                 <div style={{
                   background: 'white',
                   color: '#f59e0b',
-                  padding: '1.5rem',
-                  borderRadius: '12px',
-                  marginTop: '0.5rem'
+                  padding: '0.8rem',
+                  borderRadius: '8px',
+                  marginTop: '0.3rem'
                 }}>
                   <div style={{
-                    fontSize: '1rem',
-                    marginBottom: '0.5rem',
+                    fontSize: '0.75rem',
+                    marginBottom: '0.3rem',
                     opacity: 0.8
                   }}>
-                    Valore Gift Certificate
+                    Valore
                   </div>
                   <div style={{
-                    fontSize: '3.5rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
                     lineHeight: 1
                   }}>
@@ -614,45 +606,36 @@ const CustomerDisplay: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Recipient (se presente) */}
+                {/* Recipient (se presente) - RIDOTTO */}
                 {giftCertificate.recipientName && (
                   <div style={{
-                    fontSize: '1.2rem',
-                    opacity: 0.9,
-                    marginTop: '0.5rem'
+                    fontSize: '0.85rem',
+                    opacity: 0.9
                   }}>
                     Per: <strong>{giftCertificate.recipientName}</strong>
                   </div>
                 )}
-
-                {/* Messaggio */}
-                <div style={{
-                  fontSize: '1rem',
-                  opacity: 0.8
-                }}>
-                  🎉 Gift Certificate emesso con successo!
-                </div>
               </>
             ) : (
-              // Visualizzazione VALIDAZIONE
+              // Visualizzazione VALIDAZIONE - COMPATTA
               <>
-                {/* Saldo Disponibile - GRANDE */}
+                {/* Saldo Disponibile - RIDOTTO */}
                 <div style={{
                   background: 'white',
                   color: '#10b981',
-                  padding: '1.5rem',
-                  borderRadius: '12px',
-                  marginTop: '0.5rem'
+                  padding: '0.8rem',
+                  borderRadius: '8px',
+                  marginTop: '0.3rem'
                 }}>
                   <div style={{
-                    fontSize: '1rem',
-                    marginBottom: '0.5rem',
+                    fontSize: '0.75rem',
+                    marginBottom: '0.3rem',
                     opacity: 0.8
                   }}>
-                    Saldo Disponibile
+                    Saldo
                   </div>
                   <div style={{
-                    fontSize: '3.5rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
                     lineHeight: 1
                   }}>
@@ -660,24 +643,15 @@ const CustomerDisplay: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Recipient (se presente) */}
+                {/* Recipient (se presente) - RIDOTTO */}
                 {giftCertificate.recipientName && (
                   <div style={{
-                    fontSize: '1.2rem',
+                    fontSize: '0.85rem',
                     opacity: 0.9
                   }}>
-                    Per: {giftCertificate.recipientName}
+                    {giftCertificate.recipientName}
                   </div>
                 )}
-
-                {/* Messaggio */}
-                <div style={{
-                  fontSize: '1rem',
-                  opacity: 0.8,
-                  animation: 'pulse 2s infinite'
-                }}>
-                  ✅ Pronto per essere utilizzato
-                </div>
               </>
             )}
 
