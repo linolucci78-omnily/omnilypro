@@ -292,6 +292,7 @@ export class ZCSPrintService {
   async printGiftCertificate(data: {
     code: string
     amount: number
+    currentBalance?: number
     recipientName?: string
     recipientEmail?: string
     validUntil?: string
@@ -311,9 +312,7 @@ export class ZCSPrintService {
         this.centerText(data.organizationName),
         this.createSeparatorLine(),
         '',
-        this.centerText('BUONO REGALO'),
-        '',
-        this.centerText(`VALORE: ${this.formatPrice(data.amount)}`),
+        this.centerText('VALIDAZIONE BUONO REGALO'),
         '',
         this.createSeparatorLine(),
         '',
@@ -338,6 +337,28 @@ export class ZCSPrintService {
         lines.push('')
         lines.push('Messaggio:')
         lines.push(data.personalMessage)
+      }
+
+      // Add balance information
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('SALDO GIFT CERTIFICATE'))
+      lines.push(this.createSeparatorLine())
+      lines.push('')
+      lines.push(`Valore originale: ${this.formatPrice(data.amount)}`)
+
+      if (data.currentBalance !== undefined) {
+        lines.push(`SALDO DISPONIBILE: ${this.formatPrice(data.currentBalance)}`)
+
+        if (data.currentBalance === 0) {
+          lines.push('')
+          lines.push(this.centerText('✓ Completamente utilizzato'))
+        } else if (data.currentBalance < data.amount) {
+          const usedAmount = data.amount - data.currentBalance
+          lines.push(`Già utilizzato: ${this.formatPrice(usedAmount)}`)
+        }
+      } else {
+        lines.push(`SALDO DISPONIBILE: ${this.formatPrice(data.amount)}`)
       }
 
       lines.push('')

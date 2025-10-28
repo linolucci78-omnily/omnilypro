@@ -194,6 +194,7 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
       await printService.printGiftCertificate({
         code: cert.code,
         amount: cert.original_amount,
+        currentBalance: cert.current_balance, // Add current balance to show on receipt
         recipientName: cert.recipient_name,
         recipientEmail: cert.recipient_email,
         validUntil: cert.valid_until,
