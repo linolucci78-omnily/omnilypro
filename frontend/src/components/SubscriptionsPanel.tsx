@@ -36,6 +36,7 @@ interface SubscriptionsPanelProps {
   organizationId: string;
   organizationName: string;
   printService?: any;
+  availableCategories?: string[];
 }
 
 const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
@@ -43,7 +44,8 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
   onClose,
   organizationId,
   organizationName,
-  printService
+  printService,
+  availableCategories = []
 }) => {
   const [activeTab, setActiveTab] = useState<'templates' | 'subscriptions' | 'stats'>('subscriptions');
   const [loading, setLoading] = useState(false);
@@ -481,6 +483,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
           setShowCreateTemplateModal(false);
           loadTemplates();
         }}
+        availableCategories={availableCategories}
       />
     </>
   );

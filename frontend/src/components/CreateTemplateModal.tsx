@@ -34,6 +34,7 @@ interface CreateTemplateModalProps {
   onClose: () => void;
   organizationId: string;
   onSuccess: () => void;
+  availableCategories?: string[];
 }
 
 type Step = 'basic' | 'duration' | 'restrictions' | 'pricing';
@@ -67,7 +68,8 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
   isOpen,
   onClose,
   organizationId,
-  onSuccess
+  onSuccess,
+  availableCategories = []
 }) => {
   const [step, setStep] = useState<Step>('basic');
   const [loading, setLoading] = useState(false);
@@ -92,8 +94,6 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
   });
 
   // Temporary states for arrays
-  const [categoryInput, setCategoryInput] = useState('');
-  const [excludedCategoryInput, setExcludedCategoryInput] = useState('');
   const [includedCategories, setIncludedCategories] = useState<string[]>([]);
   const [excludedCategories, setExcludedCategories] = useState<string[]>([]);
   const [allowedDays, setAllowedDays] = useState<AllowedDay[]>([]);
@@ -131,8 +131,6 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
     setAllowedDays([]);
     setTimeStart('');
     setTimeEnd('');
-    setCategoryInput('');
-    setExcludedCategoryInput('');
   };
 
   const handleNext = () => {
@@ -208,26 +206,24 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
     }
   };
 
-  const addCategory = () => {
-    if (categoryInput.trim() && !includedCategories.includes(categoryInput.trim())) {
-      setIncludedCategories([...includedCategories, categoryInput.trim()]);
-      setCategoryInput('');
+  const toggleIncludedCategory = (category: string) => {
+    if (includedCategories.includes(category)) {
+      setIncludedCategories(includedCategories.filter(c => c !== category));
+    } else {
+      setIncludedCategories([...includedCategories, category]);
+      // Remove from excluded if present
+      setExcludedCategories(excludedCategories.filter(c => c !== category));
     }
   };
 
-  const removeCategory = (category: string) => {
-    setIncludedCategories(includedCategories.filter(c => c !== category));
-  };
-
-  const addExcludedCategory = () => {
-    if (excludedCategoryInput.trim() && !excludedCategories.includes(excludedCategoryInput.trim())) {
-      setExcludedCategories([...excludedCategories, excludedCategoryInput.trim()]);
-      setExcludedCategoryInput('');
+  const toggleExcludedCategory = (category: string) => {
+    if (excludedCategories.includes(category)) {
+      setExcludedCategories(excludedCategories.filter(c => c !== category));
+    } else {
+      setExcludedCategories([...excludedCategories, category]);
+      // Remove from included if present
+      setIncludedCategories(includedCategories.filter(c => c !== category));
     }
-  };
-
-  const removeExcludedCategory = (category: string) => {
-    setExcludedCategories(excludedCategories.filter(c => c !== category));
   };
 
   const toggleDay = (day: AllowedDay) => {
@@ -425,33 +421,26 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
 
               <div className="form-group">
                 <label>Categorie Incluse</label>
-                <div className="tag-input-wrapper">
-                  <input
-                    type="text"
-                    placeholder="Es: Pizze, Bevande..."
-                    value={categoryInput}
-                    onChange={(e) => setCategoryInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
-                    className="form-input"
-                  />
-                  <button
-                    type="button"
-                    onClick={addCategory}
-                    className="btn-add-tag"
-                  >
-                    Aggiungi
-                  </button>
-                </div>
-                {includedCategories.length > 0 && (
-                  <div className="tags-list">
-                    {includedCategories.map(category => (
-                      <span key={category} className="tag">
-                        {category}
-                        <button onClick={() => removeCategory(category)}>
-                          <X size={14} />
-                        </button>
-                      </span>
+                <small className="form-hint" style={{ marginBottom: '0.75rem' }}>
+                  Seleziona le categorie che possono essere utilizzate con questa membership
+                </small>
+                {availableCategories.length > 0 ? (
+                  <div className="categories-grid">
+                    {availableCategories.map(category => (
+                      <label key={category} className="category-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={includedCategories.includes(category)}
+                          onChange={() => toggleIncludedCategory(category)}
+                        />
+                        <span>{category}</span>
+                      </label>
                     ))}
+                  </div>
+                ) : (
+                  <div className="empty-categories">
+                    <Package size={24} style={{ opacity: 0.3 }} />
+                    <p>Nessuna categoria disponibile. Aggiungi categorie nella sezione "Categorie".</p>
                   </div>
                 )}
                 <small className="form-hint">Lascia vuoto per includere tutte le categorie</small>
@@ -459,33 +448,26 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
 
               <div className="form-group">
                 <label>Categorie Escluse</label>
-                <div className="tag-input-wrapper">
-                  <input
-                    type="text"
-                    placeholder="Es: Alcool, Menu Degustazione..."
-                    value={excludedCategoryInput}
-                    onChange={(e) => setExcludedCategoryInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addExcludedCategory())}
-                    className="form-input"
-                  />
-                  <button
-                    type="button"
-                    onClick={addExcludedCategory}
-                    className="btn-add-tag"
-                  >
-                    Aggiungi
-                  </button>
-                </div>
-                {excludedCategories.length > 0 && (
-                  <div className="tags-list">
-                    {excludedCategories.map(category => (
-                      <span key={category} className="tag excluded">
-                        {category}
-                        <button onClick={() => removeExcludedCategory(category)}>
-                          <X size={14} />
-                        </button>
-                      </span>
+                <small className="form-hint" style={{ marginBottom: '0.75rem' }}>
+                  Seleziona le categorie che NON possono essere utilizzate
+                </small>
+                {availableCategories.length > 0 ? (
+                  <div className="categories-grid">
+                    {availableCategories.map(category => (
+                      <label key={category} className="category-checkbox excluded">
+                        <input
+                          type="checkbox"
+                          checked={excludedCategories.includes(category)}
+                          onChange={() => toggleExcludedCategory(category)}
+                        />
+                        <span>{category}</span>
+                      </label>
                     ))}
+                  </div>
+                ) : (
+                  <div className="empty-categories">
+                    <Package size={24} style={{ opacity: 0.3 }} />
+                    <p>Nessuna categoria disponibile.</p>
                   </div>
                 )}
               </div>

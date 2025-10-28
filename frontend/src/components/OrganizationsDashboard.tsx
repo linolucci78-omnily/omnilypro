@@ -3560,6 +3560,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
         printService={printService}
+        availableCategories={currentOrganization?.product_categories?.map((cat: any) =>
+          typeof cat === 'string' ? cat : cat.name
+        ) || []}
       />
 
       {/* Documentation Modal */}
