@@ -514,9 +514,15 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
       </div>
 
       {/* Details Modal */}
-      {showDetailsModal && selectedCert ? (
+      {(() => {
+        if (showDetailsModal && selectedCert) {
+          console.log('🎭 Rendering modal for certificate:', selectedCert.code);
+        } else {
+          console.log('🎭 Modal NOT rendering:', { showDetailsModal, hasSelectedCert: !!selectedCert });
+        }
+      })()}
+      {showDetailsModal && selectedCert && (
         <>
-          {console.log('🎭 Rendering modal for certificate:', selectedCert.code)}
           <div className="modal-overlay" onClick={() => setShowDetailsModal(false)} />
           <div className="admin-gc-details-modal">
             <div className="modal-header">
@@ -679,8 +685,6 @@ const AdminGiftCertificatesDashboard: React.FC = () => {
             </div>
           </div>
         </>
-      ) : (
-        console.log('🎭 Modal NOT rendering:', { showDetailsModal, hasSelectedCert: !!selectedCert })
       )}
     </div>
   );
