@@ -16,6 +16,7 @@ import {
   Receipt
 } from 'lucide-react';
 import './RedeemGiftCertificateModal.css';
+import { createPrintService } from '../services/printService';
 import type { GiftCertificate } from '../types/giftCertificate';
 
 interface RedeemGiftCertificateModalProps {
@@ -110,10 +111,26 @@ const RedeemGiftCertificateModal: React.FC<RedeemGiftCertificateModalProps> = ({
 
       await onRedeem(amount);
 
-      // Auto-print receipt if printService available
-      if (printService) {
-        try {
-          await printService.printGiftCertificateRedemption({
+      // Auto-print redemption receipt
+      try {
+        console.log('🖨️ Creating printService for redemption receipt...');
+        const printConfig = {
+          storeName: organizationName,
+          storeAddress: '',
+          storePhone: '',
+          storeTax: '',
+          paperWidth: 384, // 58mm
+          fontSizeNormal: 24,
+          fontSizeLarge: 30,
+          printDensity: 0
+        };
+
+        const printService = createPrintService(printConfig);
+        const initialized = await printService.initialize();
+
+        if (initialized) {
+          console.log('🖨️ Printing redemption receipt...');
+          const printed = await printService.printGiftCertificateRedemption({
             code: certificate.code,
             amountRedeemed: amount,
             balanceBefore,
@@ -122,10 +139,18 @@ const RedeemGiftCertificateModal: React.FC<RedeemGiftCertificateModalProps> = ({
             timestamp: new Date(),
             organizationName
           });
-        } catch (printError) {
-          console.error('Print error:', printError);
-          // Don't block the flow if print fails
+
+          if (printed) {
+            console.log('✅ Redemption receipt printed successfully');
+          } else {
+            console.error('❌ Redemption receipt print failed');
+          }
+        } else {
+          console.warn('⚠️ Print service initialization failed');
         }
+      } catch (printError) {
+        console.error('❌ Print error:', printError);
+        // Don't block the flow if print fails
       }
 
       onClose();
