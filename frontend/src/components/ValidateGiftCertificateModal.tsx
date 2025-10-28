@@ -78,10 +78,13 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
               ? qrContent.split(':')[1]
               : qrContent;
 
+            console.log('📝 Extracted code from QR:', extractedCode);
             handleCodeChange(extractedCode);
-            // Auto-validate after scanning
+
+            // Auto-validate after scanning - pass the code directly to avoid state sync issues
             setTimeout(() => {
-              handleValidate();
+              console.log('🔄 Auto-validating extracted code...');
+              handleValidate(extractedCode);
             }, 300);
           } else {
             setError('QR Code non valido per Gift Certificate');
@@ -111,20 +114,24 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
     const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     let formatted = '';
 
-    for (let i = 0; i < cleaned.length && i < 16; i++) {
+    // Increased limit to 24 to accommodate all code lengths (GIFT + up to 20 chars)
+    for (let i = 0; i < cleaned.length && i < 24; i++) {
       if (i > 0 && i % 4 === 0) {
         formatted += '-';
       }
       formatted += cleaned[i];
     }
 
+    console.log('🔤 Code formatting:', { input: value, cleaned, formatted });
     setCode(formatted);
     setError(null);
     setValidationResult(null);
   };
 
-  const handleValidate = async () => {
-    if (!code.trim()) {
+  const handleValidate = async (codeToValidate?: string) => {
+    const targetCode = codeToValidate || code;
+
+    if (!targetCode.trim()) {
       setError('Inserisci un codice gift certificate');
       return;
     }
@@ -134,15 +141,17 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
 
     try {
       // Remove dashes and trim spaces before validation
-      const cleanCode = code.replace(/-/g, '').trim();
+      const cleanCode = targetCode.replace(/-/g, '').trim();
+      console.log('🔍 Validating gift certificate:', { original: targetCode, clean: cleanCode });
       const result = await onValidate(cleanCode);
+      console.log('✅ Validation result:', result);
       setValidationResult(result);
 
       if (!result.valid) {
         setError(result.error_message || 'Gift certificate non valido');
       }
     } catch (err: any) {
-      console.error('Validation error:', err);
+      console.error('❌ Validation error:', err);
       setError(err.message || 'Errore durante la validazione');
       setValidationResult(null);
     } finally {
