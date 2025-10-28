@@ -114,6 +114,11 @@ class SubscriptionsService {
     request: CreateSubscriptionTemplateRequest
   ): Promise<SubscriptionResponse<SubscriptionTemplate>> {
     try {
+      // DEBUG: Log current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔍 Creating template with user_id:', user?.id);
+      console.log('🔍 Organization ID:', request.organization_id);
+
       const { data, error } = await supabase
         .from('subscription_templates')
         .insert([request])
