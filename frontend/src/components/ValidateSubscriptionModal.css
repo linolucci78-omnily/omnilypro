@@ -757,8 +757,8 @@
   color: white;
 }
 
-/* Mobile Responsive */
-@media (max-width: 767px) {
+/* Mobile Responsive - only for very small phones */
+@media (max-width: 480px) {
   .validate-subscription-modal {
     width: 100vw;
     height: 100vh;
