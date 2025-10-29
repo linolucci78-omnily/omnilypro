@@ -586,6 +586,28 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
 
               <h3>Membership Valida</h3>
 
+              {/* Customer Avatar */}
+              {subscription.customer?.avatar_url && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginBottom: '1rem'
+                }}>
+                  <img
+                    src={subscription.customer.avatar_url}
+                    alt={subscription.customer.name}
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '3px solid #10b981',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="subscription-details-card">
                 <div className="detail-header">
                   <div className="detail-code">{subscription.subscription_code}</div>
@@ -694,6 +716,28 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
                 Membership Non Valida
                 {subscription?.customer?.name && ` - ${subscription.customer.name}`}
               </h3>
+
+              {/* Customer Avatar */}
+              {subscription?.customer?.avatar_url && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginBottom: '1rem'
+                }}>
+                  <img
+                    src={subscription.customer.avatar_url}
+                    alt={subscription.customer.name}
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '3px solid #ef4444',
+                      boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                    }}
+                  />
+                </div>
+              )}
 
               <div className="error-details">
                 <p className="error-reason">
