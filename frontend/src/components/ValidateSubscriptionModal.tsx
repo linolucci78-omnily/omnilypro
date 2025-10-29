@@ -100,16 +100,21 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
             return;
           }
 
-          if (parsedResult.success && parsedResult.data) {
-            console.log('📱 QR code scanned successfully:', parsedResult.data);
-            const code = parsedResult.data.toString().toUpperCase();
+          // Extract QR data from various possible fields
+          const qrData = parsedResult.content || parsedResult.qrCode || parsedResult.data;
+
+          if (parsedResult.success && qrData) {
+            console.log('📱 QR code scanned successfully:', qrData);
+            const code = qrData.toString().toUpperCase();
 
             // Check if it's a subscription code format
             if (code.startsWith('SUB:')) {
               const subCode = code.replace('SUB:', '');
+              console.log('📱 Extracted subscription code:', subCode);
               setSubscriptionCode(subCode);
               validateSubscription(subCode);
             } else {
+              console.log('📱 Using code as-is:', code);
               setSubscriptionCode(code);
               validateSubscription(code);
             }
