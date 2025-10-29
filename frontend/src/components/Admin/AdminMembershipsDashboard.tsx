@@ -119,10 +119,10 @@ const AdminMembershipsDashboard: React.FC = () => {
       const expired = allMemberships?.filter(m => m.status === 'expired').length || 0;
       const cancelled = allMemberships?.filter(m => m.status === 'cancelled').length || 0;
 
-      const totalRevenue = allMemberships?.reduce((sum, m) => sum + (m.price || 0), 0) || 0;
+      const totalRevenue = allMemberships?.reduce((sum, m) => sum + (m.amount_paid || 0), 0) || 0;
       const monthlyRevenue = allMemberships
         ?.filter(m => new Date(m.created_at) >= thisMonth)
-        .reduce((sum, m) => sum + (m.price || 0), 0) || 0;
+        .reduce((sum, m) => sum + (m.amount_paid || 0), 0) || 0;
 
       const totalUsages = allMemberships?.reduce((sum, m) => sum + (m.usage_count || 0), 0) || 0;
       const membershipsThisMonth = allMemberships?.filter(m => new Date(m.created_at) >= thisMonth).length || 0;
@@ -217,7 +217,7 @@ const AdminMembershipsDashboard: React.FC = () => {
         if (membership.status === 'active') {
           summary.total_active++;
         }
-        summary.total_revenue += membership.price || 0;
+        summary.total_revenue += membership.amount_paid || 0;
       });
 
       // Get template counts
@@ -568,60 +568,62 @@ const AdminMembershipsDashboard: React.FC = () => {
       {showDetailsModal && selectedMembership && (
         <>
           <div className="modal-overlay" onClick={() => setShowDetailsModal(false)} />
-          <div className="details-modal">
+          <div className="admin-memberships-details-modal">
             <div className="modal-header">
-              <h2>Dettagli Membership</h2>
-              <button onClick={() => setShowDetailsModal(false)} className="btn-close">
+              <div className="modal-header-content">
+                <h2>Dettagli Membership</h2>
+              </div>
+              <button onClick={() => setShowDetailsModal(false)} className="modal-close-btn">
                 <X size={24} />
               </button>
             </div>
             <div className="modal-body">
               <div className="detail-grid">
                 <div className="detail-item">
-                  <span className="label">Codice</span>
-                  <span className="value code">{selectedMembership.subscription_code}</span>
+                  <label>Codice</label>
+                  <span className="detail-value code">{selectedMembership.subscription_code}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Stato</span>
+                  <label>Stato</label>
                   {getStatusBadge(selectedMembership.status)}
                 </div>
                 <div className="detail-item">
-                  <span className="label">Cliente</span>
-                  <span className="value">{selectedMembership.customer?.name || 'N/A'}</span>
+                  <label>Cliente</label>
+                  <span className="detail-value">{selectedMembership.customer?.name || 'N/A'}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Email</span>
-                  <span className="value">{selectedMembership.customer?.email || 'N/A'}</span>
+                  <label>Email</label>
+                  <span className="detail-value">{selectedMembership.customer?.email || 'N/A'}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Organizzazione</span>
-                  <span className="value">{selectedMembership.organization?.name || 'N/A'}</span>
+                  <label>Organizzazione</label>
+                  <span className="detail-value">{selectedMembership.organization?.name || 'N/A'}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Template</span>
-                  <span className="value">{selectedMembership.template?.name || 'N/A'}</span>
+                  <label>Template</label>
+                  <span className="detail-value">{selectedMembership.template?.name || 'N/A'}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Prezzo Pagato</span>
-                  <span className="value amount">{formatCurrency(selectedMembership.price || 0)}</span>
+                  <label>Prezzo Pagato</label>
+                  <span className="detail-value amount">{formatCurrency(selectedMembership.amount_paid || 0)}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Utilizzi</span>
-                  <span className="value">
+                  <label>Utilizzi</label>
+                  <span className="detail-value">
                     {selectedMembership.usage_count} / {selectedMembership.template?.total_limit || '∞'}
                   </span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Data Inizio</span>
-                  <span className="value">{formatDate(selectedMembership.start_date)}</span>
+                  <label>Data Inizio</label>
+                  <span className="detail-value">{formatDate(selectedMembership.start_date)}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Data Scadenza</span>
-                  <span className="value">{formatDate(selectedMembership.end_date)}</span>
+                  <label>Data Scadenza</label>
+                  <span className="detail-value">{formatDate(selectedMembership.end_date)}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Creata il</span>
-                  <span className="value">{formatDate(selectedMembership.created_at)}</span>
+                  <label>Creata il</label>
+                  <span className="detail-value">{formatDate(selectedMembership.created_at)}</span>
                 </div>
               </div>
             </div>
