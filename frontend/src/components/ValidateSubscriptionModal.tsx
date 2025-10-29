@@ -286,12 +286,16 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     remaining: { daily?: number; weekly?: number; total?: number }
   ) => {
     try {
+      console.log('🔵 Using subscription:', sub.subscription_code);
+
       const response = await subscriptionsService.useSubscription({
         subscription_code: sub.subscription_code,
         organization_id: organizationId,
         item_name: 'Utilizzo Abbonamento', // Generic item name for membership usage
         quantity: 1
       });
+
+      console.log('📊 Use subscription response:', response);
 
       if (!response.success) {
         throw new Error(response.error || 'Errore durante l\'utilizzo dell\'abbonamento');
@@ -305,17 +309,22 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
       };
       setRemainingUses(newRemaining);
 
+      console.log('✅ Setting step to success');
       setUsageSuccess(true);
       setStep('success');
 
       // Print receipt
       if (printService && sub.customer) {
+        console.log('🖨️ Printing usage receipt...');
         await printUsageReceipt(newRemaining, sub, tmpl);
+      } else {
+        console.log('⚠️ No printService or customer, skipping receipt');
       }
 
-      onSuccess();
+      // DON'T call onSuccess() here - let user close manually from success screen
+      // onSuccess();
     } catch (err: any) {
-      console.error('Error using subscription:', err);
+      console.error('❌ Error using subscription:', err);
       setError(err.message || 'Errore durante l\'utilizzo dell\'abbonamento');
       setStep('invalid');
     }
@@ -827,14 +836,20 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
 
               <button
                 className="btn-primary"
-                onClick={onClose}
+                onClick={() => {
+                  onSuccess(); // Refresh stats/subscriptions list
+                  onClose();   // Close modal
+                }}
               >
                 Chiudi
               </button>
 
               <button
                 className="btn-back-text"
-                onClick={resetForm}
+                onClick={() => {
+                  onSuccess(); // Refresh stats/subscriptions list
+                  resetForm(); // Start new validation
+                }}
               >
                 Valida Altro Abbonamento
               </button>
