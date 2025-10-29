@@ -757,8 +757,8 @@
   color: white;
 }
 
-/* Mobile Responsive - only for very small phones */
-@media (max-width: 480px) {
+/* Tablet and Mobile - Full screen on tablets */
+@media (max-width: 1024px) {
   .validate-subscription-modal {
     width: 100vw;
     height: 100vh;
@@ -780,7 +780,10 @@
   .uses-grid {
     grid-template-columns: 1fr;
   }
+}
 
+/* Very small phones - buttons vertical */
+@media (max-width: 480px) {
   .validation-buttons-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
