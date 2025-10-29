@@ -542,11 +542,19 @@ export class ZCSPrintService {
 
       return new Promise((resolve) => {
         (window as any).omnilySubPrintHandler = (result: any) => {
+          console.log('📝 omnilySubPrintHandler called with:', result);
+          console.log('📝 data object:', data);
+          console.log('📝 data.subscription_code:', data.subscription_code);
+
           if (result.success) {
             // Print QR code
-            const qrData = `SUB:${data.subscription_code}`
+            const subscriptionCode = String(data.subscription_code);
+            const qrData = `SUB:${subscriptionCode}`;
+
+            console.log('📝 About to print QR with data:', qrData);
 
             (window as any).omnilySubQRHandler = (qrResult: any) => {
+              console.log('📝 omnilySubQRHandler called with:', qrResult);
               if (qrResult.success) {
                 console.log('✅ Subscription voucher printed successfully')
                 resolve(true)
