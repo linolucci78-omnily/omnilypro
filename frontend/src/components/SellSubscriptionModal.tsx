@@ -21,6 +21,7 @@ import {
   Loader
 } from 'lucide-react';
 import { subscriptionsService } from '../services/subscriptionsService';
+import { createPrintService } from '../services/printService';
 import type {
   SubscriptionTemplate,
   CustomerSubscription,
@@ -171,9 +172,46 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
       setCreatedSubscription(response.data);
       setStep('success');
 
-      // Print voucher
-      if (printService) {
-        await printVoucher(response.data);
+      // Print voucher (create print service on-the-fly like gift certificates)
+      console.log('🖨️ Attempting to print subscription voucher...');
+      try {
+        const printConfig = {
+          storeName: organizationName,
+          storeAddress: '',
+          storePhone: '',
+          storeTax: '',
+          paperWidth: 384, // 58mm
+          fontSizeNormal: 24,
+          fontSizeLarge: 30,
+          printDensity: 0
+        };
+
+        const printSvc = createPrintService(printConfig);
+        const initialized = await printSvc.initialize();
+
+        if (initialized) {
+          const printed = await printSvc.printSubscriptionVoucher({
+            subscription_code: response.data.subscription_code,
+            customer_name: selectedCustomer!.name,
+            template_name: selectedTemplate!.name,
+            start_date: response.data.start_date,
+            end_date: response.data.end_date,
+            daily_limit: selectedTemplate!.daily_limit,
+            total_limit: selectedTemplate!.total_limit,
+            organizationName: organizationName
+          });
+
+          if (printed) {
+            console.log('✅ Subscription voucher printed successfully!');
+          } else {
+            console.error('❌ Print failed');
+          }
+        } else {
+          console.error('❌ Failed to initialize print service');
+        }
+      } catch (printError) {
+        console.error('❌ Print error:', printError);
+        // Don't block the flow if print fails
       }
 
       onSuccess(response.data);
