@@ -568,23 +568,6 @@
   to { opacity: 1; }
 }
 
-/* Tablet and Mobile - Hide Quick Stats and Actions for more content space */
-@media (max-width: 1024px) {
-  .subscriptions-quick-stats {
-    display: none;
-  }
-
-  .subscriptions-panel-actions {
-    display: none;
-  }
-
-  /* Make content area take full available height */
-  .subscriptions-content {
-    flex: 1;
-    padding: 1rem;
-  }
-}
-
 /* Mobile Responsive */
 @media (max-width: 767px) {
   .subscriptions-main-buttons {
