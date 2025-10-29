@@ -79,7 +79,50 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       resetForm();
+
+      // Setup QR callback for Android bridge
+      (window as any).validateSubQRCallback = (result: any) => {
+        console.log('📱 QR Subscription callback:', result);
+
+        try {
+          const parsedResult = typeof result === 'string' ? JSON.parse(result) : result;
+
+          if (parsedResult.cancelled) {
+            console.log('📱 QR scan cancelled');
+            return;
+          }
+
+          if (parsedResult.error) {
+            console.error('📱 QR scan error:', parsedResult.error);
+            setError('Errore durante la scansione del QR code');
+            return;
+          }
+
+          if (parsedResult.success && parsedResult.data) {
+            console.log('📱 QR code scanned successfully:', parsedResult.data);
+            const code = parsedResult.data.toString().toUpperCase();
+
+            // Check if it's a subscription code format
+            if (code.startsWith('SUB:')) {
+              const subCode = code.replace('SUB:', '');
+              setSubscriptionCode(subCode);
+              validateSubscription(subCode);
+            } else {
+              setSubscriptionCode(code);
+              validateSubscription(code);
+            }
+          }
+        } catch (err) {
+          console.error('Error parsing QR result:', err);
+          setError('Errore nella lettura del QR code');
+        }
+      };
     }
+
+    // Cleanup
+    return () => {
+      delete (window as any).validateSubQRCallback;
+    };
   }, [isOpen]);
 
   // Setup NFC handler
@@ -261,6 +304,13 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
         // Show confirmation step instead of using automatically
         setStep('confirmed');
       } else {
+        // Even if invalid, set subscription and template so we can show customer info
+        if (result.subscription) {
+          setSubscription(result.subscription);
+        }
+        if (result.template) {
+          setTemplate(result.template);
+        }
         setStep('invalid');
       }
     } catch (err: any) {
@@ -497,22 +547,22 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
                   <button
                     className="btn-validate"
                     onClick={() => {
-                      console.log('🔵 QR Code button clicked!');
-                      console.log('🔍 Checking OmnilyPOS:', (window as any).OmnilyPOS);
-                      console.log('🔍 scanQRCode function:', (window as any).OmnilyPOS?.scanQRCode);
+                      console.log('📱 Starting QR scan for subscription');
 
-                      if ((window as any).OmnilyPOS?.scanQRCode) {
-                        console.log('✅ scanQRCode exists, calling it...');
-                        (window as any).OmnilyPOS.scanQRCode((code: string) => {
-                          console.log('📱 QR Code scanned:', code);
-                          setSubscriptionCode(code.toUpperCase());
-                          validateSubscription(code.toUpperCase());
-                        });
-                      } else {
-                        console.error('❌ scanQRCode NOT available!');
-                        if ((window as any).OmnilyPOS) {
-                          console.log('Available bridge functions:', Object.keys((window as any).OmnilyPOS));
+                      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+                        const bridge = (window as any).OmnilyPOS;
+
+                        if (bridge.readQRCode) {
+                          setError(null);
+                          console.log('📱 Calling bridge.readQRCode with callback: validateSubQRCallback');
+                          bridge.readQRCode('validateSubQRCallback');
+                        } else {
+                          console.log('❌ readQRCode not available in bridge');
+                          setError('Scanner QR non disponibile su questo dispositivo');
                         }
+                      } else {
+                        console.log('❌ OmnilyPOS bridge not available');
+                        setError('Scanner QR disponibile solo su app Android POS');
                       }
                     }}
                     disabled={loading}
