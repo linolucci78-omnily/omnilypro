@@ -39,7 +39,7 @@ interface ValidateSubscriptionModalProps {
   printService?: any;
 }
 
-type Step = 'scan' | 'select-subscription' | 'valid' | 'invalid' | 'select-item' | 'success';
+type Step = 'scan' | 'select-subscription' | 'valid' | 'invalid' | 'success';
 
 const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   isOpen,
@@ -64,11 +64,6 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   const [validationResult, setValidationResult] = useState<SubscriptionValidationResult | null>(null);
   const [subscription, setSubscription] = useState<CustomerSubscription | null>(null);
   const [template, setTemplate] = useState<SubscriptionTemplate | null>(null);
-
-  // Item selection
-  const [itemName, setItemName] = useState('');
-  const [itemCategory, setItemCategory] = useState('');
-  const [itemPrice, setItemPrice] = useState<number | undefined>();
 
   // Usage result
   const [usageSuccess, setUsageSuccess] = useState(false);
@@ -154,9 +149,6 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     setValidationResult(null);
     setSubscription(null);
     setTemplate(null);
-    setItemName('');
-    setItemCategory('');
-    setItemPrice(undefined);
     setUsageSuccess(false);
     setRemainingUses({});
   };
@@ -285,12 +277,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   };
 
   const handleUseSubscription = async () => {
-    if (!itemName.trim()) {
-      setError('Inserisci il nome dell\'articolo utilizzato');
-      return;
-    }
-
-    if (!subscription) return;
+    if (!subscription || !template) return;
 
     setLoading(true);
     setError(null);
@@ -299,9 +286,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
       const response = await subscriptionsService.useSubscription({
         subscription_code: subscription.subscription_code,
         organization_id: organizationId,
-        item_name: itemName.trim(),
-        item_category: itemCategory.trim() || undefined,
-        item_price: itemPrice,
+        item_name: 'Utilizzo Abbonamento', // Generic item name for membership usage
         quantity: 1
       });
 
@@ -342,7 +327,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
         subscription_code: subscription.subscription_code,
         customer_name: subscription.customer?.name || 'Cliente',
         template_name: template.name,
-        item_name: itemName,
+        item_name: 'Utilizzo Abbonamento',
         remaining_daily: remaining.daily,
         remaining_total: remaining.total,
         cashier: 'POS',
@@ -668,9 +653,10 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
 
               <button
                 className="btn-use-subscription"
-                onClick={() => setStep('select-item')}
+                onClick={handleUseSubscription}
+                disabled={loading}
               >
-                <Check size={20} />
+                {loading ? <Loader size={20} className="spinning" /> : <Check size={20} />}
                 Utilizza Abbonamento
               </button>
 
@@ -705,69 +691,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
             </div>
           )}
 
-          {/* Step 4: Select Item */}
-          {step === 'select-item' && (
-            <div className="select-item-section">
-              <h3>Seleziona Articolo Utilizzato</h3>
-
-              <div className="item-form">
-                <div className="form-group">
-                  <label>Nome Articolo *</label>
-                  <input
-                    type="text"
-                    placeholder="Es: Caffè Espresso, Pizza Margherita..."
-                    value={itemName}
-                    onChange={(e) => setItemName(e.target.value)}
-                    className="form-input"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Categoria (opzionale)</label>
-                  <input
-                    type="text"
-                    placeholder="Es: Bevande, Pizze, Dessert..."
-                    value={itemCategory}
-                    onChange={(e) => setItemCategory(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Prezzo (opzionale)</label>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    step="0.01"
-                    value={itemPrice || ''}
-                    onChange={(e) => setItemPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              <div className="item-actions">
-                <button
-                  className="btn-secondary"
-                  onClick={() => setStep('valid')}
-                  disabled={loading}
-                >
-                  Indietro
-                </button>
-                <button
-                  className="btn-primary"
-                  onClick={handleUseSubscription}
-                  disabled={loading || !itemName.trim()}
-                >
-                  {loading ? <Loader size={20} className="spinning" /> : <Check size={20} />}
-                  Conferma Utilizzo
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Success */}
+          {/* Step 4: Success */}
           {step === 'success' && subscription && template && (
             <div className="success-section">
               <div className="success-icon">
@@ -777,11 +701,6 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
               <h3>Utilizzo Registrato!</h3>
 
               <div className="usage-summary">
-                <div className="summary-item">
-                  <span className="summary-label">Articolo:</span>
-                  <span className="summary-value">{itemName}</span>
-                </div>
-
                 <div className="summary-item">
                   <span className="summary-label">Cliente:</span>
                   <span className="summary-value">{subscription.customer?.name}</span>
