@@ -773,34 +773,80 @@ class SubscriptionsService {
    * Get subscription statistics for an organization
    */
   async getStats(organizationId: string): Promise<SubscriptionStats> {
+    console.log('📊 getStats called with organizationId:', organizationId);
+
+    if (!organizationId) {
+      console.error('❌ No organization ID provided to getStats');
+      return this.getEmptyStats();
+    }
+
     try {
       const { data, error } = await supabase.rpc('get_subscription_stats', {
         p_organization_id: organizationId
       });
 
       if (error) {
-        console.warn('RPC function not available, calculating stats manually:', error);
+        console.warn('⚠️ RPC function not available, calculating stats manually:', error);
         return this.calculateStatsManually(organizationId);
+      }
+
+      console.log('✅ RPC stats returned:', data);
+
+      // RPC returns an array with single object, extract it
+      if (Array.isArray(data) && data.length > 0) {
+        const stats = data[0];
+        console.log('✅ Extracted stats from array:', stats);
+
+        // Check if RPC has all required fields - old RPC might be missing fields
+        if (!stats.hasOwnProperty('total_paused') || !stats.hasOwnProperty('avg_subscription_value')) {
+          console.warn('⚠️ RPC stats incomplete (old version), recalculating manually');
+          return this.calculateStatsManually(organizationId);
+        }
+
+        return stats;
       }
 
       return data;
     } catch (error: any) {
-      console.error('Error fetching subscription stats:', error);
+      console.error('❌ Error fetching subscription stats:', error);
       return this.calculateStatsManually(organizationId);
     }
+  }
+
+  private getEmptyStats(): SubscriptionStats {
+    return {
+      total_active: 0,
+      total_paused: 0,
+      total_expired: 0,
+      total_cancelled: 0,
+      total_revenue: 0,
+      monthly_revenue: 0,
+      total_usages: 0,
+      monthly_usages: 0,
+      expiring_soon: 0,
+      avg_subscription_value: 0,
+      renewal_rate: 0
+    };
   }
 
   /**
    * Calculate stats manually (fallback)
    */
   private async calculateStatsManually(organizationId: string): Promise<SubscriptionStats> {
+    console.log('📊 Calculating stats for organization:', organizationId);
+
     // Get all subscriptions
-    const { data: subscriptions } = await supabase
+    const { data: subscriptions, error } = await supabase
       .from('customer_subscriptions')
       .select('*')
       .eq('organization_id', organizationId);
 
+    if (error) {
+      console.error('❌ Error fetching subscriptions for stats:', error);
+    }
+
     const subs = subscriptions || [];
+    console.log('📈 Found subscriptions:', subs.length, subs);
 
     // Calculate stats
     const total_active = subs.filter(s => s.status === 'active').length;
@@ -808,7 +854,7 @@ class SubscriptionsService {
     const total_expired = subs.filter(s => s.status === 'expired').length;
     const total_cancelled = subs.filter(s => s.status === 'cancelled').length;
     const total_revenue = subs.reduce((sum, s) => sum + (s.total_amount_paid || 0), 0);
-    const total_usages = subs.reduce((sum, s) => sum + s.usage_count, 0);
+    const total_usages = subs.reduce((sum, s) => sum + (s.usage_count || 0), 0);
 
     // Calculate expiring soon (within 7 days)
     const now = new Date();
@@ -821,7 +867,7 @@ class SubscriptionsService {
       new Date(s.end_date) <= sevenDaysFromNow
     ).length;
 
-    return {
+    const stats = {
       total_active,
       total_paused,
       total_expired,
@@ -834,6 +880,9 @@ class SubscriptionsService {
       avg_subscription_value: total_active > 0 ? total_revenue / total_active : 0,
       renewal_rate: 0 // TODO: Calculate renewal rate
     };
+
+    console.log('✅ Calculated stats:', stats);
+    return stats;
   }
 
   // ============================================================================

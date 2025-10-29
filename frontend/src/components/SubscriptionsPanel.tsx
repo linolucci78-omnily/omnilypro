@@ -47,6 +47,9 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
   printService,
   availableCategories = []
 }) => {
+  // Use organizationId from props, fallback to localStorage if empty
+  const effectiveOrgId = organizationId || localStorage.getItem('selectedOrganizationId') || '';
+
   const [activeTab, setActiveTab] = useState<'templates' | 'subscriptions' | 'stats'>('subscriptions');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,10 +81,10 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
   const [showValidateModal, setShowValidateModal] = useState(false);
 
   useEffect(() => {
-    if (isOpen && organizationId) {
+    if (isOpen && effectiveOrgId) {
       loadData();
     }
-  }, [isOpen, organizationId, activeTab]);
+  }, [isOpen, effectiveOrgId, activeTab]);
 
   const loadData = async () => {
     setLoading(true);
@@ -103,7 +106,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
   const loadTemplates = async () => {
     try {
       const response = await subscriptionsService.getTemplates({
-        organization_id: organizationId,
+        organization_id: effectiveOrgId,
         is_active: true
       });
       setTemplates(response.data);
@@ -115,7 +118,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
   const loadSubscriptions = async () => {
     try {
       const response = await subscriptionsService.getSubscriptions({
-        organization_id: organizationId,
+        organization_id: effectiveOrgId,
         status: ['active', 'paused']
       });
       setSubscriptions(response.data);
@@ -126,7 +129,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
 
   const loadStats = async () => {
     try {
-      const data = await subscriptionsService.getStats(organizationId);
+      const data = await subscriptionsService.getStats(effectiveOrgId);
       setStats(data);
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -452,7 +455,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
       <SellSubscriptionModal
         isOpen={showSellSubscriptionModal}
         onClose={() => setShowSellSubscriptionModal(false)}
-        organizationId={organizationId}
+        organizationId={effectiveOrgId}
         organizationName={organizationName}
         templates={templates}
         onSuccess={(subscription) => {
@@ -466,7 +469,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
       <ValidateSubscriptionModal
         isOpen={showValidateModal}
         onClose={() => setShowValidateModal(false)}
-        organizationId={organizationId}
+        organizationId={effectiveOrgId}
         onSuccess={() => {
           setShowValidateModal(false);
           loadSubscriptions();
@@ -478,7 +481,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
       <CreateTemplateModal
         isOpen={showCreateTemplateModal}
         onClose={() => setShowCreateTemplateModal(false)}
-        organizationId={organizationId}
+        organizationId={effectiveOrgId}
         onSuccess={() => {
           setShowCreateTemplateModal(false);
           loadTemplates();

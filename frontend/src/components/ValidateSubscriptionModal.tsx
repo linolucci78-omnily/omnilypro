@@ -39,7 +39,7 @@ interface ValidateSubscriptionModalProps {
   printService?: any;
 }
 
-type Step = 'scan' | 'select-subscription' | 'valid' | 'invalid' | 'success';
+type Step = 'scan' | 'select-subscription' | 'invalid' | 'success';
 
 const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   isOpen,
@@ -254,7 +254,9 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
         setSubscription(result.subscription);
         setTemplate(result.template);
         setRemainingUses(result.remaining_uses || {});
-        setStep('valid');
+
+        // Automatically use the subscription after validation
+        await useSubscriptionDirectly(result.subscription, result.template, result.remaining_uses || {});
       } else {
         setStep('invalid');
       }
@@ -276,15 +278,14 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     await validateSubscription(subscriptionCode.trim());
   };
 
-  const handleUseSubscription = async () => {
-    if (!subscription || !template) return;
-
-    setLoading(true);
-    setError(null);
-
+  const useSubscriptionDirectly = async (
+    sub: CustomerSubscription,
+    tmpl: SubscriptionTemplate,
+    remaining: { daily?: number; weekly?: number; total?: number }
+  ) => {
     try {
       const response = await subscriptionsService.useSubscription({
-        subscription_code: subscription.subscription_code,
+        subscription_code: sub.subscription_code,
         organization_id: organizationId,
         item_name: 'Utilizzo Abbonamento', // Generic item name for membership usage
         quantity: 1
@@ -296,9 +297,9 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
 
       // Update remaining uses
       const newRemaining = {
-        daily: remainingUses.daily !== undefined ? Math.max(0, remainingUses.daily - 1) : undefined,
-        weekly: remainingUses.weekly !== undefined ? Math.max(0, remainingUses.weekly - 1) : undefined,
-        total: remainingUses.total !== undefined ? Math.max(0, remainingUses.total - 1) : undefined
+        daily: remaining.daily !== undefined ? Math.max(0, remaining.daily - 1) : undefined,
+        weekly: remaining.weekly !== undefined ? Math.max(0, remaining.weekly - 1) : undefined,
+        total: remaining.total !== undefined ? Math.max(0, remaining.total - 1) : undefined
       };
       setRemainingUses(newRemaining);
 
@@ -306,27 +307,30 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
       setStep('success');
 
       // Print receipt
-      if (printService && subscription.customer) {
-        await printUsageReceipt(newRemaining);
+      if (printService && sub.customer) {
+        await printUsageReceipt(newRemaining, sub, tmpl);
       }
 
       onSuccess();
     } catch (err: any) {
       console.error('Error using subscription:', err);
       setError(err.message || 'Errore durante l\'utilizzo dell\'abbonamento');
-    } finally {
-      setLoading(false);
+      setStep('invalid');
     }
   };
 
-  const printUsageReceipt = async (remaining: typeof remainingUses) => {
-    if (!printService || !subscription || !template) return;
+  const printUsageReceipt = async (
+    remaining: typeof remainingUses,
+    sub: CustomerSubscription,
+    tmpl: SubscriptionTemplate
+  ) => {
+    if (!printService) return;
 
     try {
       await printService.printSubscriptionUsage({
-        subscription_code: subscription.subscription_code,
-        customer_name: subscription.customer?.name || 'Cliente',
-        template_name: template.name,
+        subscription_code: sub.subscription_code,
+        customer_name: sub.customer?.name || 'Cliente',
+        template_name: tmpl.name,
         item_name: 'Utilizzo Abbonamento',
         remaining_daily: remaining.daily,
         remaining_total: remaining.total,
@@ -554,122 +558,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
             </div>
           )}
 
-          {/* Step 3: Valid Subscription */}
-          {step === 'valid' && subscription && template && (
-            <div className="validation-result valid">
-              <div className="result-icon success">
-                <Check size={48} />
-              </div>
-
-              <h3>Abbonamento Valido!</h3>
-
-              <div className="subscription-details-card">
-                <div className="detail-header">
-                  <div className="detail-code">{subscription.subscription_code}</div>
-                  {getStatusBadge(subscription.status)}
-                </div>
-
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <User size={16} className="detail-icon" />
-                    <div>
-                      <div className="detail-label">Cliente</div>
-                      <div className="detail-value">{subscription.customer?.name || 'N/A'}</div>
-                    </div>
-                  </div>
-
-                  <div className="detail-item">
-                    <Package size={16} className="detail-icon" />
-                    <div>
-                      <div className="detail-label">Abbonamento</div>
-                      <div className="detail-value">{template.name}</div>
-                    </div>
-                  </div>
-
-                  <div className="detail-item">
-                    <Calendar size={16} className="detail-icon" />
-                    <div>
-                      <div className="detail-label">Scadenza</div>
-                      <div className="detail-value">{formatDate(subscription.end_date)}</div>
-                    </div>
-                  </div>
-
-                  <div className="detail-item">
-                    <TrendingUp size={16} className="detail-icon" />
-                    <div>
-                      <div className="detail-label">Utilizzi</div>
-                      <div className="detail-value">
-                        {subscription.usage_count} / {template.total_limit || '∞'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Remaining uses */}
-                <div className="remaining-uses">
-                  <h4>Utilizzi Rimanenti</h4>
-                  <div className="uses-grid">
-                    {remainingUses.daily !== undefined && (
-                      <div className="use-item">
-                        <div className="use-label">Oggi</div>
-                        <div className="use-value">{remainingUses.daily}</div>
-                      </div>
-                    )}
-                    {remainingUses.weekly !== undefined && (
-                      <div className="use-item">
-                        <div className="use-label">Settimana</div>
-                        <div className="use-value">{remainingUses.weekly}</div>
-                      </div>
-                    )}
-                    {remainingUses.total !== undefined && (
-                      <div className="use-item">
-                        <div className="use-label">Totale</div>
-                        <div className="use-value">{remainingUses.total}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Time restrictions */}
-                {template.allowed_hours && (
-                  <div className="restrictions">
-                    <Clock size={16} />
-                    <span>
-                      Valido: {template.allowed_hours.start} - {template.allowed_hours.end}
-                    </span>
-                  </div>
-                )}
-
-                {/* Category restrictions */}
-                {template.included_categories && template.included_categories.length > 0 && (
-                  <div className="restrictions">
-                    <Tag size={16} />
-                    <span>
-                      Categorie: {template.included_categories.join(', ')}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <button
-                className="btn-use-subscription"
-                onClick={handleUseSubscription}
-                disabled={loading}
-              >
-                {loading ? <Loader size={20} className="spinning" /> : <Check size={20} />}
-                Utilizza Abbonamento
-              </button>
-
-              <button
-                className="btn-back-text"
-                onClick={() => setStep('scan')}
-              >
-                Scansiona Altro Codice
-              </button>
-            </div>
-          )}
-
-          {/* Step 3: Invalid Subscription */}
+          {/* Step 2: Invalid Subscription */}
           {step === 'invalid' && (
             <div className="validation-result invalid">
               <div className="result-icon error">
