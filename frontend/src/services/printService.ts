@@ -629,8 +629,20 @@ export class ZCSPrintService {
       return new Promise((resolve) => {
         (window as any).omnilySubUsagePrintHandler = (result: any) => {
           if (result.success) {
-            console.log('✅ Subscription usage receipt printed')
-            resolve(true)
+            // Print QR code after text
+            const qrData = `SUB:${data.subscription_code}`
+
+            (window as any).omnilySubUsageQRHandler = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('✅ Subscription usage receipt printed with QR code')
+                resolve(true)
+              } else {
+                console.error('❌ QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilySubUsageQRHandler')
           } else {
             console.error('❌ Receipt print failed:', result.error)
             resolve(false)
