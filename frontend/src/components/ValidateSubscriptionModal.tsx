@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { subscriptionsService } from '../services/subscriptionsService';
 import { nfcCardsApi } from '../lib/supabase';
+import { createPrintService } from '../services/printService';
 import type {
   SubscriptionValidationResult,
   CustomerSubscription,
@@ -314,11 +315,11 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
       setStep('success');
 
       // Print receipt
-      if (printService && sub.customer) {
+      if (sub.customer) {
         console.log('🖨️ Printing usage receipt...');
         await printUsageReceipt(newRemaining, sub, tmpl);
       } else {
-        console.log('⚠️ No printService or customer, skipping receipt');
+        console.log('⚠️ No customer, skipping receipt');
       }
 
       // DON'T call onSuccess() here - let user close manually from success screen
@@ -335,10 +336,27 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     sub: CustomerSubscription,
     tmpl: SubscriptionTemplate
   ) => {
-    if (!printService) return;
-
     try {
-      await printService.printSubscriptionUsage({
+      console.log('🖨️ Creating print service...');
+
+      const printConfig = {
+        printerWidth: 48,
+        fontSize: 20,
+        fontSizeLarge: 30,
+        printDensity: 0
+      };
+
+      const printSvc = createPrintService(printConfig);
+      const initialized = await printSvc.initialize();
+
+      if (!initialized) {
+        console.error('❌ Failed to initialize print service');
+        return;
+      }
+
+      console.log('✅ Print service initialized, printing usage receipt...');
+
+      const printed = await printSvc.printSubscriptionUsage({
         subscription_code: sub.subscription_code,
         customer_name: sub.customer?.name || 'Cliente',
         template_name: tmpl.name,
@@ -346,10 +364,16 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
         remaining_daily: remaining.daily,
         remaining_total: remaining.total,
         cashier: 'POS',
-        organizationName: 'Organization'
+        organizationName: organizationName
       });
+
+      if (printed) {
+        console.log('✅ Usage receipt printed successfully!');
+      } else {
+        console.error('❌ Print failed');
+      }
     } catch (err) {
-      console.error('Error printing receipt:', err);
+      console.error('❌ Error printing receipt:', err);
       // Don't fail the whole operation if printing fails
     }
   };
