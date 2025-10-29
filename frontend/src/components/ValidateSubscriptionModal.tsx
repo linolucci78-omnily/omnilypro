@@ -407,6 +407,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
       }
 
       console.log('✅ Print service initialized, printing usage receipt...');
+      console.log('📊 Remaining uses to print:', remaining);
 
       const printed = await printSvc.printSubscriptionUsage({
         subscription_code: sub.subscription_code,
