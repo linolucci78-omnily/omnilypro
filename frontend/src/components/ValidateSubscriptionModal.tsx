@@ -517,6 +517,42 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
               </p>
 
               {!isReadingNFC && (
+                <>
+                  <div className="code-input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="SUB-2024-00001"
+                      value={subscriptionCode}
+                      onChange={(e) => setSubscriptionCode(e.target.value.toUpperCase())}
+                      onKeyPress={(e) => e.key === 'Enter' && handleScan()}
+                      className="code-input"
+                      autoFocus
+                    />
+                  </div>
+
+                  <button
+                    className="btn-validate"
+                    onClick={handleScan}
+                    disabled={loading || !subscriptionCode.trim()}
+                  >
+                    {loading ? <Loader size={20} className="spinning" /> : <Search size={20} />}
+                    Valida Membership
+                  </button>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    margin: '1.5rem 0 1rem 0',
+                    color: '#6b7280',
+                    fontSize: '0.875rem'
+                  }}>
+                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+                    <span>oppure</span>
+                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+                  </div>
+
+                  {/* Grid 2x1 per i pulsanti affiancati */}
                   <div className="validation-buttons-grid">
                     <button
                       className="validation-grid-btn validation-btn-qr"
@@ -554,6 +590,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
                       <span>Usa Tessera NFC</span>
                     </button>
                   </div>
+                </>
               )}
 
               {isReadingNFC && (
