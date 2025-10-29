@@ -562,20 +562,37 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
           {step === 'invalid' && (
             <div className="validation-result invalid">
               <div className="result-icon error">
-                <AlertCircle size={48} />
+                <AlertCircle size={64} />
               </div>
 
-              <h3>Abbonamento Non Valido</h3>
+              <h3>Membership Non Valida</h3>
 
-              <div className="error-message">
-                {validationResult?.reason || 'Abbonamento non trovato o non valido'}
+              <div className="error-details">
+                <p className="error-reason">
+                  {validationResult?.reason || 'Membership non trovata o non valida'}
+                </p>
+
+                {subscription && (
+                  <div className="subscription-info-error">
+                    <div className="info-row-error">
+                      <span className="label-error">Codice:</span>
+                      <span className="value-error">{subscription.subscription_code}</span>
+                    </div>
+                    {template && (
+                      <div className="info-row-error">
+                        <span className="label-error">Piano:</span>
+                        <span className="value-error">{template.name}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button
                 className="btn-try-again"
                 onClick={() => setStep('scan')}
               >
-                Riprova
+                Scansiona Altra Membership
               </button>
             </div>
           )}

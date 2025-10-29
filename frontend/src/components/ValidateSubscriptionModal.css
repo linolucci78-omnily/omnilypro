@@ -440,6 +440,77 @@
   font-weight: 500;
 }
 
+/* Error Details */
+.error-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+}
+
+.error-reason {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #dc2626;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.subscription-info-error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #fecaca;
+}
+
+.info-row-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.label-error {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.value-error {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-try-again {
+  padding: 1rem 2rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-try-again:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.btn-try-again:active {
+  transform: translateY(0);
+}
+
 /* Select Item Section */
 .select-item-section {
   display: flex;
