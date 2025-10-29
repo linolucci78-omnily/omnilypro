@@ -517,79 +517,43 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
               </p>
 
               {!isReadingNFC && (
-                <>
-                  <div className="code-input-wrapper">
-                    <input
-                      type="text"
-                      placeholder="SUB-2024-00001"
-                      value={subscriptionCode}
-                      onChange={(e) => setSubscriptionCode(e.target.value.toUpperCase())}
-                      onKeyPress={(e) => e.key === 'Enter' && handleScan()}
-                      className="code-input"
-                      autoFocus
-                    />
-                  </div>
+                  <div className="validation-buttons-grid">
+                    <button
+                      className="validation-grid-btn validation-btn-qr"
+                      onClick={() => {
+                        console.log('📱 Starting QR scan for subscription');
 
-                  <button
-                    className="btn-validate"
-                    onClick={handleScan}
-                    disabled={loading || !subscriptionCode.trim()}
-                  >
-                    {loading ? <Loader size={20} className="spinning" /> : <Search size={20} />}
-                    Valida Membership
-                  </button>
+                        if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+                          const bridge = (window as any).OmnilyPOS;
 
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    margin: '1rem 0',
-                    color: '#6b7280',
-                    fontSize: '0.875rem'
-                  }}>
-                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-                    <span>oppure</span>
-                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-                  </div>
-
-                  <button
-                    className="btn-validate"
-                    onClick={() => {
-                      console.log('📱 Starting QR scan for subscription');
-
-                      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
-                        const bridge = (window as any).OmnilyPOS;
-
-                        if (bridge.readQRCode) {
-                          setError(null);
-                          console.log('📱 Calling bridge.readQRCode with callback: validateSubQRCallback');
-                          bridge.readQRCode('validateSubQRCallback');
+                          if (bridge.readQRCode) {
+                            setError(null);
+                            console.log('📱 Calling bridge.readQRCode with callback: validateSubQRCallback');
+                            bridge.readQRCode('validateSubQRCallback');
+                          } else {
+                            console.log('❌ readQRCode not available in bridge');
+                            setError('Scanner QR non disponibile su questo dispositivo');
+                          }
                         } else {
-                          console.log('❌ readQRCode not available in bridge');
-                          setError('Scanner QR non disponibile su questo dispositivo');
+                          console.log('❌ OmnilyPOS bridge not available');
+                          setError('Scanner QR disponibile solo su app Android POS');
                         }
-                      } else {
-                        console.log('❌ OmnilyPOS bridge not available');
-                        setError('Scanner QR disponibile solo su app Android POS');
-                      }
-                    }}
-                    disabled={loading}
-                    style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', marginBottom: '0.5rem' }}
-                  >
-                    <QrCode size={20} />
-                    Scansiona QR Code
-                  </button>
+                      }}
+                      disabled={loading}
+                    >
+                      <QrCode size={48} />
+                      <span>Scansiona QR Code</span>
+                    </button>
 
-                  <button
-                    className="btn-validate"
-                    onClick={handleReadNFC}
-                    disabled={loading}
-                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
-                  >
-                    <CreditCard size={20} />
-                    Usa Tessera NFC
-                  </button>
-                </>
+                    <button
+                      className="validation-grid-btn validation-btn-nfc"
+                      onClick={handleReadNFC}
+                      disabled={loading}
+                    >
+                      <CreditCard size={48} />
+                      <span>Usa Tessera NFC</span>
+                    </button>
+                  </div>
               )}
 
               {isReadingNFC && (
