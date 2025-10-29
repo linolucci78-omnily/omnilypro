@@ -472,7 +472,7 @@ const AdminMembershipsDashboard: React.FC = () => {
                     </td>
                     <td>{formatDate(membership.end_date)}</td>
                     <td>{getStatusBadge(membership.status)}</td>
-                    <td className="amount">{formatCurrency(membership.price || 0)}</td>
+                    <td className="amount">{formatCurrency(membership.amount_paid || 0)}</td>
                     <td>
                       <button
                         className="btn-icon"
@@ -537,29 +537,57 @@ const AdminMembershipsDashboard: React.FC = () => {
         )}
 
         {activeTab === 'stats' && (
-          <div className="org-stats-grid">
-            {orgSummaries.map(org => (
-              <div key={org.organization_id} className="org-stat-card">
-                <div className="org-header">
-                  <Building2 size={20} />
-                  <h3>{org.organization_name}</h3>
+          <div className="org-stats-section">
+            <div className="org-stats-grid">
+              {orgSummaries.map(org => (
+                <div key={org.organization_id} className="org-stat-card">
+                  <div className="org-card-header">
+                    <div className="org-icon">
+                      <Building2 size={24} />
+                    </div>
+                    <div className="org-info">
+                      <h3>{org.organization_name}</h3>
+                      <p className="org-subtitle">Riepilogo Membership</p>
+                    </div>
+                  </div>
+                  <div className="org-card-body">
+                    <div className="org-metric">
+                      <div className="metric-icon active">
+                        <Users size={20} />
+                      </div>
+                      <div className="metric-content">
+                        <span className="metric-label">Membership Attive</span>
+                        <span className="metric-value">{org.total_active}</span>
+                      </div>
+                    </div>
+                    <div className="org-metric">
+                      <div className="metric-icon revenue">
+                        <Euro size={20} />
+                      </div>
+                      <div className="metric-content">
+                        <span className="metric-label">Ricavi Totali</span>
+                        <span className="metric-value">{formatCurrency(org.total_revenue)}</span>
+                      </div>
+                    </div>
+                    <div className="org-metric">
+                      <div className="metric-icon templates">
+                        <Package size={20} />
+                      </div>
+                      <div className="metric-content">
+                        <span className="metric-label">Template Creati</span>
+                        <span className="metric-value">{org.template_count}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="org-metrics">
-                  <div className="metric">
-                    <span className="metric-label">Membership Attive</span>
-                    <span className="metric-value">{org.total_active}</span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Ricavi Totali</span>
-                    <span className="metric-value">{formatCurrency(org.total_revenue)}</span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Template Creati</span>
-                    <span className="metric-value">{org.template_count}</span>
-                  </div>
-                </div>
+              ))}
+            </div>
+            {orgSummaries.length === 0 && (
+              <div className="empty-state">
+                <Building2 size={48} />
+                <p>Nessuna organizzazione con membership</p>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
