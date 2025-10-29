@@ -10,6 +10,46 @@ Sistema completo di referral/invito per incentivare i clienti esistenti a portar
 
 ---
 
+## ✅ SISTEMA BASE GIÀ ESISTENTE
+
+### **Database (customers table)**
+```sql
+-- ✅ GIÀ PRESENTE
+referral_code VARCHAR(20)        -- Codice univoco auto-generato (8 caratteri)
+referred_by UUID                 -- Riferimento a chi ha invitato
+```
+
+**Funzionalità Automatiche**:
+- ✅ Ogni nuovo cliente riceve automaticamente un codice referral univoco
+- ✅ Funzione `generate_referral_code()` genera codici 8 caratteri alfanumerici
+- ✅ Trigger `set_customer_referral_code` assegna codice all'insert
+- ✅ Index su `referral_code` per performance
+
+### **Frontend (RegistrationWizard.tsx)**
+```typescript
+// ✅ GIÀ PRESENTE - Step 3: "Note e Referral"
+<div className="form-group">
+  <label>Codice Referral</label>
+  <input
+    type="text"
+    value={formData.referralCode}
+    onChange={(e) => handleInputChange('referralCode', e.target.value)}
+    placeholder="Se il cliente è stato invitato, inserisci il codice"
+  />
+</div>
+```
+
+### **❌ MANCANTE - DA IMPLEMENTARE**
+1. **Tracking Conversions** - Quando il codice viene usato, registrare la conversione
+2. **Rewards System** - Configurare e assegnare automaticamente ricompense
+3. **Validation Logic** - Verificare codice esiste e applicare al nuovo cliente
+4. **Admin Dashboard** - Vista gestione programmi referral
+5. **Customer Dashboard** - Vista personale "I miei inviti"
+6. **Analytics** - Metriche e performance tracking
+7. **Notifications** - Avvisare quando amico si registra/converte
+
+---
+
 ## 🎨 Concept & Value Proposition
 
 ### **Problema da Risolvere**
@@ -742,15 +782,21 @@ interface FraudCheck {
 
 ## 🚀 Implementation Phases
 
-### **Phase 1: MVP (Settimana 1-2)**
-- [ ] Database schema completo
-- [ ] TypeScript types
-- [ ] Basic referral program CRUD
-- [ ] Code generation e assignment
-- [ ] Tracking conversions base
-- [ ] Reward issuance (solo points)
-- [ ] Admin dashboard base
-- [ ] Organization dashboard base
+### **Phase 0: COMPLETATO ✅**
+- [x] Database campo `referral_code` in customers
+- [x] Database campo `referred_by` in customers
+- [x] Auto-generation codici referral univoci
+- [x] Frontend input codice in RegistrationWizard
+- [x] Trigger automatico assegnazione codice
+
+### **Phase 1: Validation & Tracking (Settimana 1)**
+- [ ] Validation logic: verifica codice esiste
+- [ ] Applicare `referred_by` quando codice è valido
+- [ ] Tabelle `referral_programs` per configurazioni
+- [ ] Tabella `referral_conversions` per tracking
+- [ ] Tabella `referral_rewards` per rewards
+- [ ] TypeScript types completi
+- [ ] Service layer per validazione
 
 ### **Phase 2: Customer Experience (Settimana 3)**
 - [ ] Customer referral dashboard
