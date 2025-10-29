@@ -255,8 +255,8 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
         setTemplate(result.template);
         setRemainingUses(result.remaining_uses || {});
 
-        // Automatically use the subscription after validation
-        await useSubscriptionDirectly(result.subscription, result.template, result.remaining_uses || {});
+        // Show confirmation step instead of using automatically
+        setStep('confirmed');
       } else {
         setStep('invalid');
       }
@@ -558,7 +558,113 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
             </div>
           )}
 
-          {/* Step 2: Invalid Subscription */}
+          {/* Step 2: Confirmed - Show details and ask for confirmation */}
+          {step === 'confirmed' && subscription && template && (
+            <div className="validation-result">
+              <div className="result-icon success">
+                <Check size={64} />
+              </div>
+
+              <h3>Membership Valida</h3>
+
+              <div className="subscription-details-card">
+                <div className="detail-header">
+                  <div className="detail-code">{subscription.subscription_code}</div>
+                  {getStatusBadge(subscription.status)}
+                </div>
+
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <User size={20} className="detail-icon" />
+                    <div>
+                      <div className="detail-label">Cliente</div>
+                      <div className="detail-value">{subscription.customer?.name || 'N/A'}</div>
+                    </div>
+                  </div>
+
+                  <div className="detail-item">
+                    <Package size={20} className="detail-icon" />
+                    <div>
+                      <div className="detail-label">Piano</div>
+                      <div className="detail-value">{template.name}</div>
+                    </div>
+                  </div>
+
+                  <div className="detail-item">
+                    <Calendar size={20} className="detail-icon" />
+                    <div>
+                      <div className="detail-label">Scadenza</div>
+                      <div className="detail-value">{formatDate(subscription.end_date)}</div>
+                    </div>
+                  </div>
+
+                  <div className="detail-item">
+                    <TrendingUp size={20} className="detail-icon" />
+                    <div>
+                      <div className="detail-label">Utilizzi Totali</div>
+                      <div className="detail-value">
+                        {subscription.usage_count} / {template.total_limit || '∞'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {(remainingUses.daily !== undefined || remainingUses.weekly !== undefined || remainingUses.total !== undefined) && (
+                  <div className="remaining-uses">
+                    <h4>Utilizzi Disponibili</h4>
+                    <div className="uses-grid">
+                      {remainingUses.daily !== undefined && (
+                        <div className="use-item">
+                          <div className="use-label">Oggi</div>
+                          <div className="use-value">{remainingUses.daily}</div>
+                        </div>
+                      )}
+                      {remainingUses.weekly !== undefined && (
+                        <div className="use-item">
+                          <div className="use-label">Settimana</div>
+                          <div className="use-value">{remainingUses.weekly}</div>
+                        </div>
+                      )}
+                      {remainingUses.total !== undefined && (
+                        <div className="use-item">
+                          <div className="use-label">Totali</div>
+                          <div className="use-value">{remainingUses.total}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button
+                className="btn-use-subscription"
+                onClick={() => useSubscriptionDirectly(subscription, template, remainingUses)}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader size={20} className="spinning" />
+                    Registrazione...
+                  </>
+                ) : (
+                  <>
+                    <Check size={20} />
+                    Utilizza Membership
+                  </>
+                )}
+              </button>
+
+              <button
+                className="btn-back-text"
+                onClick={() => setStep('scan')}
+                style={{ marginTop: '1rem' }}
+              >
+                Annulla
+              </button>
+            </div>
+          )}
+
+          {/* Step 3: Invalid Subscription */}
           {step === 'invalid' && (
             <div className="validation-result invalid">
               <div className="result-icon error">
