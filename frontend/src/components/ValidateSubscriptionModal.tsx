@@ -13,6 +13,7 @@ import {
   Check,
   AlertCircle,
   XCircle,
+  AlertTriangle,
   Package,
   Calendar,
   TrendingUp,
@@ -669,7 +670,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
           {step === 'invalid' && (
             <div className="validation-result invalid">
               <div className="result-icon error">
-                <XCircle size={48} />
+                <AlertTriangle size={48} />
               </div>
 
               <h3>Membership Non Valida</h3>
