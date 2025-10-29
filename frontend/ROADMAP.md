@@ -793,6 +793,98 @@ Con il completamento del sistema ZCS e MDM Dashboard, il progetto OMNILY PRO ha 
 - **TypeScript Coverage**: Type safety completo per manutenibilità
 - **Print Management**: Sistema template e configurazioni per organizzazioni
 
+---
+
+## 🎉 **AGGIORNAMENTO OTTOBRE 2025 - NUOVE FUNZIONALITÀ COMPLETATE**
+
+### ✅ **COMPLETATO 29 Ottobre 2025 - Gift Certificates System**
+
+#### **🎁 Sistema Gift Certificates Completo:**
+- **Admin Dashboard**: Gestione centralizzata di tutti i gift certificates
+  - Vista globale con statistiche (emessi, attivi, riscattati, ricavi)
+  - Tabella completa con filtri (stato, organizzazione, ricerca)
+  - Modal dettagli per ogni gift certificate
+  - Esportazione report
+- **Organization Dashboard**: Pannello per la gestione aziendale
+  - Vendita nuovi gift certificates
+  - Riscatto e validazione codici
+  - Tracking utilizzi e saldo residuo
+  - Statistiche vendite per organizzazione
+- **Database Schema**: Tabelle `gift_certificates` con tracking completo
+- **Validazione Codici**: Sistema sicuro per verifica e utilizzo
+- **Multi-currency Support**: Supporto EUR con formattazione locale
+
+#### **📊 Metriche Implementate:**
+- Gift certificates emessi/attivi/riscattati/scaduti
+- Ricavi totali e mensili
+- Conteggio organizzazioni partecipanti
+- Trend vendite mensili
+
+### ✅ **COMPLETATO 29 Ottobre 2025 - Membership/Subscription System**
+
+#### **🎫 Sistema Membership Universale:**
+- **Admin Dashboard Membership**: Dashboard enterprise per super admin
+  - **Tab Memberships**: Vista globale tutte le membership
+    - Filtri avanzati (stato: active/paused/expired/cancelled)
+    - Ricerca per codice/cliente/organizzazione
+    - Tabella dettagliata con utilizzi e scadenze
+    - Modal dettagli completo
+  - **Tab Templates**: Visualizzazione tutti i template
+    - Grid layout con card moderne
+    - Prezzi e durate per ogni template
+    - Statistiche di utilizzo
+  - **Tab Statistiche Organizzazioni**: Analytics per azienda
+    - Card moderne con gradienti e icone colorate
+    - Membership attive per organizzazione
+    - Ricavi totali per organizzazione
+    - Template creati per organizzazione
+    - Hover effects e animazioni smooth
+- **Organization Dashboard**: Pannello completo gestione membership
+  - Creazione e vendita membership da template
+  - Validazione e utilizzo membership
+  - Gestione template (create/edit/delete)
+  - Tracking utilizzi con limiti (daily/weekly/total)
+  - Pause/Resume/Cancel functionality
+  - Rinnovo manuale e automatico
+- **TypeScript Types**: Sistema type-safe completo
+  - 5+ subscription types (daily_item, total_items, unlimited_access, etc.)
+  - Status management (active, paused, expired, cancelled)
+  - Usage tracking con reset giornaliero/settimanale
+  - Renewal tracking e payment history
+- **Validazione Avanzata**:
+  - Verifica limiti utilizzo (giornalieri, settimanali, totali)
+  - Controllo categorie incluse/escluse
+  - Time restrictions (orari e giorni consentiti)
+  - Price limits per item
+
+#### **🎨 Design Moderno Admin Dashboard:**
+- Statistiche globali con icone colorate e gradienti
+- Tabs navigation per sezione (Memberships/Templates/Stats)
+- Card organizzazioni con:
+  - Header con gradiente e icona building
+  - Metriche con icone colorate (Users verde, Euro arancione, Package viola)
+  - Hover effects con elevazione e transizioni smooth
+  - Layout responsive per desktop/tablet/mobile
+- Modal dettagli con design professionale
+- Empty states con messaggi chiari
+
+#### **📈 Database Schema Completo:**
+- `subscription_templates`: Template configurabili per tipo business
+- `customer_subscriptions`: Membership attive con tracking
+- `subscription_usages`: Log completo utilizzi
+- `subscription_renewals`: Storico rinnovi
+- `subscription_settings`: Configurazioni per organizzazione
+
+#### **🔧 Features Avanzate:**
+- Auto-renewal con reminder
+- Pausa membership con tracking giorni utilizzati
+- Benefici extra (sconti, priorità, free items)
+- Restrizioni temporali (orari e giorni specifici)
+- Multi-item support (bundle di servizi)
+- Unlimited access mode per abbonamenti premium
+
+---
+
 ### **🚀 PROSSIMI PASSI STRATEGICI RACCOMANDATI**
 
 #### **OPZIONE A: FOCUS COMMERCIALE (Raccomandato per ROI rapido)**
