@@ -471,6 +471,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
         isOpen={showValidateModal}
         onClose={() => setShowValidateModal(false)}
         organizationId={effectiveOrgId}
+        organizationName={organizationName}
         onSuccess={() => {
           setShowValidateModal(false);
           loadSubscriptions();

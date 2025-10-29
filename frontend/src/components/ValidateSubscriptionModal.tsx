@@ -38,6 +38,7 @@ interface ValidateSubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   organizationId: string;
+  organizationName: string;
   onSuccess: () => void;
   printService?: any;
 }
@@ -48,6 +49,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
   isOpen,
   onClose,
   organizationId,
+  organizationName,
   onSuccess,
   printService
 }) => {
