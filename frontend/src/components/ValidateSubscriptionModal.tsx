@@ -464,11 +464,22 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
                   <button
                     className="btn-validate"
                     onClick={() => {
+                      console.log('🔵 QR Code button clicked!');
+                      console.log('🔍 Checking OmnilyPOS:', (window as any).OmnilyPOS);
+                      console.log('🔍 scanQRCode function:', (window as any).OmnilyPOS?.scanQRCode);
+
                       if ((window as any).OmnilyPOS?.scanQRCode) {
+                        console.log('✅ scanQRCode exists, calling it...');
                         (window as any).OmnilyPOS.scanQRCode((code: string) => {
+                          console.log('📱 QR Code scanned:', code);
                           setSubscriptionCode(code.toUpperCase());
                           validateSubscription(code.toUpperCase());
                         });
+                      } else {
+                        console.error('❌ scanQRCode NOT available!');
+                        if ((window as any).OmnilyPOS) {
+                          console.log('Available bridge functions:', Object.keys((window as any).OmnilyPOS));
+                        }
                       }
                     }}
                     disabled={loading}
