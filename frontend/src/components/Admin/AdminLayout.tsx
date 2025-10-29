@@ -31,7 +31,8 @@ import {
   UserCog,
   FileSignature,
   Sparkles,
-  Gift
+  Gift,
+  Ticket
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -95,6 +96,7 @@ const AdminLayout = () => {
         { path: '/admin/mdm', icon: Smartphone, label: 'Gestione Dispositivi' },
         { path: '/admin/inventory', icon: Package, label: 'Inventario' },
         { path: '/admin/subscriptions', icon: CreditCard, label: 'Abbonamenti' },
+        { path: '/admin/memberships', icon: Ticket, label: 'Membership' },
         { path: '/admin/gift-certificates', icon: Gift, label: 'Gift Certificates' }
       ]
     },
