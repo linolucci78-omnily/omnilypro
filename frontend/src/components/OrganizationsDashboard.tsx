@@ -15,6 +15,7 @@ import EmailMarketingPanel from './EmailMarketingPanel'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
 import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
 import SubscriptionsPanel from './SubscriptionsPanel'
+import SubscriptionStatsModal from './SubscriptionStatsModal'
 import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import ConfirmModal from './UI/ConfirmModal'
@@ -540,6 +541,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showGiftCertificatesStatsModal, setShowGiftCertificatesStatsModal] = useState(false)
   const [showSubscriptionsPanel, setShowSubscriptionsPanel] = useState(false)
+  const [subscriptionInitialModal, setSubscriptionInitialModal] = useState<'manage' | 'templates' | undefined>(undefined)
+  const [showSubscriptionStatsModal, setShowSubscriptionStatsModal] = useState(false)
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
 
   // Print Service for POS
@@ -3103,7 +3106,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <p>Crea template, vendi e valida abbonamenti per i tuoi clienti</p>
                 <button
                   className="btn-primary"
-                  onClick={() => setShowSubscriptionsPanel(true)}
+                  onClick={() => {
+                    setSubscriptionInitialModal('manage');
+                    setShowSubscriptionsPanel(true);
+                  }}
                 >
                   <Package size={18} />
                   Apri Gestionale
@@ -3114,7 +3120,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <p>Crea abbonamenti adatti alla tua attività (pizze, caffè, palestra, etc.)</p>
                 <button
                   className="btn-primary"
-                  onClick={() => setShowSubscriptionsPanel(true)}
+                  onClick={() => {
+                    setSubscriptionInitialModal('templates');
+                    setShowSubscriptionsPanel(true);
+                  }}
                 >
                   <Plus size={18} />
                   Crea Template
@@ -3125,7 +3134,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <p>Monitora vendite, utilizzi e performance dei tuoi abbonamenti</p>
                 <button
                   className="btn-primary"
-                  onClick={() => setShowSubscriptionsPanel(true)}
+                  onClick={() => setShowSubscriptionStatsModal(true)}
                 >
                   <BarChart3 size={18} />
                   Visualizza Report
@@ -3556,13 +3565,24 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       {/* Subscriptions Panel */}
       <SubscriptionsPanel
         isOpen={showSubscriptionsPanel}
-        onClose={() => setShowSubscriptionsPanel(false)}
+        onClose={() => {
+          setShowSubscriptionsPanel(false);
+          setSubscriptionInitialModal(undefined);
+        }}
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
         printService={printService}
         availableCategories={currentOrganization?.product_categories?.map((cat: any) =>
           typeof cat === 'string' ? cat : cat.name
         ) || []}
+        initialModal={subscriptionInitialModal}
+      />
+
+      {/* Subscription Stats Modal */}
+      <SubscriptionStatsModal
+        isOpen={showSubscriptionStatsModal}
+        onClose={() => setShowSubscriptionStatsModal(false)}
+        organizationId={currentOrganization?.id || ''}
       />
 
       {/* Documentation Modal */}

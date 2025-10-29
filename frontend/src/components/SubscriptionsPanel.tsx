@@ -37,6 +37,7 @@ organizationId: string;
 organizationName: string;
 printService?: any;
 availableCategories?: string[];
+initialModal?: 'manage' | 'templates' | 'stats';
 }
 
 const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
@@ -45,7 +46,8 @@ onClose,
 organizationId,
 organizationName,
 printService,
-availableCategories = []
+availableCategories = [],
+initialModal
 }) => {
 // Use organizationId from props, fallback to localStorage if empty
 const effectiveOrgId = organizationId || localStorage.getItem('selectedOrganizationId') || '';
@@ -73,12 +75,7 @@ avg_subscription_value: 0,
 renewal_rate: 0
 });
 
-// Modal states for the 3 main sections
-const [showManageModal, setShowManageModal] = useState(false);
-const [showTemplatesModal, setShowTemplatesModal] = useState(false);
-const [showStatsModal, setShowStatsModal] = useState(false);
-
-// Modal states for sub-actions
+// Modal states
 const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
 const [showSellSubscriptionModal, setShowSellSubscriptionModal] = useState(false);
 const [showValidateModal, setShowValidateModal] = useState(false);
@@ -88,6 +85,17 @@ if (isOpen && effectiveOrgId) {
 loadAllData();
 }
 }, [isOpen, effectiveOrgId]);
+
+useEffect(() => {
+if (isOpen && initialModal) {
+// Open the appropriate modal based on initialModal prop
+if (initialModal === 'templates') {
+setShowCreateTemplateModal(true);
+}
+// 'stats' modal will be handled separately in OrganizationsDashboard
+// 'manage' doesn't need a modal, just shows the panel content
+}
+}, [isOpen, initialModal]);
 
 const loadAllData = async () => {
 setLoading(true);
@@ -228,81 +236,30 @@ return (
 </div>
 </div>
 
-{/* 3 Main Action Buttons */}
-<div className="subscriptions-main-buttons">
+{/* Action Buttons */}
+<div className="subscriptions-panel-actions">
 <button
-className="main-action-button manage-button"
-onClick={() => setShowManageModal(true)}
->
-<div className="main-button-icon">
-<CreditCard size={48} />
-</div>
-<h3>Gestione Abbonamenti</h3>
-<p>Vendi e valida membership</p>
-</button>
-
-<button
-className="main-action-button templates-button"
-onClick={() => setShowTemplatesModal(true)}
->
-<div className="main-button-icon">
-<Package size={48} />
-</div>
-<h3>Template Personalizzati</h3>
-<p>Crea e gestisci template</p>
-</button>
-
-<button
-className="main-action-button stats-button"
-onClick={() => setShowStatsModal(true)}
->
-<div className="main-button-icon">
-<TrendingUp size={48} />
-</div>
-<h3>Statistiche</h3>
-<p>Visualizza report dettagliati</p>
-</button>
-</div>
-</div>
-
-{/* Modal 1: Gestione Abbonamenti */}
-{showManageModal && (
-<>
-<div className="subscriptions-modal-overlay" onClick={() => setShowManageModal(false)} />
-<div className="subscriptions-modal">
-<div className="subscriptions-modal-header">
-<h2>Gestione Abbonamenti</h2>
-<button onClick={() => setShowManageModal(false)} className="modal-close-btn">
-<X size={24} />
-</button>
-</div>
-
-<div className="subscriptions-modal-actions">
-<button
-className="modal-action-btn modal-action-btn-primary"
-onClick={() => {
-setShowManageModal(false);
-setShowSellSubscriptionModal(true);
-}}
+className="subscriptions-action-btn subscriptions-action-btn-primary"
+onClick={() => setShowSellSubscriptionModal(true)}
 >
 <Plus size={20} />
 Vendi Membership
 </button>
 
 <button
-className="modal-action-btn modal-action-btn-secondary"
-onClick={() => {
-setShowManageModal(false);
-setShowValidateModal(true);
-}}
+className="subscriptions-action-btn subscriptions-action-btn-secondary"
+onClick={() => setShowValidateModal(true)}
 >
 <QrCode size={20} />
 Valida Utilizzo
 </button>
 </div>
 
-<div className="subscriptions-modal-content">
-<h3>Membership Attive</h3>
+{/* Subscriptions List */}
+<div className="subscriptions-content">
+<h3 style={{ margin: '0 0 1rem 0', padding: '0 2rem', fontSize: '1.25rem', fontWeight: 700, color: '#1f2937' }}>
+Membership Attive
+</h3>
 {loading ? (
 <div className="loading-state">
 <Calendar size={32} className="spinning" />
@@ -314,7 +271,7 @@ Valida Utilizzo
 <p>Nessuna membership attiva</p>
 </div>
 ) : (
-<div className="subscriptions-list">
+<div className="subscriptions-list" style={{ padding: '0 2rem' }}>
 {subscriptions.map(sub => (
 <div key={sub.id} className="subscription-card">
 <div className="sub-card-header">
@@ -346,163 +303,8 @@ Valida Utilizzo
 )}
 </div>
 </div>
-</>
-)}
 
-{/* Modal 2: Template Personalizzati */}
-{showTemplatesModal && (
-<>
-<div className="subscriptions-modal-overlay" onClick={() => setShowTemplatesModal(false)} />
-<div className="subscriptions-modal">
-<div className="subscriptions-modal-header">
-<h2>Template Personalizzati</h2>
-<button onClick={() => setShowTemplatesModal(false)} className="modal-close-btn">
-<X size={24} />
-</button>
-</div>
-
-<div className="subscriptions-modal-actions">
-<button
-className="modal-action-btn modal-action-btn-primary"
-onClick={() => {
-setShowTemplatesModal(false);
-setShowCreateTemplateModal(true);
-}}
->
-<Plus size={20} />
-Crea Nuovo Template
-</button>
-</div>
-
-<div className="subscriptions-modal-content">
-<h3>Template Disponibili</h3>
-{loading ? (
-<div className="loading-state">
-<Calendar size={32} className="spinning" />
-<p>Caricamento...</p>
-</div>
-) : templates.length === 0 ? (
-<div className="empty-state">
-<Package size={48} style={{ opacity: 0.3 }} />
-<p>Nessun template disponibile</p>
-</div>
-) : (
-<div className="templates-list">
-{templates.map(template => (
-<div key={template.id} className="template-card">
-<div className="template-card-header">
-<h3>{template.name}</h3>
-<span className="template-price">
-{formatCurrency(template.price)}
-</span>
-</div>
-<p className="template-description">
-{template.description}
-</p>
-<div className="template-details">
-<div className="template-detail-item">
-<Calendar size={16} />
-<span>{template.duration_value} {template.duration_type}</span>
-</div>
-{template.daily_limit && (
-<div className="template-detail-item">
-<TrendingUp size={16} />
-<span>{template.daily_limit}/giorno</span>
-</div>
-)}
-</div>
-</div>
-))}
-</div>
-)}
-</div>
-</div>
-</>
-)}
-
-{/* Modal 3: Statistiche */}
-{showStatsModal && (
-<>
-<div className="subscriptions-modal-overlay" onClick={() => setShowStatsModal(false)} />
-<div className="subscriptions-modal">
-<div className="subscriptions-modal-header">
-<h2>Statistiche</h2>
-<button onClick={() => setShowStatsModal(false)} className="modal-close-btn">
-<X size={24} />
-</button>
-</div>
-
-<div className="subscriptions-modal-content">
-<div className="stats-view">
-<div className="stats-grid">
-<div className="stat-card">
-<div className="stat-card-icon active">
-<Users size={24} />
-</div>
-<div className="stat-card-content">
-<div className="stat-card-value">{stats.total_active}</div>
-<div className="stat-card-label">Membership Attive</div>
-</div>
-</div>
-
-<div className="stat-card">
-<div className="stat-card-icon revenue">
-<Euro size={24} />
-</div>
-<div className="stat-card-content">
-<div className="stat-card-value">{formatCurrency(stats.total_revenue)}</div>
-<div className="stat-card-label">Ricavi Totali</div>
-</div>
-</div>
-
-<div className="stat-card">
-<div className="stat-card-icon usage">
-<TrendingUp size={24} />
-</div>
-<div className="stat-card-content">
-<div className="stat-card-value">{stats.total_usages}</div>
-<div className="stat-card-label">Utilizzi Totali</div>
-</div>
-</div>
-
-<div className="stat-card">
-<div className="stat-card-icon expiring">
-<Calendar size={24} />
-</div>
-<div className="stat-card-content">
-<div className="stat-card-value">{stats.expiring_soon}</div>
-<div className="stat-card-label">In Scadenza (7gg)</div>
-</div>
-</div>
-</div>
-
-<div className="stats-details">
-<div className="stats-detail-row">
-<span>Valore Medio Abbonamento:</span>
-<span className="stats-detail-value">
-{formatCurrency(stats.avg_subscription_value)}
-</span>
-</div>
-<div className="stats-detail-row">
-<span>In Pausa:</span>
-<span className="stats-detail-value">{stats.total_paused}</span>
-</div>
-<div className="stats-detail-row">
-<span>Scaduti:</span>
-<span className="stats-detail-value">{stats.total_expired}</span>
-</div>
-<div className="stats-detail-row">
-<span>Annullati:</span>
-<span className="stats-detail-value">{stats.total_cancelled}</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</>
-)}
-
-{/* Sub-Modals */}
+{/* Modals */}
 <SellSubscriptionModal
 isOpen={showSellSubscriptionModal}
 onClose={() => setShowSellSubscriptionModal(false)}
