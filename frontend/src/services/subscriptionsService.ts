@@ -1232,10 +1232,25 @@ class SubscriptionsService {
    */
   private async resetDailyUsageIfNeeded(subscription: CustomerSubscription) {
     const now = new Date();
-    const lastReset = new Date(subscription.last_usage_reset_at);
+    const lastReset = subscription.last_usage_reset_at
+      ? new Date(subscription.last_usage_reset_at)
+      : new Date(0); // If null, use epoch so it always resets
+
+    // Compare dates ignoring time
+    const nowDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const lastResetDate = lastReset.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    console.log('🔄 [DAILY RESET CHECK]', {
+      subscription_code: subscription.subscription_code,
+      nowDate,
+      lastResetDate,
+      needsReset: nowDate !== lastResetDate,
+      current_daily_usage: subscription.daily_usage_count
+    });
 
     // Check if it's a new day
-    if (now.toDateString() !== lastReset.toDateString()) {
+    if (nowDate !== lastResetDate) {
+      console.log('✅ [DAILY RESET] Resetting daily usage count to 0');
       await supabase
         .from('customer_subscriptions')
         .update({
@@ -1243,6 +1258,8 @@ class SubscriptionsService {
           last_usage_reset_at: now.toISOString()
         })
         .eq('id', subscription.id);
+    } else {
+      console.log('ℹ️ [DAILY RESET] No reset needed, same day');
     }
   }
 
