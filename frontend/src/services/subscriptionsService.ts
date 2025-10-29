@@ -522,34 +522,58 @@ class SubscriptionsService {
     request: ValidateSubscriptionRequest
   ): Promise<SubscriptionValidationResult> {
     try {
-      console.log('🔍 Validating subscription:', request.subscription_code);
+      console.log('🎯 ============ SUBSCRIPTION VALIDATION STARTED ============');
+      console.log('🎯 Request:', {
+        subscription_code: request.subscription_code,
+        organization_id: request.organization_id,
+        item_name: request.item_name,
+        item_category: request.item_category,
+        item_price: request.item_price
+      });
 
       // Get subscription with template
+      console.log('📥 Fetching subscription by code:', request.subscription_code);
       const subscription = await this.getSubscriptionByCode(request.subscription_code);
       const template = subscription.template as SubscriptionTemplate;
+      console.log('📥 Subscription fetched:', {
+        id: subscription.id,
+        code: subscription.subscription_code,
+        status: subscription.status,
+        start_date: subscription.start_date,
+        end_date: subscription.end_date,
+        template_name: template?.name
+      });
 
       // Check basic validity
+      console.log('🔍 Running basic validity check (status + expiry)...');
       const validityCheck = await this.checkSubscriptionValidity(subscription);
       if (!validityCheck.is_valid) {
+        console.log('❌ Basic validity check FAILED:', validityCheck.reason);
         return {
           is_valid: false,
           reason: validityCheck.reason,
           subscription
         };
       }
+      console.log('✅ Basic validity check PASSED');
 
       // Reset daily usage if needed
+      console.log('🔄 Checking daily usage reset...');
       await this.resetDailyUsageIfNeeded(subscription);
 
       // Reset weekly usage if needed
+      console.log('🔄 Checking weekly usage reset...');
       await this.resetWeeklyUsageIfNeeded(subscription);
 
       // Reload subscription after potential reset
+      console.log('🔄 Reloading subscription after usage resets...');
       const updatedSubscription = await this.getSubscription(subscription.id);
 
       // Check limits
+      console.log('🔍 Running usage limits check...');
       const limitsCheck = this.checkUsageLimits(updatedSubscription, template);
       if (!limitsCheck.is_valid) {
+        console.log('❌ Usage limits check FAILED:', limitsCheck.reason);
         return {
           is_valid: false,
           reason: limitsCheck.reason,
@@ -557,15 +581,18 @@ class SubscriptionsService {
           template
         };
       }
+      console.log('✅ Usage limits check PASSED');
 
       // Check item/category restrictions if provided
       if (request.item_name && request.item_category) {
+        console.log('🔍 Running item/category restrictions check...');
         const itemCheck = this.checkItemRestrictions(
           template,
           request.item_category,
           request.item_price
         );
         if (!itemCheck.is_valid) {
+          console.log('❌ Item/category restrictions check FAILED:', itemCheck.reason);
           return {
             is_valid: false,
             reason: itemCheck.reason,
@@ -573,11 +600,14 @@ class SubscriptionsService {
             template
           };
         }
+        console.log('✅ Item/category restrictions check PASSED');
       }
 
       // Check time restrictions
+      console.log('🔍 Running time restrictions check...');
       const timeCheck = this.checkTimeRestrictions(template);
       if (!timeCheck.is_valid) {
+        console.log('❌ Time restrictions check FAILED:', timeCheck.reason);
         return {
           is_valid: false,
           reason: timeCheck.reason,
@@ -585,11 +615,14 @@ class SubscriptionsService {
           template
         };
       }
+      console.log('✅ Time restrictions check PASSED');
 
       // Calculate remaining uses
       const remaining = this.calculateRemainingUses(updatedSubscription, template);
 
-      console.log('✅ Subscription valid:', request.subscription_code);
+      console.log('✅ ============ SUBSCRIPTION VALIDATION COMPLETED SUCCESSFULLY ============');
+      console.log('✅ Subscription code:', request.subscription_code);
+      console.log('✅ Remaining uses:', remaining);
 
       return {
         is_valid: true,
@@ -598,7 +631,10 @@ class SubscriptionsService {
         remaining_uses: remaining
       };
     } catch (error: any) {
+      console.error('❌ ============ SUBSCRIPTION VALIDATION ERROR ============');
       console.error('❌ Error validating subscription:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
       return {
         is_valid: false,
         reason: error.message || 'Validation failed'
@@ -995,18 +1031,54 @@ class SubscriptionsService {
   private async checkSubscriptionValidity(
     subscription: CustomerSubscription
   ): Promise<{ is_valid: boolean; reason?: string }> {
+    console.log('🔍 [SUBSCRIPTION VALIDATION] Starting validation check', {
+      subscription_code: subscription.subscription_code,
+      subscription_id: subscription.id,
+      status: subscription.status,
+      start_date_raw: subscription.start_date,
+      end_date_raw: subscription.end_date
+    });
+
     // Check status
     if (subscription.status !== 'active') {
+      console.log('❌ [SUBSCRIPTION VALIDATION] Status check failed', {
+        subscription_code: subscription.subscription_code,
+        current_status: subscription.status,
+        required_status: 'active'
+      });
       return {
         is_valid: false,
         reason: `Abbonamento ${subscription.status === 'paused' ? 'in pausa' : subscription.status}`
       };
     }
 
+    console.log('✅ [SUBSCRIPTION VALIDATION] Status check passed (active)');
+
     // Check expiry
     const now = new Date();
     const endDate = new Date(subscription.end_date);
+
+    console.log('🕐 [SUBSCRIPTION VALIDATION] Date comparison', {
+      subscription_code: subscription.subscription_code,
+      now_iso: now.toISOString(),
+      now_local: now.toLocaleString('it-IT'),
+      now_timestamp: now.getTime(),
+      end_date_iso: endDate.toISOString(),
+      end_date_local: endDate.toLocaleString('it-IT'),
+      end_date_timestamp: endDate.getTime(),
+      difference_ms: endDate.getTime() - now.getTime(),
+      difference_hours: (endDate.getTime() - now.getTime()) / (1000 * 60 * 60),
+      difference_days: (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      is_expired: endDate < now
+    });
+
     if (endDate < now) {
+      console.log('❌ [SUBSCRIPTION VALIDATION] Expiry check failed - subscription expired', {
+        subscription_code: subscription.subscription_code,
+        end_date: endDate.toISOString(),
+        now: now.toISOString()
+      });
+
       // Mark as expired
       await supabase
         .from('customer_subscriptions')
@@ -1018,6 +1090,8 @@ class SubscriptionsService {
         reason: `Abbonamento scaduto il ${endDate.toLocaleDateString('it-IT')}`
       };
     }
+
+    console.log('✅ [SUBSCRIPTION VALIDATION] Expiry check passed - subscription is still valid');
 
     return { is_valid: true };
   }
