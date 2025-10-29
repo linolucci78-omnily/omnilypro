@@ -668,7 +668,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
           {step === 'invalid' && (
             <div className="validation-result invalid">
               <div className="result-icon error">
-                <AlertCircle size={64} />
+                <AlertCircle size={48} />
               </div>
 
               <h3>Membership Non Valida</h3>
