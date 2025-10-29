@@ -463,6 +463,23 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
 
                   <button
                     className="btn-validate"
+                    onClick={() => {
+                      if ((window as any).OmnilyPOS?.scanQRCode) {
+                        (window as any).OmnilyPOS.scanQRCode((code: string) => {
+                          setSubscriptionCode(code.toUpperCase());
+                          validateSubscription(code.toUpperCase());
+                        });
+                      }
+                    }}
+                    disabled={loading}
+                    style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', marginBottom: '0.5rem' }}
+                  >
+                    <QrCode size={20} />
+                    Scansiona QR Code
+                  </button>
+
+                  <button
+                    className="btn-validate"
                     onClick={handleReadNFC}
                     disabled={loading}
                     style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
@@ -673,7 +690,10 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
                 <AlertTriangle size={48} />
               </div>
 
-              <h3>Membership Non Valida</h3>
+              <h3>
+                Membership Non Valida
+                {subscription?.customer?.name && ` - ${subscription.customer.name}`}
+              </h3>
 
               <div className="error-details">
                 <p className="error-reason">
