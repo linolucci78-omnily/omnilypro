@@ -203,8 +203,8 @@
 }
 
 .result-icon {
-  width: 80px;
-  height: 80px;
+  width: auto;
+  height: auto;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -218,7 +218,8 @@
 }
 
 .result-icon.error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: transparent;
+  color: #ef4444;
 }
 
 @keyframes resultPop {
