@@ -83,6 +83,7 @@ const SubscriptionsPanel: React.FC<SubscriptionsPanelProps> = ({
   useEffect(() => {
     if (isOpen && effectiveOrgId) {
       loadData();
+      loadStats(); // Always load stats for the Quick Stats section
     }
   }, [isOpen, effectiveOrgId, activeTab]);
 
