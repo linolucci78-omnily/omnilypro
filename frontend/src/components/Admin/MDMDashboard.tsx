@@ -403,11 +403,14 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      const qrDataString = JSON.stringify(setupData)
-      setQrCodeData(qrDataString)
+      // 4. Generate full URL with encoded data for QR code
+      const encodedData = encodeURIComponent(JSON.stringify(setupData))
+      const setupFullUrl = `${window.location.origin}/device-setup?data=${encodedData}`
 
-      // 4. Generate QR code image
-      const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
+      setQrCodeData(setupFullUrl)
+
+      // 5. Generate QR code image with full URL
+      const qrCodeImageUrl = await QRCode.toDataURL(setupFullUrl, {
         width: 300,
         margin: 2,
         color: {
@@ -471,11 +474,14 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      const qrDataString = JSON.stringify(setupData)
-      setQrCodeData(qrDataString)
+      // 4. Generate full URL with encoded data for QR code
+      const encodedData = encodeURIComponent(JSON.stringify(setupData))
+      const setupFullUrl = `${window.location.origin}/device-setup?data=${encodedData}`
 
-      // 4. Generate QR code image
-      const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
+      setQrCodeData(setupFullUrl)
+
+      // 5. Generate QR code image with full URL
+      const qrCodeImageUrl = await QRCode.toDataURL(setupFullUrl, {
         width: 300,
         margin: 2,
         color: {
