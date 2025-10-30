@@ -32,7 +32,8 @@ import {
   Zap,
   Send,
   Map,
-  Grid
+  Grid,
+  Trash2
 } from 'lucide-react'
 import './AdminLayout.css'
 import './MDMDashboard.css'
@@ -229,6 +230,33 @@ const MDMDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error sending command:', error)
       showError('Errore invio comando')
+    }
+  }
+
+  const deleteDevice = async (deviceId: string) => {
+    try {
+      // Delete device commands first (foreign key constraint)
+      const { error: commandsError } = await supabase
+        .from('device_commands')
+        .delete()
+        .eq('device_id', deviceId)
+
+      if (commandsError) throw commandsError
+
+      // Delete the device
+      const { error: deviceError } = await supabase
+        .from('devices')
+        .delete()
+        .eq('id', deviceId)
+
+      if (deviceError) throw deviceError
+
+      showSuccess('Dispositivo eliminato con successo')
+      setSelectedDevice(null)
+      loadDevices() // Reload the device list
+    } catch (error) {
+      console.error('Error deleting device:', error)
+      showError('Errore durante l\'eliminazione del dispositivo')
     }
   }
 
@@ -1037,6 +1065,23 @@ const MDMDashboard: React.FC = () => {
                 >
                   <MapPin size={16} />
                   Localizza
+                </button>
+
+                <button
+                  className="action-btn danger"
+                  onClick={() => showConfirm(
+                    `Sei sicuro di voler eliminare il dispositivo "${selectedDevice.name}"? Questa azione è irreversibile e cancellerà anche tutti i comandi associati.`,
+                    () => deleteDevice(selectedDevice.id),
+                    {
+                      title: 'Elimina Dispositivo',
+                      confirmText: 'Elimina',
+                      type: 'danger'
+                    }
+                  )}
+                  style={{ marginTop: '12px', width: '100%' }}
+                >
+                  <Trash2 size={16} />
+                  Elimina Dispositivo
                 </button>
               </div>
             </div>
