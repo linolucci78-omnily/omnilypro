@@ -101,6 +101,9 @@ const MDMDashboard: React.FC = () => {
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showStoreConfigModal, setShowStoreConfigModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [formLoading, setFormLoading] = useState(false)
   const [qrCodeData, setQrCodeData] = useState('')
   const [qrCodeImage, setQrCodeImage] = useState('')
@@ -233,13 +236,28 @@ const MDMDashboard: React.FC = () => {
     }
   }
 
-  const deleteDevice = async (deviceId: string) => {
+  const confirmDeleteDevice = async () => {
+    if (!deviceToDelete) return
+
+    if (deleteConfirmText !== 'ELIMINA') {
+      showWarning('Digita "ELIMINA" per confermare')
+      return
+    }
+
     try {
-      // Delete device commands first (foreign key constraint)
+      // Delete setup tokens associated with this device
+      const { error: tokensError } = await supabase
+        .from('setup_tokens')
+        .delete()
+        .eq('device_id', deviceToDelete.id)
+
+      if (tokensError) throw tokensError
+
+      // Delete device commands (foreign key constraint)
       const { error: commandsError } = await supabase
         .from('device_commands')
         .delete()
-        .eq('device_id', deviceId)
+        .eq('device_id', deviceToDelete.id)
 
       if (commandsError) throw commandsError
 
@@ -247,12 +265,15 @@ const MDMDashboard: React.FC = () => {
       const { error: deviceError } = await supabase
         .from('devices')
         .delete()
-        .eq('id', deviceId)
+        .eq('id', deviceToDelete.id)
 
       if (deviceError) throw deviceError
 
-      showSuccess('Dispositivo eliminato con successo')
+      showSuccess('Dispositivo, token e comandi eliminati con successo')
       setSelectedDevice(null)
+      setShowDeleteModal(false)
+      setDeviceToDelete(null)
+      setDeleteConfirmText('')
       loadDevices() // Reload the device list
     } catch (error) {
       console.error('Error deleting device:', error)
@@ -1069,15 +1090,11 @@ const MDMDashboard: React.FC = () => {
 
                 <button
                   className="action-btn danger"
-                  onClick={() => showConfirm(
-                    `Sei sicuro di voler eliminare il dispositivo "${selectedDevice.name}"? Questa azione è irreversibile e cancellerà anche tutti i comandi associati.`,
-                    () => deleteDevice(selectedDevice.id),
-                    {
-                      title: 'Elimina Dispositivo',
-                      confirmText: 'Elimina',
-                      type: 'danger'
-                    }
-                  )}
+                  onClick={() => {
+                    setDeviceToDelete(selectedDevice)
+                    setShowDeleteModal(true)
+                    setDeleteConfirmText('')
+                  }}
                   style={{ marginTop: '12px', width: '100%' }}
                 >
                   <Trash2 size={16} />
@@ -1548,6 +1565,109 @@ const MDMDashboard: React.FC = () => {
       {/* Store Config Tab */}
       {activeTab === 'stores' && (
         <StoreConfigManager />
+      )}
+
+      {/* Delete Device Modal with Text Confirmation */}
+      {showDeleteModal && deviceToDelete && (
+        <div className="device-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="device-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 style={{ color: '#dc2626' }}>⚠️ Elimina Dispositivo</h2>
+              <button
+                className="close-btn"
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setDeviceToDelete(null)
+                  setDeleteConfirmText('')
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-content" style={{ padding: '24px' }}>
+              <div style={{
+                background: '#fef2f2',
+                border: '2px solid #dc2626',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '20px'
+              }}>
+                <p style={{ fontWeight: 600, marginBottom: '12px', color: '#991b1b' }}>
+                  Stai per eliminare il dispositivo "{deviceToDelete.name}"
+                </p>
+                <p style={{ fontSize: '14px', marginBottom: '8px', color: '#7f1d1d' }}>
+                  Questa azione eliminerà permanentemente:
+                </p>
+                <ul style={{ fontSize: '14px', color: '#7f1d1d', paddingLeft: '20px', marginBottom: 0 }}>
+                  <li>Il dispositivo</li>
+                  <li>Tutti i token setup associati</li>
+                  <li>Tutti i comandi associati</li>
+                </ul>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  marginBottom: '8px',
+                  color: '#374151'
+                }}>
+                  Digita <span style={{ color: '#dc2626', fontFamily: 'monospace' }}>ELIMINA</span> per confermare:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                  placeholder="ELIMINA"
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    border: '2px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontFamily: 'monospace',
+                    letterSpacing: '2px'
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && deleteConfirmText === 'ELIMINA') {
+                      confirmDeleteDevice()
+                    }
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setDeviceToDelete(null)
+                    setDeleteConfirmText('')
+                  }}
+                  className="action-btn secondary"
+                  style={{ flex: 1 }}
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={confirmDeleteDevice}
+                  disabled={deleteConfirmText !== 'ELIMINA'}
+                  className="action-btn danger"
+                  style={{
+                    flex: 1,
+                    opacity: deleteConfirmText === 'ELIMINA' ? 1 : 0.5,
+                    cursor: deleteConfirmText === 'ELIMINA' ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  <Trash2 size={16} />
+                  Elimina Tutto
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Toast Notifications */}
