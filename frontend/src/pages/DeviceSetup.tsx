@@ -129,7 +129,13 @@ const DeviceSetup: React.FC = () => {
             className="omnily-logo"
           />
         </div>
-        <Smartphone size={48} />
+        <div className="device-image-container">
+          <img
+            src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/logos/ZCS108.png"
+            alt="ZCS108 POS Device"
+            className="device-image"
+          />
+        </div>
         <h1>Setup Dispositivo POS</h1>
         <p className="subtitle">Configurazione guidata per {setupConfig.deviceName}</p>
       </div>
