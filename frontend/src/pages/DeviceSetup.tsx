@@ -321,29 +321,18 @@ const DeviceSetup: React.FC = () => {
                 <li>Attendi il completamento dell'installazione</li>
               </ol>
 
-              <h4>2. Prima Apertura</h4>
+              <h4>2. Primo Avvio</h4>
               <ol>
-                <li>Apri l'app <strong>OMNILY POS</strong></li>
-                <li>L'app si connetterà automaticamente al server</li>
-                <li>Vedrai un messaggio di registrazione dispositivo</li>
-                <li>Attendi 30 secondi per la sincronizzazione</li>
+                <li>Apri l'app <strong>OMNILY</strong> dal menu</li>
+                <li>Attendi qualche secondo mentre si avvia</li>
+                <li>Fatto! Sei pronto per iniziare</li>
               </ol>
-
-              <h4>3. Verifica Registrazione</h4>
-              <p>
-                Dopo l'apertura, il dispositivo apparirà automaticamente
-                nell'<strong>Admin Dashboard MDM</strong> con il nome:
-              </p>
-              <div className="device-name-display">
-                {setupConfig.deviceName}
-              </div>
             </div>
 
             <div className="warning-box">
               <AlertCircle size={20} />
               <div>
-                <strong>Importante:</strong> Non chiudere l'app durante la prima sincronizzazione.
-                Il processo richiede circa 30 secondi.
+                <strong>Nota:</strong> Al primo avvio attendi qualche secondo. Non chiudere l'app!
               </div>
             </div>
 
@@ -370,8 +359,8 @@ const DeviceSetup: React.FC = () => {
           <div className="step-content">
             <div className="success-state">
               <CheckCircle size={64} color="#10b981" />
-              <h2>Setup Completato!</h2>
-              <p>Il dispositivo <strong>{setupConfig.deviceName}</strong> è stato configurato con successo.</p>
+              <h2>Tutto Pronto!</h2>
+              <p>Il POS è configurato e pronto all'uso.</p>
             </div>
 
             <div className="next-steps">
@@ -380,44 +369,33 @@ const DeviceSetup: React.FC = () => {
                 <div className="next-step-item">
                   <div className="step-icon">1</div>
                   <div>
-                    <h4>Verifica nell'Admin Dashboard</h4>
-                    <p>Il dispositivo dovrebbe ora apparire nella lista MDM</p>
+                    <h4>Inizia ad Usare il POS</h4>
+                    <p>Il dispositivo è pronto per processare transazioni</p>
                   </div>
                 </div>
                 <div className="next-step-item">
                   <div className="step-icon">2</div>
                   <div>
-                    <h4>Configura Kiosk Mode</h4>
-                    <p>Dall'admin dashboard, attiva il Kiosk Mode per bloccare il dispositivo</p>
+                    <h4>Testa la Stampante</h4>
+                    <p>Verifica che gli scontrini vengano stampati correttamente</p>
                   </div>
                 </div>
                 <div className="next-step-item">
                   <div className="step-icon">3</div>
                   <div>
-                    <h4>Assegna Template Stampa</h4>
-                    <p>Se necessario, configura i template di stampa per questo POS</p>
+                    <h4>Contatta l'Assistenza</h4>
+                    <p>Per qualsiasi problema o domanda sul funzionamento</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="config-export">
-              <h4>Configurazione Dispositivo</h4>
-              <button onClick={copyConfig} className="btn-secondary">
-                Copia Configurazione
-              </button>
-              <details>
-                <summary>Mostra dettagli</summary>
-                <pre>{JSON.stringify(setupConfig, null, 2)}</pre>
-              </details>
-            </div>
-
             <div className="actions">
               <button
-                onClick={() => navigate('/admin/mdm')}
+                onClick={() => window.close()}
                 className="btn-primary"
               >
-                Vai all'Admin Dashboard
+                Chiudi e Inizia
               </button>
             </div>
           </div>
