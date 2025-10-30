@@ -145,16 +145,48 @@ const TokenSetupViewer: React.FC = () => {
 
   const handleDeleteToken = async (tokenId: string) => {
     showConfirm(
-      'Sei sicuro di voler eliminare questo token? Questa azione non può essere annullata.',
+      'Sei sicuro di voler eliminare questo token? Se è associato a un dispositivo, verrà eliminato anche il dispositivo e tutti i suoi comandi. Questa azione non può essere annullata.',
       async () => {
         try {
+          // Get token to check if it has an associated device
+          const { data: tokenData } = await supabase
+            .from('setup_tokens')
+            .select('device_id')
+            .eq('id', tokenId)
+            .single()
+
+          // If there's an associated device, delete it first (and its commands via cascade)
+          if (tokenData?.device_id) {
+            // Delete device commands first (foreign key constraint)
+            const { error: commandsError } = await supabase
+              .from('device_commands')
+              .delete()
+              .eq('device_id', tokenData.device_id)
+
+            if (commandsError) throw commandsError
+
+            // Delete the device
+            const { error: deviceError } = await supabase
+              .from('devices')
+              .delete()
+              .eq('id', tokenData.device_id)
+
+            if (deviceError) throw deviceError
+          }
+
+          // Delete the token
           const { error } = await supabase
             .from('setup_tokens')
             .delete()
             .eq('id', tokenId)
 
           if (error) throw error
-          showSuccess('Token eliminato con successo')
+
+          if (tokenData?.device_id) {
+            showSuccess('Token e dispositivo associato eliminati con successo')
+          } else {
+            showSuccess('Token eliminato con successo')
+          }
           loadTokens()
         } catch (error) {
           console.error('Error deleting token:', error)
@@ -162,7 +194,7 @@ const TokenSetupViewer: React.FC = () => {
         }
       },
       {
-        title: 'Elimina Token',
+        title: 'Elimina Token e Dispositivo',
         confirmText: 'Elimina',
         type: 'danger'
       }
