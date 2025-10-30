@@ -453,10 +453,10 @@ const MDMDashboard: React.FC = () => {
       }
 
       // 4. Create provisioning JSON with token data (direct JSON in QR, not URL)
-      // Using PACKAGE_CHECKSUM (not SIGNATURE) for custom APK download (Samsung Knox format)
+      // Using PACKAGE_CHECKSUM in base64url format (Samsung Knox spec)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "78b272efc9b0e75a32ef01966ee1f29c622ccb8bd97d0531c166b559cf918e4e",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "eLJy78mw51oy7wGWbuHynGIsy4vZfQUxwWa1Wc-Rjk4",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
@@ -543,10 +543,10 @@ const MDMDashboard: React.FC = () => {
       }
 
       // 4. Create provisioning JSON with token data (direct JSON in QR, not URL)
-      // Using PACKAGE_CHECKSUM (not SIGNATURE) for custom APK download (Samsung Knox format)
+      // Using PACKAGE_CHECKSUM in base64url format (Samsung Knox spec)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "78b272efc9b0e75a32ef01966ee1f29c622ccb8bd97d0531c166b559cf918e4e",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "eLJy78mw51oy7wGWbuHynGIsy4vZfQUxwWa1Wc-Rjk4",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
