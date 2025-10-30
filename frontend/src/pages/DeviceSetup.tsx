@@ -41,7 +41,17 @@ const DeviceSetup: React.FC = () => {
 
       if (qrData) {
         try {
-          const config = JSON.parse(decodeURIComponent(qrData))
+          // Parse the config - searchParams.get() already decodes URI components
+          let config
+          try {
+            // Try direct parse first (already decoded by searchParams)
+            config = JSON.parse(qrData)
+          } catch (e) {
+            // Fallback: try with decodeURIComponent for legacy QR codes
+            config = JSON.parse(decodeURIComponent(qrData))
+          }
+
+          console.log('📦 Setup config loaded:', config)
 
           // Validate security token if present
           if (config.security?.setupToken) {
