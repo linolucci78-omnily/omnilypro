@@ -20,4 +20,6 @@ local.properties
 
 # Other
 .DS_Store
-capture_temp/
+capture_temp/android-bridge-backup-*.tar.gz
+provisioning-template.json
+upload-backup-to-supabase.js

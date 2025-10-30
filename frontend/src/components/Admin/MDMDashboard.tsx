@@ -452,13 +452,17 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate simple URL with only token (much smaller QR code!)
-      const setupFullUrl = `${window.location.origin}/device-setup?token=${setupToken}`
+      // 4. Generate deep link for Bridge app (direct app opening)
+      // Format: omnily://setup?token=xxx
+      const deepLink = `omnily://setup?token=${setupToken}`
 
-      setQrCodeData(setupFullUrl)
+      // Also save web fallback URL for manual access
+      const webFallback = `${window.location.origin}/device-setup?token=${setupToken}`
 
-      // 5. Generate QR code image with simple URL
-      const qrCodeImageUrl = await QRCode.toDataURL(setupFullUrl, {
+      setQrCodeData(deepLink)
+
+      // 5. Generate QR code image with deep link
+      const qrCodeImageUrl = await QRCode.toDataURL(deepLink, {
         width: 300,
         margin: 2,
         errorCorrectionLevel: 'M',
@@ -467,6 +471,9 @@ const MDMDashboard: React.FC = () => {
           light: '#FFFFFF'
         }
       })
+
+      console.log('🔗 Deep link generated:', deepLink)
+      console.log('🌐 Web fallback:', webFallback)
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
@@ -523,13 +530,17 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate simple URL with only token (much smaller QR code!)
-      const setupFullUrl = `${window.location.origin}/device-setup?token=${setupToken}`
+      // 4. Generate deep link for Bridge app (direct app opening)
+      // Format: omnily://setup?token=xxx
+      const deepLink = `omnily://setup?token=${setupToken}`
 
-      setQrCodeData(setupFullUrl)
+      // Also save web fallback URL for manual access
+      const webFallback = `${window.location.origin}/device-setup?token=${setupToken}`
 
-      // 5. Generate QR code image with simple URL
-      const qrCodeImageUrl = await QRCode.toDataURL(setupFullUrl, {
+      setQrCodeData(deepLink)
+
+      // 5. Generate QR code image with deep link
+      const qrCodeImageUrl = await QRCode.toDataURL(deepLink, {
         width: 300,
         margin: 2,
         errorCorrectionLevel: 'M',
@@ -538,6 +549,9 @@ const MDMDashboard: React.FC = () => {
           light: '#FFFFFF'
         }
       })
+
+      console.log('🔗 Deep link generated:', deepLink)
+      console.log('🌐 Web fallback:', webFallback)
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)

@@ -134,6 +134,10 @@ public class MainActivityFinal extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "Activity Created");
         showSplashScreen();
+
+        // Check if opened via deep link (omnily://setup?token=xxx)
+        handleDeepLink(getIntent());
+
         checkAndRequestPermissions();
     }
 
@@ -305,7 +309,157 @@ public class MainActivityFinal extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLink(intent);
         handleNfcIntent(intent);
+    }
+
+    /**
+     * Handle deep link from QR code setup (omnily://setup?token=xxx)
+     */
+    private void handleDeepLink(Intent intent) {
+        if (intent == null || intent.getData() == null) {
+            return;
+        }
+
+        android.net.Uri data = intent.getData();
+        String scheme = data.getScheme();
+        String host = data.getHost();
+
+        Log.d(TAG, "Deep link received - scheme: " + scheme + ", host: " + host + ", data: " + data.toString());
+
+        // Check if it's our setup deep link (omnily://setup?token=xxx)
+        if ("omnily".equals(scheme) && "setup".equals(host)) {
+            String token = data.getQueryParameter("token");
+            if (token != null && !token.isEmpty()) {
+                Log.i(TAG, "Setup token received from QR code: " + token);
+                Toast.makeText(this, "Configurazione in corso...", Toast.LENGTH_LONG).show();
+                processSetupToken(token);
+            } else {
+                Log.w(TAG, "Setup deep link without token");
+                Toast.makeText(this, "QR Code non valido: token mancante", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    /**
+     * Process setup token by fetching configuration from Supabase
+     */
+    private void processSetupToken(final String token) {
+        new Thread(() -> {
+            try {
+                Log.i(TAG, "Fetching setup configuration from Supabase with token: " + token);
+
+                // Use Supabase REST API directly
+                String supabaseUrl = "https://sjvatdnvewohvswfrdiv.supabase.co";
+                String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZ2c3dyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjI4OTEsImV4cCI6MjA0OTEzODg5MX0.xnHZ1JVEgHlN5nh0pJVjOpgTKjvWCjqzr_VK4Mxh_Cw";
+
+                // APK URL on Supabase Storage
+                String apkUrl = "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk";
+
+                // Query setup_tokens table
+                String apiUrl = supabaseUrl + "/rest/v1/setup_tokens?token=eq." + token + "&used=eq.false&select=*";
+                java.net.URL url = new java.net.URL(apiUrl);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("apikey", supabaseKey);
+                conn.setRequestProperty("Authorization", "Bearer " + supabaseKey);
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    // Read response
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(conn.getInputStream())
+                    );
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+
+                    // Parse JSON array response
+                    org.json.JSONArray jsonArray = new org.json.JSONArray(response.toString());
+
+                    if (jsonArray.length() > 0) {
+                        JSONObject tokenData = jsonArray.getJSONObject(0);
+
+                        // Check if token is expired
+                        String expiresAt = tokenData.optString("expires_at");
+                        long expiresTimestamp = java.text.DateFormat.getDateTimeInstance().parse(expiresAt).getTime();
+                        long now = System.currentTimeMillis();
+
+                        if (now > expiresTimestamp) {
+                            showSetupError("Token scaduto. Richiedi un nuovo QR Code.");
+                            return;
+                        }
+
+                        // Get setup data
+                        JSONObject setupData = tokenData.getJSONObject("setup_data");
+                        applySetupConfiguration(setupData);
+                    } else {
+                        showSetupError("Token non trovato o già utilizzato");
+                    }
+                } else {
+                    showSetupError("Errore di connessione (Code: " + responseCode + ")");
+                }
+
+                conn.disconnect();
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing setup token", e);
+                showSetupError("Errore: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /**
+     * Apply setup configuration received from server
+     */
+    private void applySetupConfiguration(JSONObject setupData) {
+        runOnUiThread(() -> {
+            try {
+                String deviceName = setupData.optString("deviceName", "POS Device");
+                String organizationId = setupData.optString("organizationId");
+                String storeLocation = setupData.optString("storeLocation");
+
+                Log.i(TAG, "Applying setup configuration:");
+                Log.i(TAG, "  Device Name: " + deviceName);
+                Log.i(TAG, "  Organization ID: " + organizationId);
+                Log.i(TAG, "  Store Location: " + storeLocation);
+
+                // Save configuration to SharedPreferences
+                android.content.SharedPreferences prefs = getSharedPreferences("OmnilyPOS", MODE_PRIVATE);
+                prefs.edit()
+                    .putString("device_name", deviceName)
+                    .putString("organization_id", organizationId)
+                    .putString("store_location", storeLocation)
+                    .putBoolean("setup_completed", true)
+                    .apply();
+
+                Toast.makeText(this,
+                    "✅ Configurazione completata!\n" +
+                    "Dispositivo: " + deviceName + "\n" +
+                    "Negozio: " + storeLocation,
+                    Toast.LENGTH_LONG).show();
+
+                Log.i(TAG, "Setup configuration applied successfully");
+            } catch (Exception e) {
+                Log.e(TAG, "Error applying setup configuration", e);
+                showSetupError("Errore nell'applicazione della configurazione");
+            }
+        });
+    }
+
+    /**
+     * Show setup error message
+     */
+    private void showSetupError(final String error) {
+        runOnUiThread(() -> {
+            Toast.makeText(this, "❌ Setup Error: " + error, Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Setup error: " + error);
+        });
     }
 
     private void handleNfcIntent(Intent intent) {

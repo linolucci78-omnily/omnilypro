@@ -108,15 +108,43 @@ const TokenSetupViewer: React.FC = () => {
 
   const handleGenerateQR = async (token: SetupToken) => {
     try {
-      const qrDataString = JSON.stringify({
-        token: token.token,
-        setupUrl: `${window.location.origin}/device-setup`,
-        ...token.setup_data
-      })
+      // Generate provisioning JSON URL
+      const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${token.token}.json`
 
-      const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
+      // Create provisioning JSON with token data
+      const provisioningData = {
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "78b272efc9b0e75a32ef01966ee1f29c622ccb8bd97d0531c166b559cf918e4e",
+        "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
+        "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
+        "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
+          "setup_token": token.token,
+          ...token.setup_data
+        }
+      }
+
+      // Upload provisioning JSON to Supabase
+      const jsonBlob = new Blob([JSON.stringify(provisioningData, null, 2)], { type: 'application/json' })
+      const fileName = `setup-${token.token}.json`
+
+      const { error: uploadError } = await supabase.storage
+        .from('provisioning')
+        .upload(fileName, jsonBlob, {
+          contentType: 'application/json',
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw new Error('Errore nel caricamento del file di provisioning')
+      }
+
+      // Generate QR code with provisioning URL
+      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonUrl, {
         width: 400,
         margin: 2,
+        errorCorrectionLevel: 'H',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -126,9 +154,11 @@ const TokenSetupViewer: React.FC = () => {
       setQrCodeImage(qrCodeImageUrl)
       setSelectedToken(token)
       setShowQRModal(true)
+
+      console.log('✅ QR Code di provisioning generato:', provisioningJsonUrl)
     } catch (error) {
-      console.error('Error generating QR code:', error)
-      showError('Errore nella generazione del QR Code')
+      console.error('Error generating provisioning QR code:', error)
+      showError('Errore nella generazione del QR Code di provisioning')
     }
   }
 

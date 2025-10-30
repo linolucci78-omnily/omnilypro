@@ -3,6 +3,8 @@ package com.omnilypro.pos.mdm;
 import android.app.admin.DeviceAdminReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.PersistableBundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -42,5 +44,49 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
     public void onLockTaskModeExiting(@NonNull Context context, @NonNull Intent intent) {
         super.onLockTaskModeExiting(context, intent);
         Log.i(TAG, "🔓 Exiting Lock Task Mode (Kiosk)");
+    }
+
+    @Override
+    public void onProfileProvisioningComplete(@NonNull Context context, @NonNull Intent intent) {
+        super.onProfileProvisioningComplete(context, intent);
+        Log.i(TAG, "✅ Provisioning completato! Ricevuti dati di setup...");
+
+        // Ricevi i dati extra dal provisioning JSON
+        PersistableBundle extras = intent.getParcelableExtra("android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE");
+
+        if (extras != null) {
+            String setupToken = extras.getString("setup_token");
+            String deviceName = extras.getString("device_name", "POS Device");
+            String organizationId = extras.getString("organization_id", "");
+            String storeLocation = extras.getString("store_location", "");
+
+            Log.i(TAG, "📦 Setup Token: " + setupToken);
+            Log.i(TAG, "📱 Device Name: " + deviceName);
+            Log.i(TAG, "🏢 Organization ID: " + organizationId);
+            Log.i(TAG, "📍 Store Location: " + storeLocation);
+
+            // Salva i dati nelle SharedPreferences
+            SharedPreferences prefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+            prefs.edit()
+                .putString("setup_token", setupToken)
+                .putString("device_name", deviceName)
+                .putString("organization_id", organizationId)
+                .putString("store_location", storeLocation)
+                .putBoolean("setup_completed", true)
+                .putBoolean("provisioned_via_qr", true)
+                .apply();
+
+            Log.i(TAG, "✅ Dati di setup salvati con successo!");
+
+            // Avvia l'app principale
+            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(launchIntent);
+                Log.i(TAG, "🚀 App principale avviata!");
+            }
+        } else {
+            Log.w(TAG, "⚠️ Nessun dato extra ricevuto dal provisioning");
+        }
     }
 }
