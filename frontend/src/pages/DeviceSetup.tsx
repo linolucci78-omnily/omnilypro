@@ -36,24 +36,43 @@ const DeviceSetup: React.FC = () => {
 
   useEffect(() => {
     const validateAndSetupConfig = async () => {
-      // Try to parse setup data from QR code
+      // Get token from URL (new simplified method)
+      const token = searchParams.get('token')
+
+      // Fallback: try old method with embedded data
       const qrData = searchParams.get('data')
 
-      if (qrData) {
+      if (token) {
         try {
-          // Parse the config - searchParams.get() already decodes URI components
+          console.log('🔐 Validating setup token...')
+          const validation = await validateSetupToken(token)
+
+          if (!validation.valid) {
+            setError(validation.error || 'Token di sicurezza non valido')
+            return
+          }
+
+          console.log('✅ Token validated successfully')
+          console.log('📦 Setup config loaded:', validation.setupData)
+
+          // setupData comes from database
+          setSetupConfig(validation.setupData)
+        } catch (err) {
+          console.error('Error validating token:', err)
+          setError('Token non valido. Richiedi un nuovo QR Code all\'amministratore.')
+        }
+      } else if (qrData) {
+        // Legacy support for old QR codes with embedded data
+        try {
           let config
           try {
-            // Try direct parse first (already decoded by searchParams)
             config = JSON.parse(qrData)
           } catch (e) {
-            // Fallback: try with decodeURIComponent for legacy QR codes
             config = JSON.parse(decodeURIComponent(qrData))
           }
 
-          console.log('📦 Setup config loaded:', config)
+          console.log('📦 Setup config loaded (legacy):', config)
 
-          // Validate security token if present
           if (config.security?.setupToken) {
             console.log('🔐 Validating setup token...')
             const validation = await validateSetupToken(config.security.setupToken)
@@ -64,8 +83,6 @@ const DeviceSetup: React.FC = () => {
             }
 
             console.log('✅ Token validated successfully')
-          } else {
-            console.warn('⚠️ No security token found in QR code')
           }
 
           setSetupConfig(config)

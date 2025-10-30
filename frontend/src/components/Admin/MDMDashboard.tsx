@@ -431,16 +431,16 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate full URL with encoded data for QR code
-      const encodedData = encodeURIComponent(JSON.stringify(setupData))
-      const setupFullUrl = `${window.location.origin}/device-setup?data=${encodedData}`
+      // 4. Generate simple URL with only token (much smaller QR code!)
+      const setupFullUrl = `${window.location.origin}/device-setup?token=${setupToken}`
 
       setQrCodeData(setupFullUrl)
 
-      // 5. Generate QR code image with full URL
+      // 5. Generate QR code image with simple URL
       const qrCodeImageUrl = await QRCode.toDataURL(setupFullUrl, {
         width: 300,
         margin: 2,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -502,16 +502,16 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate full URL with encoded data for QR code
-      const encodedData = encodeURIComponent(JSON.stringify(setupData))
-      const setupFullUrl = `${window.location.origin}/device-setup?data=${encodedData}`
+      // 4. Generate simple URL with only token (much smaller QR code!)
+      const setupFullUrl = `${window.location.origin}/device-setup?token=${setupToken}`
 
       setQrCodeData(setupFullUrl)
 
-      // 5. Generate QR code image with full URL
+      // 5. Generate QR code image with simple URL
       const qrCodeImageUrl = await QRCode.toDataURL(setupFullUrl, {
         width: 300,
         margin: 2,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
