@@ -122,6 +122,13 @@ const DeviceSetup: React.FC = () => {
   return (
     <div className="device-setup-container">
       <div className="setup-header">
+        <div className="logo-container">
+          <img
+            src="/moneyomily.png"
+            alt="OMNILY"
+            className="omnily-logo"
+          />
+        </div>
         <Smartphone size={48} />
         <h1>Setup Dispositivo POS</h1>
         <p className="subtitle">Configurazione guidata per {setupConfig.deviceName}</p>
@@ -196,10 +203,10 @@ const DeviceSetup: React.FC = () => {
                 Abilita Fonti Sconosciute
               </h4>
               <ol>
-                <li>Apri <strong>Settings</strong></li>
-                <li>Vai su <strong>Security</strong></li>
-                <li>Attiva <strong>Unknown Sources</strong> o <strong>Install Unknown Apps</strong></li>
-                <li>Abilita per <strong>Browser</strong> o <strong>File Manager</strong></li>
+                <li>Apri <strong>Impostazioni</strong></li>
+                <li>Vai su <strong>Sicurezza</strong></li>
+                <li>Attiva <strong>Sorgenti Sconosciute</strong> o <strong>Installa App Sconosciute</strong></li>
+                <li>Abilita per <strong>Browser</strong> o <strong>Gestione File</strong></li>
               </ol>
             </div>
 
@@ -301,17 +308,17 @@ const DeviceSetup: React.FC = () => {
             <div className="instructions">
               <h4>1. Installa l'APK</h4>
               <ol>
-                <li>Apri <strong>File Manager</strong> o <strong>Downloads</strong></li>
+                <li>Apri <strong>Gestione File</strong> o <strong>Download</strong></li>
                 <li>Trova il file <strong>omnily-pos-latest.apk</strong></li>
                 <li>Tocca il file per avviare l'installazione</li>
                 <li>Conferma eventuali richieste di sicurezza</li>
-                <li>Attendi completamento installazione</li>
+                <li>Attendi il completamento dell'installazione</li>
               </ol>
 
               <h4>2. Prima Apertura</h4>
               <ol>
                 <li>Apri l'app <strong>OMNILY POS</strong></li>
-                <li>L'app si connetterà automaticamente al backend</li>
+                <li>L'app si connetterà automaticamente al server</li>
                 <li>Vedrai un messaggio di registrazione dispositivo</li>
                 <li>Attendi 30 secondi per la sincronizzazione</li>
               </ol>
