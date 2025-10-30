@@ -452,10 +452,7 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate provisioning JSON URL
-      const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${setupToken}.json`
-
-      // Create provisioning JSON with token data
+      // 4. Create provisioning JSON with token data (direct JSON in QR, not URL)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
@@ -464,40 +461,30 @@ const MDMDashboard: React.FC = () => {
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
           "setup_token": setupToken,
-          ...setupData
+          "device_name": deviceForm.name,
+          "organization_id": deviceForm.organization_id,
+          "store_location": deviceForm.store_location
         }
       }
 
-      // Upload provisioning JSON to Supabase
-      const jsonBlob = new Blob([JSON.stringify(provisioningData, null, 2)], { type: 'application/json' })
-      const fileName = `setup-${setupToken}.json`
+      // Convert provisioning data to JSON string for QR
+      const provisioningJsonString = JSON.stringify(provisioningData)
 
-      const { error: uploadError } = await supabase.storage
-        .from('provisioning')
-        .upload(fileName, jsonBlob, {
-          contentType: 'application/json',
-          upsert: true
-        })
+      setQrCodeData(provisioningJsonString)
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        throw new Error('Errore nel caricamento del file di provisioning')
-      }
-
-      setQrCodeData(provisioningJsonUrl)
-
-      // 5. Generate QR code with provisioning URL
-      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonUrl, {
-        width: 300,
+      // 5. Generate QR code with JSON directly embedded (for afw#setup method)
+      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonString, {
+        width: 400,
         margin: 2,
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'L', // Low correction for more data capacity
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         }
       })
 
-      console.log('✅ Provisioning QR generated:', provisioningJsonUrl)
+      console.log('✅ Provisioning QR generated with embedded JSON')
+      console.log('JSON length:', provisioningJsonString.length, 'bytes')
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
@@ -554,10 +541,7 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate provisioning JSON URL
-      const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${setupToken}.json`
-
-      // Create provisioning JSON with token data
+      // 4. Create provisioning JSON with token data (direct JSON in QR, not URL)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
@@ -566,40 +550,30 @@ const MDMDashboard: React.FC = () => {
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
           "setup_token": setupToken,
-          ...setupData
+          "device_name": deviceForm.name,
+          "organization_id": deviceForm.organization_id,
+          "store_location": deviceForm.store_location
         }
       }
 
-      // Upload provisioning JSON to Supabase
-      const jsonBlob = new Blob([JSON.stringify(provisioningData, null, 2)], { type: 'application/json' })
-      const fileName = `setup-${setupToken}.json`
+      // Convert provisioning data to JSON string for QR
+      const provisioningJsonString = JSON.stringify(provisioningData)
 
-      const { error: uploadError } = await supabase.storage
-        .from('provisioning')
-        .upload(fileName, jsonBlob, {
-          contentType: 'application/json',
-          upsert: true
-        })
+      setQrCodeData(provisioningJsonString)
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        throw new Error('Errore nel caricamento del file di provisioning')
-      }
-
-      setQrCodeData(provisioningJsonUrl)
-
-      // 5. Generate QR code with provisioning URL
-      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonUrl, {
-        width: 300,
+      // 5. Generate QR code with JSON directly embedded (for afw#setup method)
+      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonString, {
+        width: 400,
         margin: 2,
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'L', // Low correction for more data capacity
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         }
       })
 
-      console.log('✅ Provisioning QR generated:', provisioningJsonUrl)
+      console.log('✅ Provisioning QR generated with embedded JSON')
+      console.log('JSON length:', provisioningJsonString.length, 'bytes')
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
