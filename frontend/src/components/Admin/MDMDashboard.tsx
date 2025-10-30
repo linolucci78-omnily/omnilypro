@@ -365,6 +365,12 @@ const MDMDashboard: React.FC = () => {
 
     setQrLoading(true)
     try {
+      // 1. Generate security token
+      const setupToken = crypto.randomUUID()
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 24) // Token valido 24 ore
+
+      // 2. Prepare setup data
       const setupData = {
         deviceName: deviceForm.name,
         organizationId: deviceForm.organization_id,
@@ -373,13 +379,34 @@ const MDMDashboard: React.FC = () => {
         mainAppPackage: deviceForm.main_app_package,
         setupUrl: `${window.location.origin}/device-setup`,
         configureWifiOnSite: true,
+        security: {
+          setupToken: setupToken,
+          expiresAt: expiresAt.toISOString()
+        },
         timestamp: Date.now()
+      }
+
+      // 3. Save token to database
+      const { error: tokenError } = await supabase
+        .from('setup_tokens')
+        .insert({
+          token: setupToken,
+          expires_at: expiresAt.toISOString(),
+          setup_data: setupData,
+          qr_code_generated: true,
+          max_uses: 1
+        })
+
+      if (tokenError) {
+        console.error('Error saving setup token:', tokenError)
+        showError('Errore nel salvataggio del token di sicurezza')
+        return
       }
 
       const qrDataString = JSON.stringify(setupData)
       setQrCodeData(qrDataString)
 
-      // Generate QR code image
+      // 4. Generate QR code image
       const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
         width: 300,
         margin: 2,
@@ -391,6 +418,7 @@ const MDMDashboard: React.FC = () => {
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
+      showSuccess('QR Code generato con token di sicurezza valido 24 ore')
     } catch (error) {
       console.error('Error generating QR code:', error)
       showError('Errore nella generazione del QR Code')
@@ -402,6 +430,12 @@ const MDMDashboard: React.FC = () => {
   const handleGenerateQRForDevice = async (device: Device) => {
     setQrLoading(true)
     try {
+      // 1. Generate security token
+      const setupToken = crypto.randomUUID()
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 24) // Token valido 24 ore
+
+      // 2. Prepare setup data
       const setupData = {
         deviceName: device.name,
         deviceId: device.id,
@@ -412,13 +446,35 @@ const MDMDashboard: React.FC = () => {
         mainAppPackage: device.current_app_package || 'com.omnily.bridge',
         setupUrl: `${window.location.origin}/device-setup`,
         configureWifiOnSite: true,
+        security: {
+          setupToken: setupToken,
+          expiresAt: expiresAt.toISOString()
+        },
         timestamp: Date.now()
+      }
+
+      // 3. Save token to database
+      const { error: tokenError } = await supabase
+        .from('setup_tokens')
+        .insert({
+          token: setupToken,
+          device_id: device.id,
+          expires_at: expiresAt.toISOString(),
+          setup_data: setupData,
+          qr_code_generated: true,
+          max_uses: 3 // Allow up to 3 uses for existing device re-setup
+        })
+
+      if (tokenError) {
+        console.error('Error saving setup token:', tokenError)
+        showError('Errore nel salvataggio del token di sicurezza')
+        return
       }
 
       const qrDataString = JSON.stringify(setupData)
       setQrCodeData(qrDataString)
 
-      // Generate QR code image
+      // 4. Generate QR code image
       const qrCodeImageUrl = await QRCode.toDataURL(qrDataString, {
         width: 300,
         margin: 2,
@@ -430,6 +486,7 @@ const MDMDashboard: React.FC = () => {
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
+      showSuccess(`QR Code generato per ${device.name} - Token valido 24 ore`)
     } catch (error) {
       console.error('Error generating QR code:', error)
       showError('Errore nella generazione del QR Code')

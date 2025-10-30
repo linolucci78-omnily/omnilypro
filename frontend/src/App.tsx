@@ -42,6 +42,7 @@ import AuthCallback from './pages/AuthCallback'
 import StrapiTest from './pages/StrapiTest'
 import PublicSite from './pages/PublicSite'
 import SiteRendererPage from './pages/SiteRendererPage'
+import DeviceSetup from './pages/DeviceSetup'
 
 const ContractSignature = React.lazy(() => import('./pages/ContractSignature'))
 
@@ -183,6 +184,7 @@ function App() {
             <Route path="/strapi-test" element={<StrapiTest />} />
             <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
             <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
+            <Route path="/device-setup" element={<DeviceSetup />} />
             <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
