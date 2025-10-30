@@ -452,28 +452,52 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate deep link for Bridge app (direct app opening)
-      // Format: omnily://setup?token=xxx
-      const deepLink = `omnily://setup?token=${setupToken}`
+      // 4. Generate provisioning JSON URL
+      const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${setupToken}.json`
 
-      // Also save web fallback URL for manual access
-      const webFallback = `${window.location.origin}/device-setup?token=${setupToken}`
+      // Create provisioning JSON with token data
+      const provisioningData = {
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "78b272efc9b0e75a32ef01966ee1f29c622ccb8bd97d0531c166b559cf918e4e",
+        "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
+        "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
+        "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
+          "setup_token": setupToken,
+          ...setupData
+        }
+      }
 
-      setQrCodeData(deepLink)
+      // Upload provisioning JSON to Supabase
+      const jsonBlob = new Blob([JSON.stringify(provisioningData, null, 2)], { type: 'application/json' })
+      const fileName = `setup-${setupToken}.json`
 
-      // 5. Generate QR code image with deep link
-      const qrCodeImageUrl = await QRCode.toDataURL(deepLink, {
+      const { error: uploadError } = await supabase.storage
+        .from('provisioning')
+        .upload(fileName, jsonBlob, {
+          contentType: 'application/json',
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw new Error('Errore nel caricamento del file di provisioning')
+      }
+
+      setQrCodeData(provisioningJsonUrl)
+
+      // 5. Generate QR code with provisioning URL
+      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonUrl, {
         width: 300,
         margin: 2,
-        errorCorrectionLevel: 'M',
+        errorCorrectionLevel: 'H',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         }
       })
 
-      console.log('🔗 Deep link generated:', deepLink)
-      console.log('🌐 Web fallback:', webFallback)
+      console.log('✅ Provisioning QR generated:', provisioningJsonUrl)
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
@@ -530,28 +554,52 @@ const MDMDashboard: React.FC = () => {
         return
       }
 
-      // 4. Generate deep link for Bridge app (direct app opening)
-      // Format: omnily://setup?token=xxx
-      const deepLink = `omnily://setup?token=${setupToken}`
+      // 4. Generate provisioning JSON URL
+      const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${setupToken}.json`
 
-      // Also save web fallback URL for manual access
-      const webFallback = `${window.location.origin}/device-setup?token=${setupToken}`
+      // Create provisioning JSON with token data
+      const provisioningData = {
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "78b272efc9b0e75a32ef01966ee1f29c622ccb8bd97d0531c166b559cf918e4e",
+        "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
+        "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
+        "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
+          "setup_token": setupToken,
+          ...setupData
+        }
+      }
 
-      setQrCodeData(deepLink)
+      // Upload provisioning JSON to Supabase
+      const jsonBlob = new Blob([JSON.stringify(provisioningData, null, 2)], { type: 'application/json' })
+      const fileName = `setup-${setupToken}.json`
 
-      // 5. Generate QR code image with deep link
-      const qrCodeImageUrl = await QRCode.toDataURL(deepLink, {
+      const { error: uploadError } = await supabase.storage
+        .from('provisioning')
+        .upload(fileName, jsonBlob, {
+          contentType: 'application/json',
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw new Error('Errore nel caricamento del file di provisioning')
+      }
+
+      setQrCodeData(provisioningJsonUrl)
+
+      // 5. Generate QR code with provisioning URL
+      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonUrl, {
         width: 300,
         margin: 2,
-        errorCorrectionLevel: 'M',
+        errorCorrectionLevel: 'H',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         }
       })
 
-      console.log('🔗 Deep link generated:', deepLink)
-      console.log('🌐 Web fallback:', webFallback)
+      console.log('✅ Provisioning QR generated:', provisioningJsonUrl)
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
