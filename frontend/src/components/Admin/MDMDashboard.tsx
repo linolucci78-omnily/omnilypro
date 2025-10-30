@@ -1274,7 +1274,7 @@ const MDMDashboard: React.FC = () => {
                       borderRadius: '4px',
                       border: '1px solid #e5e7eb'
                     }}>
-                      {qrCodeData && JSON.stringify(JSON.parse(qrCodeData), null, 2)}
+                      {qrCodeData}
                     </pre>
                   </details>
                 )}
