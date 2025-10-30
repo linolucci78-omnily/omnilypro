@@ -124,8 +124,8 @@ const DeviceSetup: React.FC = () => {
       <div className="setup-header">
         <div className="logo-container">
           <img
-            src="/moneyomily.png"
-            alt="OMNILY"
+            src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+            alt="OMNILYPRO"
             className="omnily-logo"
           />
         </div>

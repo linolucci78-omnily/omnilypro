@@ -66,6 +66,7 @@
   justify-content: space-between;
   margin-bottom: 3rem;
   position: relative;
+  padding-bottom: 2rem;
 }
 
 .setup-steps::before {
@@ -76,7 +77,7 @@
   right: 40px;
   height: 2px;
   background: #e5e7eb;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
@@ -88,7 +89,8 @@
   position: relative;
   z-index: 1;
   flex: 1;
-  min-height: 80px;
+  min-height: 90px;
+  justify-content: flex-start;
 }
 
 .step-number {
