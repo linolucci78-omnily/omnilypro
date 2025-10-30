@@ -473,11 +473,12 @@ const MDMDashboard: React.FC = () => {
 
       setQrCodeData(provisioningJsonString)
 
-      // 5. Generate QR code with JSON directly embedded (for afw#setup method)
+      // 5. Generate QR code with JSON directly embedded (standard QR provisioning method)
       const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonString, {
-        width: 400,
-        margin: 2,
+        width: 512,
+        margin: 1,
         errorCorrectionLevel: 'L', // Low correction for more data capacity
+        type: 'image/png',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -486,6 +487,7 @@ const MDMDashboard: React.FC = () => {
 
       console.log('✅ Provisioning QR generated with embedded JSON')
       console.log('JSON length:', provisioningJsonString.length, 'bytes')
+      console.log('JSON content:', provisioningJsonString)
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
@@ -563,11 +565,12 @@ const MDMDashboard: React.FC = () => {
 
       setQrCodeData(provisioningJsonString)
 
-      // 5. Generate QR code with JSON directly embedded (for afw#setup method)
+      // 5. Generate QR code with JSON directly embedded (standard QR provisioning method)
       const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonString, {
-        width: 400,
-        margin: 2,
+        width: 512,
+        margin: 1,
         errorCorrectionLevel: 'L', // Low correction for more data capacity
+        type: 'image/png',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -576,6 +579,7 @@ const MDMDashboard: React.FC = () => {
 
       console.log('✅ Provisioning QR generated with embedded JSON')
       console.log('JSON length:', provisioningJsonString.length, 'bytes')
+      console.log('JSON content:', provisioningJsonString)
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
