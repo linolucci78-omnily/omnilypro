@@ -456,7 +456,7 @@ const MDMDashboard: React.FC = () => {
       // Using PACKAGE_CHECKSUM in base64url format (Samsung Knox spec)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "tpzMlq9-uBI-xHg1puh_9vNuPfNSVOSLWsdeihTj0Ps",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "vZktvPv1wAaaFAAXmyPS8ab7cqGs8Gq0bFfQSMVbqcY",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
@@ -548,7 +548,7 @@ const MDMDashboard: React.FC = () => {
       // Using PACKAGE_CHECKSUM in base64url format (Samsung Knox spec)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "tpzMlq9-uBI-xHg1puh_9vNuPfNSVOSLWsdeihTj0Ps",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "vZktvPv1wAaaFAAXmyPS8ab7cqGs8Gq0bFfQSMVbqcY",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
