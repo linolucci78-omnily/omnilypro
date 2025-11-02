@@ -20,6 +20,8 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
     public void onEnabled(@NonNull Context context, @NonNull Intent intent) {
         super.onEnabled(context, intent);
         Log.i(TAG, "✅ Device Admin ENABLED - App has admin privileges");
+        ProvisioningLogger.log(context, "DEVICE_ADMIN_ENABLED", "Device Admin abilitato con successo");
+        // NON fare nulla qui - tutta la logica è in onProfileProvisioningComplete()
     }
 
     @Override
@@ -49,21 +51,30 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
     @Override
     public void onProfileProvisioningComplete(@NonNull Context context, @NonNull Intent intent) {
         super.onProfileProvisioningComplete(context, intent);
-        Log.i(TAG, "✅ Provisioning completato! Ricevuti dati di setup...");
+        Log.i(TAG, "✅ onProfileProvisioningComplete chiamato!");
+        ProvisioningLogger.log(context, "PROVISIONING_COMPLETE", "onProfileProvisioningComplete chiamato");
 
-        // Ricevi i dati extra dal provisioning JSON
-        PersistableBundle extras = intent.getParcelableExtra("android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE");
+        // Ottieni DevicePolicyManager per completare il provisioning
+        android.app.admin.DevicePolicyManager dpm = (android.app.admin.DevicePolicyManager)
+            context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        android.content.ComponentName adminComponent = new android.content.ComponentName(context, MyDeviceAdminReceiver.class);
 
-        if (extras != null) {
-            String setupToken = extras.getString("setup_token");
-            String deviceName = extras.getString("device_name", "POS Device");
-            String organizationId = extras.getString("organization_id", "");
-            String storeLocation = extras.getString("store_location", "");
+        // IMPORTANTE: Usa Bundle invece di PersistableBundle (fix da Gemini)
+        android.os.Bundle adminExtras = intent.getBundleExtra(android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+
+        if (adminExtras != null) {
+            String setupToken = adminExtras.getString("setup_token");
+            String deviceName = adminExtras.getString("device_name", "POS Device");
+            String organizationId = adminExtras.getString("organization_id", "");
+            String storeLocation = adminExtras.getString("store_location", "");
 
             Log.i(TAG, "📦 Setup Token: " + setupToken);
             Log.i(TAG, "📱 Device Name: " + deviceName);
             Log.i(TAG, "🏢 Organization ID: " + organizationId);
             Log.i(TAG, "📍 Store Location: " + storeLocation);
+
+            ProvisioningLogger.log(context, "SETUP_DATA_RECEIVED",
+                "Device: " + deviceName + ", Org: " + organizationId + ", Location: " + storeLocation);
 
             // Salva i dati nelle SharedPreferences
             SharedPreferences prefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
@@ -77,16 +88,30 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
                 .apply();
 
             Log.i(TAG, "✅ Dati di setup salvati con successo!");
-
-            // Avvia l'app principale
-            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-            if (launchIntent != null) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(launchIntent);
-                Log.i(TAG, "🚀 App principale avviata!");
-            }
+            ProvisioningLogger.log(context, "SETUP_DATA_SAVED", "Dati salvati in SharedPreferences");
         } else {
             Log.w(TAG, "⚠️ Nessun dato extra ricevuto dal provisioning");
+            ProvisioningLogger.log(context, "WARNING_NO_EXTRAS", "Nessun dato extra ricevuto dal provisioning");
+        }
+
+        // IMPORTANTE: Imposta il nome dell'organizzazione (raccomandato da Gemini)
+        if (dpm != null) {
+            dpm.setOrganizationName(adminComponent, "OMNILY");
+            Log.i(TAG, "✅ Organization name impostato");
+        }
+
+        // --- PASSAGGIO FONDAMENTALE (da Gemini) ---
+        // Lancia l'activity principale per completare il setup
+        // SENZA QUESTO IL PROVISIONING FALLISCE!
+        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+        if (launchIntent != null) {
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(launchIntent);
+            Log.i(TAG, "🚀 MainActivity lanciata - provisioning completato!");
+            ProvisioningLogger.log(context, "MAIN_ACTIVITY_LAUNCHED", "MainActivity lanciata - provisioning completato!");
+        } else {
+            Log.e(TAG, "❌ Impossibile ottenere launch intent!");
+            ProvisioningLogger.log(context, "ERROR_NO_LAUNCH_INTENT", "Impossibile ottenere launch intent");
         }
     }
 }
