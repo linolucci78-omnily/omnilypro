@@ -453,11 +453,11 @@ const MDMDashboard: React.FC = () => {
       }
 
       // 4. Create provisioning JSON with token data (direct JSON in QR, not URL)
-      // Minimal provisioning configuration for Android 14
+      // Provisioning configuration for Android 14 - Using PACKAGE_CHECKSUM (standard)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "tsNKw-dZ_gG0qYS3nlmLOsaQl0E_yuEo13BhMZ7af2E",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "MUb2rJ47SjIiE9dvOUGWAII3gEKGK-oMbKZyeAmCof0",
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
           "setup_token": setupToken
@@ -541,11 +541,11 @@ const MDMDashboard: React.FC = () => {
       }
 
       // 4. Create provisioning JSON with token data (direct JSON in QR, not URL)
-      // Minimal provisioning configuration for Android 14
+      // Provisioning configuration for Android 14 - Using PACKAGE_CHECKSUM (standard)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "tsNKw-dZ_gG0qYS3nlmLOsaQl0E_yuEo13BhMZ7af2E",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "MUb2rJ47SjIiE9dvOUGWAII3gEKGK-oMbKZyeAmCof0",
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
           "setup_token": setupToken
