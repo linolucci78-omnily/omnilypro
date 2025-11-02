@@ -70,6 +70,7 @@ import com.google.zxing.BarcodeFormat;
 
 import com.omnilypro.pos.mdm.MdmManager;
 import com.omnilypro.pos.mdm.MyDeviceAdminReceiver;
+import com.omnilypro.pos.mdm.ProvisioningLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,32 +134,32 @@ public class MainActivityFinal extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "Activity Created");
+        ProvisioningLogger.log(this, "MAINACTIVITY_ONCREATE", "MainActivity.onCreate chiamato");
         showSplashScreen();
 
         // Check if opened via deep link (omnily://setup?token=xxx)
         handleDeepLink(getIntent());
 
-        checkAndRequestPermissions();
+        // Avvia direttamente la logica dell'app. La gestione dei permessi verrà fatta dopo.
+        startApp();
     }
 
     private void startApp() {
-        Log.d(TAG, "Permissions check complete. Initializing SDK and UI.");
+        Log.d(TAG, "startApp() called. Initializing components...");
         initZcsSDK();
         setupNFC();
         setupWebView();
         setupCustomerDisplay();
 
-        // Inizializza Device Admin per MDM
+        // Inizializza Device Admin per MDM. Questo metodo ora gestirà i permessi.
         setupDeviceAdmin();
 
-        // Inizializza sistema MDM
+        // Il resto della logica di avvio che dipende dai permessi va qui.
         Log.i(TAG, "Initializing MDM system...");
         MdmManager.getInstance(this).initialize();
         Log.i(TAG, "MDM system initialized successfully");
 
-        // Registra BroadcastReceiver per comandi MDM
         registerMdmCommandReceiver();
-
         loadInitialUrl();
     }
 
@@ -170,6 +171,8 @@ public class MainActivityFinal extends AppCompatActivity {
     }
 
     private void checkAndRequestPermissions() {
+        // Questo metodo ora viene chiamato SOLO se l'app NON è Device Owner.
+        Log.d(TAG, "Running as a normal app. Checking and requesting permissions interactively.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> missingPermissions = new ArrayList<>();
             for (String permission : PERMISSIONS) {
@@ -179,11 +182,7 @@ public class MainActivityFinal extends AppCompatActivity {
             }
             if (!missingPermissions.isEmpty()) {
                 ActivityCompat.requestPermissions(this, missingPermissions.toArray(new String[0]), REQUEST_PERMISSIONS_CODE);
-            } else {
-                startApp();
             }
-        } else {
-            startApp();
         }
     }
 
@@ -204,7 +203,6 @@ public class MainActivityFinal extends AppCompatActivity {
                 Log.w(TAG, "Not all permissions were granted. Hardware functions may be limited.");
                 Toast.makeText(this, "Attenzione: permessi hardware negati. L'app potrebbe non funzionare correttamente.", Toast.LENGTH_LONG).show();
             }
-            startApp();
         }
     }
 
@@ -1855,26 +1853,43 @@ public class MainActivityFinal extends AppCompatActivity {
             mAdminComponent = new ComponentName(this, MyDeviceAdminReceiver.class);
 
             if (mDevicePolicyManager != null) {
-                boolean isAdmin = mDevicePolicyManager.isAdminActive(mAdminComponent);
                 boolean isDeviceOwner = mDevicePolicyManager.isDeviceOwnerApp(getPackageName());
 
-                Log.i(TAG, "📱 Device Admin Status:");
-                Log.i(TAG, "   - Is Admin: " + isAdmin);
-                Log.i(TAG, "   - Is Device Owner: " + isDeviceOwner);
+                Log.i(TAG, "📱 Device Admin Status: Is Device Owner = " + isDeviceOwner);
 
                 if (isDeviceOwner) {
-                    Log.i(TAG, "✅ App is Device Owner - Full MDM capabilities enabled");
+                    Log.i(TAG, "✅ App is Device Owner. Granting permissions programmatically.");
 
-                    // Abilita Lock Task Mode per Kiosk
+                    // **IL CUORE DELLA SOLUZIONE**
+                    // Auto-concessione dei permessi runtime senza interazione dell'utente.
+                    for (String permission : PERMISSIONS) {
+                        try {
+                            boolean success = mDevicePolicyManager.setPermissionGrantState(
+                                mAdminComponent,
+                                getPackageName(),
+                                permission,
+                                DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+                            );
+                            if (success) {
+                                Log.d(TAG, "   - Permission GRANTED: " + permission);
+                            } else {
+                                Log.e(TAG, "   - FAILED to grant permission: " + permission);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "   - ERROR granting " + permission + ": " + e.getMessage());
+                        }
+                    }
+                    Log.i(TAG, "✅ All runtime permissions granted.");
+
+                    // Configura Kiosk Mode
                     String[] packages = {getPackageName()};
                     mDevicePolicyManager.setLockTaskPackages(mAdminComponent, packages);
-                    Log.i(TAG, "✅ Lock Task packages set for Kiosk Mode");
-                } else if (isAdmin) {
-                    Log.w(TAG, "⚠️ App is Device Admin but NOT Device Owner - Limited capabilities");
+                    Log.i(TAG, "✅ Lock Task packages configured for Kiosk Mode.");
+
                 } else {
-                    Log.w(TAG, "⚠️ App is NOT Device Admin - MDM features will be limited");
-                    Log.w(TAG, "💡 To enable full MDM, set app as Device Owner via ADB:");
-                    Log.w(TAG, "   adb shell dpm set-device-owner com.omnilypro.pos/.mdm.MyDeviceAdminReceiver");
+                    // Se non siamo Device Owner, procediamo con la richiesta interattiva classica.
+                    Log.w(TAG, "⚠️ App is NOT Device Owner. Requesting permissions interactively.");
+                    checkAndRequestPermissions();
                 }
             }
         } catch (Exception e) {
