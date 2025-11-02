@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OMNILY Device Setup Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+      padding: 20px;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 850px;
+      width: 100%;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 24px;
+      padding: 40px 50px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      backdrop-filter: blur(10px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 35px;
+      padding-bottom: 25px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+      background: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+      overflow: hidden;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .step {
+      margin-bottom: 20px;
+      padding: 24px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-radius: 16px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .step:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+    }
+
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 16px;
+      padding: 2px;
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none; /* Non blocca i click */
+    }
+
+    .step:hover::before {
+      opacity: 0.6;
+    }
+
+    .step h3 {
+      font-size: 17px;
+      margin-bottom: 14px;
+      color: #1a1a1a;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      margin-right: 12px;
+      font-size: 15px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .step-number.completed {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      animation: checkmark-pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes checkmark-pop {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .step-number.completed::before {
+      content: '✓';
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .step.completed {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-color: #10b981;
+    }
+
+    .step.completed::before {
+      background: linear-gradient(135deg, #10b981, #059669);
+      opacity: 0.8;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 12px;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.3px;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.5);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    button:disabled {
+      background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.6;
+    }
+
+    .status {
+      padding: 14px 18px;
+      border-radius: 12px;
+      margin-top: 14px;
+      font-size: 14px;
+      display: none;
+      font-weight: 500;
+      line-height: 1.5;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .status.success {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+      border: 2px solid #10b981;
+      display: block;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    }
+
+    .status.error {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      color: #991b1b;
+      border: 2px solid #ef4444;
+      display: block;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+    }
+
+    .status.info {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #1e40af;
+      border: 2px solid #3b82f6;
+      display: block;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    }
+
+    .device-info {
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      margin-top: 12px;
+      border: 2px solid #667eea;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .instructions {
+      background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+      border: 2px solid #ffc107;
+      color: #856404;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+    }
+
+    .instructions strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      margin-top: 8px;
+    }
+
+    .instructions li {
+      margin-bottom: 6px;
+    }
+
+    .pos-image {
+      width: 120px;
+      height: auto;
+      margin: 12px auto 8px;
+      display: block;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .log-viewer {
+      background: #1e1e1e;
+      border: 2px solid #667eea;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #d4d4d4;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .log-viewer .log-line {
+      margin: 4px 0;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .log-viewer .log-info {
+      color: #4fc3f7;
+    }
+
+    .log-viewer .log-error {
+      color: #ef5350;
+      background: rgba(239, 83, 80, 0.1);
+      font-weight: 600;
+    }
+
+    .log-viewer .log-success {
+      color: #66bb6a;
+      font-weight: 600;
+    }
+
+    .log-viewer .log-warning {
+      color: #ffb74d;
+    }
+
+    .log-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .log-controls button {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY Logo" id="app-logo">
+      </div>
+      <h1>OMNILY Device Setup Tool</h1>
+      <p>Configurazione rapida dispositivi POS</p>
+    </div>
+
+    <div class="instructions">
+      <strong>⚠️ Prima di iniziare:</strong>
+      <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/logos/ZCS108.png" alt="ZCS Z108 POS" class="pos-image">
+      <ol>
+        <li>Esegui <strong>Factory Reset</strong> sul dispositivo POS ZCS Z108</li>
+        <li>Completa il setup iniziale (lingua, WiFi, data/ora)</li>
+        <li><strong>NON aggiungere account Google</strong></li>
+        <li>Vai su <strong>Impostazioni</strong> e disattiva <strong>"Hub Management"</strong></li>
+        <li>Abilita <strong>Debug USB</strong> in Opzioni Sviluppatore (tocca 7 volte "Numero build")</li>
+        <li>Collega il POS al PC tramite cavo USB</li>
+      </ol>
+    </div>
+
+    <div class="step" id="step1">
+      <h3><span class="step-number" id="step1-icon">1</span> Rileva Dispositivo</h3>
+      <button id="detectBtn">🔍 Rileva Dispositivo</button>
+      <div id="detectStatus" class="status"></div>
+      <div id="deviceInfo" class="device-info" style="display: none;"></div>
+    </div>
+
+    <div class="step" id="step2">
+      <h3><span class="step-number" id="step2-icon">2</span> Installa APK OMNILY POS</h3>
+      <div style="margin-bottom: 16px;">
+        <label for="setupTokenInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">🔑 Setup Token (da Dashboard):</label>
+        <input type="text" id="setupTokenInput" placeholder="Incolla qui il token dal MDM Dashboard (es: 3bf405db-24d9-4a07-91cb-c7ee1233f685)" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #ddd; font-size: 14px; font-family: monospace;">
+        <small style="display: block; margin-top: 6px; color: #666;">Genera un nuovo token dal MDM Dashboard e incollalo qui prima di installare</small>
+      </div>
+      <button id="installBtn" disabled>📱 Installa App</button>
+      <div id="installStatus" class="status"></div>
+    </div>
+
+    <div class="step" id="step3">
+      <h3><span class="step-number" id="step3-icon">3</span> Attiva Device Owner</h3>
+      <button id="activateBtn" disabled>🔐 Attiva Device Owner</button>
+      <div id="activateStatus" class="status"></div>
+    </div>
+
+    <div class="step" id="step4">
+      <h3><span class="step-number" id="step4-icon">4</span> Verifica Configurazione</h3>
+      <button id="verifyBtn" disabled>✅ Verifica Setup</button>
+      <div id="verifyStatus" class="status"></div>
+    </div>
+
+    <div class="step" id="step5" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+      <h3><span class="step-number" id="step5-icon">⚙️</span> Impostazioni e Strumenti</h3>
+
+      <div style="margin-bottom: 20px; padding: 16px; background: white; border-radius: 12px; border: 2px solid #f59e0b; position: relative; z-index: 100;">
+        <label for="apkSourceSelect" style="display: block; margin-bottom: 12px; font-weight: 700; color: #92400e; font-size: 15px; cursor: pointer;">📦 Sorgente APK per Installazione:</label>
+        <select id="apkSourceSelect" style="width: 100%; padding: 14px 16px; border-radius: 10px; border: 2px solid #d97706; font-size: 15px; background: white; cursor: pointer; font-weight: 600; color: #92400e; appearance: auto; position: relative; z-index: 101;">
+          <option value="local">💻 Cartella resources (default)</option>
+          <option value="browse">📁 Scegli file dal computer...</option>
+          <option value="supabase">☁️ Supabase (default)</option>
+          <option value="custom-url">🌐 URL personalizzato...</option>
+        </select>
+
+        <!-- Custom file path input -->
+        <div id="customFilePathContainer" style="margin-top: 12px; display: none;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #92400e; font-size: 14px;">📂 Percorso file APK:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="customFilePath" readonly placeholder="Nessun file selezionato" style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #d97706; font-size: 14px; background: #fef3c7; color: #92400e;">
+            <button id="browseFileBtn" style="padding: 10px 20px; background: #d97706; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">Sfoglia...</button>
+          </div>
+        </div>
+
+        <!-- Custom URL input -->
+        <div id="customUrlContainer" style="margin-top: 12px; display: none;">
+          <label for="customUrl" style="display: block; margin-bottom: 8px; font-weight: 600; color: #92400e; font-size: 14px;">🌐 URL APK personalizzato:</label>
+          <input type="url" id="customUrl" placeholder="https://esempio.com/app.apk" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #d97706; font-size: 14px; background: white; color: #92400e;">
+        </div>
+
+        <p style="margin-top: 10px; font-size: 13px; color: #92400e; line-height: 1.5;">
+          ℹ️ <strong>Cartella resources</strong>: usa l'APK incluso nell'app<br>
+          ℹ️ <strong>Scegli file</strong>: seleziona un APK dal tuo computer<br>
+          ℹ️ <strong>Supabase</strong>: scarica l'ultima versione da cloud<br>
+          ℹ️ <strong>URL personalizzato</strong>: scarica da un URL specifico
+        </p>
+      </div>
+
+      <button id="removeDeviceOwnerBtn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);">🔓 Rimuovi Device Owner</button>
+      <div id="removeDeviceOwnerStatus" class="status"></div>
+    </div>
+
+    <!-- Step 6: Monitor Log -->
+    <div class="step" id="step6" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);">
+      <h3><span class="step-number" id="step6-icon">📋</span> Monitor Log Android (Debug)</h3>
+
+      <p style="font-size: 14px; color: #3730a3; margin-bottom: 16px; line-height: 1.6;">
+        Visualizza i log Android in tempo reale dal dispositivo connesso via USB. Utile per debuggare l'app e vedere se il ProvisioningLogger sta funzionando.
+      </p>
+
+      <div class="log-controls">
+        <button id="startLogBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">▶️ Avvia Monitor</button>
+        <button id="stopLogBtn" disabled style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">⏸️ Ferma Monitor</button>
+        <button id="clearLogBtn" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">🗑️ Pulisci Log</button>
+      </div>
+
+      <div id="logViewer" class="log-viewer" style="display: none;">
+        <div id="logContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
