@@ -24,6 +24,8 @@ public class ProvisioningLogger {
      * Invia un log a Supabase in modo asincrono
      */
     public static void log(final Context context, final String eventType, final String message) {
+        // Log anche su Android per debugging via adb
+        Log.i(TAG, "[" + eventType + "] " + message);
         log(context, eventType, message, null, null);
     }
 
@@ -89,13 +91,14 @@ public class ProvisioningLogger {
                     }
 
                     int responseCode = conn.getResponseCode();
-                    Log.d(TAG, "Log inviato a Supabase: " + eventType + " - Response: " + responseCode);
+                    Log.i(TAG, "✅ Log inviato a Supabase: " + eventType + " - Response: " + responseCode);
 
                     conn.disconnect();
 
                 } catch (Exception e) {
                     // Non propagare errori - il logging non deve mai bloccare l'app
-                    Log.e(TAG, "Errore invio log a Supabase: " + e.getMessage());
+                    Log.e(TAG, "❌ Errore invio log a Supabase (" + eventType + "): " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }).start();
