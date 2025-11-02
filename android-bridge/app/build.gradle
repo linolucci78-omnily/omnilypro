@@ -16,10 +16,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file('../omnily-release.jks')
-            storePassword 'omnily2024'
-            keyAlias 'omnily-key'
-            keyPassword 'omnily2024'
+            storeFile file('../omnily-production.jks')
+            storePassword 'omnily2024secure'
+            keyAlias 'omnily-pos'
+            keyPassword 'omnily2024secure'
         }
     }
 
