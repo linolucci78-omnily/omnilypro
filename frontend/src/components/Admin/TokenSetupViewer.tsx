@@ -112,11 +112,14 @@ const TokenSetupViewer: React.FC = () => {
       const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${token.token}.json`
 
       // Create provisioning JSON with token data
+      // Using SIGNATURE_CHECKSUM - validates certificate signature (required for Android 8+)
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/Omnily-Bridge-pos.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "78b272efc9b0e75a32ef01966ee1f29c622ccb8bd97d0531c166b559cf918e4e",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos.apk",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "7VQU84CIns84CT9A2y5sZajzwxpRnoPcxsTKH1AiubA",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
+        "android.app.extra.PROVISIONING_SKIP_USER_CONSENT": true,
+        "android.app.extra.PROVISIONING_SKIP_EDUCATION_SCREENS": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
           "setup_token": token.token,
