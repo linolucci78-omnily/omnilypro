@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 public class ProvisioningLogger {
     private static final String TAG = "ProvisioningLogger";
     private static final String SUPABASE_URL = "https://sjvatdnvewohvswfrdiv.supabase.co/rest/v1/provisioning_logs";
-    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZzd2ZyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM0ODUsImV4cCI6MjA3MjMxOTQ4NX0.y_AGPGdပို1oeAKhF5-tu7ZNJLy0x9bD5KOPqWnlMfk";
+    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZzd2ZyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM0ODUsImV4cCI6MjA3MjMxOTQ4NX0.y_AGPGd00o1oeAKhF5-tu7ZNJLy0x9bD5KOPqWnlMfk";
 
     /**
      * Invia un log a Supabase in modo asincrono
