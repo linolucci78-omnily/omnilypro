@@ -1931,8 +1931,9 @@ public class MainActivityFinal extends AppCompatActivity {
         filter.addAction("com.omnilypro.pos.TEST_PRINT");
         filter.addAction("com.omnilypro.pos.SET_PROVISIONING_DATA");
         // Android 14+ requires explicit export flag
+        // Using RECEIVER_EXPORTED to allow external broadcasts (ADB, Setup Tool)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(mdmCommandReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            registerReceiver(mdmCommandReceiver, filter, Context.RECEIVER_EXPORTED);
         } else {
             registerReceiver(mdmCommandReceiver, filter);
         }
@@ -2011,6 +2012,8 @@ public class MainActivityFinal extends AppCompatActivity {
             .putString("device_name", deviceName != null ? deviceName : "POS Device")
             .putString("organization_id", organizationId)
             .putString("store_location", storeLocation)
+            .putBoolean("device_registered", true)  // CRITICAL: Mark device as registered for MdmManager
+            .putBoolean("setup_completed", true)
             .apply();
 
         Log.i(TAG, "✅ Provisioning data saved to SharedPreferences");

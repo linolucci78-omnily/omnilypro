@@ -392,18 +392,35 @@ public class MdmManager {
     // ============================================================================
 
     private boolean isDeviceRegistered() {
-        return prefs.getBoolean(KEY_DEVICE_REGISTERED, false);
+        // CRITICAL FIX: Read from "OmnilyPOS" prefs where provisioning data is saved
+        // Previously reading from "mdm_prefs" which is empty after QR provisioning
+        SharedPreferences omnilyPrefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+        return omnilyPrefs.getBoolean(KEY_DEVICE_REGISTERED, false);
     }
 
     private void markDeviceAsRegistered() {
+        // Save to both prefs for backward compatibility
         prefs.edit().putBoolean(KEY_DEVICE_REGISTERED, true).apply();
+        SharedPreferences omnilyPrefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+        omnilyPrefs.edit().putBoolean(KEY_DEVICE_REGISTERED, true).apply();
     }
 
     private void saveDeviceId(String deviceId) {
+        // Save to both prefs for backward compatibility
         prefs.edit().putString(KEY_DEVICE_ID, deviceId).apply();
+        SharedPreferences omnilyPrefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+        omnilyPrefs.edit().putString(KEY_DEVICE_ID, deviceId).apply();
     }
 
     private String getDeviceId() {
+        // CRITICAL FIX: Read from "OmnilyPOS" prefs where provisioning data is saved
+        // Previously reading from "mdm_prefs" which is empty after QR provisioning
+        SharedPreferences omnilyPrefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+        String deviceId = omnilyPrefs.getString("device_id", null);
+        if (deviceId != null) {
+            return deviceId;
+        }
+        // Fallback to mdm_prefs for backward compatibility
         return prefs.getString(KEY_DEVICE_ID, null);
     }
 
