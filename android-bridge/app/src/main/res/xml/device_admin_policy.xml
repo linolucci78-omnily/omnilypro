@@ -19,8 +19,7 @@
         <!-- Permesso per disabilitare camera -->
         <disable-camera />
 
-        <!-- Permesso per criptare storage -->
-        <encrypted-storage />
+        <!-- encrypted-storage REMOVED - conflicts with PROVISIONING_SKIP_ENCRYPTION -->
 
         <!-- Permesso per disabilitare keyguard features -->
         <disable-keyguard-features />
