@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace "com.omnilypro.pos"
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.omnilypro.pos"
         minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 30
-        versionName "1.3.5-with-logcat"
+        targetSdkVersion 34
+        versionCode 31
+        versionName "1.3.6-qr-provisioning-fix"
     }
 
     signingConfigs {
