@@ -108,9 +108,6 @@ const TokenSetupViewer: React.FC = () => {
 
   const handleGenerateQR = async (token: SetupToken) => {
     try {
-      // Generate provisioning JSON URL
-      const provisioningJsonUrl = `https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/provisioning/setup-${token.token}.json`
-
       // Create provisioning JSON with token data
       // Provisioning configuration for Android 14 - PRODUCTION APK with OU=Production
       // Using SIGNATURE_CHECKSUM (more compatible with different Android versions)
@@ -126,27 +123,14 @@ const TokenSetupViewer: React.FC = () => {
         }
       }
 
-      // Upload provisioning JSON to Supabase
-      const jsonBlob = new Blob([JSON.stringify(provisioningData, null, 2)], { type: 'application/json' })
-      const fileName = `setup-${token.token}.json`
+      // Generate QR code with JSON directly embedded (not URL)
+      // Android expects the provisioning JSON directly in the QR code
+      const provisioningJson = JSON.stringify(provisioningData)
 
-      const { error: uploadError } = await supabase.storage
-        .from('provisioning')
-        .upload(fileName, jsonBlob, {
-          contentType: 'application/json',
-          upsert: true
-        })
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        throw new Error('Errore nel caricamento del file di provisioning')
-      }
-
-      // Generate QR code with provisioning URL
-      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJsonUrl, {
+      const qrCodeImageUrl = await QRCode.toDataURL(provisioningJson, {
         width: 400,
         margin: 2,
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'M', // Changed from H to M to fit more data
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -157,7 +141,7 @@ const TokenSetupViewer: React.FC = () => {
       setSelectedToken(token)
       setShowQRModal(true)
 
-      console.log('✅ QR Code di provisioning generato:', provisioningJsonUrl)
+      console.log('✅ QR Code di provisioning generato con JSON embedded')
     } catch (error) {
       console.error('Error generating provisioning QR code:', error)
       showError('Errore nella generazione del QR Code di provisioning')
