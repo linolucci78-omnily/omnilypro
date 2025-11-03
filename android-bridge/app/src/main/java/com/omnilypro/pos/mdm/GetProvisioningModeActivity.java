@@ -3,7 +3,9 @@ package com.omnilypro.pos.mdm;
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
 
 /**
@@ -12,6 +14,9 @@ import android.util.Log;
  *
  * Questa activity viene chiamata da Android durante il provisioning per
  * determinare quale modalità di provisioning utilizzare.
+ *
+ * IMPORTANTE: Su Android 14, i dati del provisioning vengono passati QUI,
+ * non in onProfileProvisioningComplete che potrebbe non essere chiamato!
  */
 public class GetProvisioningModeActivity extends Activity {
     private static final String TAG = "GetProvisioningMode";
@@ -26,6 +31,46 @@ public class GetProvisioningModeActivity extends Activity {
             Log.e(TAG, "❌ Intent action non corretto: " + getIntent().getAction());
             finish();
             return;
+        }
+
+        // ANDROID 14 FIX: Estrai e salva i dati del provisioning QUI
+        try {
+            PersistableBundle adminExtras = getIntent().getParcelableExtra(
+                DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+
+            if (adminExtras != null) {
+                String setupToken = adminExtras.getString("setup_token");
+                String deviceId = adminExtras.getString("device_id");
+                String deviceName = adminExtras.getString("device_name");
+                String organizationId = adminExtras.getString("organization_id");
+                String storeLocation = adminExtras.getString("store_location");
+
+                Log.i(TAG, "📦 Provisioning data received:");
+                Log.i(TAG, "  Setup Token: " + setupToken);
+                Log.i(TAG, "  Device ID: " + deviceId);
+                Log.i(TAG, "  Device Name: " + deviceName);
+                Log.i(TAG, "  Organization ID: " + organizationId);
+                Log.i(TAG, "  Store Location: " + storeLocation);
+
+                // Salva nelle SharedPreferences (stesso formato di MyDeviceAdminReceiver)
+                SharedPreferences prefs = getSharedPreferences("OmnilyPOS", MODE_PRIVATE);
+                prefs.edit()
+                    .putString("setup_token", setupToken)
+                    .putString("device_id", deviceId)
+                    .putString("device_name", deviceName)
+                    .putString("organization_id", organizationId)
+                    .putString("store_location", storeLocation)
+                    .putBoolean("setup_completed", true)
+                    .putBoolean("provisioned_via_qr", true)
+                    .putBoolean("device_registered", true)  // CRITICAL: Mark device as registered for MdmManager
+                    .apply();
+
+                Log.i(TAG, "✅ Provisioning data saved to SharedPreferences!");
+            } else {
+                Log.w(TAG, "⚠️ No ADMIN_EXTRAS_BUNDLE found in intent");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error extracting provisioning data", e);
         }
 
         // Imposta il risultato: vogliamo FULLY_MANAGED_DEVICE (Device Owner mode)
