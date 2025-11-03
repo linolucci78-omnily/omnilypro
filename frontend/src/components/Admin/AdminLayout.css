@@ -828,24 +828,41 @@ table tbody tr:hover {
 
 .tab {
   padding: 1rem 1.5rem;
-  background: none;
+  background: #f8fafc;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
   color: #64748b;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .tab.active {
-  color: var(--omnily-primary);
-  border-bottom-color: var(--omnily-primary);
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 600;
+  box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.tab.active svg {
+  color: #2563eb;
 }
 
 .tab:hover {
-  color: var(--omnily-primary);
+  background: #f1f5f9;
+  color: #1e40af;
+  transform: translateY(-1px);
+}
+
+.tab:hover:not(.active) {
+  border-bottom-color: #94a3b8;
 }
 
 /* POS mode: forzare wrap dei tab per evitare scrolling orizzontale

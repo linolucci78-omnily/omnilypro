@@ -33,7 +33,8 @@ import {
   Send,
   Map,
   Grid,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react'
 import './AdminLayout.css'
 import './MDMDashboard.css'
@@ -414,12 +415,41 @@ const MDMDashboard: React.FC = () => {
 
     setQrLoading(true)
     try {
-      // 1. Generate security token
+      // 1. Generate IDs
       const setupToken = crypto.randomUUID()
+      const androidId = `android-${Date.now()}-${Math.random().toString(36).substring(7)}`
       const expiresAt = new Date()
       expiresAt.setHours(expiresAt.getHours() + 24) // Token valido 24 ore
 
-      // 2. Prepare setup data
+      // 2. Create device first (required by foreign key constraint)
+      const { data: newDevice, error: deviceError } = await supabase
+        .from('devices')
+        .insert({
+          name: deviceForm.name,
+          android_id: androidId,
+          device_model: deviceForm.device_model || 'Unknown',
+          organization_id: deviceForm.organization_id,
+          store_location: deviceForm.store_location,
+          status: 'setup',
+          kiosk_mode_active: false,
+          current_app_package: deviceForm.main_app_package,
+          language: 'it',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (deviceError) {
+        console.error('Error creating device:', deviceError)
+        if (deviceError.code === '23505') {
+          showError('Esiste già un dispositivo con questo nome per questa organizzazione')
+        } else {
+          showError('Errore nella creazione del dispositivo')
+        }
+        return
+      }
+
+      // 3. Prepare setup data
       const setupData = {
         deviceName: deviceForm.name,
         organizationId: deviceForm.organization_id,
@@ -435,11 +465,12 @@ const MDMDashboard: React.FC = () => {
         timestamp: Date.now()
       }
 
-      // 3. Save token to database
+      // 4. Create setup token linked to device
       const { error: tokenError } = await supabase
         .from('setup_tokens')
         .insert({
           token: setupToken,
+          device_id: newDevice.id,
           expires_at: expiresAt.toISOString(),
           setup_data: setupData,
           qr_code_generated: true,
@@ -448,6 +479,8 @@ const MDMDashboard: React.FC = () => {
 
       if (tokenError) {
         console.error('Error saving setup token:', tokenError)
+        // Rollback: delete the device we just created
+        await supabase.from('devices').delete().eq('id', newDevice.id)
         showError('Errore nel salvataggio del token di sicurezza')
         return
       }
@@ -488,7 +521,22 @@ const MDMDashboard: React.FC = () => {
 
       setQrCodeImage(qrCodeImageUrl)
       setShowQRModal(true)
-      showSuccess('QR Code generato con token di sicurezza valido 24 ore')
+
+      // Reload devices list to show the new device
+      await loadDevices()
+
+      // Reset form
+      setDeviceForm({
+        name: '',
+        android_id: '',
+        device_model: '',
+        organization_id: '',
+        store_location: '',
+        kiosk_auto_start: false,
+        main_app_package: ''
+      })
+
+      showSuccess(`Dispositivo "${deviceForm.name}" creato! QR Code generato con token valido 24 ore`)
     } catch (error) {
       console.error('Error generating QR code:', error)
       showError('Errore nella generazione del QR Code')
@@ -594,6 +642,16 @@ const MDMDashboard: React.FC = () => {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+    }
+  }
+
+  const copyQRDataToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(qrCodeData)
+      showSuccess('JSON copiato negli appunti!')
+    } catch (error) {
+      console.error('Error copying to clipboard:', error)
+      showError('Errore nella copia del JSON')
     }
   }
 
@@ -1352,7 +1410,7 @@ const MDMDashboard: React.FC = () => {
                   <strong>Istruzioni:</strong> Stampa questo QR Code e consegnalo al tecnico per la configurazione del dispositivo sul posto.
                 </p>
                 {qrCodeData && (
-                  <details style={{
+                  <details open style={{
                     marginTop: '16px',
                     textAlign: 'left',
                     backgroundColor: '#f9fafb',
@@ -1360,20 +1418,52 @@ const MDMDashboard: React.FC = () => {
                     borderRadius: '8px',
                     fontSize: '12px'
                   }}>
-                    <summary style={{ cursor: 'pointer', fontWeight: '600' }}>
-                      Visualizza dati configurazione
+                    <summary style={{ cursor: 'pointer', fontWeight: '600', marginBottom: '8px' }}>
+                      📋 Dati configurazione JSON
                     </summary>
-                    <pre style={{
-                      marginTop: '8px',
-                      fontSize: '11px',
-                      overflow: 'auto',
-                      backgroundColor: '#ffffff',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #e5e7eb'
-                    }}>
-                      {qrCodeData}
-                    </pre>
+                    <div style={{ position: 'relative' }}>
+                      <textarea
+                        readOnly
+                        value={qrCodeData}
+                        style={{
+                          width: '100%',
+                          minHeight: '150px',
+                          fontSize: '11px',
+                          fontFamily: 'monospace',
+                          backgroundColor: '#ffffff',
+                          padding: '12px',
+                          borderRadius: '4px',
+                          border: '1px solid #e5e7eb',
+                          resize: 'vertical',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <button
+                        onClick={copyQRDataToClipboard}
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          padding: '8px 12px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+                      >
+                        <Copy size={14} />
+                        Copia
+                      </button>
+                    </div>
                   </details>
                 )}
               </div>
