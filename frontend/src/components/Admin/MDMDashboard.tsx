@@ -603,10 +603,10 @@ const MDMDashboard: React.FC = () => {
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
           "setup_token": setupToken,
-          "device_id": newDevice.id,
-          "device_name": deviceForm.name,
-          "organization_id": deviceForm.organization_id,
-          "store_location": deviceForm.store_location
+          "device_id": device.id,
+          "device_name": device.name,
+          "organization_id": device.organization_id,
+          "store_location": device.store_location
         }
       }
 
