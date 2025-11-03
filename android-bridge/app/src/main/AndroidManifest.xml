@@ -86,6 +86,25 @@
 
         <!-- NFC Tech List REMOVED for on-demand NFC only -->
 
+        <!-- Android 14+ Provisioning Activities (REQUIRED for QR provisioning) -->
+        <activity
+            android:name=".mdm.GetProvisioningModeActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.app.action.GET_PROVISIONING_MODE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".mdm.AdminPolicyComplianceActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.app.action.ADMIN_POLICY_COMPLIANCE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- Device Admin Receiver per MDM - Device Owner -->
         <receiver
             android:name=".mdm.MyDeviceAdminReceiver"
@@ -99,6 +118,7 @@
                 <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />
                 <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED" />
                 <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
+                <action android:name="android.app.action.DEVICE_OWNER_CHANGED" />
             </intent-filter>
         </receiver>
     </application>
