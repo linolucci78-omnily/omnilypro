@@ -217,48 +217,59 @@ public class MdmManager {
 
     /**
      * Registra dispositivo su backend
-     * Prima controlla se esiste, poi fa UPDATE invece di INSERT
+     * Usa il device_id ricevuto dal QR provisioning invece di android_id
      */
     private void registerDevice() {
+        // Leggi device_id dalle SharedPreferences (salvato durante provisioning)
+        SharedPreferences prefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+        String deviceId = prefs.getString("device_id", null);
+
+        if (deviceId == null || deviceId.isEmpty()) {
+            Log.e(TAG, "❌ No device_id found in SharedPreferences! Cannot register.");
+            Log.e(TAG, "❌ Device must be provisioned via QR code first.");
+            return;
+        }
+
         String androidId = Settings.Secure.getString(
                 context.getContentResolver(),
                 Settings.Secure.ANDROID_ID
         );
 
-        // Tentativo di UPDATE (il device potrebbe già esistere nel database)
+        Log.i(TAG, "📱 Registering device with ID: " + deviceId);
+        Log.i(TAG, "🔑 Android ID: " + androidId);
+
+        // UPDATE device usando l'UUID (device_id) ricevuto dal QR
         JsonObject deviceData = new JsonObject();
+        deviceData.addProperty("android_id", androidId); // Salva il vero android_id
         deviceData.addProperty("status", MdmConfig.STATUS_ONLINE);
         deviceData.addProperty("last_seen", System.currentTimeMillis());
         deviceData.addProperty("device_model", android.os.Build.MODEL);
         deviceData.addProperty("language", "it_IT");
 
-        SupabaseClient.getInstance().updateDeviceStatus(androidId, deviceData, new Callback() {
+        SupabaseClient.getInstance().updateDeviceByUuid(deviceId, deviceData, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Log.e(TAG, "❌ Failed to update device status", e);
-                // Se fallisce, prova a recuperare l'UUID con una GET
-                Log.i(TAG, "🔄 Attempting to fetch device UUID with GET...");
-                fetchDeviceUuid();
+                Log.e(TAG, "❌ Failed to register device", e);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseBody = response.body().string();
-                    Log.i(TAG, "✅ Device update response: " + responseBody);
+                    Log.i(TAG, "✅ Device registered successfully: " + responseBody);
 
                     try {
-                        // Parse response per ottenere UUID del device
+                        // Parse response per conferma
                         com.google.gson.JsonArray jsonArray = new com.google.gson.Gson().fromJson(responseBody, com.google.gson.JsonArray.class);
                         if (jsonArray.size() > 0) {
                             com.google.gson.JsonObject deviceObj = jsonArray.get(0).getAsJsonObject();
                             String deviceUuid = deviceObj.get("id").getAsString();
 
-                            Log.i(TAG, "✅ Device registered with UUID: " + deviceUuid);
+                            Log.i(TAG, "✅ Device UUID confirmed: " + deviceUuid);
                             saveDeviceId(deviceUuid);
                             markDeviceAsRegistered();
                             CommandPollingWorker.setDeviceId(deviceUuid);
-                SupabaseClient.setDeviceUuid(deviceUuid);
+                            SupabaseClient.setDeviceUuid(deviceUuid);
                             showDeviceIdToast(deviceUuid);
                             startBackgroundWorkers();
 
@@ -266,17 +277,14 @@ public class MdmManager {
                             Log.i(TAG, "🔥 Starting IMMEDIATE command poll after registration...");
                             performImmediateCommandPoll();
                         } else {
-                            Log.w(TAG, "⚠️ Empty response, fetching device UUID...");
-                            fetchDeviceUuid();
+                            Log.e(TAG, "❌ Empty response from server");
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "❌ Error parsing device response", e);
-                        fetchDeviceUuid();
                     }
                 } else {
-                    Log.w(TAG, "⚠️ Registration failed: " + response.code() + " - Fetching UUID...");
-                    // Se fallisce (es. 400), prova a recuperare l'UUID esistente
-                    fetchDeviceUuid();
+                    String errorBody = response.body() != null ? response.body().string() : "no body";
+                    Log.e(TAG, "❌ Registration failed: " + response.code() + " - " + errorBody);
                 }
                 response.close();
             }

@@ -64,22 +64,25 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
 
         if (adminExtras != null) {
             String setupToken = adminExtras.getString("setup_token");
+            String deviceId = adminExtras.getString("device_id");
             String deviceName = adminExtras.getString("device_name", "POS Device");
             String organizationId = adminExtras.getString("organization_id", "");
             String storeLocation = adminExtras.getString("store_location", "");
 
             Log.i(TAG, "📦 Setup Token: " + setupToken);
+            Log.i(TAG, "🆔 Device ID: " + deviceId);
             Log.i(TAG, "📱 Device Name: " + deviceName);
             Log.i(TAG, "🏢 Organization ID: " + organizationId);
             Log.i(TAG, "📍 Store Location: " + storeLocation);
 
             ProvisioningLogger.log(context, "SETUP_DATA_RECEIVED",
-                "Device: " + deviceName + ", Org: " + organizationId + ", Location: " + storeLocation);
+                "DeviceID: " + deviceId + ", Device: " + deviceName + ", Org: " + organizationId + ", Location: " + storeLocation);
 
             // Salva i dati nelle SharedPreferences
             SharedPreferences prefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
             prefs.edit()
                 .putString("setup_token", setupToken)
+                .putString("device_id", deviceId)
                 .putString("device_name", deviceName)
                 .putString("organization_id", organizationId)
                 .putString("store_location", storeLocation)

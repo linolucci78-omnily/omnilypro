@@ -47,7 +47,8 @@ public class SupabaseClient {
     }
 
     /**
-     * Aggiorna stato dispositivo (PATCH)
+     * Aggiorna stato dispositivo tramite android_id (PATCH)
+     * Usato per heartbeat dopo che il device è già registrato
      */
     public void updateDeviceStatus(String androidId, JsonObject deviceData, Callback callback) {
         String url = supabaseUrl + MdmConfig.DEVICES_ENDPOINT + "?android_id=eq." + androidId;
@@ -66,6 +67,31 @@ public class SupabaseClient {
                 .addHeader("Prefer", "return=representation")
                 .build();
 
+        httpClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * Aggiorna dispositivo tramite UUID (PATCH)
+     * Usato durante la prima registrazione quando abbiamo il device_id dal QR
+     */
+    public void updateDeviceByUuid(String deviceUuid, JsonObject deviceData, Callback callback) {
+        String url = supabaseUrl + MdmConfig.DEVICES_ENDPOINT + "?id=eq." + deviceUuid;
+
+        RequestBody body = RequestBody.create(
+                deviceData.toString(),
+                MediaType.parse("application/json")
+        );
+
+        Request request = new Request.Builder()
+                .url(url)
+                .patch(body)
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=representation")
+                .build();
+
+        Log.d(TAG, "🔄 Updating device by UUID: " + deviceUuid);
         httpClient.newCall(request).enqueue(callback);
     }
 

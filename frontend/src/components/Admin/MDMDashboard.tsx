@@ -417,16 +417,16 @@ const MDMDashboard: React.FC = () => {
     try {
       // 1. Generate IDs
       const setupToken = crypto.randomUUID()
-      const androidId = `android-${Date.now()}-${Math.random().toString(36).substring(7)}`
       const expiresAt = new Date()
       expiresAt.setHours(expiresAt.getHours() + 24) // Token valido 24 ore
 
       // 2. Create device first (required by foreign key constraint)
+      // NOTE: android_id will be set by the device itself during registration
       const { data: newDevice, error: deviceError } = await supabase
         .from('devices')
         .insert({
           name: deviceForm.name,
-          android_id: androidId,
+          android_id: null, // Will be populated by device during first registration
           device_model: deviceForm.device_model || 'Unknown',
           organization_id: deviceForm.organization_id,
           store_location: deviceForm.store_location,
@@ -490,11 +490,15 @@ const MDMDashboard: React.FC = () => {
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "o5r5uxClJfKTMPDrtyg0YWEYhvARBHRUjj6TNnqn3mI",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "L71tSiMcRw0/AZaUvd5FbIkaZz7lko2jxyR3c9c8PL8=",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
-          "setup_token": setupToken
+          "setup_token": setupToken,
+          "device_id": newDevice.id,
+          "device_name": deviceForm.name,
+          "organization_id": deviceForm.organization_id,
+          "store_location": deviceForm.store_location
         }
       }
 
@@ -594,11 +598,15 @@ const MDMDashboard: React.FC = () => {
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "o5r5uxClJfKTMPDrtyg0YWEYhvARBHRUjj6TNnqn3mI",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "L71tSiMcRw0/AZaUvd5FbIkaZz7lko2jxyR3c9c8PL8=",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
-          "setup_token": setupToken
+          "setup_token": setupToken,
+          "device_id": newDevice.id,
+          "device_name": deviceForm.name,
+          "organization_id": deviceForm.organization_id,
+          "store_location": deviceForm.store_location
         }
       }
 
