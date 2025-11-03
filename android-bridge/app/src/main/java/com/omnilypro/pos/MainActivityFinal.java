@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.display.DisplayManager;
@@ -1913,6 +1914,13 @@ public class MainActivityFinal extends AppCompatActivity {
                     String template = intent.getStringExtra("template");
                     String receiptData = intent.getStringExtra("receiptData");
                     handleTestPrint(template, receiptData);
+                } else if ("com.omnilypro.pos.SET_PROVISIONING_DATA".equals(action)) {
+                    String deviceId = intent.getStringExtra("device_id");
+                    String setupToken = intent.getStringExtra("setup_token");
+                    String deviceName = intent.getStringExtra("device_name");
+                    String organizationId = intent.getStringExtra("organization_id");
+                    String storeLocation = intent.getStringExtra("store_location");
+                    handleSetProvisioningData(deviceId, setupToken, deviceName, organizationId, storeLocation);
                 }
             }
         };
@@ -1921,7 +1929,13 @@ public class MainActivityFinal extends AppCompatActivity {
         filter.addAction("com.omnilypro.pos.KIOSK_MODE");
         filter.addAction("com.omnilypro.pos.SYNC_CONFIG");
         filter.addAction("com.omnilypro.pos.TEST_PRINT");
-        registerReceiver(mdmCommandReceiver, filter);
+        filter.addAction("com.omnilypro.pos.SET_PROVISIONING_DATA");
+        // Android 14+ requires explicit export flag
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(mdmCommandReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(mdmCommandReceiver, filter);
+        }
 
         Log.i(TAG, "✅ MDM Command Receiver registered");
     }
@@ -1968,6 +1982,47 @@ public class MainActivityFinal extends AppCompatActivity {
                 Log.i(TAG, "✅ WebView reloaded for config sync");
             });
         }
+    }
+
+    private void handleSetProvisioningData(String deviceId, String setupToken, String deviceName,
+                                           String organizationId, String storeLocation) {
+        Log.i(TAG, "📦 Setting provisioning data via ADB...");
+        Log.i(TAG, "🆔 Device ID: " + deviceId);
+        Log.i(TAG, "🎫 Setup Token: " + setupToken);
+        Log.i(TAG, "📛 Device Name: " + deviceName);
+
+        if (deviceId == null || deviceId.isEmpty()) {
+            Log.e(TAG, "❌ Device ID is required!");
+            Toast.makeText(this, "❌ Errore: device_id mancante", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (setupToken == null || setupToken.isEmpty()) {
+            Log.e(TAG, "❌ Setup Token is required!");
+            Toast.makeText(this, "❌ Errore: setup_token mancante", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Save provisioning data to SharedPreferences (same as QR provisioning)
+        SharedPreferences prefs = getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
+        prefs.edit()
+            .putString("device_id", deviceId)
+            .putString("setup_token", setupToken)
+            .putString("device_name", deviceName != null ? deviceName : "POS Device")
+            .putString("organization_id", organizationId)
+            .putString("store_location", storeLocation)
+            .apply();
+
+        Log.i(TAG, "✅ Provisioning data saved to SharedPreferences");
+        Toast.makeText(this, "✅ Dati di provisioning salvati", Toast.LENGTH_SHORT).show();
+
+        // Initialize MDM Manager to trigger registration
+        Log.i(TAG, "🚀 Initializing MDM Manager...");
+        MdmManager mdmManager = MdmManager.getInstance(this);
+        mdmManager.initialize();
+
+        Log.i(TAG, "✅ Provisioning complete! Device should register now.");
+        Toast.makeText(this, "✅ Provisioning completato! Registrazione in corso...", Toast.LENGTH_LONG).show();
     }
 
     private void handleTestPrint(String templateJson, String receiptDataJson) {
