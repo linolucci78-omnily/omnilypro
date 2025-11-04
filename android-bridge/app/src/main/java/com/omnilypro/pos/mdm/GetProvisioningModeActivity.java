@@ -62,7 +62,7 @@ public class GetProvisioningModeActivity extends Activity {
                     .putString("store_location", storeLocation)
                     .putBoolean("setup_completed", true)
                     .putBoolean("provisioned_via_qr", true)
-                    .putBoolean("device_registered", true)  // CRITICAL: Mark device as registered for MdmManager
+                    // NON settare device_registered=true qui! Deve essere settato DOPO la registrazione su Supabase
                     .apply();
 
                 Log.i(TAG, "✅ Provisioning data saved to SharedPreferences!");
