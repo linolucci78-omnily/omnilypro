@@ -39,6 +39,11 @@ public class MdmManager {
     private Runnable pollingRunnable;
     private static final long POLLING_INTERVAL_MS = 60000; // 1 minuto
 
+    // Handler per heartbeat continuo ogni 30 secondi
+    private android.os.Handler heartbeatHandler;
+    private Runnable heartbeatRunnable;
+    private static final long HEARTBEAT_INTERVAL_MS = 30000; // 30 secondi
+
     private MdmManager(Context context) {
         this.context = context.getApplicationContext();
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -217,12 +222,15 @@ public class MdmManager {
 
     /**
      * Registra dispositivo su backend
-     * Usa il device_id ricevuto dal QR provisioning invece di android_id
+     * Usa UPSERT per creare il device se non esiste o aggiornarlo se esiste
      */
     private void registerDevice() {
-        // Leggi device_id dalle SharedPreferences (salvato durante provisioning)
+        // Leggi dati dalle SharedPreferences (salvati durante provisioning)
         SharedPreferences prefs = context.getSharedPreferences("OmnilyPOS", Context.MODE_PRIVATE);
         String deviceId = prefs.getString("device_id", null);
+        String deviceName = prefs.getString("device_name", null);
+        String organizationId = prefs.getString("organization_id", null);
+        String storeLocation = prefs.getString("store_location", null);
 
         if (deviceId == null || deviceId.isEmpty()) {
             Log.e(TAG, "❌ No device_id found in SharedPreferences! Cannot register.");
@@ -235,18 +243,16 @@ public class MdmManager {
                 Settings.Secure.ANDROID_ID
         );
 
-        Log.i(TAG, "📱 Registering device with ID: " + deviceId);
-        Log.i(TAG, "🔑 Android ID: " + androidId);
+        Log.i(TAG, "📱 Registering device with UPSERT:");
+        Log.i(TAG, "  Device UUID: " + deviceId);
+        Log.i(TAG, "  Android ID: " + androidId);
+        Log.i(TAG, "  Device Name: " + deviceName);
+        Log.i(TAG, "  Organization: " + organizationId);
+        Log.i(TAG, "  Store Location: " + storeLocation);
 
-        // UPDATE device usando l'UUID (device_id) ricevuto dal QR
-        JsonObject deviceData = new JsonObject();
-        deviceData.addProperty("android_id", androidId); // Salva il vero android_id
-        deviceData.addProperty("status", MdmConfig.STATUS_ONLINE);
-        deviceData.addProperty("last_seen", System.currentTimeMillis());
-        deviceData.addProperty("device_model", android.os.Build.MODEL);
-        deviceData.addProperty("language", "it_IT");
-
-        SupabaseClient.getInstance().updateDeviceByUuid(deviceId, deviceData, new Callback() {
+        // UPSERT device - crea se non esiste, aggiorna se esiste
+        SupabaseClient.getInstance().upsertDevice(deviceId, androidId, deviceName,
+                organizationId, storeLocation, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e(TAG, "❌ Failed to register device", e);
@@ -300,6 +306,9 @@ public class MdmManager {
         // NUOVO: Polling continuo ogni 1 minuto usando Handler (bypassa limite 15min di Android)
         startContinuousPolling();
 
+        // NUOVO: Heartbeat continuo ogni 30 secondi usando Handler (bypassa limite 15min di Android)
+        startContinuousHeartbeat();
+
         WorkManager workManager = WorkManager.getInstance(context);
 
         // Constraints: richiede connessione internet
@@ -347,6 +356,7 @@ public class MdmManager {
     public void stopWorkers() {
         Log.i(TAG, "Stopping MDM workers...");
         stopContinuousPolling();
+        stopContinuousHeartbeat();
         WorkManager.getInstance(context).cancelAllWorkByTag("mdm_heartbeat");
         WorkManager.getInstance(context).cancelAllWorkByTag("mdm_commands");
     }
@@ -385,6 +395,67 @@ public class MdmManager {
             pollingHandler.removeCallbacks(pollingRunnable);
             Log.i(TAG, "❌ Continuous polling stopped");
         }
+    }
+
+    /**
+     * Avvia heartbeat continuo ogni 30 secondi usando Handler
+     */
+    private void startContinuousHeartbeat() {
+        if (heartbeatHandler == null) {
+            heartbeatHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        }
+
+        heartbeatRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, "💓 Continuous heartbeat tick (every 30 seconds)");
+                performImmediateHeartbeat();
+
+                // Ri-schedula per i prossimi 30 secondi
+                if (heartbeatHandler != null) {
+                    heartbeatHandler.postDelayed(this, HEARTBEAT_INTERVAL_MS);
+                }
+            }
+        };
+
+        // Avvia il primo heartbeat dopo 5 secondi (per dare tempo all'app di inizializzare)
+        heartbeatHandler.postDelayed(heartbeatRunnable, 5000);
+        Log.i(TAG, "✅ Continuous heartbeat started (interval: 30 seconds)");
+    }
+
+    /**
+     * Ferma heartbeat continuo
+     */
+    private void stopContinuousHeartbeat() {
+        if (heartbeatHandler != null && heartbeatRunnable != null) {
+            heartbeatHandler.removeCallbacks(heartbeatRunnable);
+            Log.i(TAG, "❌ Continuous heartbeat stopped");
+        }
+    }
+
+    /**
+     * Esegue heartbeat IMMEDIATAMENTE
+     */
+    private void performImmediateHeartbeat() {
+        new Thread(() -> {
+            try {
+                String deviceId = getDeviceId();
+                if (deviceId == null) {
+                    Log.e(TAG, "❌ Cannot send heartbeat - Device ID is null");
+                    return;
+                }
+
+                Log.i(TAG, "💓 Sending heartbeat for device: " + deviceId);
+
+                // Triggera il HeartbeatWorker
+                androidx.work.OneTimeWorkRequest heartbeatWork =
+                    new androidx.work.OneTimeWorkRequest.Builder(HeartbeatWorker.class).build();
+                androidx.work.WorkManager.getInstance(context).enqueue(heartbeatWork);
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Exception in immediate heartbeat", e);
+            }
+        }).start();
     }
 
     // ============================================================================

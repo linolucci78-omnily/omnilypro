@@ -96,6 +96,50 @@ public class SupabaseClient {
     }
 
     /**
+     * UPSERT dispositivo - Crea se non esiste, aggiorna se esiste (POST con resolution=merge-duplicates)
+     * Questo è il metodo GIUSTO per la registrazione automatica del device
+     */
+    public void upsertDevice(String deviceUuid, String androidId, String deviceName, String organizationId,
+                            String storeLocation, Callback callback) {
+        String url = supabaseUrl + MdmConfig.DEVICES_ENDPOINT;
+
+        // Crea oggetto device completo
+        JsonObject deviceData = new JsonObject();
+        deviceData.addProperty("id", deviceUuid);
+        deviceData.addProperty("android_id", androidId);
+        deviceData.addProperty("name", deviceName != null ? deviceName : "POS Device");
+        deviceData.addProperty("organization_id", organizationId);
+        deviceData.addProperty("store_location", storeLocation);
+        deviceData.addProperty("status", MdmConfig.STATUS_ONLINE);
+        deviceData.addProperty("device_model", android.os.Build.MODEL);
+        deviceData.addProperty("language", "it");
+        deviceData.addProperty("timezone", "Europe/Rome");
+        deviceData.addProperty("current_app_package", "com.omnilypro.pos");
+        deviceData.addProperty("kiosk_mode_active", false);
+        deviceData.addProperty("auto_updates_enabled", true);
+        deviceData.addProperty("heartbeat_interval_seconds", 30);
+        deviceData.addProperty("last_seen", new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+            .format(new java.util.Date()));
+
+        RequestBody body = RequestBody.create(
+                deviceData.toString(),
+                MediaType.parse("application/json")
+        );
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=representation,resolution=merge-duplicates")
+                .build();
+
+        Log.d(TAG, "🆙 UPSERT device UUID: " + deviceUuid + " | Android ID: " + androidId);
+        httpClient.newCall(request).enqueue(callback);
+    }
+
+    /**
      * Recupera comandi pending per dispositivo (GET)
      */
     public void getPendingCommands(String deviceId, Callback callback) {
