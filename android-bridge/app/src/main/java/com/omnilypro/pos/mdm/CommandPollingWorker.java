@@ -340,24 +340,243 @@ public class CommandPollingWorker extends Worker {
     }
 
     private boolean executeUpdateApp(JsonObject payload) {
+        Log.i(TAG, "📦 ========== UPDATE APP COMMAND ==========");
         try {
-            Log.i(TAG, "Updating app...");
             if (payload == null) {
-                Log.w(TAG, "No payload for update_app command");
+                Log.e(TAG, "❌ No payload for update_app command");
                 return false;
             }
 
             String apkUrl = payload.has("apk_url") ? payload.get("apk_url").getAsString() : null;
+            String apkChecksum = payload.has("apk_checksum") ? payload.get("apk_checksum").getAsString() : null;
             String packageName = payload.has("package_name") ? payload.get("package_name").getAsString() : null;
 
-            Log.d(TAG, "Update app: " + packageName + " from " + apkUrl);
+            if (apkUrl == null || apkUrl.isEmpty()) {
+                Log.e(TAG, "❌ No APK URL provided");
+                return false;
+            }
 
-            // TODO: Implementare download e installazione APK
-            // Questo richiede permessi speciali o system app
+            Log.i(TAG, "📥 Downloading APK from: " + apkUrl);
+            Log.i(TAG, "📦 Package: " + (packageName != null ? packageName : "com.omnilypro.pos"));
+            Log.i(TAG, "🔐 Expected checksum: " + (apkChecksum != null ? apkChecksum : "none"));
+
+            // Verifica Device Owner
+            android.app.admin.DevicePolicyManager dpm =
+                (android.app.admin.DevicePolicyManager) getApplicationContext()
+                    .getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+            if (dpm == null || !dpm.isDeviceOwnerApp(getApplicationContext().getPackageName())) {
+                Log.e(TAG, "❌ Not Device Owner - cannot install APK silently");
+                return false;
+            }
+
+            Log.i(TAG, "✅ Device Owner verified - can install silently");
+
+            // Download e installa APK in background thread
+            downloadAndInstallApk(apkUrl, apkChecksum);
+
+            // Ritorna true subito - l'installazione avviene in background
             return true;
+
         } catch (Exception e) {
-            Log.e(TAG, "Update app failed", e);
+            Log.e(TAG, "❌ Update app failed", e);
             return false;
+        }
+    }
+
+    /**
+     * Download e installa APK da URL
+     */
+    private void downloadAndInstallApk(final String apkUrl, final String expectedChecksum) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                java.io.File apkFile = null;
+                try {
+                    Log.i(TAG, "🔽 Starting APK download...");
+
+                    // Download APK
+                    okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                        .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+                        .build();
+
+                    okhttp3.Request request = new okhttp3.Request.Builder()
+                        .url(apkUrl)
+                        .build();
+
+                    okhttp3.Response response = client.newCall(request).execute();
+
+                    if (!response.isSuccessful()) {
+                        Log.e(TAG, "❌ Download failed: HTTP " + response.code());
+                        return;
+                    }
+
+                    // Salva in file temporaneo
+                    apkFile = new java.io.File(getApplicationContext().getCacheDir(), "update.apk");
+                    java.io.FileOutputStream fos = new java.io.FileOutputStream(apkFile);
+                    java.io.InputStream is = response.body().byteStream();
+
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    long totalBytes = 0;
+                    long contentLength = response.body().contentLength();
+
+                    Log.i(TAG, "📦 APK size: " + (contentLength / 1024 / 1024) + " MB");
+
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                        totalBytes += bytesRead;
+
+                        // Log progress ogni 1MB
+                        if (totalBytes % (1024 * 1024) == 0) {
+                            int progress = (int) ((totalBytes * 100) / contentLength);
+                            Log.i(TAG, "📥 Download progress: " + progress + "%");
+                        }
+                    }
+
+                    fos.close();
+                    is.close();
+                    response.close();
+
+                    Log.i(TAG, "✅ APK downloaded successfully: " + apkFile.getAbsolutePath());
+                    Log.i(TAG, "📦 File size: " + (apkFile.length() / 1024 / 1024) + " MB");
+
+                    // Verifica checksum se fornito
+                    if (expectedChecksum != null && !expectedChecksum.isEmpty()) {
+                        String actualChecksum = calculateApkChecksum(apkFile);
+                        Log.i(TAG, "🔐 Verifying checksum...");
+                        Log.i(TAG, "   Expected: " + expectedChecksum);
+                        Log.i(TAG, "   Actual:   " + actualChecksum);
+
+                        if (!expectedChecksum.equals(actualChecksum)) {
+                            Log.e(TAG, "❌ Checksum mismatch! APK may be corrupted or wrong version");
+                            apkFile.delete();
+                            return;
+                        }
+                        Log.i(TAG, "✅ Checksum verified!");
+                    }
+
+                    // Installa APK usando PackageInstaller
+                    installApkSilently(apkFile);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Download/Install error", e);
+                    if (apkFile != null && apkFile.exists()) {
+                        apkFile.delete();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Calcola SHA256 checksum dell'APK (formato base64url come per provisioning)
+     */
+    private String calculateApkChecksum(java.io.File apkFile) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            java.io.FileInputStream fis = new java.io.FileInputStream(apkFile);
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
+            fis.close();
+
+            byte[] hash = digest.digest();
+
+            // Convert to base64url (same format as provisioning checksum)
+            String base64 = android.util.Base64.encodeToString(hash, android.util.Base64.NO_WRAP);
+            return base64.replace('+', '-').replace('/', '_').replace("=", "");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating checksum", e);
+            return null;
+        }
+    }
+
+    /**
+     * Installa APK silenziosamente usando PackageInstaller
+     * Device Owner può installare senza conferma utente!
+     */
+    private void installApkSilently(java.io.File apkFile) {
+        try {
+            Log.i(TAG, "🔧 Installing APK silently...");
+
+            android.content.pm.PackageInstaller packageInstaller =
+                getApplicationContext().getPackageManager().getPackageInstaller();
+
+            android.content.pm.PackageInstaller.SessionParams params =
+                new android.content.pm.PackageInstaller.SessionParams(
+                    android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL
+                );
+
+            // Device Owner può installare senza interazione utente
+            params.setAppPackageName(getApplicationContext().getPackageName());
+
+            int sessionId = packageInstaller.createSession(params);
+            android.content.pm.PackageInstaller.Session session = packageInstaller.openSession(sessionId);
+
+            Log.i(TAG, "📦 PackageInstaller session created: " + sessionId);
+
+            // Copia APK nella sessione
+            java.io.OutputStream out = session.openWrite("package", 0, -1);
+            java.io.FileInputStream in = new java.io.FileInputStream(apkFile);
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+
+            session.fsync(out);
+            in.close();
+            out.close();
+
+            Log.i(TAG, "✅ APK written to session");
+
+            // Intent per ricevere risultato installazione
+            android.content.Intent intent = new android.content.Intent(getApplicationContext(),
+                getApplicationContext().getClass());
+            android.app.PendingIntent pendingIntent = android.app.PendingIntent.getBroadcast(
+                getApplicationContext(),
+                sessionId,
+                intent,
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                    ? android.app.PendingIntent.FLAG_MUTABLE
+                    : 0
+            );
+
+            // Commit installazione
+            session.commit(pendingIntent.getIntentSender());
+            session.close();
+
+            Log.i(TAG, "🚀 Installation committed - APK will install silently");
+            Log.i(TAG, "⏳ App will restart automatically after installation");
+
+            // Cleanup
+            apkFile.delete();
+
+            // Log activity
+            SupabaseClient.getInstance().logActivity(
+                "app_update",
+                "App Update",
+                "APK installation started",
+                true,
+                new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {}
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) {
+                        response.close();
+                    }
+                }
+            );
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Silent installation failed", e);
         }
     }
 
