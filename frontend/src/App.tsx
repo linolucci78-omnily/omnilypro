@@ -37,6 +37,7 @@ import AdminMembershipsDashboard from './components/Admin/AdminMembershipsDashbo
 import WebsiteManager from './components/Admin/WebsiteManager'
 import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
+import Downloads from './pages/Downloads'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
 import StrapiTest from './pages/StrapiTest'
@@ -214,6 +215,7 @@ function App() {
               <Route path="websites-v2" element={<WebsiteManagerV2 />} />
               <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
               <Route path="memberships" element={<AdminMembershipsDashboard />} />
+              <Route path="downloads" element={<Downloads />} />
             </Route>
             <Route path="/sign/:signatureId" element={
               <React.Suspense fallback={<div>Caricamento...</div>}>

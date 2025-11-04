@@ -32,7 +32,8 @@ import {
   FileSignature,
   Sparkles,
   Gift,
-  Ticket
+  Ticket,
+  Download
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -106,7 +107,8 @@ const AdminLayout = () => {
         { path: '/admin/settings', icon: Settings, label: 'Impostazioni' },
         { path: '/admin/security', icon: Shield, label: 'Sicurezza' },
         { path: '/admin/notifications', icon: Bell, label: 'Notifiche' },
-        { path: '/admin/database', icon: Database, label: 'Database' }
+        { path: '/admin/database', icon: Database, label: 'Database' },
+        { path: '/admin/downloads', icon: Download, label: 'Download Tools' }
       ]
     },
     {
