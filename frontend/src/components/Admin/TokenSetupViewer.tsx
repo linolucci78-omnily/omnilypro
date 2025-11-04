@@ -114,7 +114,7 @@ const TokenSetupViewer: React.FC = () => {
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production-v1.4.1.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "STaUitemb37RXrqVNgxc7T1-vDacJ27rcOnvi6-kP6Q",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "UD6n2v1QMVjmZhcgZAMdu75xflfb_ypXmvQuLrR-ho8",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
