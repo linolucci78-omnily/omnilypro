@@ -243,16 +243,24 @@ public class MdmManager {
                 Settings.Secure.ANDROID_ID
         );
 
-        Log.i(TAG, "📱 Registering device with UPSERT:");
+        Log.i(TAG, "📱 Registering device:");
         Log.i(TAG, "  Device UUID: " + deviceId);
         Log.i(TAG, "  Android ID: " + androidId);
         Log.i(TAG, "  Device Name: " + deviceName);
         Log.i(TAG, "  Organization: " + organizationId);
         Log.i(TAG, "  Store Location: " + storeLocation);
 
-        // UPSERT device - crea se non esiste, aggiorna se esiste
-        SupabaseClient.getInstance().upsertDevice(deviceId, androidId, deviceName,
-                organizationId, storeLocation, new Callback() {
+        // Crea oggetto device per PATCH
+        JsonObject deviceData = new JsonObject();
+        deviceData.addProperty("android_id", androidId);
+        deviceData.addProperty("name", deviceName != null ? deviceName : "POS Device");
+        deviceData.addProperty("organization_id", organizationId);
+        deviceData.addProperty("store_location", storeLocation);
+        deviceData.addProperty("status", MdmConfig.STATUS_ONLINE);
+        deviceData.addProperty("device_model", android.os.Build.MODEL);
+
+        // Usa updateDeviceByUuid (PATCH) che ha funzionato ieri
+        SupabaseClient.getInstance().updateDeviceByUuid(deviceId, deviceData, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e(TAG, "❌ Failed to register device", e);
