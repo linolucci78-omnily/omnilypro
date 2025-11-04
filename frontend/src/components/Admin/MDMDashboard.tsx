@@ -489,8 +489,8 @@ const MDMDashboard: React.FC = () => {
       // Provisioning configuration for Android 14 - PRODUCTION APK with OU=Production
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production-v4.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "-6G86nuxxRthaQmuzQxJGSVFjiMSKtmaRPTCyEql87M",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production-v1.4.0.apk",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "YcbNYAH0_YFVfsf2zpbzyQhbVmdNxgvF1Rqx8-Lru9U",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
@@ -597,8 +597,8 @@ const MDMDashboard: React.FC = () => {
       // Provisioning configuration for Android 14 - PRODUCTION APK with OU=Production
       const provisioningData = {
         "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.omnilypro.pos/.mdm.MyDeviceAdminReceiver",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production-v4.apk",
-        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "-6G86nuxxRthaQmuzQxJGSVFjiMSKtmaRPTCyEql87M",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/apks/omnilybridgepos-production-v1.4.0.apk",
+        "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "YcbNYAH0_YFVfsf2zpbzyQhbVmdNxgvF1Rqx8-Lru9U",
         "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": true,
         "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
         "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
