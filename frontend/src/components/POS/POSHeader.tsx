@@ -25,11 +25,11 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
 
   const confirmLogout = async () => {
     try {
-      console.log('🚪 Setting POS mode flag...');
-      localStorage.setItem('pos-mode', 'true');
-      console.log('🚪 Calling signOut...');
+      console.log('🚪 POS Header Logout - Starting...');
       await signOut();
-      console.log('🚪 SignOut success');
+      console.log('🚪 SignOut success, redirecting to POS login...');
+      // IMPORTANTE: Redirect esplicito alla pagina login POS dopo logout
+      window.location.href = '/login?posomnily=true';
     } catch (error) {
       console.error('❌ Errore logout:', error);
     } finally {

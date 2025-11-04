@@ -59,15 +59,15 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
   }, [isOpen]);
 
   const handleSignOut = async () => {
-    console.log('=� LOGOUT SIDEBAR CLICKED!');
+    console.log('🚪 LOGOUT SIDEBAR CLICKED!');
     try {
-      console.log('=� Setting POS mode flag from sidebar...');
-      localStorage.setItem('pos-mode', 'true');
-      console.log('=� Calling signOut from sidebar...');
+      console.log('🚪 POS Sidebar Logout - Starting...');
       await signOut();
-      console.log('=� SignOut success from sidebar');
+      console.log('🚪 SignOut success, redirecting to POS login...');
+      // IMPORTANTE: Redirect esplicito alla pagina login POS dopo logout
+      window.location.href = '/login?posomnily=true';
     } catch (error) {
-      console.error('L Errore logout sidebar:', error);
+      console.error('❌ Errore logout sidebar:', error);
     }
   };
 
