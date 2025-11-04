@@ -204,6 +204,7 @@ const AppPushUpdate: React.FC = () => {
             payload: {
               package_name: selectedApp.package_name,
               apk_url: selectedApp.apk_url,
+              apk_checksum: selectedApp.apk_checksum || '',
               version_code: selectedApp.version_code,
               version_name: selectedApp.version_name,
               is_mandatory: pushForm.is_mandatory
