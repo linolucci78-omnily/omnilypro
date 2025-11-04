@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { MdLogout } from 'react-icons/md';
 import ConfirmModal from '../UI/ConfirmModal';
@@ -10,6 +11,7 @@ interface POSHeaderProps {
 
 const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleMenuToggle = (e: React.MouseEvent) => {
@@ -26,10 +28,12 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
   const confirmLogout = async () => {
     try {
       console.log('🚪 POS Header Logout - Starting...');
+      // IMPORTANTE: Imposta flag POS PRIMA del signOut per evitare flash della pagina desktop
+      localStorage.setItem('pos-mode', 'true');
       await signOut();
-      console.log('🚪 SignOut success, redirecting to POS login...');
-      // IMPORTANTE: Redirect esplicito alla pagina login POS dopo logout
-      window.location.href = '/login?posomnily=true';
+      console.log('🚪 SignOut success, navigating to POS login...');
+      // React Router navigate (no page reload, no flash)
+      navigate('/login?posomnily=true', { replace: true });
     } catch (error) {
       console.error('❌ Errore logout:', error);
     } finally {
