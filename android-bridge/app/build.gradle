@@ -10,8 +10,8 @@ android {
         applicationId "com.omnilypro.pos"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 36
-        versionName "1.4.1-fixed-registration"
+        versionCode 37
+        versionName "1.4.2-fixed-reboot-shutdown"
     }
 
     signingConfigs {

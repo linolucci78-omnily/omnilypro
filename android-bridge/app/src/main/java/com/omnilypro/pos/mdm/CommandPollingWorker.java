@@ -228,20 +228,44 @@ public class CommandPollingWorker extends Worker {
     // ============================================================================
 
     private boolean executeReboot() {
-        Log.i(TAG, "🔄 Attempting to REBOOT device...");
+        Log.i(TAG, "🔄 Attempting to REBOOT device using DevicePolicyManager...");
         try {
-            PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-            if (pm != null) {
-                Log.i(TAG, "✅ PowerManager obtained, requesting reboot...");
-                // Requires REBOOT permission or system app
-                pm.reboot("MDM Command");
-                Log.i(TAG, "✅ Reboot command sent successfully");
+            // Usa DevicePolicyManager (Device Owner ha questo privilegio!)
+            android.app.admin.DevicePolicyManager dpm =
+                (android.app.admin.DevicePolicyManager) getApplicationContext()
+                    .getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+            if (dpm == null) {
+                Log.e(TAG, "❌ DevicePolicyManager is NULL");
+                return false;
+            }
+
+            // Verifica se siamo Device Owner
+            if (!dpm.isDeviceOwnerApp(getApplicationContext().getPackageName())) {
+                Log.e(TAG, "❌ App is NOT Device Owner - cannot reboot");
+                return false;
+            }
+
+            // ComponentName del DeviceAdminReceiver
+            android.content.ComponentName adminComponent = new android.content.ComponentName(
+                getApplicationContext(),
+                MyDeviceAdminReceiver.class
+            );
+
+            Log.i(TAG, "✅ Device Owner verified, sending reboot command...");
+
+            // REBOOT usando DevicePolicyManager (disponibile da Android 7.0)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                dpm.reboot(adminComponent);
+                Log.i(TAG, "✅ Reboot command sent successfully via DevicePolicyManager");
                 return true;
             } else {
-                Log.e(TAG, "❌ PowerManager is NULL");
+                Log.e(TAG, "❌ Android version too old (< 7.0) - reboot not supported");
+                return false;
             }
+
         } catch (SecurityException e) {
-            Log.e(TAG, "❌ Reboot failed - PERMISSION DENIED (requires REBOOT permission)", e);
+            Log.e(TAG, "❌ Reboot failed - PERMISSION DENIED", e);
         } catch (Exception e) {
             Log.e(TAG, "❌ Reboot failed - Exception", e);
         }
@@ -249,16 +273,37 @@ public class CommandPollingWorker extends Worker {
     }
 
     private boolean executeShutdown() {
+        Log.i(TAG, "⚡ Attempting to SHUTDOWN device...");
         try {
-            Log.i(TAG, "Executing shutdown...");
-            PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-            if (pm != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                // Requires REBOOT permission or system app
-                pm.reboot(null); // null = shutdown
+            // Per shutdown, possiamo tentare con DevicePolicyManager lockNow() + reboot
+            // Ma Android non ha API diretta per shutdown da Device Owner
+
+            // Alternativa: usa PowerManager con riflessione (hack per Device Owner)
+            android.app.admin.DevicePolicyManager dpm =
+                (android.app.admin.DevicePolicyManager) getApplicationContext()
+                    .getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+            if (dpm == null || !dpm.isDeviceOwnerApp(getApplicationContext().getPackageName())) {
+                Log.e(TAG, "❌ Not Device Owner - cannot shutdown");
+                return false;
+            }
+
+            Log.i(TAG, "⚠️ Shutdown not directly supported - performing reboot instead");
+
+            // Fallback: reboot (Android non ha shutdown API per Device Owner)
+            android.content.ComponentName adminComponent = new android.content.ComponentName(
+                getApplicationContext(),
+                MyDeviceAdminReceiver.class
+            );
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                dpm.reboot(adminComponent);
+                Log.i(TAG, "✅ Reboot sent (shutdown not available, using reboot as fallback)");
                 return true;
             }
+
         } catch (Exception e) {
-            Log.e(TAG, "Shutdown failed", e);
+            Log.e(TAG, "❌ Shutdown failed", e);
         }
         return false;
     }
