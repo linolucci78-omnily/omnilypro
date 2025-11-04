@@ -27,13 +27,14 @@ interface App {
   version_name: string
   version_code: number
   apk_url: string
-  file_size_mb: number
+  apk_size_mb: number
   is_mandatory: boolean
   rollout_percentage: number
   is_active: boolean
   install_count: number
   upload_date: string
   release_notes?: string
+  apk_checksum?: string
 }
 
 interface Device {
@@ -390,7 +391,7 @@ const AppPushUpdate: React.FC = () => {
                       backgroundColor: '#f3f4f6',
                       color: '#374151'
                     }}>
-                      {app.file_size_mb} MB
+                      {app.apk_size_mb || 'N/A'} MB
                     </span>
                     {app.is_mandatory && (
                       <span style={{
@@ -573,7 +574,7 @@ const AppPushUpdate: React.FC = () => {
                   {selectedApp.app_name} v{selectedApp.version_name}
                 </h4>
                 <p style={{ margin: 0, fontSize: '0.875rem', color: '#0369a1' }}>
-                  {selectedApp.package_name} • {selectedApp.file_size_mb} MB
+                  {selectedApp.package_name} • {selectedApp.apk_size_mb || 'N/A'} MB
                 </p>
               </div>
 
@@ -616,6 +617,43 @@ const AppPushUpdate: React.FC = () => {
                           )
                         })}
                       </select>
+                    </div>
+                  )}
+                  <div className="form-row">
+                    <label>
+                      <input
+                        type="radio"
+                        checked={pushForm.target === 'specific'}
+                        onChange={() => setPushForm({ ...pushForm, target: 'specific', device_ids: [] })}
+                      />
+                      Dispositivi specifici
+                    </label>
+                  </div>
+                  {pushForm.target === 'specific' && (
+                    <div style={{ marginLeft: '2rem', maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.5rem' }}>
+                      {devices.filter(d => d.status === 'online').map(device => (
+                        <div key={device.id} className="form-row" style={{ marginBottom: '0.5rem' }}>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={pushForm.device_ids.includes(device.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setPushForm({ ...pushForm, device_ids: [...pushForm.device_ids, device.id] })
+                                } else {
+                                  setPushForm({ ...pushForm, device_ids: pushForm.device_ids.filter(id => id !== device.id) })
+                                }
+                              }}
+                            />
+                            {device.name} ({device.store_location || 'N/A'})
+                          </label>
+                        </div>
+                      ))}
+                      {devices.filter(d => d.status === 'online').length === 0 && (
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>
+                          Nessun dispositivo online disponibile
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
