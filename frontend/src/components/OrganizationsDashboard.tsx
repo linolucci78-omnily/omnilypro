@@ -614,21 +614,49 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     return Math.floor(basePoints * tier.multiplier);
   };
 
-  // Funzione per incrementare visite cliente
+  // Funzione per incrementare visite cliente - SMART: conta solo 1 visita al giorno
   const incrementCustomerVisits = async (customerId: string) => {
     try {
       const currentCustomer = customers.find(c => c.id === customerId);
       if (!currentCustomer) return;
 
+      const now = new Date();
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      // Controlla se last_visit è oggi
+      let lastVisitDate = null;
+      if (currentCustomer.last_visit) {
+        lastVisitDate = new Date(currentCustomer.last_visit).toISOString().split('T')[0];
+      }
+
+      // Se è già venuto oggi, NON incrementare visite
+      if (lastVisitDate === today) {
+        console.log(`ℹ️ ${currentCustomer.name} già visitato oggi (${today}). Visite non incrementate.`);
+
+        // Aggiorna solo last_visit timestamp (per tracciare l'orario dell'ultima azione)
+        const { error } = await supabase
+          .from('customers')
+          .update({
+            last_visit: now.toISOString()
+          })
+          .eq('id', customerId);
+
+        if (error) {
+          console.error('Errore aggiornamento last_visit:', error);
+        }
+
+        return; // NON incrementare visite
+      }
+
+      // È un nuovo giorno! Incrementa visite
       const newVisits = currentCustomer.visits + 1;
-      const now = new Date().toISOString();
 
       // Aggiorna visite nel database
       const { error } = await supabase
         .from('customers')
         .update({
           visits: newVisits,
-          last_visit: now
+          last_visit: now.toISOString()
         })
         .eq('id', customerId);
 
@@ -641,17 +669,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       setCustomers(prevCustomers =>
         prevCustomers.map(customer =>
           customer.id === customerId
-            ? { ...customer, visits: newVisits, last_visit: now }
+            ? { ...customer, visits: newVisits, last_visit: now.toISOString() }
             : customer
         )
       );
 
       // Aggiorna anche il cliente selezionato se necessario
       if (selectedCustomer && selectedCustomer.id === customerId) {
-        setSelectedCustomer({ ...selectedCustomer, visits: newVisits, last_visit: now });
+        setSelectedCustomer({ ...selectedCustomer, visits: newVisits, last_visit: now.toISOString() });
       }
 
-      console.log(`✅ Visite incrementate: ${currentCustomer.visits} -> ${newVisits} per ${currentCustomer.name}`);
+      console.log(`✅ Nuova visita! ${currentCustomer.visits} -> ${newVisits} per ${currentCustomer.name} (ultima visita: ${lastVisitDate || 'mai'} → oggi: ${today})`);
     } catch (error) {
       console.error('Errore durante incremento visite:', error);
     }

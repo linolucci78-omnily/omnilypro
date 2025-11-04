@@ -37,6 +37,7 @@ import AdminMembershipsDashboard from './components/Admin/AdminMembershipsDashbo
 import WebsiteManager from './components/Admin/WebsiteManager'
 import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
+import DocumentationDashboard from './components/Admin/DocumentationDashboard'
 import Downloads from './pages/Downloads'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
@@ -215,6 +216,7 @@ function App() {
               <Route path="websites-v2" element={<WebsiteManagerV2 />} />
               <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
               <Route path="memberships" element={<AdminMembershipsDashboard />} />
+              <Route path="docs" element={<DocumentationDashboard />} />
               <Route path="downloads" element={<Downloads />} />
             </Route>
             <Route path="/sign/:signatureId" element={
