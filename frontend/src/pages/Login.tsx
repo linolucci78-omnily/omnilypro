@@ -137,13 +137,32 @@ const Login: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className={styles.passwordInputContainer}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className={styles.passwordToggle}
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            </div>
             <button type="submit" disabled={loading}>
               {loading ? 'Accesso...' : 'Entra'}
             </button>

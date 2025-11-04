@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3 } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
@@ -47,6 +47,17 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [showModifyPointsModal, setShowModifyPointsModal] = useState(false);
+
+  // State locale per tenere traccia dei dati customer aggiornati in tempo reale
+  const [localCustomer, setLocalCustomer] = useState<Customer | null>(customer);
+
+  // Sincronizza localCustomer con customer prop quando cambia (aggiornamento in tempo reale)
+  useEffect(() => {
+    if (customer) {
+      setLocalCustomer(customer);
+      console.log(`🔄 CustomerSlidePanel: customer aggiornato - Punti: ${customer.points}, Speso: €${customer.total_spent.toFixed(2)}`);
+    }
+  }, [customer?.points, customer?.total_spent, customer?.visits, customer?.id]);
 
   // Carica attività del cliente quando il pannello si apre o cambia cliente
   useEffect(() => {
@@ -136,7 +147,17 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     loadRedemptionHistory();
   }, [customer, showRewardsSection, rewardsView]);
 
-  if (!customer) return null;
+  // Calcola messaggio conferma riscatto dinamicamente per mostrare sempre punti aggiornati
+  // IMPORTANTE: useMemo DEVE essere prima del return condizionale per rispettare le Rules of Hooks
+  const confirmRedeemMessage = useMemo(() => {
+    if (!selectedReward || !localCustomer) return '';
+
+    const pointsAfterRedemption = localCustomer.points - selectedReward.points_required;
+
+    return `Vuoi riscattare "${selectedReward.name}" per ${selectedReward.points_required} ${pointsName.toLowerCase()}?\n\n${pointsName} attuali: ${localCustomer.points}\n${pointsName} dopo riscatto: ${pointsAfterRedemption}`;
+  }, [selectedReward, localCustomer, pointsName]);
+
+  if (!customer || !localCustomer) return null;
 
   // Funzioni utility per gestione tiers dinamici
   const calculateCustomerTier = (points: number): any => {
@@ -172,8 +193,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     };
   };
 
-  // Calcola tier dinamico del cliente corrente
-  const currentTier = calculateCustomerTier(customer.points);
+  // Calcola tier dinamico del cliente corrente usando localCustomer per dati aggiornati
+  const currentTier = calculateCustomerTier(localCustomer.points);
 
   const getTierColor = (tierName?: string) => {
     // Se abbiamo tier dinamici configurati, cerca il colore dal tier
@@ -217,12 +238,17 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   };
 
   const handleModifyPoints = async (pointsChange: number, reason: string) => {
-    if (!customer || !onAddPoints) return;
+    if (!customer || !onAddPoints || !localCustomer) return;
 
     setShowModifyPointsModal(false);
 
     // Usa onAddPoints che gestisce già l'update al database
     await onAddPoints(customer.id, pointsChange);
+
+    // Aggiorna localCustomer immediatamente con i nuovi punti
+    const newPoints = localCustomer.points + pointsChange;
+    setLocalCustomer({ ...localCustomer, points: newPoints });
+    console.log(`🔄 LocalCustomer aggiornato: ${localCustomer.points} -> ${newPoints} punti dopo modifica manuale`);
 
     // Registra l'attività con il motivo
     if (customer.organization_id) {
@@ -262,7 +288,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   };
 
   const confirmRedeemReward = async () => {
-    if (!customer || !selectedReward) return;
+    if (!customer || !selectedReward || !localCustomer) return;
 
     setShowConfirmModal(false);
 
@@ -270,14 +296,14 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       console.log(`🎁 Riscatto premio "${selectedReward.name}" per ${customer.name}...`);
 
       // Calcola tier corrente
-      const currentTier = calculateCustomerTier(customer.points);
+      const currentTier = calculateCustomerTier(localCustomer.points);
 
       // Chiama API per riscattare il premio
       const result = await rewardsService.redeemForCustomer(
         customer.organization_id,
         customer.id,
         selectedReward.id,
-        customer.points,
+        localCustomer.points,
         currentTier.name
       );
 
@@ -287,6 +313,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       }
 
       console.log(`✅ Premio "${selectedReward.name}" riscattato! Punti scalati: -${selectedReward.points_required}`);
+
+      // Aggiorna localCustomer immediatamente con i nuovi punti
+      const newPoints = localCustomer.points - selectedReward.points_required;
+      setLocalCustomer({ ...localCustomer, points: newPoints });
+      console.log(`🔄 LocalCustomer aggiornato: ${localCustomer.points} -> ${newPoints} punti dopo riscatto premio`);
 
       // Chiudi e riapri la sezione per ricaricare i dati
       setShowRewardsSection(false);
@@ -553,21 +584,21 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <div className="customer-slide-panel-stat-icon">
               <Award size={24} />
             </div>
-            <div className="customer-slide-panel-stat-number">{customer.points}</div>
+            <div className="customer-slide-panel-stat-number">{localCustomer.points}</div>
             <div className="customer-slide-panel-stat-label">{pointsName}</div>
           </div>
           <div className="customer-slide-panel-stat-item">
             <div className="customer-slide-panel-stat-icon">
               <Euro size={24} />
             </div>
-            <div className="customer-slide-panel-stat-number">€{customer.total_spent.toFixed(2)}</div>
+            <div className="customer-slide-panel-stat-number">€{localCustomer.total_spent.toFixed(2)}</div>
             <div className="customer-slide-panel-stat-label">Speso</div>
           </div>
           <div className="customer-slide-panel-stat-item">
             <div className="customer-slide-panel-stat-icon">
               <TrendingUp size={24} />
             </div>
-            <div className="customer-slide-panel-stat-number">{customer.visits}</div>
+            <div className="customer-slide-panel-stat-number">{localCustomer.visits}</div>
             <div className="customer-slide-panel-stat-label">Visite</div>
           </div>
         </div>
@@ -630,7 +661,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                 <div className="rewards-available">
                   <p className="rewards-section-info">
                     <Target size={16} />
-                    Hai <strong>{customer.points} {pointsName.toLowerCase()}</strong> disponibili
+                    Hai <strong>{localCustomer.points} {pointsName.toLowerCase()}</strong> disponibili
                   </p>
                   <p className="rewards-section-subtitle">
                     Seleziona un premio da riscattare:
@@ -645,7 +676,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                     ) : (
                       allRewards.map(reward => {
                         const isAvailable = availableRewards.some(r => r.id === reward.id);
-                        const canRedeem = isAvailable && customer.points >= reward.points_required;
+                        const canRedeem = isAvailable && localCustomer.points >= reward.points_required;
 
                         return (
                           <div
@@ -805,7 +836,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
       {/* Sale Modal */}
       <SaleModal
-        customer={customer}
+        customer={localCustomer}
         isOpen={showSaleModal}
         onClose={() => setShowSaleModal(false)}
         onConfirm={handleSaleConfirm}
@@ -820,7 +851,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       <ConfirmModal
         isOpen={showConfirmModal}
         title="Conferma Riscatto Premio"
-        message={selectedReward ? `Vuoi riscattare "${selectedReward.name}" per ${selectedReward.points_required} ${pointsName.toLowerCase()}?\n\n${pointsName} attuali: ${customer?.points}\n${pointsName} dopo riscatto: ${(customer?.points || 0) - selectedReward.points_required}` : ''}
+        message={confirmRedeemMessage}
         confirmText="Riscatta"
         cancelText="Annulla"
         type="info"
@@ -834,7 +865,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       {/* Modify Points Modal */}
       <ModifyPointsModal
         isOpen={showModifyPointsModal}
-        customer={customer}
+        customer={localCustomer}
         onClose={() => setShowModifyPointsModal(false)}
         onConfirm={handleModifyPoints}
         pointsName={pointsName}
