@@ -143,7 +143,7 @@ const CustomerDisplay: React.FC = () => {
       coinsContainer.style.width = '100vw';
       coinsContainer.style.height = '100vh';
       coinsContainer.style.pointerEvents = 'none'; // IMPORTANTE: non intercetta click
-      coinsContainer.style.zIndex = '10000';
+      coinsContainer.style.zIndex = '99998'; // Sotto la celebrazione
       document.body.appendChild(coinsContainer);
     } else {
       // Pulisci monete precedenti se esistono
@@ -175,6 +175,40 @@ const CustomerDisplay: React.FC = () => {
     console.log('[CoinsRain] Setup completato');
   };
 
+  // Suono pioggia monete tipo slot machine
+  const playSlotMachineSound = () => {
+    try {
+      console.log('🎰 Riproduzione suono slot machine...');
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+      // Sequenza di "ding" veloci per simulare monete che cadono
+      const coinTimes = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7];
+
+      coinTimes.forEach((time) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Frequenze casuali per suono monete
+        oscillator.frequency.value = 800 + Math.random() * 400;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime + time);
+        gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + time + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + 0.15);
+
+        oscillator.start(audioContext.currentTime + time);
+        oscillator.stop(audioContext.currentTime + time + 0.15);
+      });
+
+      console.log('✅ Suono slot machine completato!');
+    } catch (error) {
+      console.error('❌ Errore suono slot machine:', error);
+    }
+  };
+
   // Attiva pioggia di monete quando inizia la celebrazione
   React.useEffect(() => {
     console.log('🎯 Customer Display - Effect triggered:', { showCelebration, celebrationData });
@@ -185,9 +219,35 @@ const CustomerDisplay: React.FC = () => {
       // Attiva pioggia di monete SEMPRE durante celebrazione
       createCoinsRain();
 
+      // Suono slot machine
+      playSlotMachineSound();
+
+      // AUTO-CHIUSURA dopo 3 secondi
+      const autoCloseTimer = setTimeout(() => {
+        console.log('⏰ Auto-chiusura celebrazione dopo 3 secondi');
+        setShowCelebration(false);
+        setCelebrationData(null);
+      }, 3000);
+
       console.log('✅ FINE pioggia di monete completata');
+
+      return () => clearTimeout(autoCloseTimer);
     }
   }, [showCelebration, celebrationData]);
+
+  // Auto-chiusura tier upgrade dopo 4 secondi
+  React.useEffect(() => {
+    if (tierUpgrade) {
+      console.log('👑 Tier Upgrade mostrato - auto-chiusura dopo 4 secondi');
+
+      const autoCloseTierTimer = setTimeout(() => {
+        console.log('⏰ Auto-chiusura tier upgrade dopo 4 secondi');
+        setTierUpgrade(null);
+      }, 4000);
+
+      return () => clearTimeout(autoCloseTierTimer);
+    }
+  }, [tierUpgrade]);
 
   return (
     <div style={{
@@ -740,7 +800,7 @@ const CustomerDisplay: React.FC = () => {
         )}
       </div>
 
-      {/* Celebration Screen - BRAND ROSSO ULTRA-COMPATTA per 4" */}
+      {/* Celebration Screen - BRAND ROSSO ULTRA-COMPATTA per 4" - AUTO-CHIUSURA 3 SEC */}
       {showCelebration && celebrationData && (
         <div
           style={{
@@ -758,18 +818,7 @@ const CustomerDisplay: React.FC = () => {
             color: 'white',
             textAlign: 'center',
             padding: '0.75rem',
-            gap: '0.5rem',
-            cursor: 'pointer'
-          }}
-          onClick={() => {
-            if (celebrationClickedRef.current) {
-              console.log('[Celebration] Click già processato, ignoro');
-              return;
-            }
-            celebrationClickedRef.current = true;
-            console.log('[Celebration] PRIMO click rilevato - chiudo celebrazione');
-            setShowCelebration(false);
-            setCelebrationData(null);
+            gap: '0.5rem'
           }}
         >
 
@@ -851,7 +900,7 @@ const CustomerDisplay: React.FC = () => {
         </div>
       )}
 
-      {/* Tier Upgrade Celebration - ULTRA-COMPATTA per 4" */}
+      {/* Tier Upgrade Celebration - ULTRA-COMPATTA per 4" - AUTO-CHIUSURA 4 SEC */}
       {tierUpgrade && (
         <div
           style={{
@@ -869,17 +918,7 @@ const CustomerDisplay: React.FC = () => {
             color: 'white',
             textAlign: 'center',
             padding: '1rem',
-            gap: '0.75rem',
-            cursor: 'pointer'
-          }}
-          onClick={() => {
-            if (tierUpgradeClickedRef.current) {
-              console.log('[TierUpgrade] Click già processato, ignoro');
-              return;
-            }
-            tierUpgradeClickedRef.current = true;
-            console.log('[TierUpgrade] PRIMO click rilevato - chiudo celebrazione tier');
-            setTierUpgrade(null);
+            gap: '0.75rem'
           }}
         >
           {/* Icona tier - COMPATTA */}
