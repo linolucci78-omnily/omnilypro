@@ -416,35 +416,15 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  // Funzione per riprodurre suono cash register programmatico BELLO
+  // Funzione per riprodurre suono slot machine - DA FILE AUDIO
   const playCoinSound = () => {
     try {
-      console.log('🔊 Riproduzione suono cash register...');
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-      // Suono "ka-ching" cash register con 3 note
-      const times = [0, 0.1, 0.15];
-      const frequencies = [800, 1000, 1200];
-
-      times.forEach((time, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = frequencies[index];
-        oscillator.type = 'sine';
-
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime + time);
-        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + time + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + 0.3);
-
-        oscillator.start(audioContext.currentTime + time);
-        oscillator.stop(audioContext.currentTime + time + 0.3);
-      });
-
-      console.log('✅ Suono cash register riprodotto!');
+      console.log('🔊 Riproduzione suono slot machine da file audio...');
+      const audio = new Audio('/sounds/slot-machine-coin-payout-1-188227.mp3');
+      audio.volume = 0.7; // Volume al 70%
+      audio.play()
+        .then(() => console.log('✅ Suono slot machine riprodotto da file!'))
+        .catch(err => console.error('❌ Errore riproduzione audio:', err));
     } catch (error) {
       console.error('❌ Errore riproduzione suono:', error);
     }
