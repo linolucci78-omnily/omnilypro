@@ -318,19 +318,23 @@
 }
 
 .customer-slide-panel-stat-number {
-  font-size: 1.75rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #1f2937;
   margin-bottom: 0.5rem;
   line-height: 1.1;
   letter-spacing: -0.02em;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 /* POS: Font proportionati per stat numbers */
 @media (max-width: 1024px) {
   .customer-slide-panel-stat-number {
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin-bottom: 0.75rem;
     font-weight: 800;
   }
