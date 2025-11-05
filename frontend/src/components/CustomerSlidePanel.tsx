@@ -395,38 +395,10 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  // Funzione per riprodurre suono coin.wav o suono programmatico
+  // Funzione per riprodurre suono coin.wav o suono programmatico - DISABILITATA
   const playCoinSound = () => {
-    try {
-      console.log('🔊 Tentativo riproduzione suono monete...');
-
-      // Prima prova con il file coin.wav
-      const audio = new Audio('/sounds/coin.wav');
-      audio.volume = 0.7; // Volume al 70%
-
-      audio.addEventListener('loadeddata', () => {
-        console.log('✅ File coin.wav caricato correttamente');
-      });
-
-      audio.addEventListener('error', (e) => {
-        console.error('❌ File coin.wav non supportato, uso suono programmatico');
-        // Fallback: suono programmatico
-        playProgrammaticCoinSound();
-      });
-
-      audio.play()
-        .then(() => {
-          console.log('✅ Riproduzione coin.wav iniziata');
-        })
-        .catch(error => {
-          console.error('❌ Errore riproduzione coin.wav, uso suono programmatico');
-          // Fallback: suono programmatico
-          playProgrammaticCoinSound();
-        });
-    } catch (error) {
-      console.error('❌ Errore generale, uso suono programmatico');
-      playProgrammaticCoinSound();
-    }
+    console.log('🔇 Suono celebrazione DISABILITATO temporaneamente');
+    // COMPLETAMENTE DISABILITATO per debugging
   };
 
   // Suono programmatico usando Web Audio API
@@ -647,13 +619,39 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <h2>{customer.name}</h2>
             <div
               className="customer-slide-panel-tier"
-              style={{ backgroundColor: getTierColor(currentTier.name) }}
+              style={{
+                background: `linear-gradient(135deg, ${getTierColor(currentTier.name)} 0%, ${getTierColor(currentTier.name)}dd 100%)`,
+                color: 'white',
+                padding: '0.4rem 1rem',
+                borderRadius: '20px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: `0 4px 12px ${getTierColor(currentTier.name)}40`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                border: '2px solid rgba(255, 255, 255, 0.3)'
+              }}
             >
-              {currentTier.name === 'Platinum' && <Crown size={16} />}
-              {currentTier.name === 'Gold' && <Sparkles size={16} />}
-              {currentTier.name === 'Silver' && <Award size={16} />}
-              {currentTier.name === 'Bronze' && <Star size={16} />}
-              {currentTier.name}</div>
+              {currentTier.name === 'Platinum' && '👑'}
+              {currentTier.name === 'Gold' && '⭐'}
+              {currentTier.name === 'Silver' && '✨'}
+              {currentTier.name === 'Bronze' && '🥉'}
+              <span>{currentTier.name}</span>
+              {currentTier.multiplier && currentTier.multiplier > 1 && (
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.3)',
+                  padding: '0.15rem 0.4rem',
+                  borderRadius: '10px',
+                  fontSize: '0.75rem',
+                  fontWeight: '700'
+                }}>
+                  {currentTier.multiplier}x
+                </span>
+              )}
+            </div>
           </div>
           <button className="customer-panel-close-btn" onClick={onClose}>
             <X size={16} />

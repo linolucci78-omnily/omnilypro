@@ -115,10 +115,7 @@ const CustomerDisplay: React.FC = () => {
 
   // Funzione per creare pioggia di monete
   const createCoinsRain = () => {
-    console.log('[CoinsRain] Pioggia monete iniziata');
-
-    // AUDIO TEMPORANEAMENTE DISABILITATO per debugging click issue
-    console.log('[CoinsRain] Audio disabilitato temporaneamente');
+    console.log('[CoinsRain] Pioggia monete iniziata - SENZA AUDIO');
 
     // Cerca o crea container monete
     let coinsContainer = document.getElementById('coins-container');
@@ -750,8 +747,17 @@ const CustomerDisplay: React.FC = () => {
             gap: '0.5rem',
             cursor: 'pointer'
           }}
-          onClick={() => {
-            console.log('[Celebration] Click detected - closing celebration');
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('[Celebration] Click FORZATO detected - closing celebration');
+            setShowCelebration(false);
+            setCelebrationData(null);
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('[Celebration] Touch FORZATO detected - closing celebration');
             setShowCelebration(false);
             setCelebrationData(null);
           }}
