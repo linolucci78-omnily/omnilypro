@@ -27,13 +27,6 @@ const TierUpgradeModal: React.FC<TierUpgradeModalProps> = ({
     if (isOpen) {
       // Attiva animazione dopo un piccolo delay
       setTimeout(() => setIsAnimating(true), 100);
-
-      // Auto-chiudi dopo 5 secondi
-      const timer = setTimeout(() => {
-        handleClose();
-      }, 5000);
-
-      return () => clearTimeout(timer);
     } else {
       setIsAnimating(false);
     }

@@ -57,6 +57,20 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
     };
   }, [updateCustomerDisplay]);
 
+  // Invia messaggio WELCOME all'avvio se c'è già un'organizzazione
+  useEffect(() => {
+    if (organization) {
+      console.log('🏢 Invio messaggio WELCOME iniziale per:', organization.name);
+      updateCustomerDisplay({
+        type: 'WELCOME',
+        organizationName: organization.name,
+        welcomeMessage: `Benvenuto da ${organization.name}!`,
+        logoUrl: organization.logo_url,
+        transaction: { items: [], total: 0 }
+      });
+    }
+  }, []); // Solo al mount iniziale
+
   return (
     <POSLayout
       activeSection={activeSection}

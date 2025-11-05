@@ -56,12 +56,12 @@ const TierLimitModal: React.FC<TierLimitModalProps> = ({
       >
         {/* Close Button */}
         <button className="tier-limit-close" onClick={onClose}>
-          <X size={20} />
+          <X size={16} />
         </button>
 
         {/* Icon */}
         <div className="tier-limit-icon" style={{ backgroundColor: `${planColor}20` }}>
-          <AlertCircle size={48} style={{ color: planColor }} />
+          <AlertCircle size={32} style={{ color: planColor }} />
         </div>
 
         {/* Title */}
@@ -91,7 +91,7 @@ const TierLimitModal: React.FC<TierLimitModalProps> = ({
         {nextPlan && (
           <div className="tier-limit-upgrade">
             <div className="upgrade-header">
-              <Crown size={20} />
+              <Crown size={16} />
               <span>Upgrade per più tier</span>
             </div>
             <div className="upgrade-comparison">
@@ -101,7 +101,7 @@ const TierLimitModal: React.FC<TierLimitModalProps> = ({
                   {maxTiersAllowed === 0 ? 'Tier Illimitati' : `Fino a ${maxTiersAllowed} tier`}
                 </div>
               </div>
-              <ArrowRight size={20} className="upgrade-arrow" />
+              <ArrowRight size={16} className="upgrade-arrow" />
               <div className="plan-card next">
                 <div className="plan-name">{nextPlan.name}</div>
                 <div className="plan-tiers">
@@ -119,7 +119,7 @@ const TierLimitModal: React.FC<TierLimitModalProps> = ({
           </button>
           {nextPlan && onUpgrade && (
             <button className="btn-primary-upgrade" onClick={onUpgrade}>
-              <Crown size={16} />
+              <Crown size={14} />
               Upgrade a {nextPlan.name}
             </button>
           )}

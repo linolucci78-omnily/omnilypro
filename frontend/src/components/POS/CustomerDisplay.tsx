@@ -59,12 +59,6 @@ const CustomerDisplay: React.FC = () => {
         setShowCelebration(true);
         setSalePreview(null); // Nascondi preview durante celebrazione
         setSaleProcessing(null); // Nascondi processing durante celebrazione
-
-        // Termina celebrazione dopo il tempo specificato
-        setTimeout(() => {
-          setShowCelebration(false);
-          setCelebrationData(null);
-        }, event.data.celebration.duration || 4000);
       } else if (event.data.type === 'SALE_PREVIEW') {
         console.log('👀 Preview vendita ricevuta:', event.data.preview);
         setSalePreview(event.data.preview);
@@ -219,15 +213,15 @@ const CustomerDisplay: React.FC = () => {
         <div style={{
           background: '#1e293b',
           color: 'white',
-          padding: '1rem',
+          padding: '0.5rem',
           textAlign: 'center'
         }}>
           <img
             src={organizationLogo || "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"}
             alt={organizationName}
-            style={{ height: '60px', marginBottom: '0.5rem', objectFit: 'contain' }}
+            style={{ height: '40px', marginBottom: '0.25rem', objectFit: 'contain' }}
           />
-          <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+          <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>
             {currentTime.toLocaleTimeString('it-IT')}
           </div>
         </div>
@@ -236,7 +230,7 @@ const CustomerDisplay: React.FC = () => {
       {/* Content */}
       <div style={{
         flex: 1,
-        padding: '1.5rem',
+        padding: '0.75rem',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center'
@@ -665,98 +659,178 @@ const CustomerDisplay: React.FC = () => {
             }} />
           </div>
         ) : (
-          // Welcome Screen
+          // Welcome Screen - BRAND ROSSO per 4"
           <div style={{
-            background: 'white',
-            padding: '2rem',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            padding: '1rem',
             borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            textAlign: 'center'
+            boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)',
+            textAlign: 'center',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <h2 style={{ color: '#1f2937', marginBottom: '1rem', fontSize: '1.5rem' }}>
-              Benvenuto da {organizationName}! 👋
-            </h2>
-            <p style={{ color: '#6b7280', fontSize: '1.1rem', margin: 0 }}>
-              {welcomeMessage}
-            </p>
+            {/* Decorative circles */}
+            <div style={{
+              position: 'absolute',
+              top: '-50px',
+              right: '-50px',
+              width: '150px',
+              height: '150px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%'
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '-30px',
+              left: '-30px',
+              width: '100px',
+              height: '100px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%'
+            }} />
+
+            {/* Content */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{
+                fontSize: '3rem',
+                marginBottom: '0.5rem',
+                animation: 'wave 2s ease-in-out infinite'
+              }}>
+                👋
+              </div>
+
+              <h2 style={{
+                margin: '0 0 0.75rem 0',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              }}>
+                Benvenuto!
+              </h2>
+
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                padding: '1rem',
+                borderRadius: '8px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                marginBottom: '0.75rem'
+              }}>
+                <div style={{
+                  fontSize: '1.3rem',
+                  fontWeight: 'bold',
+                  marginBottom: '0.25rem'
+                }}>
+                  {organizationName}
+                </div>
+              </div>
+
+              <p style={{
+                fontSize: '0.95rem',
+                margin: 0,
+                opacity: 0.95,
+                lineHeight: 1.4
+              }}>
+                {welcomeMessage}
+              </p>
+            </div>
+
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes wave {
+                  0%, 100% { transform: rotate(0deg); }
+                  25% { transform: rotate(20deg); }
+                  75% { transform: rotate(-20deg); }
+                }
+              `
+            }} />
           </div>
         )}
       </div>
 
-      {/* Celebration Screen - BRAND ROSSO COMPATTA per 4" */}
+      {/* Celebration Screen - BRAND ROSSO ULTRA-COMPATTA per 4" */}
       {showCelebration && celebrationData && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999,
-          color: 'white',
-          textAlign: 'center',
-          padding: '1.5rem',
-          gap: '1rem'
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+            color: 'white',
+            textAlign: 'center',
+            padding: '0.75rem',
+            gap: '0.5rem',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            setShowCelebration(false);
+            setCelebrationData(null);
+          }}
+        >
 
-          {/* Icona successo compatta */}
+          {/* Icona successo ULTRA-COMPATTA per 4" */}
           <div style={{
-            fontSize: '3rem',
+            fontSize: '2rem',
             animation: 'bounce 1s ease-in-out'
           }}>
             ✅
           </div>
 
-          {/* Nome cliente compatto */}
+          {/* Nome cliente ULTRA-COMPATTO per 4" */}
           <h1 style={{
             margin: 0,
-            fontSize: '2rem',
+            fontSize: '1.4rem',
             fontWeight: 'bold',
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            lineHeight: 1.2
           }}>
             Grazie {celebrationData.customerName}!
           </h1>
 
-          {/* Informazioni transazione compatte */}
+          {/* Informazioni transazione ULTRA-COMPATTE per 4" */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.15)',
-            padding: '1.5rem',
-            borderRadius: '12px',
+            padding: '0.75rem',
+            borderRadius: '8px',
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
             width: '100%',
-            maxWidth: '300px'
+            maxWidth: '280px'
           }}>
             <div style={{
-              fontSize: '3rem',
+              fontSize: '2.2rem',
               fontWeight: 'bold',
-              marginBottom: '0.5rem',
+              marginBottom: '0.3rem',
               lineHeight: 1
             }}>
               €{celebrationData.amount.toFixed(2)}
             </div>
             <div style={{
-              fontSize: '1.2rem',
-              marginBottom: '0.5rem',
+              fontSize: '1rem',
+              marginBottom: '0.2rem',
               opacity: 0.95
             }}>
               +{celebrationData.pointsEarned} punti!
             </div>
             <div style={{
-              fontSize: '1rem',
+              fontSize: '0.85rem',
               opacity: 0.8
             }}>
               Totale: {celebrationData.newTotalPoints} punti
             </div>
           </div>
 
-          {/* Messaggio finale compatto */}
+          {/* Messaggio finale ULTRA-COMPATTO per 4" */}
           <div style={{
-            fontSize: '1.2rem',
+            fontSize: '1rem',
             opacity: 0.9,
             animation: 'pulse 2s infinite'
           }}>
