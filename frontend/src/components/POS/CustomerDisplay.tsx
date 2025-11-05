@@ -240,7 +240,7 @@ const CustomerDisplay: React.FC = () => {
       overflow: 'hidden'
     }}>
       {/* Header - nascosto durante transazioni per ottimizzare spazio */}
-      {!showCelebration && !salePreview && !saleProcessing && (
+      {!showCelebration && !salePreview && !saleProcessing && !tierUpgrade && (
         <div style={{
           background: '#1e293b',
           color: 'white',
