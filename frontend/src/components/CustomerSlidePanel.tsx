@@ -95,6 +95,27 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       });
       setShowTierUpgradeModal(true);
 
+      // 📺 INVIA TIER_UPGRADE al customer display 4"
+      if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+        console.log('👑 Inviando TIER_UPGRADE al customer display...');
+
+        // Trova moltiplicatore del nuovo tier
+        const newTier = loyaltyTiers?.find(t => t.name === pendingUpgrade.newTierName);
+        const multiplier = newTier ? parseFloat(newTier.multiplier) : 1;
+
+        (window as any).updateCustomerDisplay({
+          type: 'TIER_UPGRADE',
+          tierUpgrade: {
+            customerName: customer.name,
+            oldTierName: pendingUpgrade.oldTierName,
+            newTierName: pendingUpgrade.newTierName,
+            newTierColor: pendingUpgrade.newTierColor,
+            multiplier: multiplier
+          }
+        });
+        console.log('✅ Messaggio TIER_UPGRADE inviato al customer display');
+      }
+
       // Rimuovi notifica dopo averla mostrata
       clearTierUpgradeNotification(customer.id);
     }

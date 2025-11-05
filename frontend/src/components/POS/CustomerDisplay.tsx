@@ -28,9 +28,11 @@ const CustomerDisplay: React.FC = () => {
   const [salePreview, setSalePreview] = useState<any>(null);
   const [saleProcessing, setSaleProcessing] = useState<any>(null);
   const [giftCertificate, setGiftCertificate] = useState<any>(null);
+  const [tierUpgrade, setTierUpgrade] = useState<any>(null);
 
   // Ref per evitare click multipli
   const celebrationClickedRef = React.useRef(false);
+  const tierUpgradeClickedRef = React.useRef(false);
 
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
@@ -104,6 +106,14 @@ const CustomerDisplay: React.FC = () => {
         setTimeout(() => {
           setGiftCertificate(null);
         }, 7000);
+      } else if (event.data.type === 'TIER_UPGRADE') {
+        console.log('👑 Tier Upgrade ricevuto:', event.data.tierUpgrade);
+        setTierUpgrade(event.data.tierUpgrade);
+        tierUpgradeClickedRef.current = false; // RESET ref quando si apre
+        setSalePreview(null);
+        setSaleProcessing(null);
+        setShowCelebration(false);
+        setGiftCertificate(null);
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -834,6 +844,149 @@ const CustomerDisplay: React.FC = () => {
               }
               @keyframes pulse {
                 0%, 100% { opacity: 0.7; }
+                50% { opacity: 1; }
+              }
+            `
+          }} />
+        </div>
+      )}
+
+      {/* Tier Upgrade Celebration - ULTRA-COMPATTA per 4" */}
+      {tierUpgrade && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: `linear-gradient(135deg, ${tierUpgrade.newTierColor || '#F59E0B'} 0%, ${tierUpgrade.newTierColor || '#F59E0B'}dd 50%, ${tierUpgrade.newTierColor || '#F59E0B'}aa 100%)`,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 99999,
+            color: 'white',
+            textAlign: 'center',
+            padding: '1rem',
+            gap: '0.75rem',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            if (tierUpgradeClickedRef.current) {
+              console.log('[TierUpgrade] Click già processato, ignoro');
+              return;
+            }
+            tierUpgradeClickedRef.current = true;
+            console.log('[TierUpgrade] PRIMO click rilevato - chiudo celebrazione tier');
+            setTierUpgrade(null);
+          }}
+        >
+          {/* Icona tier - COMPATTA */}
+          <div style={{
+            fontSize: '3rem',
+            animation: 'bounce 1.5s ease-in-out infinite'
+          }}>
+            {tierUpgrade.newTierName === 'Platinum' && '👑'}
+            {tierUpgrade.newTierName === 'Gold' && '⭐'}
+            {tierUpgrade.newTierName === 'Silver' && '✨'}
+            {tierUpgrade.newTierName === 'Bronze' && '🥉'}
+          </div>
+
+          {/* Titolo COMPATTO */}
+          <h1 style={{
+            margin: 0,
+            fontSize: '1.6rem',
+            fontWeight: 'bold',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            lineHeight: 1.2
+          }}>
+            Congratulazioni!
+          </h1>
+
+          {/* Nome cliente COMPATTO */}
+          <div style={{
+            fontSize: '1.2rem',
+            fontWeight: '600',
+            opacity: 0.95
+          }}>
+            {tierUpgrade.customerName}
+          </div>
+
+          {/* Tier change card - COMPATTA */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            padding: '1rem',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            width: '100%',
+            maxWidth: '300px'
+          }}>
+            {/* Old tier - COMPATTO */}
+            <div style={{
+              fontSize: '0.9rem',
+              opacity: 0.8,
+              marginBottom: '0.5rem'
+            }}>
+              {tierUpgrade.oldTierName}
+            </div>
+
+            {/* Arrow - COMPATTO */}
+            <div style={{
+              fontSize: '1.5rem',
+              margin: '0.25rem 0'
+            }}>
+              ⬇️
+            </div>
+
+            {/* New tier - COMPATTO */}
+            <div style={{
+              fontSize: '1.8rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              marginTop: '0.5rem'
+            }}>
+              {tierUpgrade.newTierName}
+            </div>
+
+            {/* Multiplier badge se presente - COMPATTO */}
+            {tierUpgrade.multiplier && tierUpgrade.multiplier > 1 && (
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.3)',
+                padding: '0.4rem 0.8rem',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                fontWeight: '700',
+                marginTop: '0.5rem',
+                display: 'inline-block'
+              }}>
+                {tierUpgrade.multiplier}x Punti
+              </div>
+            )}
+          </div>
+
+          {/* Messaggio finale - COMPATTO */}
+          <div style={{
+            fontSize: '1rem',
+            opacity: 0.95,
+            animation: 'pulse 2s infinite',
+            lineHeight: 1.4
+          }}>
+            Hai raggiunto un nuovo livello! 🎉
+          </div>
+
+          {/* Stili animazioni */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
+                40% { transform: translateY(-15px) scale(1.1); }
+                60% { transform: translateY(-7px) scale(1.05); }
+              }
+              @keyframes pulse {
+                0%, 100% { opacity: 0.8; }
                 50% { opacity: 1; }
               }
             `
