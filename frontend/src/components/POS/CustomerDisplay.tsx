@@ -133,20 +133,8 @@ const CustomerDisplay: React.FC = () => {
             console.log('[CoinsRain] Audio riprodotto con successo');
           })
           .catch((error) => {
-            console.warn('[CoinsRain] Autoplay bloccato, verrà riprodotto al click:', error.message);
-
-            // Riproduce al primo click/touch dell'utente
-            const playOnInteraction = () => {
-              audio.play()
-                .then(() => console.log('[CoinsRain] Audio riprodotto dopo interazione'))
-                .catch(e => console.error('[CoinsRain] Errore riproduzione:', e));
-
-              document.removeEventListener('click', playOnInteraction);
-              document.removeEventListener('touchstart', playOnInteraction);
-            };
-
-            document.addEventListener('click', playOnInteraction, { once: true });
-            document.addEventListener('touchstart', playOnInteraction, { once: true });
+            console.warn('[CoinsRain] Autoplay bloccato, audio pronto per il click:', error.message);
+            // Non facciamo nulla - l'audio verrà riprodotto quando l'utente clicca per chiudere
           });
       }
     } catch (error) {
