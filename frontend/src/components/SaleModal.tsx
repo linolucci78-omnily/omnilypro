@@ -178,12 +178,41 @@ const SaleModal: React.FC<SaleModalProps> = ({
         <div className="sale-modal-content">
           <div className="customer-info">
             <h3>{customer.name}</h3>
-            <span
+            <div
               className={`customer-tier ${(currentTier?.name || customer.tier).toLowerCase()}`}
-              style={{ backgroundColor: currentTier?.color || '#F59E0B' }}
+              style={{
+                background: `linear-gradient(135deg, ${currentTier?.color || '#F59E0B'} 0%, ${currentTier?.color || '#F59E0B'}dd 100%)`,
+                color: 'white',
+                padding: '0.5rem 1.25rem',
+                borderRadius: '24px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: `0 4px 12px ${currentTier?.color || '#F59E0B'}40`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                border: '2px solid rgba(255, 255, 255, 0.3)'
+              }}
             >
-              {currentTier?.name || customer.tier} {currentTier?.multiplier && currentTier.multiplier > 1 && `(${currentTier.multiplier}x)`}
-            </span>
+              {(currentTier?.name || customer.tier) === 'Platinum' && '👑'}
+              {(currentTier?.name || customer.tier) === 'Gold' && '⭐'}
+              {(currentTier?.name || customer.tier) === 'Silver' && '✨'}
+              {(currentTier?.name || customer.tier) === 'Bronze' && '🥉'}
+              <span>{currentTier?.name || customer.tier}</span>
+              {currentTier?.multiplier && currentTier.multiplier > 1 && (
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.3)',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: '700'
+                }}>
+                  {currentTier.multiplier}x
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="amount-input-section">
