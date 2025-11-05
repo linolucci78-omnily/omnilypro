@@ -115,41 +115,47 @@ const CustomerDisplay: React.FC = () => {
 
   // Funzione per creare pioggia di monete
   const createCoinsRain = () => {
-    console.log('🪙 CREAZIONE pioggia monete iniziata...');
+    console.log('[CoinsRain] Pioggia monete iniziata');
 
-    // Riproduci suono pioggia monete con diagnostica avanzata
-    console.log('🎵 Tentativo riproduzione coinrain.mp3...');
+    // Riproduci suono pioggia monete
+    console.log('[CoinsRain] Tentativo riproduzione audio');
     try {
       const audio = new Audio('/sounds/coinrain.mp3');
-      audio.volume = 0.6; // Volume moderato
+      audio.volume = 0.7; // Volume alto per sentirlo bene
+      audio.loop = false;
 
-      // Log eventi audio per debug
-      audio.addEventListener('loadstart', () => console.log('📥 Audio: Inizio caricamento'));
-      audio.addEventListener('canplay', () => console.log('✅ Audio: Pronto per riproduzione'));
-      audio.addEventListener('play', () => console.log('▶️ Audio: Riproduzione iniziata'));
-      audio.addEventListener('ended', () => console.log('⏹️ Audio: Riproduzione terminata'));
-      audio.addEventListener('error', (e) => console.error('❌ Audio Error:', e));
+      // Forza riproduzione immediata
+      const playPromise = audio.play();
 
-      audio.play().then(() => {
-        console.log('🔊 Suono coinrain.mp3 riprodotto con successo!');
-      }).catch((error) => {
-        console.error('⚠️ Autoplay bloccato dal browser:', error.message);
-        console.log('💡 Suggerimento: Il browser richiede interazione utente per audio');
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('[CoinsRain] Audio riprodotto con successo');
+          })
+          .catch((error) => {
+            console.warn('[CoinsRain] Autoplay bloccato, verrà riprodotto al click:', error.message);
 
-        // Tentativo alternativo con user gesture
-        document.addEventListener('click', () => {
-          audio.play().then(() => {
-            console.log('🔊 Audio riprodotto dopo click utente');
-          }).catch(e => console.error('❌ Anche con click non funziona:', e));
-        }, { once: true });
-      });
+            // Riproduce al primo click/touch dell'utente
+            const playOnInteraction = () => {
+              audio.play()
+                .then(() => console.log('[CoinsRain] Audio riprodotto dopo interazione'))
+                .catch(e => console.error('[CoinsRain] Errore riproduzione:', e));
+
+              document.removeEventListener('click', playOnInteraction);
+              document.removeEventListener('touchstart', playOnInteraction);
+            };
+
+            document.addEventListener('click', playOnInteraction, { once: true });
+            document.addEventListener('touchstart', playOnInteraction, { once: true });
+          });
+      }
     } catch (error) {
-      console.error('⚠️ Errore critico caricamento coinrain.mp3:', error);
+      console.error('[CoinsRain] Errore caricamento audio:', error);
     }
 
     let coinsContainer = document.getElementById('coins-container');
     if (!coinsContainer) {
-      console.log('📦 Container monete non trovato, lo creo');
+      console.log('[CoinsRain] Creazione container monete');
       coinsContainer = document.createElement('div');
       coinsContainer.id = 'coins-container';
       coinsContainer.style.position = 'fixed';
@@ -162,7 +168,7 @@ const CustomerDisplay: React.FC = () => {
       document.body.appendChild(coinsContainer);
     }
 
-    console.log(`🪙 Creando 15 monete animate...`);
+    console.log('[CoinsRain] Creando 15 monete animate');
     for (let i = 0; i < 15; i++) {
       setTimeout(() => {
         const coin = document.createElement('div');
@@ -172,16 +178,14 @@ const CustomerDisplay: React.FC = () => {
         coin.style.animationDuration = (1.5 + Math.random() * 1) + 's';
         coinsContainer!.appendChild(coin);
 
-        console.log(`🪙 Moneta ${i + 1}/15 creata`);
-
-        // Rimuovi la moneta dopo l'animazione più veloce
+        // Rimuovi la moneta dopo l'animazione
         setTimeout(() => {
           coin.remove();
         }, 3000);
       }, i * 200);
     }
 
-    console.log('✅ Pioggia monete setup completato');
+    console.log('[CoinsRain] Setup completato');
   };
 
   // Attiva pioggia di monete quando inizia la celebrazione
