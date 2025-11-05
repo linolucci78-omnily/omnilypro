@@ -186,12 +186,12 @@ const CustomerDisplay: React.FC = () => {
 
   // Attiva pioggia di monete quando inizia la celebrazione
   React.useEffect(() => {
-    console.log('🎯 Customer Display - Effect triggered:', { showCelebration, showCoinsRain: celebrationData?.showCoinsRain });
+    console.log('🎯 Customer Display - Effect triggered:', { showCelebration, celebrationData });
 
-    if (showCelebration && celebrationData?.showCoinsRain) {
+    if (showCelebration && celebrationData) {
       console.log('🪙 INIZIO pioggia di monete attivata sul customer display');
 
-      // Attiva pioggia di monete (senza suono)
+      // Attiva pioggia di monete SEMPRE durante celebrazione
       createCoinsRain();
 
       console.log('✅ FINE pioggia di monete completata');
