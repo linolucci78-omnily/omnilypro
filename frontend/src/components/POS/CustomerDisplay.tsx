@@ -29,6 +29,9 @@ const CustomerDisplay: React.FC = () => {
   const [saleProcessing, setSaleProcessing] = useState<any>(null);
   const [giftCertificate, setGiftCertificate] = useState<any>(null);
 
+  // Ref per evitare click multipli
+  const celebrationClickedRef = React.useRef(false);
+
   useEffect(() => {
     // Aggiorna l'ora ogni secondo
     const timeInterval = setInterval(() => {
@@ -57,6 +60,7 @@ const CustomerDisplay: React.FC = () => {
         console.log('🎉 Celebrazione vendita ricevuta:', event.data.celebration);
         setCelebrationData(event.data.celebration);
         setShowCelebration(true);
+        celebrationClickedRef.current = false; // RESET ref quando si apre celebrazione
         setSalePreview(null); // Nascondi preview durante celebrazione
         setSaleProcessing(null); // Nascondi processing durante celebrazione
       } else if (event.data.type === 'SALE_PREVIEW') {
@@ -747,17 +751,13 @@ const CustomerDisplay: React.FC = () => {
             gap: '0.5rem',
             cursor: 'pointer'
           }}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            console.log('[Celebration] Click FORZATO detected - closing celebration');
-            setShowCelebration(false);
-            setCelebrationData(null);
-          }}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            console.log('[Celebration] Touch FORZATO detected - closing celebration');
+          onClick={() => {
+            if (celebrationClickedRef.current) {
+              console.log('[Celebration] Click già processato, ignoro');
+              return;
+            }
+            celebrationClickedRef.current = true;
+            console.log('[Celebration] PRIMO click rilevato - chiudo celebrazione');
             setShowCelebration(false);
             setCelebrationData(null);
           }}

@@ -395,10 +395,38 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  // Funzione per riprodurre suono coin.wav o suono programmatico - DISABILITATA
+  // Funzione per riprodurre suono cash register programmatico BELLO
   const playCoinSound = () => {
-    console.log('🔇 Suono celebrazione DISABILITATO temporaneamente');
-    // COMPLETAMENTE DISABILITATO per debugging
+    try {
+      console.log('🔊 Riproduzione suono cash register...');
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+      // Suono "ka-ching" cash register con 3 note
+      const times = [0, 0.1, 0.15];
+      const frequencies = [800, 1000, 1200];
+
+      times.forEach((time, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = frequencies[index];
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime + time);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + time + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + 0.3);
+
+        oscillator.start(audioContext.currentTime + time);
+        oscillator.stop(audioContext.currentTime + time + 0.3);
+      });
+
+      console.log('✅ Suono cash register riprodotto!');
+    } catch (error) {
+      console.error('❌ Errore riproduzione suono:', error);
+    }
   };
 
   // Suono programmatico usando Web Audio API
@@ -433,6 +461,51 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
+  // Funzione per creare monete che cadono sullo schermo GRANDE (8")
+  const createCoinsRainOnMainScreen = () => {
+    console.log('[CoinsRain MainScreen] Iniziando pioggia monete sullo schermo grande...');
+
+    let coinsContainer = document.getElementById('main-coins-container');
+    if (!coinsContainer) {
+      coinsContainer = document.createElement('div');
+      coinsContainer.id = 'main-coins-container';
+      coinsContainer.style.position = 'fixed';
+      coinsContainer.style.top = '0';
+      coinsContainer.style.left = '0';
+      coinsContainer.style.width = '100vw';
+      coinsContainer.style.height = '100vh';
+      coinsContainer.style.pointerEvents = 'none';
+      coinsContainer.style.zIndex = '9998'; // Sotto i modali ma sopra il contenuto
+      document.body.appendChild(coinsContainer);
+    } else {
+      coinsContainer.innerHTML = '';
+    }
+
+    // Crea 20 monete per lo schermo grande
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        const coin = document.createElement('div');
+        coin.className = 'coin';
+        coin.style.left = Math.random() * 100 + '%';
+        coin.style.position = 'fixed';
+        coin.style.width = '40px';
+        coin.style.height = '40px';
+        coin.style.backgroundImage = 'url(https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/moneyomily.png)';
+        coin.style.backgroundSize = 'contain';
+        coin.style.backgroundRepeat = 'no-repeat';
+        coin.style.backgroundPosition = 'center';
+        coin.style.animation = 'coinFall 3s ease-in forwards';
+        coin.style.filter = 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.8))';
+        coin.style.pointerEvents = 'none';
+        coinsContainer!.appendChild(coin);
+
+        setTimeout(() => coin.remove(), 3500);
+      }, i * 150);
+    }
+
+    console.log('[CoinsRain MainScreen] Monete create!');
+  };
+
   const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number) => {
     if (!customer) return;
 
@@ -449,7 +522,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
           // 🔊 SUONO CELEBRAZIONE - Riprodotto dal POS principale
           playCoinSound();
-          console.log('🔊 Suono coin.wav riprodotto dal POS durante celebrazione');
+          console.log('🔊 Suono cash register riprodotto dal POS durante celebrazione');
+
+          // 🪙 MONETE CHE CADONO SULLO SCHERMO GRANDE!
+          createCoinsRainOnMainScreen();
+          console.log('🪙 Monete che cadono sullo schermo grande!');
 
           // Suono bridge Android opzionale - DISABILITATO TEMPORANEAMENTE
           // if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {
