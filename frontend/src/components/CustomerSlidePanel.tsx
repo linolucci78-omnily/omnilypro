@@ -5,11 +5,18 @@ import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
 import ConfirmModal from './UI/ConfirmModal';
 import ModifyPointsModal from './ModifyPointsModal';
+import TierUpgradeModal from './TierUpgradeModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
 import { createPrintService } from '../services/printService';
 import { rewardsService, type Reward } from '../services/rewardsService';
+import {
+  handleTierChange,
+  getPendingTierUpgradeForCustomer,
+  clearTierUpgradeNotification,
+  cleanupOldTierUpgrades
+} from '../utils/tierUpgradeHelper';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
@@ -21,6 +28,7 @@ interface CustomerSlidePanelProps {
   loyaltyTiers?: any[]; // Tiers di fedeltà per calcolo moltiplicatori dinamici
   bonusCategories?: any[]; // Categorie prodotti con moltiplicatori bonus
   pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
+  organizationName?: string; // Nome organizzazione per email tier upgrade
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -32,7 +40,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   pointsPerEuro = 1, // Default a 1 punto per euro se non specificato
   loyaltyTiers = [], // Default array vuoto se non specificato
   bonusCategories = [], // Default array vuoto se non specificato
-  pointsName = 'Punti' // Default "Punti" se non specificato
+  pointsName = 'Punti', // Default "Punti" se non specificato
+  organizationName = 'OMNILY PRO' // Default name se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showRewardsSection, setShowRewardsSection] = useState(false);
@@ -47,6 +56,12 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [showModifyPointsModal, setShowModifyPointsModal] = useState(false);
+  const [showTierUpgradeModal, setShowTierUpgradeModal] = useState(false);
+  const [tierUpgradeData, setTierUpgradeData] = useState<{
+    oldTierName: string;
+    newTierName: string;
+    newTierColor: string;
+  } | null>(null);
 
   // State locale per tenere traccia dei dati customer aggiornati in tempo reale
   const [localCustomer, setLocalCustomer] = useState<Customer | null>(customer);
@@ -58,6 +73,32 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       console.log(`🔄 CustomerSlidePanel: customer aggiornato - Punti: ${customer.points}, Speso: €${customer.total_spent.toFixed(2)}`);
     }
   }, [customer?.points, customer?.total_spent, customer?.visits, customer?.id]);
+
+  // Controlla se c'è un tier upgrade pending da mostrare quando si apre il panel
+  useEffect(() => {
+    if (!customer || !isOpen) return;
+
+    // Cleanup vecchie notifiche (> 24h)
+    cleanupOldTierUpgrades();
+
+    // Controlla se c'è una notifica pending per questo cliente
+    const pendingUpgrade = getPendingTierUpgradeForCustomer(customer.id);
+
+    if (pendingUpgrade) {
+      console.log(`🎊 Tier upgrade pending trovato per ${customer.name}:`, pendingUpgrade);
+
+      // Mostra modale celebrativo
+      setTierUpgradeData({
+        oldTierName: pendingUpgrade.oldTierName,
+        newTierName: pendingUpgrade.newTierName,
+        newTierColor: pendingUpgrade.newTierColor
+      });
+      setShowTierUpgradeModal(true);
+
+      // Rimuovi notifica dopo averla mostrata
+      clearTierUpgradeNotification(customer.id);
+    }
+  }, [customer, isOpen]);
 
   // Carica attività del cliente quando il pannello si apre o cambia cliente
   useEffect(() => {
@@ -242,6 +283,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
     setShowModifyPointsModal(false);
 
+    // Cattura punti vecchi prima della modifica
+    const oldPoints = localCustomer.points;
+
     // Usa onAddPoints che gestisce già l'update al database
     await onAddPoints(customer.id, pointsChange);
 
@@ -249,6 +293,23 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     const newPoints = localCustomer.points + pointsChange;
     setLocalCustomer({ ...localCustomer, points: newPoints });
     console.log(`🔄 LocalCustomer aggiornato: ${localCustomer.points} -> ${newPoints} punti dopo modifica manuale`);
+
+    // 🎯 CONTROLLA CAMBIO TIER
+    try {
+      await handleTierChange({
+        customerId: customer.id,
+        customerName: customer.name,
+        customerEmail: customer.email || '',
+        organizationId: customer.organization_id,
+        organizationName,
+        oldPoints,
+        newPoints,
+        loyaltyTiers,
+        pointsName
+      });
+    } catch (error) {
+      console.error('❌ Errore controllo tier change:', error);
+    }
 
     // Registra l'attività con il motivo
     if (customer.organization_id) {
@@ -496,6 +557,27 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           } catch (printError) {
             console.error('❌ Errore stampa scontrino:', printError);
           }
+
+          // 🎯 CONTROLLA CAMBIO TIER dopo vendita
+          try {
+            const oldPoints = customer.points;
+            const newPoints = result.customer?.points || (customer.points + pointsEarned);
+
+            await handleTierChange({
+              customerId: customer.id,
+              customerName: customer.name,
+              customerEmail: customer.email || '',
+              organizationId: customer.organization_id,
+              organizationName,
+              oldPoints,
+              newPoints,
+              loyaltyTiers,
+              pointsName
+            });
+          } catch (error) {
+            console.error('❌ Errore controllo tier change dopo vendita:', error);
+          }
+
           // Ricarica le attività per mostrare la nuova transazione
           try {
             const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
@@ -870,6 +952,22 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         onConfirm={handleModifyPoints}
         pointsName={pointsName}
       />
+
+      {/* Tier Upgrade Modal - Celebration */}
+      {tierUpgradeData && (
+        <TierUpgradeModal
+          isOpen={showTierUpgradeModal}
+          customerName={customer.name}
+          oldTierName={tierUpgradeData.oldTierName}
+          newTierName={tierUpgradeData.newTierName}
+          newTierColor={tierUpgradeData.newTierColor}
+          pointsName={pointsName}
+          onClose={() => {
+            setShowTierUpgradeModal(false);
+            setTierUpgradeData(null);
+          }}
+        />
+      )}
     </>
   );
 };
