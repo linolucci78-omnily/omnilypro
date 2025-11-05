@@ -1029,8 +1029,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         pointsName={pointsName}
       />
 
-      {/* Tier Upgrade Modal - Celebration */}
-      {tierUpgradeData && (
+      {/* Tier Upgrade Modal - Celebration - SOLO SUL POS, NON SUL CUSTOMER DISPLAY */}
+      {tierUpgradeData && !window.location.pathname.includes('customer-display') && (
         <TierUpgradeModal
           isOpen={showTierUpgradeModal}
           customerName={customer.name}
