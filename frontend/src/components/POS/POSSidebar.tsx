@@ -62,12 +62,14 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     console.log('🚪 LOGOUT SIDEBAR CLICKED!');
     try {
       console.log('🚪 POS Sidebar Logout - Starting...');
-      // IMPORTANTE: Imposta flag POS PRIMA del signOut per evitare flash della pagina desktop
+      // IMPORTANTE: Navigate PRIMA del signOut per evitare flash della pagina desktop
+      // L'utente vede subito la pagina login POS, poi facciamo signOut in background
       localStorage.setItem('pos-mode', 'true');
-      await signOut();
-      console.log('🚪 SignOut success, navigating to POS login...');
-      // React Router navigate (no page reload, no flash)
       navigate('/login?posomnily=true', { replace: true });
+
+      // SignOut DOPO il navigate (in background, l'utente è già sulla pagina giusta)
+      await signOut();
+      console.log('🚪 SignOut completato');
     } catch (error) {
       console.error('❌ Errore logout sidebar:', error);
     }
