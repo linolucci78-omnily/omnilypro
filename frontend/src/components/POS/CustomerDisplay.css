@@ -272,8 +272,11 @@
     transform: translateY(-100vh) rotate(0deg);
     opacity: 1;
   }
+  90% {
+    opacity: 1;
+  }
   100% {
-    transform: translateY(100vh) rotate(360deg);
+    transform: translateY(100vh) rotate(720deg);
     opacity: 0;
   }
 }
@@ -289,9 +292,9 @@
   background-repeat: no-repeat;
   background-position: center;
   z-index: 10001;
-  animation: coinFall 2s linear infinite;
+  animation: coinFall 3s ease-in forwards;
   pointer-events: none;
-  filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.6));
+  filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.8));
 }
 
 /* Rimuovo ::before dato che ora uso icona personalizzata */
