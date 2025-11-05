@@ -175,42 +175,15 @@ const CustomerDisplay: React.FC = () => {
     console.log('[CoinsRain] Setup completato');
   };
 
-  // Suono pioggia monete tipo slot machine - VERSIONE LUNGA
+  // Suono pioggia monete tipo slot machine - DA FILE AUDIO
   const playSlotMachineSound = () => {
     try {
-      console.log('🎰 Riproduzione suono slot machine...');
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-      // Sequenza MOLTO PIÙ LUNGA di "ding" per simulare pioggia continua di monete
-      // Creiamo 30 monete che cadono in 2.5 secondi
-      const numCoins = 30;
-      const duration = 2.5; // secondi totali
-
-      for (let i = 0; i < numCoins; i++) {
-        const time = (i / numCoins) * duration; // Distribuisci uniformemente nel tempo
-
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        // Frequenze casuali per varietà nel suono delle monete
-        const baseFreq = 800 + Math.random() * 600; // Range più ampio: 800-1400Hz
-        oscillator.frequency.value = baseFreq;
-        oscillator.type = 'sine';
-
-        // Envelope per ogni moneta
-        const coinDuration = 0.08 + Math.random() * 0.04; // Durata casuale per varietà
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime + time);
-        gainNode.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + time + 0.005);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + coinDuration);
-
-        oscillator.start(audioContext.currentTime + time);
-        oscillator.stop(audioContext.currentTime + time + coinDuration);
-      }
-
-      console.log('✅ Suono slot machine con 30 monete riprodotto!');
+      console.log('🎰 Riproduzione suono slot machine da file audio...');
+      const audio = new Audio('/sounds/slot-machine-coin-payout-1-188227.mp3');
+      audio.volume = 0.7; // Volume al 70%
+      audio.play()
+        .then(() => console.log('✅ Suono slot machine riprodotto da file!'))
+        .catch(err => console.error('❌ Errore riproduzione audio:', err));
     } catch (error) {
       console.error('❌ Errore suono slot machine:', error);
     }
