@@ -120,8 +120,8 @@ const CustomerDisplay: React.FC = () => {
     // Riproduci suono pioggia monete
     console.log('[CoinsRain] Tentativo riproduzione audio');
     try {
-      const audio = new Audio('/sounds/coins.mp3');
-      audio.volume = 0.8; // Volume alto per sentirlo bene
+      const audio = new Audio('/sounds/coinrain.mp3');
+      audio.volume = 0.5; // Volume medio
       audio.loop = false;
 
       // Forza riproduzione immediata
@@ -134,13 +134,13 @@ const CustomerDisplay: React.FC = () => {
           })
           .catch((error) => {
             console.warn('[CoinsRain] Autoplay bloccato, audio pronto per il click:', error.message);
-            // Non facciamo nulla - l'audio verrà riprodotto quando l'utente clicca per chiudere
           });
       }
     } catch (error) {
       console.error('[CoinsRain] Errore caricamento audio:', error);
     }
 
+    // Cerca o crea container monete
     let coinsContainer = document.getElementById('coins-container');
     if (!coinsContainer) {
       console.log('[CoinsRain] Creazione container monete');
@@ -151,26 +151,34 @@ const CustomerDisplay: React.FC = () => {
       coinsContainer.style.left = '0';
       coinsContainer.style.width = '100vw';
       coinsContainer.style.height = '100vh';
-      coinsContainer.style.pointerEvents = 'none';
+      coinsContainer.style.pointerEvents = 'none'; // IMPORTANTE: non intercetta click
       coinsContainer.style.zIndex = '10000';
       document.body.appendChild(coinsContainer);
+    } else {
+      // Pulisci monete precedenti se esistono
+      coinsContainer.innerHTML = '';
+      console.log('[CoinsRain] Pulizia monete precedenti');
     }
 
     console.log('[CoinsRain] Creando 15 monete animate');
     for (let i = 0; i < 15; i++) {
       setTimeout(() => {
+        if (!coinsContainer) return; // Safety check
+
         const coin = document.createElement('div');
         coin.className = 'coin';
         coin.style.left = Math.random() * 100 + '%';
-        coin.style.animationDelay = Math.random() * 2 + 's';
-        coin.style.animationDuration = (1.5 + Math.random() * 1) + 's';
+        coin.style.animationDelay = Math.random() * 0.5 + 's';
+        coin.style.animationDuration = (2 + Math.random() * 1) + 's';
         coinsContainer!.appendChild(coin);
 
         // Rimuovi la moneta dopo l'animazione
         setTimeout(() => {
-          coin.remove();
-        }, 3000);
-      }, i * 200);
+          if (coin && coin.parentNode) {
+            coin.remove();
+          }
+        }, 3500);
+      }, i * 150);
     }
 
     console.log('[CoinsRain] Setup completato');
@@ -846,16 +854,6 @@ const CustomerDisplay: React.FC = () => {
         </div>
       )}
 
-      {/* Container per le monete animate */}
-      <div id="coins-container" style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 10000
-      }} />
     </div>
   );
 };

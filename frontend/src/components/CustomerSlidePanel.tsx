@@ -647,13 +647,13 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <h2>{customer.name}</h2>
             <div
               className="customer-slide-panel-tier"
-              style={{ backgroundColor: getTierColor(customer.tier) }}
+              style={{ backgroundColor: getTierColor(currentTier.name) }}
             >
-              {customer.tier === 'Platinum' && <Crown size={16} />}
-              {customer.tier === 'Gold' && <Sparkles size={16} />}
-              {customer.tier === 'Silver' && <Award size={16} />}
-              {customer.tier === 'Bronze' && <Star size={16} />}
-              {customer.tier}</div>
+              {currentTier.name === 'Platinum' && <Crown size={16} />}
+              {currentTier.name === 'Gold' && <Sparkles size={16} />}
+              {currentTier.name === 'Silver' && <Award size={16} />}
+              {currentTier.name === 'Bronze' && <Star size={16} />}
+              {currentTier.name}</div>
           </div>
           <button className="customer-panel-close-btn" onClick={onClose}>
             <X size={16} />
