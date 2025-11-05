@@ -28,6 +28,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const confirmClickedRef = React.useRef(false); // Previene click multipli
 
   // Calcola punti guadagnati basato sulla configurazione dell'organizzazione, tier e categoria
   useEffect(() => {
@@ -57,7 +58,17 @@ const SaleModal: React.FC<SaleModalProps> = ({
   };
 
   const handleConfirm = () => {
+    // Previeni click multipli usando ref
+    if (confirmClickedRef.current) {
+      console.log('[SaleModal] Click già processato, ignoro duplicato');
+      return;
+    }
+
     if (!amount || parseFloat(amount) <= 0) return;
+
+    // Segna come processato
+    confirmClickedRef.current = true;
+    console.log('[SaleModal] ✅ Conferma vendita - processamento avviato');
 
     // Suono celebrativo "ka-ching"
     playCelebrationSound();
@@ -139,8 +150,14 @@ const SaleModal: React.FC<SaleModalProps> = ({
   };
 
 
-  // Inizializza customer display quando si apre il modale
+  // Inizializza customer display quando si apre il modale E resetta il ref
   useEffect(() => {
+    if (isOpen) {
+      // Reset del ref per permettere nuova conferma
+      confirmClickedRef.current = false;
+      console.log('[SaleModal] 🔓 Modal aperto - ref resettato per nuova vendita');
+    }
+
     if (isOpen && customer && typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
       (window as any).updateCustomerDisplay({
         type: 'SALE_PREVIEW',
@@ -287,6 +304,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
               <button
                 className="sale-btn-confirm"
                 onClick={handleConfirm}
+                onTouchEnd={(e) => {
+                  e.preventDefault(); // Previene il click dopo il touch
+                  handleConfirm();
+                }}
                 disabled={!amount || parseFloat(amount) <= 0}
               >
                 Conferma Vendita
