@@ -180,7 +180,7 @@ const CustomerDisplay: React.FC = () => {
     try {
       console.log('🎰 Riproduzione suono slot machine da file audio...');
       const audio = new Audio('/sounds/slot-machine-coin-payout-1-188227.mp3');
-      audio.volume = 0.7; // Volume al 70%
+      audio.volume = 0.9; // Volume al 90%
       audio.play()
         .then(() => console.log('✅ Suono slot machine riprodotto da file!'))
         .catch(err => console.error('❌ Errore riproduzione audio:', err));
