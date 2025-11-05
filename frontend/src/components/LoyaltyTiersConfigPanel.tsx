@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Star, Plus, Trash2, Edit3, Save, AlertTriangle } from 'lucide-react';
 import './LoyaltyTiersConfigPanel.css';
 import { supabase } from '../lib/supabase';
+import { subscriptionFeaturesService, type PlanType, type SubscriptionFeatures } from '../services/subscriptionFeaturesService';
+import TierLimitModal from './TierLimitModal';
 
 interface LoyaltyTier {
   name: string;
@@ -34,16 +36,50 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [subscriptionFeatures, setSubscriptionFeatures] = useState<SubscriptionFeatures | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
-  // Carica i livelli dall'organizzazione quando si apre il pannello
+  // Carica i livelli e le features dall'organizzazione quando si apre il pannello
   useEffect(() => {
-    if (isOpen && organization?.loyalty_tiers && organization.loyalty_tiers.length > 0) {
-      console.log('🏆 Loading existing loyalty tiers:', organization.loyalty_tiers);
-      setTiers(organization.loyalty_tiers);
-    }
-  }, [isOpen, organization]);
+    if (isOpen && organizationId) {
+      // Carica tier esistenti
+      if (organization?.loyalty_tiers && organization.loyalty_tiers.length > 0) {
+        console.log('[LoyaltyTiers] Loading existing loyalty tiers');
+        setTiers(organization.loyalty_tiers);
+      }
 
-  const addTier = () => {
+      // Carica subscription features
+      const loadFeatures = async () => {
+        const features = await subscriptionFeaturesService.getFeatures(organizationId);
+        console.log('[LoyaltyTiers] Subscription features loaded');
+        setSubscriptionFeatures(features);
+      };
+      loadFeatures();
+    }
+  }, [isOpen, organization, organizationId]);
+
+  const addTier = async () => {
+    // Controlla se può creare più tier
+    if (!subscriptionFeatures) {
+      console.warn('[LoyaltyTiers] Subscription features not loaded');
+      return;
+    }
+
+    const canCreate = await subscriptionFeaturesService.canCreateMoreTiers(
+      organizationId,
+      tiers.length
+    );
+
+    console.log('[LoyaltyTiers] Tier creation check:', canCreate);
+
+    if (!canCreate.canCreate) {
+      console.log('[LoyaltyTiers] Tier limit reached, showing upgrade modal');
+      setShowLimitModal(true);
+      return;
+    }
+
+    // Se può creare, aggiungi il tier
+    console.log('[LoyaltyTiers] Adding new tier');
     setTiers([...tiers, {
       name: `Livello ${tiers.length + 1}`,
       threshold: '100',
@@ -271,7 +307,6 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
             <button
               className="add-tier-btn"
               onClick={addTier}
-              disabled={tiers.length >= 10}
             >
               <Plus size={16} />
               Aggiungi Livello
@@ -320,6 +355,22 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Tier Limit Modal */}
+      {subscriptionFeatures && (
+        <TierLimitModal
+          isOpen={showLimitModal}
+          currentPlan={subscriptionFeatures.plan_type as PlanType}
+          currentTierCount={tiers.length}
+          maxTiersAllowed={subscriptionFeatures.max_tiers_allowed}
+          onClose={() => setShowLimitModal(false)}
+          onUpgrade={() => {
+            console.log('[LoyaltyTiers] Plan upgrade requested');
+            // TODO: Redirect to upgrade page or contact support
+            setShowLimitModal(false);
+          }}
+        />
+      )}
     </>
   );
 };

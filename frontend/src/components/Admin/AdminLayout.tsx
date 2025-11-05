@@ -33,7 +33,8 @@ import {
   Sparkles,
   Gift,
   Ticket,
-  Download
+  Download,
+  Crown
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -105,6 +106,7 @@ const AdminLayout = () => {
       group: 'Sistema',
       items: [
         { path: '/admin/settings', icon: Settings, label: 'Impostazioni' },
+        { path: '/admin/subscription-plans', icon: Crown, label: 'Piani Organizzazioni' },
         { path: '/admin/security', icon: Shield, label: 'Sicurezza' },
         { path: '/admin/notifications', icon: Bell, label: 'Notifiche' },
         { path: '/admin/database', icon: Database, label: 'Database' },

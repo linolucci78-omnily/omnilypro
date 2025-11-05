@@ -34,6 +34,7 @@ import SupportDashboard from './components/Admin/SupportDashboard'
 import BrandingDashboard from './components/Admin/BrandingDashboard'
 import AdminGiftCertificatesDashboard from './components/Admin/AdminGiftCertificatesDashboard'
 import AdminMembershipsDashboard from './components/Admin/AdminMembershipsDashboard'
+import SubscriptionFeaturesManager from './components/Admin/SubscriptionFeaturesManager'
 import WebsiteManager from './components/Admin/WebsiteManager'
 import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
@@ -205,6 +206,7 @@ function App() {
               <Route path="subscriptions" element={<BillingDashboard />} />
               <Route path="security" element={<SecurityDashboard />} />
               <Route path="settings" element={<SystemSettings />} />
+              <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
               <Route path="analytics" element={<AnalyticsDashboard />} />
               <Route path="activity" element={<ActivityLogDashboard />} />
               <Route path="notifications" element={<NotificationsDashboard />} />
