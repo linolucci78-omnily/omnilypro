@@ -117,28 +117,8 @@ const CustomerDisplay: React.FC = () => {
   const createCoinsRain = () => {
     console.log('[CoinsRain] Pioggia monete iniziata');
 
-    // Riproduci suono pioggia monete
-    console.log('[CoinsRain] Tentativo riproduzione audio');
-    try {
-      const audio = new Audio('/sounds/coinrain.mp3');
-      audio.volume = 0.5; // Volume medio
-      audio.loop = false;
-
-      // Forza riproduzione immediata
-      const playPromise = audio.play();
-
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('[CoinsRain] Audio riprodotto con successo');
-          })
-          .catch((error) => {
-            console.warn('[CoinsRain] Autoplay bloccato, audio pronto per il click:', error.message);
-          });
-      }
-    } catch (error) {
-      console.error('[CoinsRain] Errore caricamento audio:', error);
-    }
+    // AUDIO TEMPORANEAMENTE DISABILITATO per debugging click issue
+    console.log('[CoinsRain] Audio disabilitato temporaneamente');
 
     // Cerca o crea container monete
     let coinsContainer = document.getElementById('coins-container');
@@ -763,7 +743,7 @@ const CustomerDisplay: React.FC = () => {
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 9999,
+            zIndex: 99999, // MASSIMO! Sopra TUTTO
             color: 'white',
             textAlign: 'center',
             padding: '0.75rem',
@@ -771,6 +751,7 @@ const CustomerDisplay: React.FC = () => {
             cursor: 'pointer'
           }}
           onClick={() => {
+            console.log('[Celebration] Click detected - closing celebration');
             setShowCelebration(false);
             setCelebrationData(null);
           }}
