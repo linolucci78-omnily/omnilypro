@@ -175,35 +175,42 @@ const CustomerDisplay: React.FC = () => {
     console.log('[CoinsRain] Setup completato');
   };
 
-  // Suono pioggia monete tipo slot machine
+  // Suono pioggia monete tipo slot machine - VERSIONE LUNGA
   const playSlotMachineSound = () => {
     try {
       console.log('🎰 Riproduzione suono slot machine...');
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
-      // Sequenza di "ding" veloci per simulare monete che cadono
-      const coinTimes = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7];
+      // Sequenza MOLTO PIÙ LUNGA di "ding" per simulare pioggia continua di monete
+      // Creiamo 30 monete che cadono in 2.5 secondi
+      const numCoins = 30;
+      const duration = 2.5; // secondi totali
 
-      coinTimes.forEach((time) => {
+      for (let i = 0; i < numCoins; i++) {
+        const time = (i / numCoins) * duration; // Distribuisci uniformemente nel tempo
+
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
 
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        // Frequenze casuali per suono monete
-        oscillator.frequency.value = 800 + Math.random() * 400;
+        // Frequenze casuali per varietà nel suono delle monete
+        const baseFreq = 800 + Math.random() * 600; // Range più ampio: 800-1400Hz
+        oscillator.frequency.value = baseFreq;
         oscillator.type = 'sine';
 
+        // Envelope per ogni moneta
+        const coinDuration = 0.08 + Math.random() * 0.04; // Durata casuale per varietà
         gainNode.gain.setValueAtTime(0, audioContext.currentTime + time);
-        gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + time + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + 0.15);
+        gainNode.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + time + 0.005);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + coinDuration);
 
         oscillator.start(audioContext.currentTime + time);
-        oscillator.stop(audioContext.currentTime + time + 0.15);
-      });
+        oscillator.stop(audioContext.currentTime + time + coinDuration);
+      }
 
-      console.log('✅ Suono slot machine completato!');
+      console.log('✅ Suono slot machine con 30 monete riprodotto!');
     } catch (error) {
       console.error('❌ Errore suono slot machine:', error);
     }
