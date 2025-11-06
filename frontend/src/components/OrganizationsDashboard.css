@@ -2997,6 +2997,14 @@ input:checked + .slider:before {
     padding: 16px 24px !important;
     margin: 12px 0 !important;
   }
+
+  /* POS MODE OVERRIDE - Remove padding for full width */
+  .dashboard-layout.pos-mode .main-content .dashboard-content,
+  .dashboard-layout.pos-mode .main-content .dashboard-content.full-width,
+  .dashboard-layout.pos-mode .main-content .section-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 }
 
 /* Tablet POS - FORZA TUTTO RESPONSIVE */
