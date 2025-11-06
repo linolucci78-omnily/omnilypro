@@ -140,6 +140,7 @@
 .dashboard-layout.pos-mode .dashboard-content {
   height: calc(100vh - 140px) !important;
   overflow-y: auto !important;
+  padding: 0 !important;
 }
 
 /* Responsive per schermi POS più piccoli */
@@ -176,6 +177,7 @@
   .dashboard-layout.pos-mode .dashboard-content {
     height: calc(100vh - 120px) !important;
     overflow-y: auto !important;
+    padding: 0 !important;
   }
 }
 

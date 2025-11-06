@@ -643,6 +643,8 @@
 @media (min-width: 768px) and (max-width: 1024px) {
   .analytics-dashboard {
     padding: 32px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .dashboard-section {
