@@ -2084,6 +2084,8 @@
   border: none !important;
   box-shadow: none !important;
   min-height: calc(100vh - 140px) !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
 }
 
 /* Header Section */
@@ -2830,11 +2832,15 @@ input:checked + .slider:before {
   }
 
   .customer-table-controls .search-bar input {
-    padding: 16px 20px !important;
+    padding: 16px 20px 16px 48px !important;
     font-size: 1rem !important;
     min-height: 56px !important;
     border-width: 2px !important;
     border-radius: 8px !important;
+  }
+
+  .customer-table-controls .search-icon {
+    left: 16px !important;
   }
 
   .customer-table-controls .table-actions {
@@ -3225,6 +3231,8 @@ input:checked + .slider:before {
   position: absolute;
   left: 12px;
   color: #9ca3af;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .customer-table-controls .search-bar input {
