@@ -3273,10 +3273,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       default:
         return currentOrganization ? (
-          <AnalyticsDashboard
-            organization={currentOrganization}
-            customers={customers}
-          />
+          <div className="dashboard-content">
+            <AnalyticsDashboard
+              organization={currentOrganization}
+              customers={customers}
+            />
+          </div>
         ) : (
           <div className="dashboard-content">
             {/* Organizations Section - Hidden in POS mode (always 1 org) */}
