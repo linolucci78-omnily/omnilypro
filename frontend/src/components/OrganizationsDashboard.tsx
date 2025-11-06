@@ -1949,10 +1949,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return (
           <div
             className="dashboard-content full-width"
-            style={isPOSMode ? { padding: 0, margin: 0 } : {}}
+            style={isPOSMode ? { padding: 0, margin: 0, width: '100vw', maxWidth: '100vw' } : {}}
           >
             {/* Complete Customer List Section */}
-            <div className="customer-list-container">
+            <div
+              className="customer-list-container"
+              style={isPOSMode ? { padding: 0, margin: 0, width: '100vw', maxWidth: '100vw' } : {}}
+            >
               {/* Header */}
               <div className="customer-list-header">
                 <div className="header-left">
