@@ -179,6 +179,10 @@
     overflow-y: auto !important;
     padding: 0 !important;
   }
+
+  .dashboard-layout.pos-mode .customer-list-container {
+    min-height: calc(100vh - 120px) !important;
+  }
 }
 
 /* ========== SIDEBAR ========== */
@@ -2073,6 +2077,15 @@
   margin: 2rem;
 }
 
+/* POS Mode - Full width customer list */
+.dashboard-layout.pos-mode .customer-list-container {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-height: calc(100vh - 140px) !important;
+}
+
 /* Header Section */
 .customer-list-header {
   display: flex;
@@ -3221,6 +3234,8 @@ input:checked + .slider:before {
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
+  background-color: #ffffff;
+  color: #1f2937;
 }
 
 .customer-table-controls .search-bar input:focus {
