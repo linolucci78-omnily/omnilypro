@@ -491,72 +491,102 @@
 }
 
 /* ============================================
-   STATS
+   ADVANCED STATS - RIFATTE DA CAPO
    ============================================ */
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+.advanced-stats-container {
+  display: block;
+  width: 100%;
 }
 
-.stat-card {
-  padding: 20px;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+.advanced-stat-box {
+  width: 100%;
+  padding: 24px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   border-radius: 12px;
-  border: 1px solid #bae6fd;
+  border: 2px solid #e5e7eb;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
-.stat-card h4 {
+.advanced-stat-box:last-child {
+  margin-bottom: 0;
+}
+
+.stat-box-title {
   margin: 0 0 8px 0;
-  font-size: 16px;
+  padding: 0 4px;
+  font-size: 18px;
   font-weight: 700;
-  color: #075985;
+  color: #0f172a;
+  text-align: center;
+}
+
+.stat-box-subtitle {
+  margin: 0 0 16px 0;
+  padding: 0 4px 12px 4px;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 14px;
+  color: #64748b;
+  font-style: italic;
+  text-align: center;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 0;
+}
+
+.stats-table tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stats-table tr:last-child {
+  border-bottom: none;
+}
+
+.stat-td-left {
+  padding: 12px 8px 12px 4px;
+  vertical-align: middle;
+  width: 70%;
+  box-sizing: border-box;
+}
+
+.stat-td-left strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
   word-wrap: break-word;
 }
 
-.stat-card .card-description {
-  margin: 0 0 16px 0;
-  font-size: 13px;
-  color: #0c4a6e;
+.stat-td-left .stat-description {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
   font-style: italic;
-  line-height: 1.5;
+  word-wrap: break-word;
 }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(7, 89, 133, 0.1);
+.stat-td-right {
+  padding: 12px 16px 12px 4px;
+  vertical-align: middle;
+  width: 30%;
+  text-align: center;
+  box-sizing: border-box;
 }
 
-.stat-item > span:first-child {
-  font-size: 14px;
-  color: #0c4a6e;
-  font-weight: 600;
-}
-
-.stat-item .stat-help {
-  font-size: 11px !important;
-  color: #64748b !important;
-  font-style: italic;
-  font-weight: 400 !important;
-  margin-bottom: 4px;
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.stat-item strong {
-  font-size: 20px;
+.stat-td-right strong {
+  font-size: 18px;
   font-weight: 700;
-  color: #075985;
-  align-self: flex-end;
+  color: #dc2626;
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
 /* ============================================
@@ -644,17 +674,7 @@
    ============================================ */
 
 @media (min-width: 1025px) and (max-width: 1280px) {
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
-
-  .stat-item span {
-    font-size: 13px;
-  }
-
-  .stat-item strong {
-    font-size: 16px;
-  }
+  /* Nessuna regola specifica per stats - usa default */
 }
 
 /* ============================================
@@ -662,25 +682,24 @@
    ============================================ */
 
 @media (min-width: 600px) and (max-width: 767px) {
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-
-  .stat-card {
+  .advanced-stat-box {
     padding: 16px;
   }
 
-  .stat-item {
-    flex-wrap: wrap;
-    gap: 8px;
+  .stat-box-title {
+    font-size: 14px;
   }
 
-  .stat-item span {
+  .stat-box-subtitle {
     font-size: 12px;
   }
 
-  .stat-item strong {
-    font-size: 15px;
+  .stat-td-left strong {
+    font-size: 13px;
+  }
+
+  .stat-td-right strong {
+    font-size: 20px;
   }
 }
 
@@ -725,17 +744,30 @@
     font-size: 15px;
   }
 
+  /* CHART FIXES FOR POS */
+  .chart-container {
+    padding: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
   .chart-bars {
     height: 280px;
-    gap: 12px;
+    gap: 8px;
+    min-width: 100%;
+    width: max-content;
+  }
+
+  .chart-bar-wrapper {
+    min-width: 20px;
   }
 
   .chart-bar .bar-value {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .chart-label {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   .analysis-card h3 {
@@ -748,20 +780,25 @@
     font-size: 16px;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* STATS RESPONSIVE POS */
+  .stat-box-title {
+    font-size: 20px;
   }
 
-  .stat-card {
-    padding: 24px;
+  .stat-box-subtitle {
+    font-size: 15px;
   }
 
-  .stat-item span {
-    font-size: 14px;
+  .stat-td-left strong {
+    font-size: 16px;
   }
 
-  .stat-item strong {
-    font-size: 17px;
+  .stat-td-left .stat-description {
+    font-size: 13px;
+  }
+
+  .stat-td-right strong {
+    font-size: 28px;
   }
 
   .action-content h4 {
@@ -816,8 +853,7 @@
   }
 
   .analysis-grid,
-  .performers-grid,
-  .stats-grid {
+  .performers-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }

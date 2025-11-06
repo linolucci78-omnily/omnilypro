@@ -690,55 +690,99 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
           </div>
         </div>
 
-        <div className="stats-grid">
-          <div className="stat-card">
-            <h4>Performance Fedeltà</h4>
-            <p className="card-description">Quanto i tuoi clienti restano fedeli</p>
-            <div className="stat-item">
-              <span>Clienti Attivi</span>
-              <span className="stat-help">Quanti tornano regolarmente</span>
-              <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
-            </div>
-            <div className="stat-item">
-              <span>Clienti che Tornano</span>
-              <span className="stat-help">Retention rate</span>
-              <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
-            </div>
-            <div className="stat-item">
-              <span>Clienti Persi</span>
-              <span className="stat-help">Churn rate mensile</span>
-              <strong>{metrics.loyalty.churnRate.toFixed(0)}%/mese</strong>
-            </div>
-            <div className="stat-item">
-              <span>Soddisfazione</span>
-              <span className="stat-help">NPS Score (0-100)</span>
-              <strong>+{metrics.loyalty.npsScore}</strong>
-            </div>
+        <div className="advanced-stats-container">
+          {/* Card 1: Performance Fedeltà */}
+          <div className="advanced-stat-box">
+            <h3 className="stat-box-title">Performance Fedeltà</h3>
+            <p className="stat-box-subtitle">Quanto i tuoi clienti restano fedeli</p>
+
+            <table className="stats-table">
+              <tbody>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Clienti Attivi</strong>
+                    <span className="stat-description">Quanti tornano regolarmente</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Clienti che Tornano</strong>
+                    <span className="stat-description">Retention rate</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Clienti Persi</strong>
+                    <span className="stat-description">Churn rate mensile</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>{metrics.loyalty.churnRate.toFixed(0)}%/mese</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Soddisfazione</strong>
+                    <span className="stat-description">NPS Score (0-100)</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>+{metrics.loyalty.npsScore}</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="stat-card">
-            <h4>Valore Economico</h4>
-            <p className="card-description">Quanto vale ogni cliente per te</p>
-            <div className="stat-item">
-              <span>Valore Cliente</span>
-              <span className="stat-help">Quanto spenderà nel tempo</span>
-              <strong>€{metrics.economics.ltv}</strong>
-            </div>
-            <div className="stat-item">
-              <span>Spesa Media</span>
-              <span className="stat-help">AOV per visita</span>
-              <strong>€{metrics.economics.aov.toFixed(2)}</strong>
-            </div>
-            <div className="stat-item">
-              <span>Ritorno Investimento</span>
-              <span className="stat-help">Ogni €1 investito ritorna</span>
-              <strong>€{metrics.economics.roi}</strong>
-            </div>
-            <div className="stat-item">
-              <span>Costo Acquisizione</span>
-              <span className="stat-help">Per ottenere un nuovo cliente</span>
-              <strong>€{metrics.economics.costPerCustomer}</strong>
-            </div>
+          {/* Card 2: Valore Economico */}
+          <div className="advanced-stat-box">
+            <h3 className="stat-box-title">Valore Economico</h3>
+            <p className="stat-box-subtitle">Quanto vale ogni cliente per te</p>
+
+            <table className="stats-table">
+              <tbody>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Valore Cliente</strong>
+                    <span className="stat-description">Quanto spenderà nel tempo</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>€{metrics.economics.ltv}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Spesa Media</strong>
+                    <span className="stat-description">AOV per visita</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>€{metrics.economics.aov.toFixed(2)}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Ritorno Investimento</strong>
+                    <span className="stat-description">Ogni €1 investito ritorna</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>€{metrics.economics.roi}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="stat-td-left">
+                    <strong>Costo Acquisizione</strong>
+                    <span className="stat-description">Per ottenere un nuovo cliente</span>
+                  </td>
+                  <td className="stat-td-right">
+                    <strong>€{metrics.economics.costPerCustomer}</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
