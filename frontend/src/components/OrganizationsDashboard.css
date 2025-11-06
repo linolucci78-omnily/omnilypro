@@ -2786,9 +2786,9 @@ input:checked + .slider:before {
 /* Responsive */
 /* POS Mode (Tablets and Touch Terminals) - PRIORITY RESPONSIVE */
 @media (max-width: 1024px) {
-  /* DASHBOARD CONTENT - Full width for POS */
-  .dashboard-content,
-  .dashboard-content.full-width {
+  /* DASHBOARD CONTENT - Full width for tablets (NOT POS) */
+  .dashboard-layout:not(.pos-mode) .dashboard-content,
+  .dashboard-layout:not(.pos-mode) .dashboard-content.full-width {
     width: 100vw !important;
     max-width: 100vw !important;
     padding: 2rem !important;
