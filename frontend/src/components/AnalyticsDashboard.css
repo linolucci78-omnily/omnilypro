@@ -6,6 +6,9 @@
 .analytics-dashboard {
   padding: 24px;
   background-color: #f8fafc;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .analytics-dashboard.loading {
