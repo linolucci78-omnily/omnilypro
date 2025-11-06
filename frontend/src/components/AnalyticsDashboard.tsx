@@ -326,9 +326,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
             </div>
             <div className="metric-content">
               <div className="metric-label">Visite</div>
+              <div className="metric-description">Quanti clienti sono venuti oggi</div>
               <div className="metric-value">{metrics.today.visits}</div>
               <div className={`metric-trend ${metrics.today.visitsChange >= 0 ? 'positive' : 'negative'}`}>
-                {metrics.today.visitsChange >= 0 ? '↗' : '↘'} {Math.abs(metrics.today.visitsChange).toFixed(0)}%
+                {metrics.today.visitsChange >= 0 ? '↗' : '↘'} {Math.abs(metrics.today.visitsChange).toFixed(0)}% rispetto a ieri
               </div>
             </div>
           </div>
@@ -338,7 +339,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
               <Target size={24} />
             </div>
             <div className="metric-content">
-              <div className="metric-label">Punti</div>
+              <div className="metric-label">Punti Distribuiti</div>
+              <div className="metric-description">Quanti punti hai dato ai clienti</div>
               <div className="metric-value">{metrics.today.pointsDistributed}</div>
               <div className="metric-trend positive">↗ +8%</div>
             </div>
@@ -349,10 +351,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
               <Gift size={24} />
             </div>
             <div className="metric-content">
-              <div className="metric-label">Riscatti</div>
+              <div className="metric-label">Premi Riscattati</div>
+              <div className="metric-description">Quanti premi sono stati usati</div>
               <div className="metric-value">{metrics.today.redemptions}</div>
               <div className={`metric-trend ${metrics.today.redemptionsChange >= 0 ? 'positive' : 'negative'}`}>
-                {metrics.today.redemptionsChange >= 0 ? '↗' : '↘'} {Math.abs(metrics.today.redemptionsChange).toFixed(0)}%
+                {metrics.today.redemptionsChange >= 0 ? '↗' : '↘'} {Math.abs(metrics.today.redemptionsChange).toFixed(0)}% rispetto a ieri
               </div>
             </div>
           </div>
@@ -362,7 +365,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
               <UserPlus size={24} />
             </div>
             <div className="metric-content">
-              <div className="metric-label">Nuovi</div>
+              <div className="metric-label">Nuovi Clienti</div>
+              <div className="metric-description">Quanti si sono registrati oggi</div>
               <div className="metric-value">{metrics.today.newCustomers}</div>
               <div className="metric-trend positive">↗ +50%</div>
             </div>
@@ -417,6 +421,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
           {/* Tier Distribution */}
           <div className="analysis-card">
             <h3>Distribuzione Tier</h3>
+            <p className="card-description">Livelli fedeltà dei tuoi clienti (più alto = più fedele)</p>
             <div className="tier-list">
               {metrics.tiers.map((tier, index) => (
                 <div key={index} className="tier-item">
@@ -440,7 +445,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
           {/* Behavior */}
           <div className="analysis-card">
-            <h3>Comportamento</h3>
+            <h3>Comportamento Clienti</h3>
+            <p className="card-description">Come si comportano i tuoi clienti negli ultimi 30 giorni</p>
             <div className="behavior-list">
               <div className="behavior-item">
                 <CheckCircle2 size={20} className="icon-active" />
@@ -552,41 +558,51 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
         <div className="stats-grid">
           <div className="stat-card">
-            <h4>Performance</h4>
+            <h4>Performance Fedeltà</h4>
+            <p className="card-description">Quanto i tuoi clienti restano fedeli</p>
             <div className="stat-item">
-              <span>Tasso Fedeltà</span>
+              <span>Clienti Attivi</span>
+              <span className="stat-help">Quanti tornano regolarmente</span>
               <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
             </div>
             <div className="stat-item">
-              <span>Retention</span>
+              <span>Clienti che Tornano</span>
+              <span className="stat-help">Retention rate</span>
               <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
             </div>
             <div className="stat-item">
-              <span>Churn</span>
+              <span>Clienti Persi</span>
+              <span className="stat-help">Churn rate mensile</span>
               <strong>{metrics.loyalty.churnRate.toFixed(0)}%/mese</strong>
             </div>
             <div className="stat-item">
-              <span>NPS Score</span>
+              <span>Soddisfazione</span>
+              <span className="stat-help">NPS Score (0-100)</span>
               <strong>+{metrics.loyalty.npsScore}</strong>
             </div>
           </div>
 
           <div className="stat-card">
-            <h4>Economia</h4>
+            <h4>Valore Economico</h4>
+            <p className="card-description">Quanto vale ogni cliente per te</p>
             <div className="stat-item">
-              <span>LTV Cliente</span>
+              <span>Valore Cliente</span>
+              <span className="stat-help">Quanto spenderà nel tempo</span>
               <strong>€{metrics.economics.ltv}</strong>
             </div>
             <div className="stat-item">
-              <span>AOV</span>
+              <span>Spesa Media</span>
+              <span className="stat-help">AOV per visita</span>
               <strong>€{metrics.economics.aov.toFixed(2)}</strong>
             </div>
             <div className="stat-item">
-              <span>ROI Loyalty</span>
-              <strong>{metrics.economics.roi}x</strong>
+              <span>Ritorno Investimento</span>
+              <span className="stat-help">Ogni €1 investito ritorna</span>
+              <strong>€{metrics.economics.roi}</strong>
             </div>
             <div className="stat-item">
-              <span>Costo/Cliente</span>
+              <span>Costo Acquisizione</span>
+              <span className="stat-help">Per ottenere un nuovo cliente</span>
               <strong>€{metrics.economics.costPerCustomer}</strong>
             </div>
           </div>
