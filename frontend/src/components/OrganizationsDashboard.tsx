@@ -3444,6 +3444,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   return (
     <div className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}>
+      {/* DEBUG: POS Mode Indicator */}
+      {isPOSMode && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          background: 'red',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '5px',
+          zIndex: 9999,
+          fontWeight: 'bold'
+        }}>
+          POS MODE ACTIVE
+        </div>
+      )}
+
       {/* Sidebar - Hidden in POS mode */}
       {!isPOSMode && (
         <div className="sidebar">
