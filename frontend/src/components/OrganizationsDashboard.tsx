@@ -12,6 +12,9 @@ import CardManagementPanel from './CardManagementPanel'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import EmailMarketingPanel from './EmailMarketingPanel'
+import EmailAutomationsPanel from './EmailAutomationsPanel'
+import OrganizationBrandingPanel from './OrganizationBrandingPanel'
+import AnalyticsDashboard from './AnalyticsDashboard'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
 import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
 import SubscriptionsPanel from './SubscriptionsPanel'
@@ -544,6 +547,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [subscriptionInitialModal, setSubscriptionInitialModal] = useState<'manage' | 'templates' | undefined>(undefined)
   const [showSubscriptionStatsModal, setShowSubscriptionStatsModal] = useState(false)
   const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
+  const [showEmailAutomationsPanel, setShowEmailAutomationsPanel] = useState(false)
+  const [showBrandingPanel, setShowBrandingPanel] = useState(false)
 
   // Print Service for POS
   const [printService, setPrintService] = useState<ZCSPrintService | null>(null)
@@ -828,28 +833,86 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
-  // Mock data for demo - replace with real data
-  const metrics = {
-    totalStamps: 17568,
-    totalOffers: 1790, 
-    totalJoins: 845,
-    totalCustomers: 862
-  }
+  // Real metrics from database
+  const [metrics, setMetrics] = useState({
+    totalStamps: 0,
+    totalOffers: 0,
+    totalJoins: 0,
+    totalCustomers: 0
+  })
 
-  const chartData = [
-    { month: 'Gen', stamps: 1200, redemptions: 800 },
-    { month: 'Feb', stamps: 1350, redemptions: 950 },
-    { month: 'Mar', stamps: 1400, redemptions: 1000 },
-    { month: 'Apr', stamps: 1250, redemptions: 850 },
-    { month: 'Mag', stamps: 1500, redemptions: 1100 },
-    { month: 'Giu', stamps: 1380, redemptions: 980 },
-    { month: 'Lug', stamps: 1420, redemptions: 1020 },
-    { month: 'Ago', stamps: 1480, redemptions: 1080 },
-    { month: 'Set', stamps: 1520, redemptions: 1120 },
-    { month: 'Ott', stamps: 1600, redemptions: 1200 },
-    { month: 'Nov', stamps: 1450, redemptions: 1050 },
-    { month: 'Dic', stamps: 1300, redemptions: 900 }
-  ]
+  const [chartData, setChartData] = useState<Array<{month: string, stamps: number, redemptions: number}>>([])
+
+  // Load dashboard metrics
+  useEffect(() => {
+    const loadDashboardMetrics = async () => {
+      if (!currentOrganization) return
+
+      try {
+        // 1. Total points distributed (sum of all customer points)
+        const { data: pointsData } = await supabase
+          .from('customers')
+          .select('points')
+          .eq('organization_id', currentOrganization.id)
+
+        const totalStamps = pointsData?.reduce((sum, c) => sum + (c.points || 0), 0) || 0
+
+        // 2. Total rewards/offers
+        const { count: rewardsCount } = await supabase
+          .from('rewards')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', currentOrganization.id)
+
+        // 3. Total customers
+        const totalCustomers = customers.length
+
+        // 4. Total joins (customers created)
+        const totalJoins = customers.length
+
+        setMetrics({
+          totalStamps,
+          totalOffers: rewardsCount || 0,
+          totalJoins,
+          totalCustomers
+        })
+
+        // 5. Chart data - last 12 months activity
+        const monthsData = []
+        const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
+
+        for (let i = 11; i >= 0; i--) {
+          const date = new Date()
+          date.setMonth(date.getMonth() - i)
+          const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+          const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59)
+
+          // Points added this month
+          const { data: monthActivities } = await supabase
+            .from('customer_activities')
+            .select('type')
+            .eq('organization_id', currentOrganization.id)
+            .gte('created_at', monthStart.toISOString())
+            .lte('created_at', monthEnd.toISOString())
+
+          const stamps = monthActivities?.filter(a => a.type === 'points_added').length || 0
+          const redemptions = monthActivities?.filter(a => a.type === 'reward_redeemed').length || 0
+
+          monthsData.push({
+            month: monthNames[date.getMonth()],
+            stamps,
+            redemptions
+          })
+        }
+
+        setChartData(monthsData)
+
+      } catch (error) {
+        console.error('Error loading dashboard metrics:', error)
+      }
+    }
+
+    loadDashboardMetrics()
+  }, [currentOrganization, customers])
 
   useEffect(() => {
     fetchOrganizations()
@@ -1830,6 +1893,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
+      { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: 'emailAutomations' },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
@@ -3120,6 +3184,41 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         )
 
+      case 'email-automations':
+        return (
+          <div className="section-content">
+            <div className="section-header">
+              <Mail size={24} />
+              <h2>Email Automations</h2>
+              <p>Gestisci branding e automazioni email per i tuoi clienti</p>
+            </div>
+            <div className="cards-grid">
+              <div className="feature-card">
+                <h3>Branding Email</h3>
+                <p>Personalizza logo, colori e informazioni aziendali per le email automatiche</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowBrandingPanel(true)}
+                >
+                  <Palette size={18} />
+                  Configura Branding
+                </button>
+              </div>
+              <div className="feature-card">
+                <h3>Automazioni Email</h3>
+                <p>Gestisci email automatiche (welcome, tier upgrade, birthday)</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowEmailAutomationsPanel(true)}
+                >
+                  <Zap size={18} />
+                  Configura Automazioni
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+
       case 'subscriptions':
         return (
           <div className="section-content">
@@ -3173,10 +3272,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       default:
-        return (
+        return currentOrganization ? (
+          <AnalyticsDashboard
+            organization={currentOrganization}
+            customers={customers}
+          />
+        ) : (
           <div className="dashboard-content">
-            {/* Organizations Section */}
-            {organizations.length > 0 && (
+            {/* Organizations Section - Hidden in POS mode (always 1 org) */}
+            {!isPOSMode && organizations.length > 0 && (
               <div className="organizations-section">
                 <h3 className="section-subtitle">Le Tue Organizzazioni</h3>
                 <div className="organizations-grid">
@@ -3439,6 +3543,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <span>Gift Certificates</span>
             </button>
             <button
+              className={`pos-nav-tab ${activeSection === 'email-automations' ? 'active' : ''}`}
+              onClick={() => handleSectionChange('email-automations')}
+            >
+              <Mail size={20} />
+              <span>Email Automations</span>
+            </button>
+            <button
               className={`pos-nav-tab ${activeSection === 'subscriptions' ? 'active' : ''}`}
               onClick={() => handleSectionChange('subscriptions')}
             >
@@ -3529,6 +3640,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={() => setShowEmailMarketingPanel(false)}
         organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
         organizationName={organizations.length > 0 ? organizations[0].name : 'Organizzazione'}
+      />
+
+      {/* Organization Branding Panel */}
+      <OrganizationBrandingPanel
+        isOpen={showBrandingPanel}
+        onClose={() => setShowBrandingPanel(false)}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || ''}
+      />
+
+      {/* Email Automations Panel */}
+      <EmailAutomationsPanel
+        isOpen={showEmailAutomationsPanel}
+        onClose={() => setShowEmailAutomationsPanel(false)}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || ''}
       />
 
       {/* Upgrade Prompt */}

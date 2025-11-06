@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Mail, FileText, Shield, Printer, Download } from 'lucide-react';
 import { customersApi, supabase } from '../lib/supabase';
+import { sendWelcomeEmail } from '../services/emailAutomationService';
 import GDPRConsent from './GDPRConsent';
 import './RegistrationWizard.css';
 
@@ -1006,8 +1007,43 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
       const createdCustomer = await customersApi.create(customerData);
       addDebugInfo('✅ CLIENTE CREATO CON SUCCESSO!');
-      
+
       console.log('✅ Cliente creato con successo:', createdCustomer);
+
+      // 📧 Invia email di benvenuto automatica (non-blocking)
+      if (createdCustomer.email && organization) {
+        try {
+          console.log('📧 Invio email di benvenuto a:', createdCustomer.email);
+          await sendWelcomeEmail(
+            organizationId,
+            {
+              email: createdCustomer.email,
+              name: createdCustomer.name,
+              points: createdCustomer.points,
+              tier: createdCustomer.tier
+            },
+            {
+              name: organization.name,
+              pointsPerEuro: organization.points_per_euro || 1,
+              website: organization.website
+            }
+          );
+          console.log('✅ Email di benvenuto inviata con successo');
+          addDebugInfo('📧 Email di benvenuto inviata!');
+        } catch (emailError) {
+          // Non-blocking error - don't fail registration if email fails
+          console.error('⚠️ Errore invio email di benvenuto:', emailError);
+          addDebugInfo('⚠️ Email non inviata (errore ignorato)');
+        }
+      } else {
+        if (!createdCustomer.email) {
+          console.log('⏭️  Email non fornita, skip welcome email');
+        }
+        if (!organization) {
+          console.log('⏭️  Dati organizzazione non disponibili, skip welcome email');
+        }
+      }
+
       console.log('🔄 Ricarico lista clienti...');
       
       onCustomerCreated();

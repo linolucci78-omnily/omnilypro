@@ -34,6 +34,8 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import PageLoader from '../UI/PageLoader'
+import EmailSettingsManager from './EmailSettingsManager'
+import EmailAutomationsManager from './EmailAutomationsManager'
 import './AdminLayout.css'
 import './SystemSettings.css'
 
@@ -86,7 +88,7 @@ const SystemSettings: React.FC = () => {
   const [metrics, setMetrics] = useState<SystemMetric[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'monitoring' | 'settings' | 'database' | 'integrations'>('monitoring')
+  const [activeTab, setActiveTab] = useState<'monitoring' | 'settings' | 'database' | 'integrations' | 'email-automations'>('monitoring')
   const [editingSettings, setEditingSettings] = useState<Set<string>>(new Set())
   const [settingsChanges, setSettingsChanges] = useState<Record<string, string>>({})
 
@@ -461,6 +463,13 @@ const SystemSettings: React.FC = () => {
           <Zap size={16} />
           Integrazioni
         </button>
+        <button
+          className={`tab ${activeTab === 'email-automations' ? 'active' : ''}`}
+          onClick={() => setActiveTab('email-automations')}
+        >
+          <Mail size={16} />
+          Automazioni Email
+        </button>
       </div>
 
       {/* Monitoring Tab */}
@@ -828,6 +837,40 @@ const SystemSettings: React.FC = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Automations Tab */}
+      {activeTab === 'email-automations' && (
+        <div className="email-automations-section">
+          <div style={{ marginBottom: '32px' }}>
+            <EmailSettingsManager />
+          </div>
+
+          <div style={{
+            padding: '24px',
+            backgroundColor: '#eff6ff',
+            borderRadius: '8px',
+            border: '1px solid #bfdbfe',
+            marginBottom: '24px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '12px'
+            }}>
+              <Mail size={20} style={{ color: '#1e40af' }} />
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#1e40af' }}>
+                Gestione Automazioni Email
+              </h3>
+            </div>
+            <p style={{ margin: 0, fontSize: '14px', color: '#1e40af', lineHeight: '1.6' }}>
+              Le automazioni email sono gestite a livello di organizzazione.
+              Ogni organizzazione può configurare le proprie automazioni (benvenuto, tier upgrade, compleanno)
+              dal proprio pannello impostazioni. Da qui puoi visualizzare le impostazioni email globali del sistema.
+            </p>
           </div>
         </div>
       )}

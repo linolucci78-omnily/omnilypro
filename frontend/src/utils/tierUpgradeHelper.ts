@@ -1,9 +1,10 @@
-import { emailService } from '../services/emailService';
+import { sendTierUpgradeEmail } from '../services/emailAutomationService';
+import { supabase } from '../lib/supabase';
 
 /**
  * Helper per gestire il cambio tier del cliente
  * - Rileva se il tier è cambiato
- * - Invia email di congratulazioni
+ * - Invia email di congratulazioni automatiche
  * - Salva notifica pending per mostrare modale celebrativo
  */
 
@@ -60,30 +61,59 @@ export async function handleTierChange(params: {
 
   console.log(`🎊 TIER UPGRADE DETECTED! ${oldTier.name} -> ${newTier.name}`);
 
-  // 1. Invia email di congratulazioni (in background)
+  // 1. Ottieni total_spent del cliente per l'email
+  let totalSpent = 0;
   try {
-    console.log(`📧 Sending tier upgrade email to ${customerEmail}...`);
+    const { data: customerData } = await supabase
+      .from('customers')
+      .select('total_spent')
+      .eq('id', customerId)
+      .single();
 
-    const emailResult = await emailService.sendTierUpgradeEmail(
-      customerEmail,
-      customerName,
-      organizationId,
-      organizationName,
-      newTier.name,
-      newTier.color,
-      pointsName
-    );
-
-    if (emailResult.success) {
-      console.log(`✅ Tier upgrade email sent successfully!`);
-    } else {
-      console.error(`❌ Failed to send tier upgrade email:`, emailResult.error);
-    }
+    totalSpent = customerData?.total_spent || 0;
   } catch (error) {
-    console.error(`❌ Error sending tier upgrade email:`, error);
+    console.error('⚠️ Error fetching customer total_spent:', error);
   }
 
-  // 2. Salva notifica pending per mostrare modale celebrativo
+  // 2. Genera icone emoji per i tier
+  const getTierIcon = (tierName: string): string => {
+    const tier = tierName.toLowerCase();
+    if (tier.includes('platinum') || tier.includes('diamond')) return '👑';
+    if (tier.includes('gold')) return '⭐';
+    if (tier.includes('silver')) return '✨';
+    return '🥉';
+  };
+
+  // 3. Invia email di congratulazioni automatica (non-blocking)
+  try {
+    console.log(`📧 Sending automated tier upgrade email to ${customerEmail}...`);
+
+    await sendTierUpgradeEmail(
+      organizationId,
+      {
+        email: customerEmail,
+        name: customerName,
+        points: newPoints
+      },
+      {
+        oldTier: oldTier.name,
+        oldTierIcon: getTierIcon(oldTier.name),
+        newTier: newTier.name,
+        newTierIcon: getTierIcon(newTier.name),
+        newTierColor: newTier.color,
+        multiplier: newTier.multiplier,
+        totalSpent: totalSpent
+      },
+      organizationName
+    );
+
+    console.log(`✅ Automated tier upgrade email sent successfully!`);
+  } catch (error) {
+    // Non-blocking error - don't fail tier upgrade if email fails
+    console.error(`⚠️ Error sending tier upgrade email (non-blocking):`, error);
+  }
+
+  // 4. Salva notifica pending per mostrare modale celebrativo
   saveTierUpgradeNotification({
     customerId,
     customerName,

@@ -1,0 +1,329 @@
+/* ============================================
+   ORGANIZATION BRANDING PANEL
+   Desktop + POS 8" Tablet
+   ============================================ */
+
+.branding-panel {
+  padding: 24px;
+  background-color: #ffffff;
+  min-height: 400px;
+}
+
+.branding-panel.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #6b7280;
+}
+
+/* ============================================
+   SECTIONS
+   ============================================ */
+
+.branding-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 2px solid #fee2e2;
+}
+
+.branding-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.section-description {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #111827;
+  background-color: #ffffff;
+  transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Color Picker Group */
+.color-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.color-picker {
+  width: 60px;
+  height: 48px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-picker:hover {
+  border-color: #dc2626;
+}
+
+.color-input-group .form-input {
+  flex: 1;
+}
+
+/* Logo Preview */
+.logo-preview {
+  margin-top: 12px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #e5e7eb;
+  text-align: center;
+}
+
+.logo-preview img {
+  max-width: 200px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+/* ============================================
+   ACTIONS
+   ============================================ */
+
+.branding-actions {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-save-branding {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-save-branding:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+}
+
+.btn-save-branding:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   INFO BOX
+   ============================================ */
+
+.info-box {
+  margin-top: 32px;
+  padding: 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+}
+
+.info-box h4 {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.info-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-box li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #1e40af;
+  line-height: 1.6;
+}
+
+.info-box li::before {
+  content: "✓ ";
+  color: #10b981;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+/* ============================================
+   POS MODE - 8" TABLET (768px - 1024px)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .branding-panel {
+    padding: 32px;
+  }
+
+  .branding-section {
+    padding: 28px;
+  }
+
+  .branding-section h3 {
+    font-size: 20px;
+  }
+
+  .section-description {
+    font-size: 15px;
+  }
+
+  .form-group label {
+    font-size: 15px;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+
+  .color-picker {
+    width: 70px;
+    height: 56px;
+  }
+
+  .btn-save-branding {
+    padding: 16px 40px;
+    font-size: 18px;
+  }
+
+  .info-box {
+    padding: 24px;
+  }
+
+  .info-box h4 {
+    font-size: 17px;
+  }
+
+  .info-box li {
+    font-size: 15px;
+  }
+}
+
+/* ============================================
+   MOBILE - SMARTPHONE (< 768px)
+   ============================================ */
+
+@media (max-width: 767px) {
+  .branding-panel {
+    padding: 16px;
+  }
+
+  .branding-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .branding-section h3 {
+    font-size: 16px;
+  }
+
+  .section-description {
+    font-size: 13px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .color-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .color-picker {
+    width: 100%;
+    height: 48px;
+  }
+
+  .btn-save-branding {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .info-box {
+    padding: 16px;
+  }
+
+  .info-box h4 {
+    font-size: 14px;
+  }
+
+  .info-box li {
+    font-size: 13px;
+  }
+}
