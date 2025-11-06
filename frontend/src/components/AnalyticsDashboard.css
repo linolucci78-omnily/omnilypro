@@ -217,6 +217,15 @@
   transform: scale(1.05);
 }
 
+.chart-bar.peak-hour {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.chart-bar.peak-hour:hover {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+}
+
 .chart-bar .bar-value {
   font-size: 10px;
   font-weight: 700;
@@ -391,10 +400,18 @@
 }
 
 .performers-card h3 {
-  margin: 0 0 16px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 600;
   color: #0f172a;
+}
+
+.performers-card .card-description {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+  line-height: 1.5;
 }
 
 .top-list {
