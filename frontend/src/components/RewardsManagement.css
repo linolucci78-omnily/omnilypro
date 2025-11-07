@@ -52,7 +52,12 @@
 
 .btn-add-reward svg {
   flex-shrink: 0;
-  display: block;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  color: white;
+  stroke: currentColor;
 }
 
 .btn-add-reward:hover {
@@ -307,6 +312,16 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s;
+}
+
+.btn-action-edit svg,
+.btn-action-delete svg {
+  width: 16px;
+  height: 16px;
+  color: white;
+  stroke: currentColor;
+  stroke-width: 2;
+  flex-shrink: 0;
 }
 
 .btn-action-edit {
@@ -612,7 +627,15 @@
 .btn-cancel svg,
 .btn-save svg {
   flex-shrink: 0;
-  display: block;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  stroke: currentColor;
+}
+
+.btn-save svg {
+  color: white;
 }
 
 .btn-cancel {
@@ -736,5 +759,20 @@
   .filter-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  /* Assicura che le icone siano visibili su mobile */
+  .btn-add-reward svg,
+  .btn-cancel svg,
+  .btn-save svg {
+    display: inline-block !important;
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+  }
+
+  .btn-add-reward svg,
+  .btn-save svg {
+    color: white !important;
   }
 }

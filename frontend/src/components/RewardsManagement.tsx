@@ -83,6 +83,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   const [showInactive, setShowInactive] = useState(false)
   const [loyaltyTiers, setLoyaltyTiers] = useState<LoyaltyTier[]>([])
   const [validationError, setValidationError] = useState<string>('')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -225,16 +226,16 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questo premio?')) return
+  const handleDelete = async () => {
+    if (!deleteConfirmId) return
 
     try {
-      await rewardsService.delete(id, organizationId)
+      await rewardsService.delete(deleteConfirmId, organizationId)
       await fetchRewards()
+      setDeleteConfirmId(null)
     } catch (error) {
       console.error('Errore eliminazione premio:', error)
-      // Potremmo mostrare una toast notification qui invece di validationError
-      console.error('Errore eliminazione premio')
+      setValidationError('Errore durante l\'eliminazione del premio')
     }
   }
 
@@ -438,7 +439,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                       </button>
                       <button
                         className="btn-action-delete"
-                        onClick={() => handleDelete(reward.id)}
+                        onClick={() => setDeleteConfirmId(reward.id)}
                         title="Elimina"
                       >
                         <Trash2 size={16} />
@@ -663,6 +664,46 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
               <button className="btn-save" onClick={handleSubmit}>
                 <Save size={20} />
                 <span>{editingReward ? 'Salva Modifiche' : 'Crea Premio'}</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modale Conferma Eliminazione */}
+      {deleteConfirmId && (
+        <>
+          <div className="modal-overlay" onClick={() => setDeleteConfirmId(null)} />
+          <div className="modal-reward" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2>Conferma Eliminazione</h2>
+              <button className="btn-close-modal" onClick={() => setDeleteConfirmId(null)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="modal-content" style={{ padding: '2rem', textAlign: 'center' }}>
+              <AlertCircle size={64} style={{ color: '#ef4444', margin: '0 auto 1rem' }} />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', margin: '0 0 0.75rem 0' }}>
+                Sei sicuro di voler eliminare questo premio?
+              </h3>
+              <p style={{ fontSize: '1rem', color: '#6b7280', margin: 0 }}>
+                Questa azione non può essere annullata.
+              </p>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setDeleteConfirmId(null)}>
+                <X size={20} />
+                <span>Annulla</span>
+              </button>
+              <button
+                className="btn-save"
+                onClick={handleDelete}
+                style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
+              >
+                <Trash2 size={20} />
+                <span>Elimina</span>
               </button>
             </div>
           </div>
