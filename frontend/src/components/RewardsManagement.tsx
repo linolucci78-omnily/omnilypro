@@ -44,7 +44,7 @@ interface RewardFormData {
   name: string
   description: string
   points_required: number
-  type: string
+  type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
   value: string
   required_tier: string
   stock_quantity?: number
@@ -59,6 +59,13 @@ const CATEGORIES: {value: RewardCategory; label: string; Icon: React.FC<{size?: 
   { value: 'service', label: 'Servizi', Icon: Wrench },
   { value: 'experience', label: 'Esperienze', Icon: Sparkles },
   { value: 'other', label: 'Altro', Icon: Gift }
+]
+
+const REWARD_TYPES: {value: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'; label: string}[] = [
+  { value: 'discount', label: 'Sconto' },
+  { value: 'freeProduct', label: 'Prodotto Gratuito' },
+  { value: 'cashback', label: 'Cashback' },
+  { value: 'giftCard', label: 'Buono Regalo' }
 ]
 
 const RewardsManagement: React.FC<RewardsManagementProps> = ({
@@ -83,7 +90,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     name: '',
     description: '',
     points_required: 0,
-    type: 'Prodotto',
+    type: 'discount',
     value: '',
     required_tier: '',
     stock_quantity: undefined,
@@ -194,7 +201,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       // Map formData to RewardInput
       const rewardData = {
         name: formData.name,
-        type: formData.type as any, // Needs proper mapping
+        type: formData.type,
         value: formData.value,
         points_required: formData.points_required,
         required_tier: formData.required_tier,
@@ -265,7 +272,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       name: '',
       description: '',
       points_required: 0,
-      type: 'Prodotto',
+      type: 'discount',
       value: '',
       required_tier: '',
       stock_quantity: undefined,
@@ -585,13 +592,17 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Tipo</label>
-                  <input
-                    type="text"
+                  <label>Tipo Premio *</label>
+                  <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    placeholder="es. Buono Sconto"
-                  />
+                  >
+                    {REWARD_TYPES.map(type => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -600,7 +611,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                     type="text"
                     value={formData.value}
                     onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                    placeholder="es. 10€"
+                    placeholder="es. 10€ o 10%"
                   />
                 </div>
               </div>
