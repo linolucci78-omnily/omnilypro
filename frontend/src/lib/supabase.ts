@@ -129,6 +129,7 @@ export interface Customer {
   email?: string
   phone?: string
   address?: string
+  avatar_url?: string // URL foto profilo da Supabase Storage
   gender?: 'male' | 'female'
   birth_date?: string
   points: number

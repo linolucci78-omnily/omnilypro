@@ -5,9 +5,10 @@ import { rewardsService } from '../services/rewardsService'
 import { ZCSPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog } from 'lucide-react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
+import EditCustomerModal from './EditCustomerModal'
 import CardManagementPanel from './CardManagementPanel'
 import CardManagementHub from './CardManagementHub'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
@@ -26,6 +27,7 @@ import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import TeamManagementHub from './TeamManagementHub'
 import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
+import CustomersCardView from './CustomersCardView'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -80,6 +82,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
   const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Customer view mode: 'card' or 'table'
+  const [customerViewMode, setCustomerViewMode] = useState<'card' | 'table'>(() => {
+    const saved = localStorage.getItem('customerViewMode')
+    return (saved === 'card' || saved === 'table') ? saved : 'card'
+  })
 
   // Plan-based access control
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
@@ -544,6 +552,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false)
 
+  // Modals from table action buttons
+  const [selectedCustomerForEdit, setSelectedCustomerForEdit] = useState<Customer | null>(null)
+  const [showEditModalFromTable, setShowEditModalFromTable] = useState(false)
+
   // Card Management Panel states
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
@@ -840,6 +852,60 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
+  const handleUpdateCustomer = async (customerId: string, updates: Partial<Customer>) => {
+    console.log(`Aggiornamento dati cliente ${customerId}:`, updates)
+
+    try {
+      // Aggiorna il cliente nel database
+      const { data, error } = await supabase
+        .from('customers')
+        .update(updates)
+        .eq('id', customerId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Errore aggiornamento cliente:', error);
+        throw error;
+      }
+
+      // Aggiorna il state locale immediatamente
+      setCustomers(prevCustomers =>
+        prevCustomers.map(customer =>
+          customer.id === customerId
+            ? { ...customer, ...updates }
+            : customer
+        )
+      );
+
+      // Aggiorna anche il cliente selezionato se è quello modificato
+      if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer({ ...selectedCustomer, ...updates });
+        console.log(`✅ Cliente selezionato aggiornato con nuovi dati`);
+      }
+
+      console.log(`✅ Cliente aggiornato con successo:`, data);
+
+      // Registra l'attività di modifica nel database
+      if (currentOrganization) {
+        try {
+          await customerActivitiesApi.create({
+            organization_id: currentOrganization.id,
+            customer_id: customerId,
+            type: 'visit',
+            description: `Dati cliente aggiornati`,
+          });
+          console.log('✅ Attività modifica dati registrata');
+        } catch (error) {
+          console.error('❌ Errore registrazione attività:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Errore durante aggiornamento cliente:', error);
+      throw error;
+    }
+  }
+
   // Real metrics from database
   const [metrics, setMetrics] = useState({
     totalStamps: 0,
@@ -1120,6 +1186,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     } finally {
       setRewardModalLoading(false)
     }
+  }
+
+  const handleToggleCustomerView = (mode: 'card' | 'table') => {
+    setCustomerViewMode(mode)
+    localStorage.setItem('customerViewMode', mode)
+    console.log(`📋 Vista clienti cambiata: ${mode}`)
   }
 
   const handleQRScan = () => {
@@ -2005,6 +2077,26 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 </div>
               </div>
 
+              {/* View Toggle Controls */}
+              <div className="view-toggle-container">
+                <div className="view-toggle-buttons">
+                  <button
+                    className={`view-toggle-btn ${customerViewMode === 'card' ? 'active' : ''}`}
+                    onClick={() => handleToggleCustomerView('card')}
+                  >
+                    <LayoutGrid size={18} />
+                    <span>Card</span>
+                  </button>
+                  <button
+                    className={`view-toggle-btn ${customerViewMode === 'table' ? 'active' : ''}`}
+                    onClick={() => handleToggleCustomerView('table')}
+                  >
+                    <Table size={18} />
+                    <span>Tabella</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Customer Table Controls */}
               <div className="customer-table-controls">
                 <div className="search-bar">
@@ -2077,104 +2169,128 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 </div>
               </div>
 
-              {/* Customer Table */}
-              <div className="customer-table-wrapper">
-                <table className="customer-table-new">
-                  <thead>
-                    <tr>
-                      <th>Cliente</th>
-                      <th>Contatti</th>
-                      <th>Punti</th>
-                      <th>Livello</th>
-                      <th>Stato</th>
-                      <th>Registrato</th>
-                      <th>Azioni</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customersLoading ? (
+              {/* Customer View - Card o Tabella */}
+              {customersLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                  <div className="loading-bar-container">
+                    <div className="loading-bar-label">Caricamento clienti...</div>
+                    <div className="loading-bar-track">
+                      <div className="loading-bar-fill"></div>
+                    </div>
+                  </div>
+                </div>
+              ) : customerViewMode === 'card' ? (
+                <CustomersCardView
+                  customers={filteredCustomers}
+                  onCustomerClick={handleCustomerClick}
+                  primaryColor={currentOrganization?.primary_color || '#dc2626'}
+                  secondaryColor={currentOrganization?.secondary_color || '#dc2626'}
+                  pointsName={currentOrganization?.points_name || 'Punti'}
+                  loyaltyTiers={currentOrganization?.loyalty_tiers || []}
+                />
+              ) : (
+                <div className="customer-table-wrapper">
+                  <table className="customer-table-new">
+                    <thead>
                       <tr>
-                        <td colSpan={7} style={{ textAlign: 'center', padding: '3rem' }}>
-                          <div className="loading-bar-container">
-                            <div className="loading-bar-label">Caricamento clienti...</div>
-                            <div className="loading-bar-track">
-                              <div className="loading-bar-fill"></div>
-                            </div>
-                          </div>
-                        </td>
+                        <th>Cliente</th>
+                        <th>Contatti</th>
+                        <th>Punti</th>
+                        <th>Livello</th>
+                        <th>Stato</th>
+                        <th>Registrato</th>
+                        <th>Azioni</th>
                       </tr>
-                    ) : filteredCustomers.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
-                          <div>Nessun cliente trovato per "{searchTerm}"</div>
-                        </td>
-                      </tr>
-                    ) : filteredCustomers.map((customer, _index) => (
-                      <tr
-                        key={customer.id}
-                        onClick={() => handleCustomerClick(customer)}
-                        style={{ cursor: 'pointer' }}
-                        className="customer-row-clickable"
-                      >
-                        <td>
-                          <div className="customer-cell">
-                            <div className={`customer-avatar-new ${customer.gender || 'male'}`}>
-                              <Users size={16} />
-                            </div>
-                            <div className="customer-info-new">
-                              <div className="customer-name-new">{customer.name}</div>
-                              <div className="customer-id">#{customer.id.slice(0, 8)}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="contact-cell">
-                            {customer.email && (
-                              <div className="contact-item">
-                                <span>📧</span>
-                                <span>{customer.email}</span>
+                    </thead>
+                    <tbody>
+                      {filteredCustomers.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
+                            <div>Nessun cliente trovato per "{searchTerm}"</div>
+                          </td>
+                        </tr>
+                      ) : filteredCustomers.map((customer, _index) => (
+                        <tr
+                          key={customer.id}
+                          onClick={() => handleCustomerClick(customer)}
+                          style={{ cursor: 'pointer' }}
+                          className="customer-row-clickable"
+                        >
+                          <td>
+                            <div className="customer-cell">
+                              <div className={`customer-avatar-new ${customer.gender || 'male'}`}>
+                                <Users size={16} />
                               </div>
-                            )}
-                            {customer.phone && (
-                              <div className="contact-item">
-                                <span>📱</span>
-                                <span>{customer.phone}</span>
+                              <div className="customer-info-new">
+                                <div className="customer-name-new">{customer.name}</div>
+                                <div className="customer-id">#{customer.id.slice(0, 8)}</div>
                               </div>
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="points-cell">
-                            <Target size={16} color="#ef4444" />
-                            <span>{customer.points}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`level-badge ${customer.tier.toLowerCase()}`}>
-                            {customer.tier}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={customer.is_active ? "status-active" : "status-inactive"}>
-                            {customer.is_active ? <><CheckCircle2 size={14} /> ATTIVO</> : <><XCircle size={14} /> INATTIVO</>}
-                          </span>
-                        </td>
-                        <td>{new Date(customer.created_at).toLocaleDateString('it-IT')}</td>
-                        <td>
-                          <div className="action-buttons">
-                            <button className="action-btn-blue">
-                              <Target size={14} />
-                            </button>
-                            <button className="action-btn-black">
-                              <Users size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="contact-cell">
+                              {customer.email && (
+                                <div className="contact-item">
+                                  <span>📧</span>
+                                  <span>{customer.email}</span>
+                                </div>
+                              )}
+                              {customer.phone && (
+                                <div className="contact-item">
+                                  <span>📱</span>
+                                  <span>{customer.phone}</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="points-cell">
+                              <Target size={16} color="#ef4444" />
+                              <span>{customer.points}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`level-badge ${customer.tier.toLowerCase()}`}>
+                              {customer.tier}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={customer.is_active ? "status-active" : "status-inactive"}>
+                              {customer.is_active ? <><CheckCircle2 size={14} /> ATTIVO</> : <><XCircle size={14} /> INATTIVO</>}
+                            </span>
+                          </td>
+                          <td>{new Date(customer.created_at).toLocaleDateString('it-IT')}</td>
+                          <td>
+                            <div className="action-buttons">
+                              <button
+                                className="action-btn-view"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCustomerClick(customer);
+                                }}
+                                title="Visualizza Cliente"
+                              >
+                                <Users size={16} />
+                              </button>
+                              <button
+                                className="action-btn-edit"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerForEdit(customer);
+                                  setShowEditModalFromTable(true);
+                                }}
+                                title="Modifica Dati"
+                              >
+                                <UserCog size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Professional Registration Wizard */}
@@ -3540,11 +3656,34 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onClose={handleCloseSlidePanel}
         onAddPoints={handleAddPoints}
         onNewTransaction={handleNewTransaction}
+        onUpdateCustomer={handleUpdateCustomer}
         pointsPerEuro={currentOrganization?.points_per_euro || 1}
         loyaltyTiers={currentOrganization?.loyalty_tiers || []}
         bonusCategories={currentOrganization?.bonus_categories || []}
         pointsName={currentOrganization?.points_name || 'Punti'}
+        organizationName={currentOrganization?.name || 'OMNILY PRO'}
+        primaryColor={currentOrganization?.primary_color || '#dc2626'}
       />
+
+      {/* Edit Customer Modal from Table */}
+      {selectedCustomerForEdit && (
+        <EditCustomerModal
+          isOpen={showEditModalFromTable}
+          onClose={() => {
+            setShowEditModalFromTable(false);
+            setSelectedCustomerForEdit(null);
+          }}
+          customer={selectedCustomerForEdit}
+          onUpdate={async (customerId, updates) => {
+            await handleUpdateCustomer(customerId, updates);
+            setShowEditModalFromTable(false);
+            setSelectedCustomerForEdit(null);
+            // Refresh customers to show updated data
+            fetchCustomers();
+          }}
+          primaryColor={currentOrganization?.primary_color || '#dc2626'}
+        />
+      )}
 
       {/* Card Management Panel (modale) */}
       <CardManagementPanel

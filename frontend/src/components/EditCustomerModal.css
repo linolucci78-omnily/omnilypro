@@ -1,0 +1,568 @@
+/* ============================================
+   EDIT CUSTOMER MODAL - MODALE MODIFICA CLIENTE
+   ============================================ */
+
+.edit-customer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.edit-customer-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.edit-customer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 32px 32px 24px 32px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.edit-customer-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.edit-customer-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.edit-customer-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.edit-customer-close:hover {
+  background: rgba(220, 38, 38, 0.1);
+  transform: scale(1.1);
+}
+
+/* ============================================
+   AVATAR SECTION - BELLISSIMO!
+   ============================================ */
+
+.edit-customer-avatar-section {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.avatar-preview-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  border: 4px solid white;
+}
+
+.avatar-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-preview-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), color-mix(in srgb, var(--primary-color, #dc2626) 80%, black));
+  color: white;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.avatar-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   UPLOAD BUTTONS - ANIMATI E BELLI
+   ============================================ */
+
+.avatar-upload-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.avatar-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.avatar-upload-btn:hover:not(:disabled) {
+  border-color: var(--primary-color, #dc2626);
+  color: var(--primary-color, #dc2626);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avatar-upload-btn.camera:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #3b82f6;
+}
+
+.avatar-upload-btn.gallery:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #10b981;
+}
+
+/* ============================================
+   FORM - PULITO E PROFESSIONALE
+   ============================================ */
+
+.edit-customer-form {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group label svg {
+  color: #6b7280;
+}
+
+.form-group input {
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #1f2937;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #dc2626) 10%, transparent);
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+/* ============================================
+   GENDER OPTIONS - RADIO BUTTONS BELLISSIMI
+   ============================================ */
+
+.gender-options {
+  display: flex;
+  gap: 12px;
+}
+
+.gender-option {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+}
+
+.gender-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.gender-option span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gender-option:hover span {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.gender-option.active span {
+  border-color: var(--primary-color, #dc2626);
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 5%, white);
+  color: var(--primary-color, #dc2626);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color, #dc2626) 15%, transparent);
+}
+
+/* ============================================
+   TOGGLE SWITCHES - PER CONSENSI
+   ============================================ */
+
+.form-group-toggle {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.form-group-toggle:hover {
+  border-color: #d1d5db;
+}
+
+.toggle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.toggle-label svg {
+  color: #6b7280;
+}
+
+.toggle-description {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  border-radius: 28px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--primary-color, #dc2626);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color, #dc2626) 20%, transparent);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch:hover .toggle-slider {
+  background-color: #9ca3af;
+}
+
+.toggle-switch input:checked:hover + .toggle-slider {
+  background-color: color-mix(in srgb, var(--primary-color, #dc2626) 90%, black);
+}
+
+/* ============================================
+   ACTIONS - BOTTONI SALVA/ANNULLA
+   ============================================ */
+
+.edit-customer-actions {
+  display: flex;
+  gap: 12px;
+  padding: 24px 32px 32px 32px;
+  border-top: 2px solid #f3f4f6;
+}
+
+.btn-cancel,
+.btn-save {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cancel {
+  background: white;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-save {
+  background: var(--primary-color, #dc2626);
+  border: 2px solid var(--primary-color, #dc2626);
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 90%, black);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-color, #dc2626) 30%, transparent);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   RESPONSIVE - POS MODE
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .edit-customer-modal {
+    max-width: 500px;
+  }
+
+  .edit-customer-header {
+    padding: 24px;
+  }
+
+  .edit-customer-avatar-section {
+    padding: 24px;
+  }
+
+  .avatar-preview-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+
+  .avatar-preview-placeholder {
+    font-size: 40px;
+  }
+
+  .edit-customer-form {
+    padding: 24px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .edit-customer-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .edit-customer-header {
+    padding: 20px;
+  }
+
+  .edit-customer-header h2 {
+    font-size: 20px;
+  }
+
+  .edit-customer-avatar-section {
+    padding: 20px;
+  }
+
+  .avatar-preview-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-preview-placeholder {
+    font-size: 32px;
+  }
+
+  .avatar-upload-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .avatar-upload-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .edit-customer-form {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .edit-customer-actions {
+    padding: 20px;
+    flex-direction: column;
+  }
+}
+
+/* ============================================
+   SCROLLBAR CUSTOM
+   ============================================ */
+
+.edit-customer-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.edit-customer-modal::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.edit-customer-modal::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.edit-customer-modal::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

@@ -496,6 +496,38 @@
   opacity: 1;
 }
 
+.customer-slide-panel-action-btn-quaternary {
+  background: transparent;
+  color: #f59e0b;
+  border: 2px dashed #f59e0b;
+  box-shadow: none;
+}
+
+.customer-slide-panel-action-btn-quaternary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(251, 191, 36, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.customer-slide-panel-action-btn-quaternary:hover {
+  border-style: solid;
+  color: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
+}
+
+.customer-slide-panel-action-btn-quaternary:hover::before {
+  opacity: 1;
+}
+
 /* Contact Info */
 .customer-slide-panel-contact {
   padding: 2.5rem 2rem;

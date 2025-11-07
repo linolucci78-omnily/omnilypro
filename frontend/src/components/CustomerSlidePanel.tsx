@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3 } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
 import ConfirmModal from './UI/ConfirmModal';
 import ModifyPointsModal from './ModifyPointsModal';
 import TierUpgradeModal from './TierUpgradeModal';
+import EditCustomerModal from './EditCustomerModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
@@ -24,11 +25,13 @@ interface CustomerSlidePanelProps {
   onClose: () => void;
   onAddPoints?: (customerId: string, points: number) => void;
   onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string}>;
+  onUpdateCustomer?: (customerId: string, updates: Partial<Customer>) => Promise<void>;
   pointsPerEuro?: number; // Configurazione dinamica punti per euro dall'organizzazione
   loyaltyTiers?: any[]; // Tiers di fedeltà per calcolo moltiplicatori dinamici
   bonusCategories?: any[]; // Categorie prodotti con moltiplicatori bonus
   pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
   organizationName?: string; // Nome organizzazione per email tier upgrade
+  primaryColor?: string; // Colore primario organizzazione
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -37,11 +40,13 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   onClose,
   onAddPoints,
   onNewTransaction,
+  onUpdateCustomer,
   pointsPerEuro = 1, // Default a 1 punto per euro se non specificato
   loyaltyTiers = [], // Default array vuoto se non specificato
   bonusCategories = [], // Default array vuoto se non specificato
   pointsName = 'Punti', // Default "Punti" se non specificato
-  organizationName = 'OMNILY PRO' // Default name se non specificato
+  organizationName = 'OMNILY PRO', // Default name se non specificato
+  primaryColor = '#dc2626' // Default red se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showRewardsSection, setShowRewardsSection] = useState(false);
@@ -56,6 +61,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [showModifyPointsModal, setShowModifyPointsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showTierUpgradeModal, setShowTierUpgradeModal] = useState(false);
   const [tierUpgradeData, setTierUpgradeData] = useState<{
     oldTierName: string;
@@ -765,10 +771,10 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         <div className="customer-panel-actions">
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-primary"
-            onClick={() => setShowModifyPointsModal(true)}
+            onClick={() => setShowEditModal(true)}
           >
-            <Edit3 size={20} />
-            Modifica {pointsName}
+            <UserCog size={20} />
+            Modifica Dati
           </button>
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-secondary"
@@ -779,6 +785,13 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           </button>
           <button
             className="customer-slide-panel-action-btn customer-slide-panel-action-btn-tertiary"
+            onClick={() => setShowModifyPointsModal(true)}
+          >
+            <Edit3 size={20} />
+            Modifica {pointsName}
+          </button>
+          <button
+            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-quaternary"
             onClick={() => setShowRewardsSection(!showRewardsSection)}
           >
             <Gift size={20} />
@@ -1042,6 +1055,21 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             setShowTierUpgradeModal(false);
             setTierUpgradeData(null);
           }}
+        />
+      )}
+
+      {/* Edit Customer Modal - Modifica dati e avatar */}
+      {onUpdateCustomer && localCustomer && (
+        <EditCustomerModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          customer={localCustomer}
+          onUpdate={async (customerId, updates) => {
+            await onUpdateCustomer(customerId, updates);
+            // Aggiorna localCustomer con i nuovi dati
+            setLocalCustomer({ ...localCustomer, ...updates });
+          }}
+          primaryColor={primaryColor}
         />
       )}
     </>
