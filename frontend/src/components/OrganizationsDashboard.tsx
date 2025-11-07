@@ -1949,12 +1949,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return (
           <div
             className="dashboard-content full-width"
-            style={isPOSMode ? { padding: 0, margin: 0, width: '100vw', maxWidth: '100vw' } : {}}
+            style={isPOSMode ? { padding: 0, margin: 0, width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflowX: 'hidden' } : {}}
           >
             {/* Complete Customer List Section */}
             <div
               className="customer-list-container"
-              style={isPOSMode ? { padding: 0, margin: 0, width: '100vw', maxWidth: '100vw' } : {}}
+              style={isPOSMode ? { padding: 0, margin: 0, width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflowX: 'hidden' } : {}}
             >
               {/* Header */}
               <div className="customer-list-header">

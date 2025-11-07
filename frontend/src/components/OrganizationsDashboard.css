@@ -3097,6 +3097,105 @@ input:checked + .slider:before {
   }
 }
 
+/* ========== POS PORTRAIT MODE - ORIENTAMENTO VERTICALE ========== */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  /* CONTAINER PRINCIPALE - MARGINE RIDOTTO */
+  .customer-list-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashboard-content,
+  .dashboard-content.full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  /* CUSTOMER LIST HEADER - Più padding interno */
+  .customer-list-header {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.75rem 6px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    min-height: auto !important;
+  }
+
+  .customer-list-header h2 {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+  }
+
+  .customer-list-header p {
+    font-size: 0.85rem !important;
+    margin-top: 4px !important;
+  }
+
+  /* CUSTOMER STATS - Più respiro tra le card */
+  .customer-stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 6px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    border-bottom: none !important;
+  }
+
+  .customer-stat-card {
+    padding: 0.875rem 0.625rem !important;
+    gap: 0.5rem !important;
+    min-height: 80px !important;
+    border-radius: 8px !important;
+    border-width: 1px !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .customer-stat-card .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .customer-stat-card .stat-info {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    overflow: hidden !important;
+  }
+
+  .stat-number {
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+    text-align: left !important;
+  }
+
+  .stat-label {
+    font-size: 0.75rem !important;
+    line-height: 1.1 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    text-align: left !important;
+  }
+}
+
 /* ========== CUSTOMER WIZARD MODAL STYLES ========== */
 
 /* Header Update for Actions */

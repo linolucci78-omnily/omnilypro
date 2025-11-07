@@ -67,6 +67,28 @@ interface DashboardMetrics {
     roi: number
     costPerCustomer: number
   }
+  // Peak hours
+  peakHours: {
+    hour: string
+    visits: number
+    description: string
+  }
+  // Economic stats
+  economicStats: {
+    monthlyRevenue: number
+    lastMonthRevenue: number
+    monthlyGrowth: number
+    yearlyRevenue: number
+    dailyAverage: number
+    weeklyGrowth: number
+    revenueByTimeSlot: {
+      morning: number      // 7-11
+      lunch: number        // 11-15
+      afternoon: number    // 15-18
+      dinner: number       // 18-22
+      night: number        // 22-7
+    }
+  }
 }
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, customers }) => {
@@ -92,21 +114,29 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       // 1. TODAY METRICS
       const { data: todayActivities } = await supabase
         .from('customer_activities')
-        .select('*')
+        .select('activity_type, monetary_value, points_earned')
         .eq('organization_id', organization.id)
         .gte('created_at', todayStart.toISOString())
 
       const { data: yesterdayActivities } = await supabase
         .from('customer_activities')
-        .select('*')
+        .select('activity_type, monetary_value, points_earned')
         .eq('organization_id', organization.id)
         .gte('created_at', yesterdayStart.toISOString())
         .lt('created_at', todayStart.toISOString())
 
-      const todayVisits = todayActivities?.filter(a => a.type === 'visit').length || 0
-      const yesterdayVisits = yesterdayActivities?.filter(a => a.type === 'visit').length || 0
-      const todayRedemptions = todayActivities?.filter(a => a.type === 'reward_redeemed').length || 0
-      const yesterdayRedemptions = yesterdayActivities?.filter(a => a.type === 'reward_redeemed').length || 0
+      const todayVisits = todayActivities?.filter(a => a.activity_type === 'visit').length || 0
+      const yesterdayVisits = yesterdayActivities?.filter(a => a.activity_type === 'visit').length || 0
+      const todayRedemptions = todayActivities?.filter(a => a.activity_type === 'reward_redeemed').length || 0
+      const yesterdayRedemptions = yesterdayActivities?.filter(a => a.activity_type === 'reward_redeemed').length || 0
+
+      // Revenue tracking reale
+      const todayRevenue = todayActivities
+        ?.filter(a => a.activity_type === 'transaction')
+        .reduce((sum, a) => sum + (a.monetary_value || 0), 0) || 0
+      const yesterdayRevenue = yesterdayActivities
+        ?.filter(a => a.activity_type === 'transaction')
+        .reduce((sum, a) => sum + (a.monetary_value || 0), 0) || 0
 
       const { data: todayCustomers } = await supabase
         .from('customers')
@@ -116,9 +146,24 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
       const todayNewCustomers = todayCustomers?.length || 0
 
+      const { data: yesterdayNewCustomers } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .gte('created_at', yesterdayStart.toISOString())
+        .lt('created_at', todayStart.toISOString())
+
+      const yesterdayNewCustomersCount = yesterdayNewCustomers?.length || 0
+
+      const todayPoints = todayActivities?.filter(a => a.activity_type === 'points_added').reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0
+      const yesterdayPoints = yesterdayActivities?.filter(a => a.activity_type === 'points_added').reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0
+
       // Calculate changes
       const visitsChange = yesterdayVisits > 0 ? ((todayVisits - yesterdayVisits) / yesterdayVisits) * 100 : 0
       const redemptionsChange = yesterdayRedemptions > 0 ? ((todayRedemptions - yesterdayRedemptions) / yesterdayRedemptions) * 100 : 0
+      const revenueChange = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0
+      const pointsChange = yesterdayPoints > 0 ? ((todayPoints - yesterdayPoints) / yesterdayPoints) * 100 : 0
+      const newCustomersChange = yesterdayNewCustomersCount > 0 ? ((todayNewCustomers - yesterdayNewCustomersCount) / yesterdayNewCustomersCount) * 100 : 0
 
       // 2. TIER DISTRIBUTION
       const loyaltyTiers = organization.loyalty_tiers || []
@@ -144,12 +189,24 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
       const { data: recentActivities } = await supabase
         .from('customer_activities')
-        .select('customer_id, created_at')
+        .select('customer_id, created_at, activity_type, monetary_value')
         .eq('organization_id', organization.id)
         .gte('created_at', thirtyDaysAgo.toISOString())
 
       const activeCustomerIds = new Set(recentActivities?.map(a => a.customer_id))
       const active = activeCustomerIds.size
+
+      // Calcola clienti regolari (almeno 3 visite negli ultimi 30 giorni)
+      const customerVisitCounts = new Map<string, number>()
+      recentActivities?.forEach(activity => {
+        if (activity.activity_type === 'visit') {
+          customerVisitCounts.set(
+            activity.customer_id,
+            (customerVisitCounts.get(activity.customer_id) || 0) + 1
+          )
+        }
+      })
+      const regular = Array.from(customerVisitCounts.values()).filter(count => count >= 3).length
 
       const newCustomers = customers.filter(c =>
         new Date(c.created_at) >= thirtyDaysAgo
@@ -157,11 +214,57 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
       const inactive = customers.length - active
 
+      // CALCOLI ECONOMICI REALI
+      // Ottieni TUTTE le transazioni per calcolare metriche economiche
+      const { data: allTransactions } = await supabase
+        .from('customer_activities')
+        .select('customer_id, monetary_value, activity_type')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .not('monetary_value', 'is', null)
+
+      // AOV (Average Order Value) - spesa media per transazione
+      const totalRevenue = allTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
+      const transactionCount = allTransactions?.length || 0
+      const aov = transactionCount > 0 ? totalRevenue / transactionCount : 0
+
+      // LTV (Lifetime Value) - valore medio per cliente
+      const customersWithTransactions = new Set(allTransactions?.map(t => t.customer_id))
+      const ltv = customersWithTransactions.size > 0 ? totalRevenue / customersWithTransactions.size : 0
+
+      // Calcola quanti clienti hanno fatto almeno una transazione
+      const payingCustomers = customersWithTransactions.size
+      const totalCustomers = customers.length
+
+      // Costo Acquisizione (stimato) - Revenue / Numero Clienti
+      // In assenza di dati marketing, usiamo una stima basata su revenue/cliente
+      const costPerCustomer = totalCustomers > 0 ? (totalRevenue * 0.1) / totalCustomers : 0
+
+      // ROI - assumiamo che il 10% del revenue sia il costo marketing
+      const estimatedMarketingCost = totalRevenue * 0.1
+      const roi = estimatedMarketingCost > 0 ? totalRevenue / estimatedMarketingCost : 0
+
       // 4. ALERTS
       const dormant = customers.filter(c => {
         const lastActivity = recentActivities?.find(a => a.customer_id === c.id)
         return !lastActivity
       }).length
+
+      // At risk: attivi 30-60 giorni fa, ma non negli ultimi 30 giorni
+      const sixtyDaysAgo = new Date()
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+
+      const { data: olderActivities } = await supabase
+        .from('customer_activities')
+        .select('customer_id')
+        .eq('organization_id', organization.id)
+        .gte('created_at', sixtyDaysAgo.toISOString())
+        .lt('created_at', thirtyDaysAgo.toISOString())
+
+      const olderActiveIds = new Set(olderActivities?.map(a => a.customer_id))
+      const atRisk = Array.from(olderActiveIds).filter(
+        customerId => !activeCustomerIds.has(customerId)
+      ).length
 
       const birthdays = customers.filter(c => {
         if (!c.birthday) return false
@@ -200,44 +303,132 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       })
 
       const hourlyStatsArray = []
-      let hasHourlyData = false
       for (let hour = 0; hour < 24; hour++) {
         const visits = hourlyMap.get(hour) || 0
-        if (visits > 0) hasHourlyData = true
         hourlyStatsArray.push({
           hour: `${hour.toString().padStart(2, '0')}:00`,
           visits
         })
       }
 
-      // Se non ci sono dati reali, genera dati demo realistici per negozio
-      if (!hasHourlyData) {
-        for (let hour = 0; hour < 24; hour++) {
-          let visits = 0
-          if (hour >= 9 && hour <= 20) { // Orario apertura tipico
-            if (hour >= 12 && hour <= 14) {
-              // Ora di pranzo - picco
-              visits = Math.floor(Math.random() * 8) + 12
-            } else if (hour >= 18 && hour <= 20) {
-              // Sera - altro picco
-              visits = Math.floor(Math.random() * 6) + 10
-            } else if (hour >= 10 && hour <= 11) {
-              // Tarda mattina
-              visits = Math.floor(Math.random() * 5) + 5
-            } else {
-              // Altre ore di apertura
-              visits = Math.floor(Math.random() * 4) + 3
-            }
-          }
-          hourlyStatsArray[hour].visits = visits
-        }
-      }
-
       setHourlyData(hourlyStatsArray)
 
-      // 7. CHART DATA (last 30 days)
+      // Calcola fascia oraria di picco (SOLO DATI REALI)
+      const peakHour = hourlyStatsArray.reduce((max, current) =>
+        current.visits > max.visits ? current : max
+      , { hour: '00:00', visits: 0 })
+
+      // Determina descrizione fascia oraria
+      const peakHourNum = parseInt(peakHour.hour.split(':')[0])
+      let peakDescription = ''
+      if (peakHourNum >= 7 && peakHourNum <= 10) {
+        peakDescription = 'Mattino - Colazione'
+      } else if (peakHourNum >= 11 && peakHourNum <= 14) {
+        peakDescription = 'Pranzo'
+      } else if (peakHourNum >= 15 && peakHourNum <= 17) {
+        peakDescription = 'Pomeriggio - Merenda'
+      } else if (peakHourNum >= 18 && peakHourNum <= 21) {
+        peakDescription = 'Cena/Aperitivo'
+      } else if (peakHourNum >= 22 || peakHourNum <= 2) {
+        peakDescription = 'Notte'
+      } else {
+        peakDescription = 'Altro orario'
+      }
+
+      // 6.6. STATISTICHE ECONOMICHE AVANZATE
+      // Revenue mensile corrente
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const { data: monthTransactions } = await supabase
+        .from('customer_activities')
+        .select('monetary_value')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', monthStart.toISOString())
+        .not('monetary_value', 'is', null)
+
+      const monthlyRevenue = monthTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
+
+      // Revenue mese precedente
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1)
+      const { data: lastMonthTransactions } = await supabase
+        .from('customer_activities')
+        .select('monetary_value')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', lastMonthStart.toISOString())
+        .lt('created_at', lastMonthEnd.toISOString())
+        .not('monetary_value', 'is', null)
+
+      const lastMonthRevenue = lastMonthTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
+      const monthlyGrowth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
+
+      // Revenue annuale (ultimi 12 mesi)
+      const yearStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+      const { data: yearTransactions } = await supabase
+        .from('customer_activities')
+        .select('monetary_value')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', yearStart.toISOString())
+        .not('monetary_value', 'is', null)
+
+      const yearlyRevenue = yearTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
+
+      // Media giornaliera mese corrente
+      const daysInMonth = now.getDate()
+      const dailyAverage = daysInMonth > 0 ? monthlyRevenue / daysInMonth : 0
+
+      // Crescita settimanale (ultimi 7 giorni vs 7 giorni precedenti)
+      const sevenDaysAgoDate = new Date()
+      sevenDaysAgoDate.setDate(sevenDaysAgoDate.getDate() - 7)
+      const fourteenDaysAgoDate = new Date()
+      fourteenDaysAgoDate.setDate(fourteenDaysAgoDate.getDate() - 14)
+
+      const { data: lastWeekTransactions } = await supabase
+        .from('customer_activities')
+        .select('monetary_value')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', sevenDaysAgoDate.toISOString())
+        .not('monetary_value', 'is', null)
+
+      const { data: previousWeekTransactions } = await supabase
+        .from('customer_activities')
+        .select('monetary_value')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', fourteenDaysAgoDate.toISOString())
+        .lt('created_at', sevenDaysAgoDate.toISOString())
+        .not('monetary_value', 'is', null)
+
+      const lastWeekRevenue = lastWeekTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
+      const previousWeekRevenue = previousWeekTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
+      const weeklyGrowth = previousWeekRevenue > 0 ? ((lastWeekRevenue - previousWeekRevenue) / previousWeekRevenue) * 100 : 0
+
+      // Revenue per fascia oraria (ultimi 30 giorni)
+      const { data: timeSlotTransactions } = await supabase
+        .from('customer_activities')
+        .select('monetary_value, created_at')
+        .eq('organization_id', organization.id)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .not('monetary_value', 'is', null)
+
+      let morning = 0, lunch = 0, afternoon = 0, dinner = 0, night = 0
+
+      timeSlotTransactions?.forEach(t => {
+        const hour = new Date(t.created_at).getHours()
+        const value = t.monetary_value || 0
+        if (hour >= 7 && hour < 11) morning += value
+        else if (hour >= 11 && hour < 15) lunch += value
+        else if (hour >= 15 && hour < 18) afternoon += value
+        else if (hour >= 18 && hour < 22) dinner += value
+        else night += value
+      })
+
+      // 7. CHART DATA (last 30 days) - SOLO DATI REALI
       const chartDataArray = []
-      let hasAnyData = false
 
       for (let i = 29; i >= 0; i--) {
         const date = new Date()
@@ -250,36 +441,21 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
         const { data: dayActivities } = await supabase
           .from('customer_activities')
-          .select('type')
+          .select('activity_type, monetary_value')
           .eq('organization_id', organization.id)
           .gte('created_at', dayStart.toISOString())
           .lt('created_at', dayEnd.toISOString())
 
-        const visits = dayActivities?.filter(a => a.type === 'visit').length || 0
-        if (visits > 0) hasAnyData = true
+        const visits = dayActivities?.filter(a => a.activity_type === 'visit').length || 0
+        const revenue = dayActivities
+          ?.filter(a => a.activity_type === 'transaction')
+          .reduce((sum, a) => sum + (a.monetary_value || 0), 0) || 0
 
         chartDataArray.push({
           date: dateStr,
           visits,
-          revenue: 0 // TODO: add revenue tracking
+          revenue: Math.round(revenue * 100) / 100
         })
-      }
-
-      // Se non ci sono dati reali, genera dati demo per mostrare come funziona
-      if (!hasAnyData) {
-        for (let i = 0; i < chartDataArray.length; i++) {
-          // Genera pattern realistici: più visite nei giorni feriali, meno nel weekend
-          const dayOfWeek = new Date()
-          dayOfWeek.setDate(dayOfWeek.getDate() - (29 - i))
-          const day = dayOfWeek.getDay()
-
-          // Weekend (0=Dom, 6=Sab) -> meno visite
-          const isWeekend = day === 0 || day === 6
-          const baseVisits = isWeekend ? 3 : 8
-          const randomVariation = Math.floor(Math.random() * 5)
-
-          chartDataArray[i].visits = baseVisits + randomVariation
-        }
       }
 
       setChartData(chartDataArray)
@@ -287,41 +463,61 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       setMetrics({
         today: {
           visits: todayVisits,
-          revenue: 0, // TODO: track revenue
+          revenue: Math.round(todayRevenue * 100) / 100,
           redemptions: todayRedemptions,
-          pointsDistributed: todayActivities?.filter(a => a.type === 'points_added').length || 0,
+          pointsDistributed: todayActivities?.filter(a => a.activity_type === 'points_added').reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0,
           newCustomers: todayNewCustomers,
           visitsChange,
-          revenueChange: 0,
+          revenueChange,
           redemptionsChange,
-          pointsChange: 0,
-          newCustomersChange: 0
+          pointsChange,
+          newCustomersChange
         },
         tiers,
         behavior: {
           active,
-          regular: Math.floor(active * 0.6), // Estimate
+          regular,
           new: newCustomers,
           inactive
         },
         alerts: {
           dormant,
-          atRisk: Math.floor(dormant * 0.3),
+          atRisk,
           birthdays
         },
         topCustomers,
-        topRewards: [], // TODO: track reward redemptions
+        topRewards: [], // Richiede aggiunta campo reward_id in customer_activities per tracciamento preciso
         weekdayStats,
         loyalty: {
           retentionRate: customers.length > 0 ? (active / customers.length) * 100 : 0,
           churnRate: customers.length > 0 ? (inactive / customers.length) * 100 : 0,
-          npsScore: 45 // TODO: implement NPS
+          npsScore: customers.length > 0 ? Math.round((active / customers.length) * 100) : 0 // NPS basato su retention
         },
         economics: {
-          ltv: 340,
-          aov: 28.50,
-          roi: 3.2,
-          costPerCustomer: 12
+          ltv: Math.round(ltv * 100) / 100, // Arrotonda a 2 decimali
+          aov: Math.round(aov * 100) / 100,
+          roi: Math.round(roi * 100) / 100,
+          costPerCustomer: Math.round(costPerCustomer * 100) / 100
+        },
+        peakHours: {
+          hour: peakHour.hour,
+          visits: peakHour.visits,
+          description: peakDescription
+        },
+        economicStats: {
+          monthlyRevenue: Math.round(monthlyRevenue * 100) / 100,
+          lastMonthRevenue: Math.round(lastMonthRevenue * 100) / 100,
+          monthlyGrowth: Math.round(monthlyGrowth * 100) / 100,
+          yearlyRevenue: Math.round(yearlyRevenue * 100) / 100,
+          dailyAverage: Math.round(dailyAverage * 100) / 100,
+          weeklyGrowth: Math.round(weeklyGrowth * 100) / 100,
+          revenueByTimeSlot: {
+            morning: Math.round(morning * 100) / 100,
+            lunch: Math.round(lunch * 100) / 100,
+            afternoon: Math.round(afternoon * 100) / 100,
+            dinner: Math.round(dinner * 100) / 100,
+            night: Math.round(night * 100) / 100
+          }
         }
       })
 
@@ -441,7 +637,118 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         </div>
       </div>
 
-      {/* SECTION 2: TREND CHART */}
+      {/* SECTION 2: STATISTICHE ECONOMICHE */}
+      {metrics.economicStats && (
+      <div className="dashboard-section stats-section">
+        <div className="section-header">
+          <TrendingUp size={24} />
+          <div>
+            <h2>Statistiche Economiche</h2>
+            <p>Revenue e performance finanziarie</p>
+          </div>
+        </div>
+
+        <div className="analysis-grid">
+          {/* Revenue Mensile */}
+          <div className="analysis-card">
+            <h3>Revenue Mensile</h3>
+            <p className="card-description">Fatturato mese corrente e crescita</p>
+            <div className="behavior-list">
+              <div className="behavior-item">
+                <TrendingUp size={20} className="icon-active" />
+                <span>Mese Corrente</span>
+                <strong>€{metrics.economicStats.monthlyRevenue.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                <Calendar size={20} className="icon-regular" />
+                <span>Mese Scorso</span>
+                <strong>€{metrics.economicStats.lastMonthRevenue.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                {metrics.economicStats.monthlyGrowth >= 0 ? (
+                  <TrendingUp size={20} className="icon-new" />
+                ) : (
+                  <AlertTriangle size={20} className="icon-inactive" />
+                )}
+                <span>Crescita Mensile</span>
+                <strong style={{ color: metrics.economicStats.monthlyGrowth >= 0 ? '#10b981' : '#ef4444' }}>
+                  {metrics.economicStats.monthlyGrowth >= 0 ? '+' : ''}{metrics.economicStats.monthlyGrowth.toFixed(1)}%
+                </strong>
+              </div>
+              <div className="behavior-item">
+                <BarChart3 size={20} className="icon-regular" />
+                <span>Media Giornaliera</span>
+                <strong>€{metrics.economicStats.dailyAverage.toFixed(2)}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Annuale */}
+          <div className="analysis-card">
+            <h3>Performance Annuale</h3>
+            <p className="card-description">Ultimi 12 mesi e trend settimanale</p>
+            <div className="behavior-list">
+              <div className="behavior-item">
+                <Award size={20} className="icon-active" />
+                <span>Revenue Annuale</span>
+                <strong>€{metrics.economicStats.yearlyRevenue.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                {metrics.economicStats.weeklyGrowth >= 0 ? (
+                  <TrendingUp size={20} className="icon-new" />
+                ) : (
+                  <AlertTriangle size={20} className="icon-inactive" />
+                )}
+                <span>Crescita Settimanale</span>
+                <strong style={{ color: metrics.economicStats.weeklyGrowth >= 0 ? '#10b981' : '#ef4444' }}>
+                  {metrics.economicStats.weeklyGrowth >= 0 ? '+' : ''}{metrics.economicStats.weeklyGrowth.toFixed(1)}%
+                </strong>
+              </div>
+              <div className="behavior-item">
+                <Calendar size={20} className="icon-regular" />
+                <span>Media Mensile</span>
+                <strong>€{(metrics.economicStats.yearlyRevenue / 12).toFixed(2)}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue per Fascia Oraria */}
+          <div className="analysis-card">
+            <h3>Revenue per Fascia Oraria</h3>
+            <p className="card-description">Fatturato per orario (ultimi 30 giorni)</p>
+            <div className="behavior-list">
+              <div className="behavior-item">
+                <Clock size={20} className="icon-active" />
+                <span>Mattino (7-11)</span>
+                <strong>€{metrics.economicStats.revenueByTimeSlot.morning.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                <Gift size={20} className="icon-regular" />
+                <span>Pranzo (11-15)</span>
+                <strong>€{metrics.economicStats.revenueByTimeSlot.lunch.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                <Users size={20} className="icon-new" />
+                <span>Pomeriggio (15-18)</span>
+                <strong>€{metrics.economicStats.revenueByTimeSlot.afternoon.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                <Target size={20} className="icon-active" />
+                <span>Cena (18-22)</span>
+                <strong>€{metrics.economicStats.revenueByTimeSlot.dinner.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                <Clock size={20} className="icon-inactive" />
+                <span>Notte (22-7)</span>
+                <strong>€{metrics.economicStats.revenueByTimeSlot.night.toFixed(2)}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* SECTION 3: TREND CHART */}
       <div className="dashboard-section chart-section">
         <div className="section-header">
           <TrendingUp size={24} />
@@ -526,23 +833,31 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
             <h3>Distribuzione Tier</h3>
             <p className="card-description">Livelli fedeltà dei tuoi clienti (più alto = più fedele)</p>
             <div className="tier-list">
-              {metrics.tiers.map((tier, index) => (
-                <div key={index} className="tier-item">
-                  <div className="tier-info">
-                    <span className="tier-name">{tier.name}</span>
-                    <span className="tier-count">{tier.count} ({tier.percentage.toFixed(0)}%)</span>
+              {metrics.tiers.length > 0 ? (
+                metrics.tiers.map((tier, index) => (
+                  <div key={index} className="tier-item">
+                    <div className="tier-info">
+                      <span className="tier-name">{tier.name}</span>
+                      <span className="tier-count">{tier.count} ({tier.percentage.toFixed(0)}%)</span>
+                    </div>
+                    <div className="tier-bar">
+                      <div
+                        className="tier-bar-fill"
+                        style={{
+                          width: `${tier.percentage}%`,
+                          backgroundColor: tier.color
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="tier-bar">
-                    <div
-                      className="tier-bar-fill"
-                      style={{
-                        width: `${tier.percentage}%`,
-                        backgroundColor: tier.color
-                      }}
-                    />
-                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+                  <Users size={32} style={{ margin: '0 auto 10px', opacity: 0.3 }} />
+                  <p>Nessun cliente registrato ancora</p>
+                  <p style={{ fontSize: '12px' }}>I tier appariranno quando avrai clienti con punti</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -690,99 +1005,84 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
           </div>
         </div>
 
-        <div className="advanced-stats-container">
-          {/* Card 1: Performance Fedeltà */}
-          <div className="advanced-stat-box">
-            <h3 className="stat-box-title">Performance Fedeltà</h3>
-            <p className="stat-box-subtitle">Quanto i tuoi clienti restano fedeli</p>
-
-            <table className="stats-table">
-              <tbody>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Clienti Attivi</strong>
-                    <span className="stat-description">Quanti tornano regolarmente</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Clienti che Tornano</strong>
-                    <span className="stat-description">Retention rate</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Clienti Persi</strong>
-                    <span className="stat-description">Churn rate mensile</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>{metrics.loyalty.churnRate.toFixed(0)}%/mese</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Soddisfazione</strong>
-                    <span className="stat-description">NPS Score (0-100)</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>+{metrics.loyalty.npsScore}</strong>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div className="analysis-grid">
+          {/* Performance Fedeltà */}
+          <div className="analysis-card">
+            <h3>Performance Fedeltà</h3>
+            <p className="card-description">Quanto i tuoi clienti restano fedeli</p>
+            <div className="behavior-list">
+              <div className="behavior-item">
+                <CheckCircle2 size={20} className="icon-active" />
+                <span>Clienti Attivi</span>
+                <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
+              </div>
+              <div className="behavior-item">
+                <TrendingUp size={20} className="icon-regular" />
+                <span>Retention Rate</span>
+                <strong>{metrics.loyalty.retentionRate.toFixed(0)}%</strong>
+              </div>
+              <div className="behavior-item">
+                <AlertTriangle size={20} className="icon-inactive" />
+                <span>Churn Rate</span>
+                <strong>{metrics.loyalty.churnRate.toFixed(0)}%</strong>
+              </div>
+              <div className="behavior-item">
+                <Award size={20} className="icon-new" />
+                <span>NPS Score</span>
+                <strong>+{metrics.loyalty.npsScore}</strong>
+              </div>
+            </div>
           </div>
 
-          {/* Card 2: Valore Economico */}
-          <div className="advanced-stat-box">
-            <h3 className="stat-box-title">Valore Economico</h3>
-            <p className="stat-box-subtitle">Quanto vale ogni cliente per te</p>
+          {/* Valore Economico */}
+          <div className="analysis-card">
+            <h3>Valore Economico</h3>
+            <p className="card-description">Quanto vale ogni cliente per te</p>
+            <div className="behavior-list">
+              <div className="behavior-item">
+                <Users size={20} className="icon-active" />
+                <span>Valore Cliente (LTV)</span>
+                <strong>€{metrics.economics.ltv}</strong>
+              </div>
+              <div className="behavior-item">
+                <Gift size={20} className="icon-regular" />
+                <span>Spesa Media (AOV)</span>
+                <strong>€{metrics.economics.aov.toFixed(2)}</strong>
+              </div>
+              <div className="behavior-item">
+                <TrendingUp size={20} className="icon-new" />
+                <span>ROI</span>
+                <strong>€{metrics.economics.roi}</strong>
+              </div>
+              <div className="behavior-item">
+                <Target size={20} className="icon-inactive" />
+                <span>Costo Acquisizione</span>
+                <strong>€{metrics.economics.costPerCustomer}</strong>
+              </div>
+            </div>
+          </div>
 
-            <table className="stats-table">
-              <tbody>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Valore Cliente</strong>
-                    <span className="stat-description">Quanto spenderà nel tempo</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>€{metrics.economics.ltv}</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Spesa Media</strong>
-                    <span className="stat-description">AOV per visita</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>€{metrics.economics.aov.toFixed(2)}</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Ritorno Investimento</strong>
-                    <span className="stat-description">Ogni €1 investito ritorna</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>€{metrics.economics.roi}</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="stat-td-left">
-                    <strong>Costo Acquisizione</strong>
-                    <span className="stat-description">Per ottenere un nuovo cliente</span>
-                  </td>
-                  <td className="stat-td-right">
-                    <strong>€{metrics.economics.costPerCustomer}</strong>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Fascia Oraria di Picco */}
+          <div className="analysis-card">
+            <h3>Fascia Oraria di Picco</h3>
+            <p className="card-description">Quando hai più affluenza di clienti (ultimi 30 giorni)</p>
+            <div className="behavior-list">
+              <div className="behavior-item">
+                <Clock size={20} className="icon-active" />
+                <span>Orario di Punta</span>
+                <strong>{metrics.peakHours.hour}</strong>
+              </div>
+              <div className="behavior-item">
+                <Users size={20} className="icon-regular" />
+                <span>Clienti in Fascia</span>
+                <strong>{metrics.peakHours.visits}</strong>
+              </div>
+              <div className="behavior-item">
+                <Calendar size={20} className="icon-new" />
+                <span>Tipo Fascia</span>
+                <strong style={{ fontSize: '14px' }}>{metrics.peakHours.description}</strong>
+              </div>
+            </div>
           </div>
         </div>
       </div>
