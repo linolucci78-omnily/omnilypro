@@ -2327,11 +2327,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'rewards':
         return currentOrganization ? (
-          <RewardsHub
-            organizationId={currentOrganization.id}
-            primaryColor={currentOrganization.primary_color || '#dc2626'}
-            secondaryColor={currentOrganization.secondary_color || '#ef4444'}
-          />
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <RewardsHub
+              organizationId={currentOrganization.id}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+            />
+          </div>
         ) : null
 
       case 'categories':

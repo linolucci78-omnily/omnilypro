@@ -35,7 +35,7 @@ interface RewardFormData {
   points_required: number
   type: string
   value: string
-  required_tier?: string
+  required_tier: string
   stock_quantity?: number
   is_active: boolean
   image_url?: string
@@ -72,7 +72,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     points_required: 0,
     type: 'Prodotto',
     value: '',
-    required_tier: undefined,
+    required_tier: '',
     stock_quantity: undefined,
     is_active: true,
     image_url: undefined,
@@ -136,8 +136,8 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   }
 
   const handleSubmit = async () => {
-    if (!formData.name || formData.points_required <= 0) {
-      alert('Compila tutti i campi obbligatori')
+    if (!formData.name || formData.points_required <= 0 || !formData.required_tier) {
+      alert('Compila tutti i campi obbligatori (Nome, Punti e Livello Richiesto)')
       return
     }
 
@@ -208,7 +208,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       points_required: 0,
       type: 'Prodotto',
       value: '',
-      required_tier: undefined,
+      required_tier: '',
       stock_quantity: undefined,
       is_active: true,
       image_url: undefined,
