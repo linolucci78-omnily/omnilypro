@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Gift, TrendingUp, Award, Package, ArrowLeft, Plus, Edit2, Trash2, Image as ImageIcon, Star } from 'lucide-react'
+import { Gift, TrendingUp, Award, Package, ArrowLeft, Plus, Edit2, Trash2, Image as ImageIcon, Star, Trophy, Upload, Tag, ToggleRight, Eye, Palette, Smartphone } from 'lucide-react'
 import { rewardsService, type Reward } from '../services/rewardsService'
 import RewardsManagement from './RewardsManagement'
 import './RewardsHub.css'
@@ -151,7 +151,7 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
       {/* Top 3 Premi Più Riscattati */}
       {stats.topRewards.length > 0 && (
         <div className="rewards-top-section">
-          <h2>🏆 Top 3 Premi Più Riscattati</h2>
+          <h2><Trophy size={28} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} /> Top 3 Premi Più Riscattati</h2>
           <div className="rewards-top-grid">
             {stats.topRewards.map((reward, index) => (
               <div key={reward.id} className="rewards-top-card">
@@ -190,10 +190,10 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
             <h3>Gestione Premi</h3>
             <p>Crea, modifica ed elimina i premi del tuo catalogo</p>
             <ul className="rewards-hub-card-features">
-              <li>📸 Upload immagini premi</li>
-              <li>🏷️ Categorie e organizzazione</li>
-              <li>📦 Gestione stock e disponibilità</li>
-              <li>🔴 Attiva/Disattiva premi</li>
+              <li><Upload size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Upload immagini premi</li>
+              <li><Tag size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Categorie e organizzazione</li>
+              <li><Package size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Gestione stock e disponibilità</li>
+              <li><ToggleRight size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Attiva/Disattiva premi</li>
             </ul>
           </div>
           <div className="rewards-hub-card-arrow">→</div>
@@ -208,9 +208,9 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
             <h3>Vista Cliente</h3>
             <p>Vedi come i tuoi clienti vedono il catalogo premi</p>
             <ul className="rewards-hub-card-features">
-              <li>👁️ Preview interfaccia cliente</li>
-              <li>🎨 Personalizzazione colori</li>
-              <li>📱 Responsive design</li>
+              <li><Eye size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Preview interfaccia cliente</li>
+              <li><Palette size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Personalizzazione colori</li>
+              <li><Smartphone size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Responsive design</li>
             </ul>
           </div>
           <div className="rewards-hub-card-badge">Presto</div>

@@ -29,6 +29,13 @@ interface RewardsManagementProps {
 
 type RewardCategory = 'product' | 'discount' | 'service' | 'experience' | 'other'
 
+interface LoyaltyTier {
+  name: string
+  threshold: string
+  multiplier: string
+  color: string
+}
+
 interface RewardFormData {
   name: string
   description: string
@@ -63,6 +70,8 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<RewardCategory | 'all'>('all')
   const [showInactive, setShowInactive] = useState(false)
+  const [loyaltyTiers, setLoyaltyTiers] = useState<LoyaltyTier[]>([])
+  const [validationError, setValidationError] = useState<string>('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -81,6 +90,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
 
   useEffect(() => {
     fetchRewards()
+    fetchLoyaltyTiers()
   }, [organizationId])
 
   const fetchRewards = async () => {
@@ -95,16 +105,49 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     }
   }
 
+  const fetchLoyaltyTiers = async () => {
+    try {
+      const { data: org, error } = await supabase
+        .from('organizations')
+        .select('loyalty_tiers')
+        .eq('id', organizationId)
+        .single()
+
+      if (error) throw error
+
+      if (org?.loyalty_tiers && Array.isArray(org.loyalty_tiers)) {
+        setLoyaltyTiers(org.loyalty_tiers as LoyaltyTier[])
+      } else {
+        // Default tiers se non configurati
+        setLoyaltyTiers([
+          { name: 'Iniziale', threshold: '0', multiplier: '1', color: '#94a3b8' },
+          { name: 'Affezionato', threshold: '300', multiplier: '1.5', color: '#3b82f6' },
+          { name: 'VIP', threshold: '800', multiplier: '2', color: '#f59e0b' }
+        ])
+      }
+    } catch (error) {
+      console.error('Error fetching loyalty tiers:', error)
+      // Set default tiers in case of error
+      setLoyaltyTiers([
+        { name: 'Iniziale', threshold: '0', multiplier: '1', color: '#94a3b8' },
+        { name: 'Affezionato', threshold: '300', multiplier: '1.5', color: '#3b82f6' },
+        { name: 'VIP', threshold: '800', multiplier: '2', color: '#f59e0b' }
+      ])
+    }
+  }
+
   const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Per favore seleziona un file immagine')
+      setValidationError('Per favore seleziona un file immagine')
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('L\'immagine è troppo grande. Massimo 5MB.')
+      setValidationError('L\'immagine è troppo grande. Massimo 5MB.')
       return
     }
+
+    setValidationError('')
 
     setUploading(true)
 
@@ -129,7 +172,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       setFormData(prev => ({ ...prev, image_url: publicUrl }))
     } catch (error) {
       console.error('Errore upload immagine:', error)
-      alert('Errore durante il caricamento dell\'immagine')
+      setValidationError('Errore durante il caricamento dell\'immagine')
     } finally {
       setUploading(false)
     }
@@ -137,9 +180,11 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
 
   const handleSubmit = async () => {
     if (!formData.name || formData.points_required <= 0 || !formData.required_tier) {
-      alert('Compila tutti i campi obbligatori (Nome, Punti e Livello Richiesto)')
+      setValidationError('Compila tutti i campi obbligatori (Nome, Punti e Livello Richiesto)')
       return
     }
+
+    setValidationError('')
 
     try {
       const rewardData = {
@@ -157,7 +202,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       handleCloseModal()
     } catch (error) {
       console.error('Errore salvataggio premio:', error)
-      alert('Errore durante il salvataggio')
+      setValidationError('Errore durante il salvataggio')
     }
   }
 
@@ -169,7 +214,8 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       await fetchRewards()
     } catch (error) {
       console.error('Errore eliminazione premio:', error)
-      alert('Errore durante l\'eliminazione')
+      // Potremmo mostrare una toast notification qui invece di validationError
+      console.error('Errore eliminazione premio')
     }
   }
 
@@ -202,6 +248,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   const handleCloseModal = () => {
     setShowModal(false)
     setEditingReward(null)
+    setValidationError('')
     setFormData({
       name: '',
       description: '',
@@ -492,6 +539,23 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                 </div>
 
                 <div className="form-group">
+                  <label>Livello Richiesto *</label>
+                  <select
+                    value={formData.required_tier}
+                    onChange={(e) => setFormData({ ...formData, required_tier: e.target.value })}
+                  >
+                    <option value="">Seleziona livello...</option>
+                    {loyaltyTiers.map(tier => (
+                      <option key={tier.name} value={tier.name}>
+                        {tier.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label>Stock Disponibile</label>
                   <input
                     type="number"
@@ -500,6 +564,10 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                     placeholder="Illimitato"
                     min="0"
                   />
+                </div>
+
+                <div className="form-group">
+                  {/* Placeholder per mantenere layout a 2 colonne */}
                 </div>
               </div>
 
@@ -547,6 +615,22 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                 <span className="toggle-label-text">Premio Attivo</span>
               </div>
             </div>
+
+            {validationError && (
+              <div style={{
+                padding: '1rem 2rem',
+                background: '#fee2e2',
+                borderTop: '2px solid #fecaca',
+                borderBottom: '2px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                color: '#991b1b'
+              }}>
+                <AlertCircle size={20} />
+                <span style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{validationError}</span>
+              </div>
+            )}
 
             <div className="modal-actions">
               <button className="btn-cancel" onClick={handleCloseModal}>
