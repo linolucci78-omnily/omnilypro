@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, Camera, Upload, User, Mail, Phone, MapPin, Save, Loader, Calendar, UserCheck, Bell, Users } from 'lucide-react'
+import { X, Camera, Upload, User, Mail, Phone, MapPin, Save, Loader, Calendar, UserCheck, Bell, Users, FileText, Gift, CheckCircle, Download } from 'lucide-react'
 import './EditCustomerModal.css'
 import { supabase } from '../lib/supabase'
 import type { Customer } from '../lib/supabase'
@@ -26,6 +26,9 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
     address: customer.address || '',
     gender: customer.gender || '',
     birth_date: customer.birth_date || '',
+    referral_code: customer.referral_code || '',
+    referred_by: customer.referred_by || '',
+    notes: customer.notes || '',
     marketing_consent: customer.marketing_consent || false,
     notifications_enabled: customer.notifications_enabled || false
   })
@@ -34,6 +37,9 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
   const [avatarPreview, setAvatarPreview] = useState<string | null>(customer.avatar_url || null)
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+
+  // Rileva se è un dispositivo touch (mobile/tablet)
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -47,6 +53,9 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       address: customer.address || '',
       gender: customer.gender || '',
       birth_date: customer.birth_date || '',
+      referral_code: customer.referral_code || '',
+      referred_by: customer.referred_by || '',
+      notes: customer.notes || '',
       marketing_consent: customer.marketing_consent || false,
       notifications_enabled: customer.notifications_enabled || false
     })
@@ -140,6 +149,9 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
         address: formData.address,
         gender: (formData.gender as 'male' | 'female' | undefined) || undefined,
         birth_date: formData.birth_date || undefined,
+        referral_code: formData.referral_code || undefined,
+        referred_by: formData.referred_by || undefined,
+        notes: formData.notes || undefined,
         marketing_consent: formData.marketing_consent,
         notifications_enabled: formData.notifications_enabled,
         avatar_url: avatarUrl || undefined
@@ -157,6 +169,440 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const generateConsentDocument = () => {
+    const timestamp = customer.privacy_signed_at
+      ? new Date(customer.privacy_signed_at).toLocaleString('it-IT')
+      : new Date().toLocaleString('it-IT')
+    const documentId = `GDPR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
+    return `
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MODULO CONSENSO PRIVACY GDPR - OMNILY PRO</title>
+    <style>
+        @page {
+            margin: 2cm;
+            size: A4;
+            @top-center { content: "OMNILY PRO - Modulo Consenso Privacy GDPR"; }
+            @bottom-center { content: "Pagina " counter(page) " di " counter(pages); }
+        }
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            line-height: 1.8;
+            color: #000;
+            font-size: 11pt;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #ef4444;
+            padding-bottom: 25px;
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .company-logo {
+            color: #ef4444;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .document-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-transform: uppercase;
+        }
+        .document-subtitle {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+        }
+        .document-id {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 9pt;
+            color: #888;
+        }
+        .section {
+            margin: 30px 0;
+            page-break-inside: avoid;
+        }
+        .section h3 {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            margin: 20px 0 15px 0;
+            border-left: 4px solid #ef4444;
+            font-size: 14pt;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .subsection {
+            margin: 20px 0;
+            padding-left: 15px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .checkbox-row {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            display: flex;
+            align-items: flex-start;
+        }
+        .checkbox-row input {
+            margin-right: 10px;
+            transform: scale(1.2);
+            margin-top: 3px;
+        }
+        .checkbox-text {
+            flex: 1;
+            line-height: 1.6;
+        }
+        .required {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .optional {
+            color: #666;
+            font-style: italic;
+        }
+        .signature-section {
+            border: 2px solid #333;
+            margin: 30px 0;
+            padding: 20px;
+            page-break-inside: avoid;
+        }
+        .signature-box {
+            border: 2px dashed #ccc;
+            height: 180px;
+            margin: 20px 0;
+            position: relative;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .signature-image {
+            max-width: 95%;
+            max-height: 95%;
+            border: 1px solid #ddd;
+        }
+        .signature-details {
+            margin-top: 15px;
+            font-size: 10pt;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .legal-text {
+            background: #f9f9f9;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #ef4444;
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+        .footer {
+            margin-top: 60px;
+            font-size: 9pt;
+            color: #666;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            page-break-inside: avoid;
+        }
+        .privacy-rights {
+            background: #e8f4fd;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+        }
+        .rights-list {
+            columns: 2;
+            column-gap: 30px;
+            list-style-type: none;
+            padding: 0;
+        }
+        .rights-list li {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+            break-inside: avoid;
+        }
+        .rights-list li::before {
+            content: "⚖";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+        }
+        .contact-info {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+        }
+        .timestamps {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 10pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="document-id">ID: ${documentId}</div>
+
+    <div class="header">
+        <div class="company-logo">OMNILY PRO</div>
+        <div class="document-title">Modulo Consenso al Trattamento dei Dati Personali</div>
+        <div class="document-subtitle">Ai sensi del Regolamento UE 2016/679 (GDPR) e del Codice Privacy D.Lgs. 196/2003</div>
+    </div>
+
+    <div class="section">
+        <h3>I. Identificazione del Titolare del Trattamento</h3>
+        <div class="legal-text">
+            <strong>OMNILY PRO S.r.l.</strong><br>
+            Sede Legale: Via Roma 123, 00100 Roma (RM)<br>
+            P.IVA: 12345678901 - C.F.: 12345678901<br>
+            Email: privacy@omnilypro.com - Tel: +39 06 1234567<br>
+            <strong>Data Protection Officer (DPO):</strong> dpo@omnilypro.com
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>II. Dati dell'Interessato</h3>
+        <table class="data-table">
+            <tr>
+                <th>Nome e Cognome</th>
+                <td>${customer.name}</td>
+            </tr>
+            <tr>
+                <th>Indirizzo Email</th>
+                <td>${customer.email || 'Non fornito'}</td>
+            </tr>
+            <tr>
+                <th>Numero di Telefono</th>
+                <td>${customer.phone || 'Non fornito'}</td>
+            </tr>
+            <tr>
+                <th>Data di Nascita</th>
+                <td>${customer.birth_date || 'Non fornita'}</td>
+            </tr>
+            <tr>
+                <th>Indirizzo</th>
+                <td>${customer.address || 'Non fornito'}</td>
+            </tr>
+            <tr>
+                <th>Data Registrazione</th>
+                <td>${customer.created_at ? new Date(customer.created_at).toLocaleString('it-IT') : 'Non disponibile'}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>III. Finalità e Base Giuridica del Trattamento</h3>
+
+        <div class="subsection">
+            <h4>A) Trattamenti Necessari (Base Giuridica: Art. 6, par. 1, lett. b) GDPR)</h4>
+            <ul>
+                <li><strong>Gestione del rapporto contrattuale:</strong> Erogazione dei servizi di loyalty management</li>
+                <li><strong>Adempimenti di legge:</strong> Obblighi fiscali, contabili e amministrativi</li>
+                <li><strong>Sicurezza:</strong> Prevenzione frodi e attività illecite</li>
+            </ul>
+        </div>
+
+        <div class="subsection">
+            <h4>B) Trattamenti basati sul consenso (Base Giuridica: Art. 6, par. 1, lett. a) GDPR)</h4>
+            <ul>
+                <li><strong>Marketing diretto:</strong> Invio comunicazioni commerciali e promozionali</li>
+                <li><strong>Profilazione:</strong> Analisi preferenze per offerte personalizzate</li>
+                <li><strong>Newsletter:</strong> Invio periodico di informazioni sui servizi</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>IV. Consensi Espressi dall'Interessato</h3>
+
+        <div class="checkbox-row">
+            <input type="checkbox" checked disabled>
+            <div class="checkbox-text">
+                <strong class="required">[CONSENSO OBBLIGATORIO]</strong><br>
+                <strong>Acconsento al trattamento dei miei dati personali</strong> per le finalità necessarie all'erogazione dei servizi richiesti,
+                alla gestione del rapporto contrattuale e agli adempimenti di legge,
+                ai sensi dell'Art. 6, par. 1, lett. b) GDPR.
+                <div class="timestamps"><strong>Consenso espresso il:</strong> ${timestamp}</div>
+            </div>
+        </div>
+
+        <div class="checkbox-row">
+            <input type="checkbox" ${customer.marketing_consent ? 'checked' : ''} disabled>
+            <div class="checkbox-text">
+                <strong class="optional">[CONSENSO FACOLTATIVO]</strong><br>
+                <strong>Acconsento al trattamento dei miei dati personali per finalità di marketing</strong>,
+                incluso l'invio di comunicazioni commerciali, newsletter, offerte promozionali e profilazione
+                per la personalizzazione dei servizi, ai sensi dell'Art. 6, par. 1, lett. a) GDPR.
+                <div class="timestamps"><strong>Consenso ${customer.marketing_consent ? 'PRESTATO' : 'NON PRESTATO'} il:</strong> ${timestamp}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>V. Categorie di Dati Trattati</h3>
+        <ul>
+            <li><strong>Dati anagrafici:</strong> Nome, cognome, data di nascita</li>
+            <li><strong>Dati di contatto:</strong> Email, telefono, indirizzo postale</li>
+            <li><strong>Dati comportamentali:</strong> Preferenze, cronologia acquisti, interazioni</li>
+            <li><strong>Dati tecnici:</strong> Indirizzo IP, cookies, dati di navigazione</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>VI. Modalità del Trattamento</h3>
+        <div class="legal-text">
+            I dati personali sono trattati con strumenti automatizzati e non, con modalità e logiche
+            strettamente correlate alle finalità indicate e, comunque, in modo da garantire la sicurezza
+            e la riservatezza dei dati stessi mediante appropriate misure tecniche e organizzative.
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>VII. Periodo di Conservazione</h3>
+        <ul>
+            <li><strong>Dati contrattuali:</strong> 10 anni dalla cessazione del rapporto</li>
+            <li><strong>Dati marketing:</strong> Fino a revoca del consenso o 2 anni dall'ultima interazione</li>
+            <li><strong>Dati tecnici:</strong> 12 mesi dalla raccolta</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>VIII. Comunicazione e Diffusione</h3>
+        <div class="legal-text">
+            I dati potranno essere comunicati a soggetti terzi solo per finalità strettamente connesse
+            all'erogazione dei servizi (fornitori tecnologici, consulenti, autorità competenti)
+            e nel rispetto delle prescrizioni di legge. I dati non saranno mai diffusi.
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>IX. Trasferimento Extra-UE</h3>
+        <div class="legal-text">
+            Alcuni dati potrebbero essere trasferiti verso paesi terzi o organizzazioni internazionali
+            solo in presenza di una decisione di adeguatezza della Commissione Europea o mediante
+            l'adozione di garanzie appropriate (Standard Contractual Clauses, Binding Corporate Rules).
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>X. Diritti dell'Interessato</h3>
+        <div class="privacy-rights">
+            <p><strong>L'interessato ha diritto di ottenere dal Titolare del trattamento:</strong></p>
+            <ul class="rights-list">
+                <li><strong>Accesso (Art. 15):</strong> Conferma che sia in corso un trattamento e informazioni sui dati</li>
+                <li><strong>Rettifica (Art. 16):</strong> Correzione dei dati inesatti o integrazione di quelli incompleti</li>
+                <li><strong>Cancellazione (Art. 17):</strong> Cancellazione dei dati (diritto all'oblio)</li>
+                <li><strong>Limitazione (Art. 18):</strong> Limitazione del trattamento in specifiche circostanze</li>
+                <li><strong>Portabilità (Art. 20):</strong> Ricevere i propri dati in formato strutturato</li>
+                <li><strong>Opposizione (Art. 21):</strong> Opporsi al trattamento per motivi legittimi</li>
+                <li><strong>Revoca consenso:</strong> Revocare il consenso in qualsiasi momento</li>
+                <li><strong>Reclamo (Art. 77):</strong> Presentare reclamo all'Autorità di controllo</li>
+            </ul>
+        </div>
+
+        <div class="contact-info">
+            <strong>Per esercitare i tuoi diritti contatta:</strong><br>
+            📧 Email: privacy@omnilypro.com<br>
+            📞 Telefono: +39 06 1234567<br>
+            📮 Posta: OMNILY PRO S.r.l., Via Roma 123, 00100 Roma (RM)<br>
+            <strong>Autorità Garante:</strong> www.gpdp.it - garante@gpdp.it
+        </div>
+    </div>
+
+    <div class="signature-section">
+        <h3>XI. Firma Digitale e Validità del Consenso</h3>
+        <div class="signature-box">
+            <img src="${customer.signature_data}" class="signature-image" alt="Firma digitale del cliente" />
+        </div>
+        <div class="signature-details">
+            <table class="data-table">
+                <tr>
+                    <th>Firma apposta in data</th>
+                    <td>${timestamp}</td>
+                </tr>
+                <tr>
+                    <th>Modalità di firma</th>
+                    <td>Firma elettronica avanzata tracciata su dispositivo digitale</td>
+                </tr>
+                <tr>
+                    <th>Validità legale</th>
+                    <td>Conforme agli artt. 20-21 del Regolamento eIDAS (UE) 910/2014</td>
+                </tr>
+                <tr>
+                    <th>Hash documento</th>
+                    <td>${documentId}</td>
+                </tr>
+                <tr>
+                    <th>Sistema di raccolta</th>
+                    <td>OMNILY PRO Loyalty Management Platform v.1.0</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="legal-text">
+            <strong>DICHIARAZIONE DI CONSENSO INFORMATO</strong><br>
+            Il sottoscritto dichiara di aver ricevuto l'informativa sul trattamento dei dati personali
+            ai sensi dell'Art. 13 GDPR, di averla letta e compresa, e di esprimere liberamente i consensi
+            sopra indicati con piena consapevolezza delle conseguenze.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>OMNILY PRO S.r.l.</strong> - Sistema di Gestione Clienti e Loyalty Program</p>
+        <p>📄 <strong>Documento ID:</strong> ${documentId} | 📅 <strong>Generato il:</strong> ${new Date().toLocaleString('it-IT')}</p>
+        <p>✅ <strong>Validità legale:</strong> Documento conforme al GDPR (UE) 2016/679 e al Codice Privacy D.Lgs. 196/2003</p>
+        <p>🔐 <strong>Firma elettronica:</strong> Conforme al Regolamento eIDAS (UE) 910/2014</p>
+        <p><em>Questo documento è stato generato automaticamente dal sistema e costituisce prova del consenso espresso dall'interessato.</em></p>
+    </div>
+</body>
+</html>`
+  }
+
+  const handleDownloadPrivacy = () => {
+    if (!customer.signature_data) return
+
+    // Genera il documento HTML completo
+    const consentDocument = generateConsentDocument()
+    const blob = new Blob([consentDocument], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `consenso-privacy-${customer.name.replace(/\s+/g, '_')}-${new Date().toISOString().split('T')[0]}.html`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const getInitials = (name: string) => {
@@ -208,21 +654,24 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
           </div>
 
           <div className="avatar-upload-buttons">
-            <button
-              className="avatar-upload-btn camera"
-              onClick={handleCameraClick}
-              disabled={isUploading}
-            >
-              <Camera size={20} />
-              Scatta Foto
-            </button>
+            {/* Mostra "Scatta Foto" solo su dispositivi touch (mobile/tablet) */}
+            {isTouchDevice && (
+              <button
+                className="avatar-upload-btn camera"
+                onClick={handleCameraClick}
+                disabled={isUploading}
+              >
+                <Camera size={20} />
+                Scatta Foto
+              </button>
+            )}
             <button
               className="avatar-upload-btn gallery"
               onClick={handleGalleryClick}
               disabled={isUploading}
             >
               <Upload size={20} />
-              Carica Foto
+              Carica {isTouchDevice ? 'Foto' : 'Immagine'}
             </button>
           </div>
 
@@ -388,6 +837,88 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
             </div>
             <p className="toggle-description">Riceve notifiche email sui suoi punti e premi</p>
           </div>
+
+          {/* Codice Referral */}
+          <div className="form-group">
+            <label>
+              <Gift size={18} />
+              Codice Referral
+            </label>
+            <input
+              type="text"
+              value={formData.referral_code}
+              onChange={(e) => handleInputChange('referral_code', e.target.value)}
+              placeholder="Codice referral del cliente"
+            />
+          </div>
+
+          {/* Referito da */}
+          <div className="form-group">
+            <label>
+              <Users size={18} />
+              Referito da
+            </label>
+            <input
+              type="text"
+              value={formData.referred_by}
+              onChange={(e) => handleInputChange('referred_by', e.target.value)}
+              placeholder="Chi ha riferito questo cliente"
+            />
+          </div>
+
+          {/* Note */}
+          <div className="form-group">
+            <label>
+              <FileText size={18} />
+              Note Interne
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Aggiungi note o informazioni aggiuntive sul cliente..."
+              rows={4}
+            />
+          </div>
+
+          {/* Privacy Info - Solo visualizzazione */}
+          {customer.privacy_consent && (
+            <div className="privacy-info-box">
+              <div className="privacy-info-header">
+                <CheckCircle size={20} style={{ color: '#10b981' }} />
+                <span>Privacy Firmata</span>
+              </div>
+              <div className="privacy-info-content">
+                {customer.privacy_signed_at && (
+                  <p>
+                    <strong>Data firma:</strong>{' '}
+                    {new Date(customer.privacy_signed_at).toLocaleDateString('it-IT', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
+                {customer.signature_data && (
+                  <div className="signature-preview">
+                    <div className="signature-preview-header">
+                      <strong>Firma:</strong>
+                      <button
+                        className="download-privacy-btn"
+                        onClick={handleDownloadPrivacy}
+                        title="Scarica Privacy Firmata"
+                      >
+                        <Download size={16} />
+                        Scarica
+                      </button>
+                    </div>
+                    <img src={customer.signature_data} alt="Firma cliente" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

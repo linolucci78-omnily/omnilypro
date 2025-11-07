@@ -1,10 +1,14 @@
 -- ============================================
--- ADD AVATAR SUPPORT TO CUSTOMERS TABLE
+-- ADD AVATAR AND NOTES SUPPORT TO CUSTOMERS TABLE
 -- ============================================
 
 -- Aggiungi campo avatar_url alla tabella customers
 ALTER TABLE customers
 ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
+-- Aggiungi campo notes alla tabella customers
+ALTER TABLE customers
+ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Crea indice per performance
 CREATE INDEX IF NOT EXISTS idx_customers_avatar_url
@@ -54,6 +58,7 @@ USING (bucket_id = 'customer-avatars');
 -- ============================================
 
 COMMENT ON COLUMN customers.avatar_url IS 'URL pubblico dell''avatar del cliente (Supabase Storage)';
+COMMENT ON COLUMN customers.notes IS 'Note interne sul cliente visibili solo agli operatori';
 
 -- ============================================
 -- FINE SCRIPT

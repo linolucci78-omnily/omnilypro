@@ -169,6 +169,7 @@
 .avatar-upload-buttons {
   display: flex;
   gap: 12px;
+  justify-content: center;
 }
 
 .avatar-upload-btn {
@@ -256,6 +257,28 @@
 }
 
 .form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.form-group textarea {
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #1f2937;
+  transition: all 0.2s;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #dc2626) 10%, transparent);
+}
+
+.form-group textarea::placeholder {
   color: #9ca3af;
 }
 
@@ -405,6 +428,98 @@
 
 .toggle-switch input:checked:hover + .toggle-slider {
   background-color: color-mix(in srgb, var(--primary-color, #dc2626) 90%, black);
+}
+
+/* ============================================
+   PRIVACY INFO BOX - VISUALIZZAZIONE FIRMA
+   ============================================ */
+
+.privacy-info-box {
+  padding: 20px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 2px solid #10b981;
+  border-radius: 16px;
+  margin-top: 8px;
+}
+
+.privacy-info-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #047857;
+  margin-bottom: 12px;
+}
+
+.privacy-info-content {
+  font-size: 14px;
+  color: #065f46;
+}
+
+.privacy-info-content p {
+  margin: 8px 0;
+}
+
+.privacy-info-content strong {
+  font-weight: 600;
+  color: #047857;
+}
+
+.signature-preview {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #a7f3d0;
+}
+
+.signature-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.signature-preview-header strong {
+  font-size: 13px;
+  color: #047857;
+}
+
+.download-privacy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.download-privacy-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  border-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.download-privacy-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.signature-preview img {
+  max-width: 100%;
+  height: auto;
+  max-height: 100px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
 }
 
 /* ============================================

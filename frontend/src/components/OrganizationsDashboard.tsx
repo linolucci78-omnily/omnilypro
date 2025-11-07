@@ -2219,7 +2219,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                           <td>
                             <div className="customer-cell">
                               <div className={`customer-avatar-new ${customer.gender || 'male'}`}>
-                                <Users size={16} />
+                                {customer.avatar_url ? (
+                                  <img
+                                    src={customer.avatar_url}
+                                    alt={customer.name}
+                                    className="customer-avatar-image"
+                                  />
+                                ) : (
+                                  <span className="customer-avatar-initials">
+                                    {customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                  </span>
+                                )}
                               </div>
                               <div className="customer-info-new">
                                 <div className="customer-name-new">{customer.name}</div>

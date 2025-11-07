@@ -700,41 +700,65 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         {/* Header */}
         <div className="customer-panel-header">
           <div className="customer-slide-panel-header-info">
-            <h2>{customer.name}</h2>
-            <div
-              className="customer-slide-panel-tier"
-              style={{
-                background: `linear-gradient(135deg, ${getTierColor(currentTier.name)} 0%, ${getTierColor(currentTier.name)}dd 100%)`,
-                color: 'white',
-                padding: '0.4rem 1rem',
-                borderRadius: '20px',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                boxShadow: `0 4px 12px ${getTierColor(currentTier.name)}40`,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                border: '2px solid rgba(255, 255, 255, 0.3)'
-              }}
-            >
-              {currentTier.name === 'Platinum' && '👑'}
-              {currentTier.name === 'Gold' && '⭐'}
-              {currentTier.name === 'Silver' && '✨'}
-              {currentTier.name === 'Bronze' && '🥉'}
-              <span>{currentTier.name}</span>
-              {currentTier.multiplier && currentTier.multiplier > 1 && (
-                <span style={{
-                  background: 'rgba(255, 255, 255, 0.3)',
-                  padding: '0.15rem 0.4rem',
-                  borderRadius: '10px',
-                  fontSize: '0.75rem',
-                  fontWeight: '700'
-                }}>
-                  {currentTier.multiplier}x
-                </span>
-              )}
+            <div className="customer-slide-panel-header-with-avatar">
+              {/* Avatar */}
+              <div
+                className="customer-slide-panel-avatar"
+                style={{
+                  background: customer.avatar_url ? 'transparent' : (customer.gender === 'female' ? '#ec4899' : '#3b82f6')
+                }}
+              >
+                {customer.avatar_url ? (
+                  <img
+                    src={customer.avatar_url}
+                    alt={customer.name}
+                    className="customer-slide-panel-avatar-img"
+                  />
+                ) : (
+                  <span className="customer-slide-panel-avatar-initials">
+                    {customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  </span>
+                )}
+              </div>
+              {/* Nome e Tier */}
+              <div className="customer-slide-panel-name-tier">
+                <h2>{customer.name}</h2>
+                <div
+                  className="customer-slide-panel-tier"
+                  style={{
+                    background: `linear-gradient(135deg, ${getTierColor(currentTier.name)} 0%, ${getTierColor(currentTier.name)}dd 100%)`,
+                    color: 'white',
+                    padding: '0.4rem 1rem',
+                    borderRadius: '20px',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    boxShadow: `0 4px 12px ${getTierColor(currentTier.name)}40`,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    border: '2px solid rgba(255, 255, 255, 0.3)'
+                  }}
+                >
+                  {currentTier.name === 'Platinum' && '👑'}
+                  {currentTier.name === 'Gold' && '⭐'}
+                  {currentTier.name === 'Silver' && '✨'}
+                  {currentTier.name === 'Bronze' && '🥉'}
+                  <span>{currentTier.name}</span>
+                  {currentTier.multiplier && currentTier.multiplier > 1 && (
+                    <span style={{
+                      background: 'rgba(255, 255, 255, 0.3)',
+                      padding: '0.15rem 0.4rem',
+                      borderRadius: '10px',
+                      fontSize: '0.75rem',
+                      fontWeight: '700'
+                    }}>
+                      {currentTier.multiplier}x
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <button className="customer-panel-close-btn" onClick={onClose}>

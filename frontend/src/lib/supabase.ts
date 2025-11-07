@@ -144,6 +144,7 @@ export interface Customer {
   privacy_consent?: boolean
   signature_data?: string
   privacy_signed_at?: string
+  notes?: string // Note interne sul cliente
   last_visit?: string
   created_at: string
   updated_at: string
