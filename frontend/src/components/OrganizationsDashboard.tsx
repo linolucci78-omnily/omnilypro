@@ -28,6 +28,7 @@ import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import TeamManagementHub from './TeamManagementHub'
 import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
 import CustomersCardView from './CustomersCardView'
+import RewardsHub from './RewardsHub'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -2325,125 +2326,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         ) : null
 
       case 'rewards':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Award size={24} />
-              <h2>Gestione Premi</h2>
-              <p>Crea e gestisci i premi del sistema di fedeltà</p>
-            </div>
-
-            <div className="rewards-management">
-              <div className="management-header">
-                <button className="btn-primary" onClick={handleAddReward}>
-                  <Plus size={16} />
-                  Aggiungi Premio
-                </button>
-              </div>
-
-              {rewardsLoading ? (
-                <div className="loading-bar-container" style={{ padding: '3rem 0' }}>
-                  <div className="loading-bar-label">Caricamento premi...</div>
-                  <div className="loading-bar-track">
-                    <div className="loading-bar-fill"></div>
-                  </div>
-                </div>
-              ) : rewards.length > 0 ? (
-                <div className="cards-grid">
-                  {rewards.map((reward) => (
-                    <div key={reward.id} className="feature-card reward-card enhanced">
-                      {/* Immagine Premio */}
-                      <div className="reward-image">
-                        {reward.image_url ? (
-                          <img src={reward.image_url} alt={reward.name} />
-                        ) : (
-                          <div className="reward-placeholder">
-                            <Award size={32} />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="reward-content">
-                        <div className="reward-header">
-                          <h3>{reward.name}</h3>
-                          <div className="reward-actions">
-                            <button
-                              className="btn-edit"
-                              title="Modifica"
-                              onClick={() => handleEditReward(reward)}
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              className="btn-delete"
-                              title="Elimina"
-                              onClick={() => handleDeleteReward(reward.id)}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="reward-details">
-                          <div className="reward-points">
-                            <Target size={16} />
-                            <strong>{reward.points_required} {(currentOrganization?.points_name || 'Punti').toLowerCase()}</strong>
-                          </div>
-                          {reward.required_tier && (
-                            <div className="reward-tier">
-                              <Star size={16} />
-                              <strong>Livello:</strong> {reward.required_tier}
-                            </div>
-                          )}
-                          <div className="reward-type">
-                            <strong>Tipo:</strong> {reward.type}
-                          </div>
-                          <div className="reward-value">
-                            <strong>Valore:</strong> {reward.value}
-                          </div>
-                          {reward.description && (
-                            <div className="reward-description">
-                              {reward.description}
-                            </div>
-                          )}
-                          {reward.stock_quantity && (
-                            <div className="reward-stock">
-                              <strong>Stock:</strong> {reward.stock_quantity}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="reward-status">
-                          <label className="toggle-switch">
-                            <input
-                              type="checkbox"
-                              checked={reward.is_active}
-                              onChange={(e) => handleToggleRewardStatus(reward.id, e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                          </label>
-                          <span className="status-label">
-                            {reward.is_active ? 'Attivo' : 'Disattivo'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <Award size={48} />
-                  <h3>Nessun premio configurato</h3>
-                  <p>Inizia creando il tuo primo premio per il sistema di fedeltà.</p>
-                  <button className="btn-primary" onClick={handleAddReward}>
-                    <Plus size={16} />
-                    Crea Primo Premio
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )
+        return currentOrganization ? (
+          <RewardsHub
+            organizationId={currentOrganization.id}
+            primaryColor={currentOrganization.primary_color || '#dc2626'}
+            secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+          />
+        ) : null
 
       case 'categories':
         return (
