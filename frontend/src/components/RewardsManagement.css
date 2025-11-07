@@ -50,6 +50,11 @@
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
+.btn-add-reward svg {
+  flex-shrink: 0;
+  display: block;
+}
+
 .btn-add-reward:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
@@ -602,6 +607,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cancel svg,
+.btn-save svg {
+  flex-shrink: 0;
+  display: block;
 }
 
 .btn-cancel {

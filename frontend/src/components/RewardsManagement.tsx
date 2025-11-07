@@ -657,7 +657,8 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
 
             <div className="modal-actions">
               <button className="btn-cancel" onClick={handleCloseModal}>
-                Annulla
+                <X size={20} />
+                <span>Annulla</span>
               </button>
               <button className="btn-save" onClick={handleSubmit}>
                 <Save size={20} />
