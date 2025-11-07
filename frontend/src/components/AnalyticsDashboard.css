@@ -181,6 +181,26 @@
   padding: 20px;
   background: #f9fafb;
   border-radius: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.chart-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.chart-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .chart-bars {
@@ -188,6 +208,8 @@
   align-items: flex-end;
   gap: 8px;
   height: 200px;
+  min-width: 100%;
+  width: max-content;
 }
 
 .chart-bar-wrapper {
@@ -507,7 +529,7 @@
   border-radius: 12px;
   border: 2px solid #e5e7eb;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .advanced-stat-box:last-child {
@@ -549,9 +571,9 @@
 }
 
 .stat-td-left {
-  padding: 12px 8px 12px 4px;
+  padding: 12px 2% 12px 2%;
   vertical-align: middle;
-  width: 70%;
+  width: 58%;
   box-sizing: border-box;
 }
 
@@ -573,20 +595,19 @@
 }
 
 .stat-td-right {
-  padding: 12px 16px 12px 4px;
+  padding: 12px 2% 12px 15%;
   vertical-align: middle;
-  width: 30%;
-  text-align: center;
+  width: 42%;
+  text-align: left;
   box-sizing: border-box;
 }
 
 .stat-td-right strong {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: #dc2626;
-  display: inline-block;
+  display: block;
   white-space: nowrap;
-  margin-right: 8px;
 }
 
 /* ============================================
@@ -747,19 +768,15 @@
   /* CHART FIXES FOR POS */
   .chart-container {
     padding: 16px;
-    overflow-x: auto;
-    overflow-y: hidden;
   }
 
   .chart-bars {
     height: 280px;
     gap: 8px;
-    min-width: 100%;
-    width: max-content;
   }
 
   .chart-bar-wrapper {
-    min-width: 20px;
+    min-width: 40px;
   }
 
   .chart-bar .bar-value {
@@ -781,6 +798,10 @@
   }
 
   /* STATS RESPONSIVE POS */
+  .advanced-stat-box {
+    padding: 20px;
+  }
+
   .stat-box-title {
     font-size: 20px;
   }
@@ -798,7 +819,7 @@
   }
 
   .stat-td-right strong {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .action-content h4 {
