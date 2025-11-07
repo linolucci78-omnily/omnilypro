@@ -9,9 +9,12 @@ import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOu
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import CardManagementPanel from './CardManagementPanel'
+import CardManagementHub from './CardManagementHub'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
+import AccountSettingsHub from './AccountSettingsHub'
 import EmailMarketingPanel from './EmailMarketingPanel'
+import EmailMarketingHub from './EmailMarketingHub'
 import EmailAutomationsPanel from './EmailAutomationsPanel'
 import OrganizationBrandingPanel from './OrganizationBrandingPanel'
 import AnalyticsDashboard from './AnalyticsDashboard'
@@ -21,6 +24,8 @@ import SubscriptionsPanel from './SubscriptionsPanel'
 import SubscriptionStatsModal from './SubscriptionStatsModal'
 import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
+import TeamManagementHub from './TeamManagementHub'
+import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -71,6 +76,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       onSectionChange(section)
     }
   }
+
+
   const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -1920,30 +1927,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const renderContent = () => {
     switch (activeSection) {
       case 'stamps':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Target size={24} />
-              <h2>Gestione Tessere Punti</h2>
-              <p>Crea, personalizza e gestisci le tessere punti per i tuoi clienti</p>
-            </div>
-            <div className="cards-grid">
-              <div className="feature-card">
-                <h3>Configura Tessere</h3>
-                <p>Crea e personalizza le tessere punti per i tuoi clienti</p>
-                <button className="btn-primary" onClick={() => setShowCardManagementPanel(true)}>
-                  <CreditCard size={18} />
-                  Gestione Tessere
-                </button>
-              </div>
-              <div className="feature-card">
-                <h3>Statistiche Punti</h3>
-                <p>Visualizza le performance delle tessere punti</p>
-                <button className="btn-primary">Visualizza</button>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
+            <CardManagementHub
+              organizationId={currentOrganization.id}
+              primaryColor={currentOrganization.primary_color}
+              secondaryColor={currentOrganization.secondary_color}
+              onOpenManagement={() => setShowCardManagementPanel(true)}
+            />
           </div>
-        )
+        ) : null
       
       case 'members':
         return (
@@ -2195,66 +2188,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'loyalty-tiers':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Star size={24} />
-              <h2>Livelli di Fedeltà</h2>
-              <p>Gestisci i livelli di fedeltà configurati nel wizard</p>
-            </div>
-
-            {(() => {
-              const orgData = currentOrganization || organizations[0];
-              const loyaltyTiers = orgData?.loyalty_tiers || [];
-
-              console.log('🏆 Loyalty Tiers Debug:', {
-                currentOrganization: !!currentOrganization,
-                organizationsLength: organizations.length,
-                orgData: !!orgData,
-                loyaltyTiers: loyaltyTiers,
-                loyaltyTiersType: typeof loyaltyTiers,
-                isArray: Array.isArray(loyaltyTiers)
-              });
-
-              return Array.isArray(loyaltyTiers) && loyaltyTiers.length > 0 ? (
-                <div className="cards-grid">
-                  {loyaltyTiers.map((tier, index) => (
-                  <div key={index} className="feature-card tier-card">
-                    <div className="tier-header" style={{ borderColor: tier.color }}>
-                      <Star size={20} style={{ color: tier.color }} />
-                      <h3>{tier.name}</h3>
-                    </div>
-                    <div className="tier-details">
-                      <div className="tier-threshold">
-                        <strong>Soglia:</strong> {tier.threshold} punti
-                      </div>
-                      <div className="tier-multiplier">
-                        <strong>Moltiplicatore:</strong> {tier.multiplier}x
-                      </div>
-                      {tier.benefits && Array.isArray(tier.benefits) && tier.benefits.length > 0 && (
-                        <div className="tier-benefits">
-                          <strong>Benefici:</strong>
-                          <ul>
-                            {tier.benefits.map((benefit, idx) => (
-                              <li key={idx}>{benefit}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              ) : (
-                <div className="empty-state">
-                  <Star size={48} />
-                  <h3>Nessun livello di fedeltà configurato</h3>
-                  <p>I livelli di fedeltà vengono configurati durante la creazione dell'organizzazione tramite wizard.</p>
-                </div>
-              );
-            })()}
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
+            <LoyaltyTiersDisplay
+              tiers={currentOrganization.loyalty_tiers || []}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              onEdit={() => setShowLoyaltyTiersPanel(true)}
+            />
           </div>
-        )
+        ) : null
 
       case 'rewards':
         return (
@@ -2488,43 +2430,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'team-management':
-        return (
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
+            <TeamManagementHub
+              organizationId={currentOrganization.id}
+              primaryColor={currentOrganization.primary_color}
+              secondaryColor={currentOrganization.secondary_color}
+            />
+          </div>
+        ) : (
           <div className="section-content">
-            <div className="section-header">
-              <UserPlus size={24} />
-              <h2>Gestione Team</h2>
-              <p>Amministratori e inviti team configurati nel wizard</p>
-            </div>
-
-            <div className="team-section">
-              <div className="admin-info-card">
-                <h3>Amministratore Principale</h3>
-                <div className="admin-details">
-                  <div><strong>Nome:</strong> {currentOrganization?.admin_name || 'Non configurato'}</div>
-                  <div><strong>Email:</strong> {currentOrganization?.admin_email || 'Non configurata'}</div>
-                </div>
-              </div>
-
-              {currentOrganization?.invite_emails && currentOrganization.invite_emails.length > 0 ? (
-                <div className="invites-card">
-                  <h3>Inviti Team</h3>
-                  <ul className="invites-list">
-                    {Array.isArray(currentOrganization.invite_emails) ? currentOrganization.invite_emails.map((email, index) => (
-                      <li key={index} className="invite-item">
-                        <Mail size={16} />
-                        <span>{email}</span>
-                        <span className="invite-status">In attesa</span>
-                      </li>
-                    )) : null}
-                  </ul>
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <UserPlus size={48} />
-                  <h3>Nessun invito configurato</h3>
-                  <p>Gli inviti team vengono configurati durante la creazione dell'organizzazione.</p>
-                </div>
-              )}
+            <div className="empty-state">
+              <UserPlus size={48} />
+              <h3>Seleziona un'organizzazione</h3>
+              <p>Seleziona un'organizzazione per gestire il team.</p>
             </div>
           </div>
         )
@@ -3627,12 +3546,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         pointsName={currentOrganization?.points_name || 'Punti'}
       />
 
-      {/* Card Management Panel */}
+      {/* Card Management Panel (modale) */}
       <CardManagementPanel
         isOpen={showCardManagementPanel}
         onClose={() => setShowCardManagementPanel(false)}
         customers={customers}
-        organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
+        organizationId={currentOrganization?.id || ''}
         onAssignCard={(cardId, customerId) => {
           console.log(`Tessera ${cardId} assegnata al cliente ${customerId}`);
           // Le tessere sono ora gestite direttamente in Supabase
@@ -3659,12 +3578,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }}
       />
 
-      {/* Email Marketing Panel */}
-      <EmailMarketingPanel
+      {/* Email Marketing Hub */}
+      <EmailMarketingHub
         isOpen={showEmailMarketingPanel}
         onClose={() => setShowEmailMarketingPanel(false)}
-        organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
-        organizationName={organizations.length > 0 ? organizations[0].name : 'Organizzazione'}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || 'Organizzazione'}
+        primaryColor={currentOrganization?.primary_color || '#dc2626'}
+        secondaryColor={currentOrganization?.secondary_color || '#dc2626'}
       />
 
       {/* Organization Branding Panel */}
@@ -3712,10 +3633,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         pointsName={currentOrganization?.points_name || 'Punti'}
       />
 
-      {/* Account Settings Panel */}
-      <AccountSettingsPanel
+      {/* Account Settings Hub */}
+      <AccountSettingsHub
         isOpen={showAccountSettingsPanel}
         onClose={() => setShowAccountSettingsPanel(false)}
+        organizationId={currentOrganization?.id || ''}
+        organizationName={currentOrganization?.name || 'Organizzazione'}
+        primaryColor={currentOrganization?.primary_color || '#dc2626'}
+        secondaryColor={currentOrganization?.secondary_color || '#dc2626'}
         organization={currentOrganization}
         onUpdate={() => {
           fetchOrganizations()

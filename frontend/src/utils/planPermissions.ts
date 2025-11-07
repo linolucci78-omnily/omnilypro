@@ -50,7 +50,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     rewards: false,            // ❌ Solo Basic+
     categories: false,         // ❌ Solo Basic+
     marketingCampaigns: false, // ❌ Solo Pro+
-    teamManagement: false,     // ❌ Solo Pro+
+    teamManagement: true,      // ✅ Abilitato per testing
     posIntegration: true,      // ✅ Sempre disponibile
     notifications: false,      // ❌ Solo Basic+
     analyticsReports: false,   // ❌ Solo Pro+
@@ -78,7 +78,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     rewards: true,             // ✅ Basic+
     categories: true,          // ✅ Basic+
     marketingCampaigns: false, // ❌ Solo Pro+
-    teamManagement: false,     // ❌ Solo Pro+
+    teamManagement: true,      // ✅ Abilitato per testing
     posIntegration: true,      // ✅ Sempre disponibile
     notifications: true,       // ✅ Basic+
     analyticsReports: false,   // ❌ Solo Pro+

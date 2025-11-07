@@ -368,8 +368,12 @@ input:disabled + .toggle-slider {
   color: #ef4444;
 }
 
-.stat-item.rate svg {
-  color: #8b5cf6;
+.stat-item.opened svg {
+  color: #3b82f6;
+}
+
+.stat-item.clicked svg {
+  color: #f59e0b;
 }
 
 .stat-value {

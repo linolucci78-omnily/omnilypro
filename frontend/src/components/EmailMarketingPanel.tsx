@@ -60,15 +60,19 @@ interface EmailMarketingPanelProps {
   onClose: () => void
   organizationId: string
   organizationName: string
+  defaultTab?: 'logs' | 'templates' | 'campaigns' | 'settings' | 'analytics'
 }
 
 const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
   isOpen,
   onClose,
   organizationId,
-  organizationName
+  organizationName,
+  defaultTab = 'campaigns'
 }) => {
-  const [activeTab, setActiveTab] = useState<'logs' | 'templates' | 'campaigns' | 'settings'>('campaigns')
+  const [activeTab, setActiveTab] = useState<'logs' | 'templates' | 'campaigns' | 'settings'>(
+    defaultTab === 'analytics' ? 'logs' : defaultTab
+  )
   const [logs, setLogs] = useState<EmailLog[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')

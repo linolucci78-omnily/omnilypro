@@ -1,0 +1,293 @@
+/* ============================================
+   TEAM MANAGEMENT HUB - VISTA PRINCIPALE
+   ============================================ */
+
+.team-hub {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.team-hub-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.team-hub-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.team-hub-header p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   CARD BUTTONS (STILE MEMBERSHIP)
+   ============================================ */
+
+.team-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.team-hub-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.team-hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--primary-color, #dc2626),
+    color-mix(in srgb, var(--primary-color, #dc2626) 70%, white));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.team-hub-card:hover::before {
+  transform: scaleX(1);
+}
+
+.team-hub-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--primary-color, #dc2626) 15%, transparent);
+  transform: translateY(-8px);
+}
+
+.team-hub-card-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary-color, #dc2626) 5%, white),
+    color-mix(in srgb, var(--primary-color, #dc2626) 15%, white));
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #dc2626);
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.team-hub-card:hover .team-hub-card-icon {
+  background: var(--primary-color, #dc2626);
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+}
+
+.team-hub-card-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  transition: color 0.3s ease;
+}
+
+.team-hub-card:hover .team-hub-card-content h2 {
+  color: var(--primary-color, #dc2626);
+}
+
+.team-hub-card-content p {
+  font-size: 15px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.team-hub-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.team-hub-features li {
+  font-size: 14px;
+  color: #4b5563;
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.team-hub-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color, #dc2626);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.team-hub-card-arrow {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.team-hub-card-arrow span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-color, #dc2626);
+  transition: all 0.3s ease;
+}
+
+.team-hub-card:hover .team-hub-card-arrow span {
+  transform: translateX(4px);
+  display: inline-block;
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: var(--primary-color, #dc2626);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 5%, transparent);
+  transform: translateX(-4px);
+}
+
+/* ============================================
+   RESPONSIVE - POS MODE (800x1280 Portrait)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .team-hub {
+    padding: 16px 12px;
+  }
+
+  .team-hub-header h1 {
+    font-size: 26px;
+  }
+
+  .team-hub-header p {
+    font-size: 14px;
+  }
+
+  .team-hub-cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 100%;
+  }
+
+  .team-hub-card {
+    padding: 24px;
+  }
+
+  .team-hub-card-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .team-hub-card-icon svg {
+    width: 42px;
+    height: 42px;
+  }
+
+  .team-hub-card-content h2 {
+    font-size: 22px;
+  }
+
+  .team-hub-card-content p {
+    font-size: 14px;
+  }
+
+  .team-hub-features li {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .team-hub-cards {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .team-hub {
+    padding: 20px 16px;
+  }
+
+  .team-hub-header h1 {
+    font-size: 24px;
+  }
+
+  .team-hub-header p {
+    font-size: 14px;
+  }
+
+  .team-hub-cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .team-hub-card {
+    padding: 24px;
+  }
+
+  .team-hub-card-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .team-hub-card-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .team-hub-card-content h2 {
+    font-size: 20px;
+  }
+
+  .team-hub-card-content p {
+    font-size: 14px;
+  }
+
+  .team-hub-features li {
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,374 @@
+/* ============================================
+   LOYALTY TIERS DISPLAY - CARD BELLISSIME
+   ============================================ */
+
+.loyalty-tiers-display {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tiers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.tiers-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1f2937;
+}
+
+.tiers-header p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.btn-edit-tiers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 2px solid;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-tiers:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   TIERS GRID
+   ============================================ */
+
+.tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* ============================================
+   TIER CARD ANIMATED
+   ============================================ */
+
+.tier-card-animated {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effetto shine animato */
+.tier-card-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  transition: transform 0.6s ease;
+}
+
+.tier-card-animated:hover .tier-card-shine {
+  transform: translateX(100%) translateY(100%) rotate(45deg);
+}
+
+/* Hover effects */
+.tier-card-animated:hover {
+  border-color: var(--tier-color);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--tier-color) 20%, transparent);
+  transform: translateY(-8px) scale(1.02);
+}
+
+/* ============================================
+   TIER ICON
+   ============================================ */
+
+.tier-card-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.tier-card-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tier-card-animated:hover .tier-card-icon {
+  transform: scale(1.15) rotate(5deg);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* ============================================
+   TIER CONTENT
+   ============================================ */
+
+.tier-card-content {
+  text-align: center;
+}
+
+.tier-card-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  transition: all 0.3s ease;
+}
+
+.tier-card-animated:hover .tier-card-name {
+  transform: scale(1.05);
+}
+
+/* ============================================
+   TIER STATS
+   ============================================ */
+
+.tier-card-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.tier-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tier-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.tier-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.tier-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #d1d5db;
+}
+
+/* ============================================
+   TIER BENEFITS
+   ============================================ */
+
+.tier-card-benefits {
+  text-align: left;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.benefits-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.tier-card-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tier-card-benefits li {
+  font-size: 14px;
+  color: #4b5563;
+  padding: 6px 0;
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.tier-card-benefits li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--tier-color);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ============================================
+   TIER BADGE
+   ============================================ */
+
+.tier-card-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.empty-state-tiers {
+  text-align: center;
+  padding: 80px 40px;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border-radius: 20px;
+  border: 2px dashed #d1d5db;
+}
+
+.empty-state-tiers svg {
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+
+.empty-state-tiers h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.empty-state-tiers p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+
+.btn-create-tiers {
+  padding: 12px 32px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-create-tiers:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   RESPONSIVE - POS
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .tiers-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .tiers-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .tier-card-animated {
+    padding: 24px 20px;
+  }
+
+  .tier-card-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .tier-card-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .tiers-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .tiers-header h2 {
+    font-size: 24px;
+  }
+
+  .tiers-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tier-card-animated {
+    padding: 24px 20px;
+  }
+
+  .tier-card-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .tier-card-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .tier-card-name {
+    font-size: 20px;
+  }
+
+  .tier-stat-value {
+    font-size: 18px;
+  }
+}

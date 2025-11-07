@@ -1,0 +1,406 @@
+/* ============================================
+   EMAIL MARKETING HUB - MODAL CON CARD
+   ============================================ */
+
+.email-marketing-hub-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.email-marketing-hub-container {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.25s ease-out;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* Scrollbar personalizzata */
+.email-marketing-hub-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.email-marketing-hub-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.email-marketing-hub-container::-webkit-scrollbar-thumb {
+  background: var(--primary-color, #dc2626);
+  border-radius: 10px;
+  opacity: 0.7;
+}
+
+.email-marketing-hub-container::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 80%, black);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.email-hub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px;
+  border-bottom: 2px solid color-mix(in srgb, var(--primary-color, #dc2626) 20%, white);
+}
+
+.email-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--primary-color, #dc2626);
+}
+
+.email-hub-header-content h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  color: #1f2937;
+}
+
+.email-hub-header-content p {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+.email-hub-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  z-index: 10;
+}
+
+.email-hub-close:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  transform: scale(1.1);
+}
+
+/* ============================================
+   CARD GRID
+   ============================================ */
+
+.email-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  padding: 32px;
+}
+
+.email-hub-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.email-hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--primary-color, #dc2626),
+    color-mix(in srgb, var(--primary-color, #dc2626) 70%, white));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.email-hub-card:hover::before {
+  transform: scaleX(1);
+}
+
+.email-hub-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--primary-color, #dc2626) 15%, transparent);
+  transform: translateY(-8px);
+}
+
+/* ============================================
+   CARD ICONS - COLORI SPECIFICI
+   ============================================ */
+
+.email-hub-card-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.email-hub-card-icon.campaigns {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+}
+
+.email-hub-card-icon.templates {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+}
+
+.email-hub-card-icon.analytics {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+}
+
+.email-hub-card-icon.settings {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #4338ca;
+}
+
+.email-hub-card:hover .email-hub-card-icon {
+  background: var(--primary-color, #dc2626);
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* ============================================
+   CARD CONTENT
+   ============================================ */
+
+.email-hub-card-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  transition: color 0.3s ease;
+}
+
+.email-hub-card:hover .email-hub-card-content h2 {
+  color: var(--primary-color, #dc2626);
+}
+
+.email-hub-card-content p {
+  font-size: 15px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.email-hub-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.email-hub-features li {
+  font-size: 14px;
+  color: #4b5563;
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.email-hub-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color, #dc2626);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.email-hub-card-arrow {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.email-hub-card-arrow span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-color, #dc2626);
+  transition: all 0.3s ease;
+}
+
+.email-hub-card:hover .email-hub-card-arrow span {
+  transform: translateX(4px);
+  display: inline-block;
+}
+
+/* ============================================
+   RESPONSIVE - POS MODE (800x1280 Portrait)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .email-marketing-hub-container {
+    max-width: 95%;
+  }
+
+  .email-hub-header {
+    padding: 24px;
+  }
+
+  .email-hub-header-content h1 {
+    font-size: 26px;
+  }
+
+  .email-hub-cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .email-hub-card {
+    padding: 24px;
+  }
+
+  .email-hub-card-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .email-hub-card-icon svg {
+    width: 42px;
+    height: 42px;
+  }
+
+  .email-hub-card-content h2 {
+    font-size: 22px;
+  }
+
+  .email-hub-card-content p {
+    font-size: 14px;
+  }
+
+  .email-hub-features li {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .email-marketing-hub-overlay {
+    padding: 10px;
+  }
+
+  .email-marketing-hub-container {
+    border-radius: 16px;
+  }
+
+  .email-hub-header {
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .email-hub-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .email-hub-header-content h1 {
+    font-size: 24px;
+  }
+
+  .email-hub-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+
+  .email-hub-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .email-hub-card {
+    padding: 20px;
+  }
+
+  .email-hub-card-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .email-hub-card-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .email-hub-card-content h2 {
+    font-size: 20px;
+  }
+
+  .email-hub-card-content p {
+    font-size: 14px;
+  }
+
+  .email-hub-features li {
+    font-size: 13px;
+  }
+}

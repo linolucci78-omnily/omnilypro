@@ -11,6 +11,7 @@ interface AccountSettingsPanelProps {
   onClose: () => void;
   organization: any;
   onUpdate: () => void;
+  defaultTab?: TabType;
 }
 
 type TabType = 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts';
@@ -19,9 +20,10 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
   isOpen,
   onClose,
   organization,
-  onUpdate
+  onUpdate,
+  defaultTab = 'details'
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('details');
+  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [formData, setFormData] = useState({
     // Dettagli Organizzazione
     name: '',

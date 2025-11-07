@@ -1,0 +1,266 @@
+/* ============================================
+   CARD MANAGEMENT HUB - SEZIONE CON 2 CARD
+   ============================================ */
+
+.card-hub {
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.card-hub-header {
+  margin-bottom: 32px;
+}
+
+.card-hub-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1f2937;
+}
+
+.card-hub-header p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   CARD GRID - 2 COLONNE
+   ============================================ */
+
+.card-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.card-hub-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--primary-color, #dc2626),
+    color-mix(in srgb, var(--primary-color, #dc2626) 70%, white));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.card-hub-card:hover::before {
+  transform: scaleX(1);
+}
+
+.card-hub-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--primary-color, #dc2626) 15%, transparent);
+  transform: translateY(-8px);
+}
+
+/* ============================================
+   CARD ICONS - 2 COLORI DIVERSI
+   ============================================ */
+
+.card-hub-card-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.card-hub-card-icon.management {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #4338ca;
+}
+
+.card-hub-card-icon.statistics {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+}
+
+.card-hub-card:hover .card-hub-card-icon {
+  background: var(--primary-color, #dc2626);
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* ============================================
+   CARD CONTENT
+   ============================================ */
+
+.card-hub-card-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  transition: color 0.3s ease;
+}
+
+.card-hub-card:hover .card-hub-card-content h2 {
+  color: var(--primary-color, #dc2626);
+}
+
+.card-hub-card-content p {
+  font-size: 15px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.card-hub-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card-hub-features li {
+  font-size: 14px;
+  color: #4b5563;
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.card-hub-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color, #dc2626);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.card-hub-card-arrow {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.card-hub-card-arrow span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-color, #dc2626);
+  transition: all 0.3s ease;
+}
+
+.card-hub-card:hover .card-hub-card-arrow span {
+  transform: translateX(4px);
+  display: inline-block;
+}
+
+/* ============================================
+   RESPONSIVE - POS MODE (800x1280 Portrait)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .card-hub {
+    padding: 16px;
+  }
+
+  .card-hub-header h1 {
+    font-size: 26px;
+  }
+
+  .card-hub-cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .card-hub-card {
+    padding: 24px;
+  }
+
+  .card-hub-card-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .card-hub-card-icon svg {
+    width: 42px;
+    height: 42px;
+  }
+
+  .card-hub-card-content h2 {
+    font-size: 22px;
+  }
+
+  .card-hub-card-content p {
+    font-size: 14px;
+  }
+
+  .card-hub-features li {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .card-hub {
+    padding: 16px;
+  }
+
+  .card-hub-header h1 {
+    font-size: 24px;
+  }
+
+  .card-hub-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card-hub-card {
+    padding: 20px;
+  }
+
+  .card-hub-card-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .card-hub-card-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .card-hub-card-content h2 {
+    font-size: 20px;
+  }
+
+  .card-hub-card-content p {
+    font-size: 14px;
+  }
+
+  .card-hub-features li {
+    font-size: 13px;
+  }
+}

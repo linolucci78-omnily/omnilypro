@@ -193,6 +193,142 @@ export interface Reward {
   updated_at: string
 }
 
+export interface StaffMember {
+  id: string
+  organization_id: string
+  name: string
+  email?: string
+  role: 'admin' | 'manager' | 'cashier' | 'staff'
+  pin_code: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  last_login?: string
+}
+
+export interface StaffAccessLog {
+  id: string
+  organization_id: string
+  staff_id: string
+  action_type: 'login' | 'logout' | 'pos_access' | 'desktop_access'
+  device_info?: string
+  ip_address?: string
+  created_at: string
+  // Relazioni
+  staff_member?: StaffMember
+}
+
+export interface StaffActivityLog {
+  id: string
+  organization_id: string
+  staff_id: string
+  action: string
+  entity_type?: string
+  entity_id?: string
+  details?: Record<string, any>
+  created_at: string
+  // Relazioni
+  staff_member?: StaffMember
+}
+
+export interface RolePermission {
+  id: string
+  organization_id: string
+  role: 'admin' | 'manager' | 'cashier' | 'staff'
+
+  // Dashboard Sections Access
+  can_view_analytics: boolean
+  can_view_customers: boolean
+  can_add_customers: boolean
+  can_edit_customers: boolean
+  can_delete_customers: boolean
+
+  can_view_rewards: boolean
+  can_create_rewards: boolean
+  can_edit_rewards: boolean
+  can_delete_rewards: boolean
+
+  can_view_tiers: boolean
+  can_edit_tiers: boolean
+
+  can_view_transactions: boolean
+  can_add_points: boolean
+  can_redeem_rewards: boolean
+  can_refund: boolean
+
+  can_view_marketing: boolean
+  can_send_campaigns: boolean
+
+  can_view_team: boolean
+  can_manage_team: boolean
+
+  can_view_settings: boolean
+  can_edit_settings: boolean
+
+  can_view_branding: boolean
+  can_edit_branding: boolean
+
+  // POS Access
+  can_access_pos: boolean
+  can_process_sales: boolean
+  can_void_transactions: boolean
+
+  // Advanced
+  can_export_data: boolean
+  can_view_reports: boolean
+
+  created_at: string
+  updated_at: string
+}
+
+export interface StaffMemberPermission {
+  id: string
+  organization_id: string
+  staff_id: string
+
+  // NULL = usa permesso del ruolo, TRUE/FALSE = override
+  can_view_analytics: boolean | null
+  can_view_customers: boolean | null
+  can_add_customers: boolean | null
+  can_edit_customers: boolean | null
+  can_delete_customers: boolean | null
+
+  can_view_rewards: boolean | null
+  can_create_rewards: boolean | null
+  can_edit_rewards: boolean | null
+  can_delete_rewards: boolean | null
+
+  can_view_tiers: boolean | null
+  can_edit_tiers: boolean | null
+
+  can_view_transactions: boolean | null
+  can_add_points: boolean | null
+  can_redeem_rewards: boolean | null
+  can_refund: boolean | null
+
+  can_view_marketing: boolean | null
+  can_send_campaigns: boolean | null
+
+  can_view_team: boolean | null
+  can_manage_team: boolean | null
+
+  can_view_settings: boolean | null
+  can_edit_settings: boolean | null
+
+  can_view_branding: boolean | null
+  can_edit_branding: boolean | null
+
+  can_access_pos: boolean | null
+  can_process_sales: boolean | null
+  can_void_transactions: boolean | null
+
+  can_export_data: boolean | null
+  can_view_reports: boolean | null
+
+  created_at: string
+  updated_at: string
+}
+
 // API functions
 export const organizationsApi = {
   // Get all organizations
@@ -828,5 +964,464 @@ export const rewardsApi = {
       if (reward.valid_until && new Date(reward.valid_until) < now) return false
       return true
     })
+  }
+}
+
+// ============================================
+// STAFF MANAGEMENT API
+// ============================================
+export const staffApi = {
+  // Get all staff members for organization
+  async getAll(organizationId: string): Promise<StaffMember[]> {
+    const { data, error } = await supabase
+      .from('staff_members')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get single staff member by ID
+  async getById(id: string): Promise<StaffMember | null> {
+    const { data, error } = await supabase
+      .from('staff_members')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Create staff member
+  async create(staffMember: Omit<StaffMember, 'id' | 'created_at' | 'updated_at'>): Promise<StaffMember> {
+    const { data, error } = await supabase
+      .from('staff_members')
+      .insert([staffMember])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Update staff member
+  async update(id: string, updates: Partial<StaffMember>): Promise<StaffMember> {
+    const { data, error } = await supabase
+      .from('staff_members')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete staff member
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('staff_members')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  // Verify PIN for POS login
+  async verifyPin(organizationId: string, pinCode: string): Promise<StaffMember | null> {
+    const { data, error } = await supabase
+      .from('staff_members')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('pin_code', pinCode)
+      .eq('is_active', true)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows returned
+
+    // Update last_login if found
+    if (data) {
+      await supabase
+        .from('staff_members')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', data.id)
+    }
+
+    return data || null
+  },
+
+  // Log access
+  async logAccess(log: Omit<StaffAccessLog, 'id' | 'created_at'>): Promise<StaffAccessLog> {
+    const { data, error } = await supabase
+      .from('staff_access_logs')
+      .insert([log])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Log activity
+  async logActivity(log: Omit<StaffActivityLog, 'id' | 'created_at'>): Promise<StaffActivityLog> {
+    const { data, error } = await supabase
+      .from('staff_activity_logs')
+      .insert([log])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Get access logs with filters
+  async getAccessLogs(
+    organizationId: string,
+    filters?: {
+      staffId?: string
+      actionType?: 'login' | 'logout' | 'pos_access' | 'desktop_access'
+      startDate?: Date
+      endDate?: Date
+      limit?: number
+    }
+  ): Promise<StaffAccessLog[]> {
+    let query = supabase
+      .from('staff_access_logs')
+      .select(`
+        *,
+        staff_member:staff_members(*)
+      `)
+      .eq('organization_id', organizationId)
+
+    if (filters?.staffId) {
+      query = query.eq('staff_id', filters.staffId)
+    }
+
+    if (filters?.actionType) {
+      query = query.eq('action_type', filters.actionType)
+    }
+
+    if (filters?.startDate) {
+      query = query.gte('created_at', filters.startDate.toISOString())
+    }
+
+    if (filters?.endDate) {
+      query = query.lte('created_at', filters.endDate.toISOString())
+    }
+
+    query = query.order('created_at', { ascending: false })
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get activity logs with filters
+  async getActivityLogs(
+    organizationId: string,
+    filters?: {
+      staffId?: string
+      action?: string
+      entityType?: string
+      startDate?: Date
+      endDate?: Date
+      limit?: number
+    }
+  ): Promise<StaffActivityLog[]> {
+    let query = supabase
+      .from('staff_activity_logs')
+      .select(`
+        *,
+        staff_member:staff_members(*)
+      `)
+      .eq('organization_id', organizationId)
+
+    if (filters?.staffId) {
+      query = query.eq('staff_id', filters.staffId)
+    }
+
+    if (filters?.action) {
+      query = query.eq('action', filters.action)
+    }
+
+    if (filters?.entityType) {
+      query = query.eq('entity_type', filters.entityType)
+    }
+
+    if (filters?.startDate) {
+      query = query.gte('created_at', filters.startDate.toISOString())
+    }
+
+    if (filters?.endDate) {
+      query = query.lte('created_at', filters.endDate.toISOString())
+    }
+
+    query = query.order('created_at', { ascending: false })
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get staff statistics
+  async getStats(organizationId: string, staffId?: string): Promise<{
+    totalLogins: number
+    totalActions: number
+    lastLogin?: string
+    mostActiveStaff: Array<{ staff_id: string; name: string; action_count: number }>
+  }> {
+    // Get total logins
+    let loginQuery = supabase
+      .from('staff_access_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .eq('action_type', 'login')
+
+    if (staffId) {
+      loginQuery = loginQuery.eq('staff_id', staffId)
+    }
+
+    const { count: totalLogins } = await loginQuery
+
+    // Get total actions
+    let activityQuery = supabase
+      .from('staff_activity_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+
+    if (staffId) {
+      activityQuery = activityQuery.eq('staff_id', staffId)
+    }
+
+    const { count: totalActions } = await activityQuery
+
+    // Get last login
+    let lastLoginQuery = supabase
+      .from('staff_access_logs')
+      .select('created_at')
+      .eq('organization_id', organizationId)
+      .eq('action_type', 'login')
+
+    if (staffId) {
+      lastLoginQuery = lastLoginQuery.eq('staff_id', staffId)
+    }
+
+    const { data: lastLoginData } = await lastLoginQuery
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    // Get most active staff (if not filtering by staffId)
+    let mostActiveStaff: Array<{ staff_id: string; name: string; action_count: number }> = []
+
+    if (!staffId) {
+      const { data: activityData } = await supabase
+        .from('staff_activity_logs')
+        .select(`
+          staff_id,
+          staff_member:staff_members(name)
+        `)
+        .eq('organization_id', organizationId)
+
+      if (activityData) {
+        const staffCounts = new Map<string, { name: string; count: number }>()
+
+        activityData.forEach((log: any) => {
+          const existing = staffCounts.get(log.staff_id) || { name: log.staff_member?.name || 'Unknown', count: 0 }
+          staffCounts.set(log.staff_id, { ...existing, count: existing.count + 1 })
+        })
+
+        mostActiveStaff = Array.from(staffCounts.entries())
+          .map(([staff_id, data]) => ({ staff_id, name: data.name, action_count: data.count }))
+          .sort((a, b) => b.action_count - a.action_count)
+          .slice(0, 5)
+      }
+    }
+
+    return {
+      totalLogins: totalLogins || 0,
+      totalActions: totalActions || 0,
+      lastLogin: lastLoginData?.[0]?.created_at,
+      mostActiveStaff
+    }
+  }
+}
+
+// ============================================
+// PERMISSIONS API
+// ============================================
+export const permissionsApi = {
+  // Get permissions for a specific role
+  async getByRole(organizationId: string, role: string): Promise<RolePermission | null> {
+    const { data, error} = await supabase
+      .from('role_permissions')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('role', role)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Get all role permissions for organization
+  async getAll(organizationId: string): Promise<RolePermission[]> {
+    const { data, error } = await supabase
+      .from('role_permissions')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .order('role', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Update permissions for a role
+  async update(organizationId: string, role: string, permissions: Partial<RolePermission>): Promise<RolePermission> {
+    const { data, error } = await supabase
+      .from('role_permissions')
+      .update({ ...permissions, updated_at: new Date().toISOString() })
+      .eq('organization_id', organizationId)
+      .eq('role', role)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Check if a specific permission is granted for a role
+  async hasPermission(
+    organizationId: string,
+    role: string,
+    permission: keyof RolePermission
+  ): Promise<boolean> {
+    const rolePerms = await this.getByRole(organizationId, role)
+    if (!rolePerms) return false
+    return rolePerms[permission] as boolean
+  },
+
+  // Get permissions for a specific staff member
+  async getForStaffMember(organizationId: string, staffId: string): Promise<RolePermission | null> {
+    // First get the staff member to know their role
+    const { data: staffMember } = await supabase
+      .from('staff_members')
+      .select('role')
+      .eq('id', staffId)
+      .single()
+
+    if (!staffMember) return null
+
+    return this.getByRole(organizationId, staffMember.role)
+  }
+}
+
+// ============================================
+// STAFF MEMBER PERMISSIONS API (Individual Override)
+// ============================================
+export const staffMemberPermissionsApi = {
+  // Get individual permissions for a staff member
+  async get(organizationId: string, staffId: string): Promise<StaffMemberPermission | null> {
+    const { data, error } = await supabase
+      .from('staff_member_permissions')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('staff_id', staffId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows
+    return data || null
+  },
+
+  // Create or update individual permissions
+  async upsert(
+    organizationId: string,
+    staffId: string,
+    permissions: Partial<StaffMemberPermission>
+  ): Promise<StaffMemberPermission> {
+    const { data, error } = await supabase
+      .from('staff_member_permissions')
+      .upsert({
+        organization_id: organizationId,
+        staff_id: staffId,
+        ...permissions,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Get effective permissions (role + overrides merged)
+  async getEffective(organizationId: string, staffId: string): Promise<RolePermission | null> {
+    const { data, error } = await supabase
+      .rpc('get_effective_permissions', {
+        p_organization_id: organizationId,
+        p_staff_id: staffId
+      })
+
+    if (error) throw error
+    return data?.[0] || null
+  },
+
+  // Clear all overrides for a staff member (revert to role defaults)
+  async clearOverrides(organizationId: string, staffId: string): Promise<void> {
+    const { error } = await supabase
+      .from('staff_member_permissions')
+      .delete()
+      .eq('organization_id', organizationId)
+      .eq('staff_id', staffId)
+
+    if (error) throw error
+  },
+
+  // Set a single permission override
+  async setPermission(
+    organizationId: string,
+    staffId: string,
+    permission: keyof StaffMemberPermission,
+    value: boolean | null
+  ): Promise<void> {
+    // First check if record exists
+    const existing = await this.get(organizationId, staffId)
+
+    if (existing) {
+      // Update existing
+      const { error } = await supabase
+        .from('staff_member_permissions')
+        .update({
+          [permission]: value,
+          updated_at: new Date().toISOString()
+        })
+        .eq('organization_id', organizationId)
+        .eq('staff_id', staffId)
+
+      if (error) throw error
+    } else {
+      // Create new
+      const { error } = await supabase
+        .from('staff_member_permissions')
+        .insert({
+          organization_id: organizationId,
+          staff_id: staffId,
+          [permission]: value
+        })
+
+      if (error) throw error
+    }
   }
 }

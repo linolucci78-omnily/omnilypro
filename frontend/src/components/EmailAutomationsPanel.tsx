@@ -191,13 +191,23 @@ const EmailAutomationsPanel: React.FC<EmailAutomationsPanelProps> = ({
       ? ((automation.total_sent - automation.total_failed) / automation.total_sent * 100).toFixed(1)
       : '0.0'
 
+    const openRate = automation.total_sent > 0
+      ? ((automation.total_opened / automation.total_sent) * 100).toFixed(1)
+      : '0.0'
+
+    const clickRate = automation.total_sent > 0
+      ? ((automation.total_clicked / automation.total_sent) * 100).toFixed(1)
+      : '0.0'
+
     return {
       total: automation.total_sent,
       success: automation.total_sent - automation.total_failed,
       failed: automation.total_failed,
       opened: automation.total_opened,
       clicked: automation.total_clicked,
-      successRate
+      successRate,
+      openRate,
+      clickRate
     }
   }
 
@@ -341,17 +351,22 @@ const EmailAutomationsPanel: React.FC<EmailAutomationsPanelProps> = ({
                   <div className="stat-item success">
                     <CheckCircle size={16} />
                     <div className="stat-value">{stats.success}</div>
-                    <div className="stat-label">Successo</div>
+                    <div className="stat-label">Consegnate</div>
                   </div>
                   <div className="stat-item error">
                     <AlertCircle size={16} />
                     <div className="stat-value">{stats.failed}</div>
                     <div className="stat-label">Fallite</div>
                   </div>
-                  <div className="stat-item rate">
+                  <div className="stat-item opened">
+                    <Mail size={16} />
+                    <div className="stat-value">{stats.opened}</div>
+                    <div className="stat-label">Aperte ({stats.openRate}%)</div>
+                  </div>
+                  <div className="stat-item clicked">
                     <Award size={16} />
-                    <div className="stat-value">{stats.successRate}%</div>
-                    <div className="stat-label">Tasso</div>
+                    <div className="stat-value">{stats.clicked}</div>
+                    <div className="stat-label">Cliccate ({stats.clickRate}%)</div>
                   </div>
                 </div>
               )}

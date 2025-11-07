@@ -1,0 +1,594 @@
+/* ============================================
+   PERMISSIONS MANAGEMENT
+   ============================================ */
+
+.permissions-management {
+  width: 100%;
+  max-width: 100%;
+  padding: 20px;
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 3%, white);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.permissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.permissions-header-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  color: var(--primary-color, #dc2626);
+}
+
+.permissions-header-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #1f2937;
+}
+
+.permissions-header-title p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.permissions-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-reset,
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-reset:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.btn-save {
+  background: var(--primary-color, #dc2626);
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 85%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px color-mix(in srgb, var(--primary-color, #dc2626) 25%, transparent);
+}
+
+.btn-reset:disabled,
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   MODE TABS
+   ============================================ */
+
+.permissions-mode-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-tab:hover {
+  color: var(--primary-color, #dc2626);
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 5%, transparent);
+}
+
+.mode-tab.active {
+  color: var(--primary-color, #dc2626);
+  border-bottom-color: var(--primary-color, #dc2626);
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 10%, transparent);
+}
+
+/* ============================================
+   CONTENT LAYOUT
+   ============================================ */
+
+.permissions-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* ============================================
+   SIDEBAR - ROLE SELECTION
+   ============================================ */
+
+.permissions-sidebar {
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.permissions-sidebar h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 16px 0;
+}
+
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-item:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--primary-color, #dc2626) 10%, transparent);
+}
+
+.role-item.active {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary-color, #dc2626) 5%, white),
+    color-mix(in srgb, var(--primary-color, #dc2626) 10%, white));
+  border-color: var(--primary-color, #dc2626);
+}
+
+.role-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.role-count {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.role-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.role-badge-admin {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 15%, white);
+  color: var(--primary-color, #dc2626);
+}
+
+.role-badge-manager {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 12%, white);
+  color: color-mix(in srgb, var(--primary-color, #dc2626) 85%, black);
+}
+
+.role-badge-cashier {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 10%, white);
+  color: color-mix(in srgb, var(--primary-color, #dc2626) 80%, black);
+}
+
+.role-badge-staff {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Member List (for individual mode) */
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.member-item:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--primary-color, #dc2626) 10%, transparent);
+}
+
+.member-item.active {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary-color, #dc2626) 5%, white),
+    color-mix(in srgb, var(--primary-color, #dc2626) 10%, white));
+  border-color: var(--primary-color, #dc2626);
+}
+
+.member-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.member-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.member-role {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ============================================
+   MAIN - PERMISSIONS
+   ============================================ */
+
+.permissions-main {
+  padding: 32px;
+}
+
+.permissions-role-info {
+  margin-bottom: 32px;
+}
+
+.permissions-role-info h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.permissions-role-info p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.btn-clear-overrides {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+
+.btn-clear-overrides:hover {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   PERMISSION GROUPS
+   ============================================ */
+
+.permissions-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.permission-group {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.permission-group:hover {
+  border-color: color-mix(in srgb, var(--primary-color, #dc2626) 30%, #e5e7eb);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.permission-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--primary-color, #dc2626);
+}
+
+.permission-group-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.permission-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.permission-item:hover {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 2%, white);
+}
+
+.permission-item.overridden {
+  background: #fff7ed;
+  border-left: 3px solid #f97316;
+}
+
+.permission-item.overridden:hover {
+  background: #ffedd5;
+}
+
+.permission-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.permission-label span {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.override-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f97316;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   TOGGLE SWITCH
+   ============================================ */
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #cbd5e1;
+  border-radius: 26px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-slider {
+  background: var(--primary-color, #dc2626);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+}
+
+.toggle:hover .toggle-slider {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #dc2626) 10%, transparent);
+}
+
+/* ============================================
+   LOADING & EMPTY STATES
+   ============================================ */
+
+.permissions-loading,
+.permissions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.permissions-loading .spinner,
+.permissions-empty svg {
+  margin-bottom: 16px;
+}
+
+.permissions-loading p,
+.permissions-empty p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid color-mix(in srgb, var(--primary-color, #dc2626) 10%, white);
+  border-top-color: var(--primary-color, #dc2626);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .permissions-content {
+    grid-template-columns: 1fr;
+  }
+
+  .permissions-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .role-list {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .role-item {
+    min-width: 200px;
+  }
+
+  .permissions-groups {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .permissions-management {
+    padding: 16px;
+  }
+
+  .permissions-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .permissions-header-title {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .permissions-header-title h1 {
+    font-size: 22px;
+  }
+
+  .permissions-actions {
+    flex-direction: column;
+  }
+
+  .btn-reset,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .permissions-main {
+    padding: 20px;
+  }
+
+  .permissions-role-info h2 {
+    font-size: 20px;
+  }
+
+  .role-list {
+    gap: 12px;
+  }
+
+  .role-item {
+    min-width: 160px;
+  }
+}
