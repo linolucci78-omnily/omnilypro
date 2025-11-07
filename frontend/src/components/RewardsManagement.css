@@ -425,13 +425,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 2rem 2rem 1.5rem 2rem;
-  border-bottom: 2px solid #f3f4f6;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  border-bottom: none;
 }
 
 .modal-header h2 {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #1f2937;
+  color: white;
   margin: 0;
 }
 
@@ -440,8 +441,8 @@
   height: 40px;
   border-radius: 10px;
   border: none;
-  background: transparent;
-  color: #dc2626;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -450,7 +451,7 @@
 }
 
 .btn-close-modal:hover {
-  background: rgba(220, 38, 38, 0.1);
+  background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
 
