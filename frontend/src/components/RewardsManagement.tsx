@@ -15,7 +15,11 @@ import {
   Target,
   AlertCircle,
   CheckCircle,
-  Loader
+  Loader,
+  Tag,
+  Wrench,
+  Sparkles,
+  Gift
 } from 'lucide-react'
 import { rewardsService, type Reward } from '../services/rewardsService'
 import { supabase } from '../lib/supabase'
@@ -49,12 +53,12 @@ interface RewardFormData {
   category?: RewardCategory
 }
 
-const CATEGORIES: {value: RewardCategory; label: string; icon: string}[] = [
-  { value: 'product', label: 'Prodotti', icon: '📦' },
-  { value: 'discount', label: 'Sconti', icon: '💰' },
-  { value: 'service', label: 'Servizi', icon: '🔧' },
-  { value: 'experience', label: 'Esperienze', icon: '🎉' },
-  { value: 'other', label: 'Altro', icon: '🎁' }
+const CATEGORIES: {value: RewardCategory; label: string; Icon: React.FC<{size?: number}>}[] = [
+  { value: 'product', label: 'Prodotti', Icon: Package },
+  { value: 'discount', label: 'Sconti', Icon: Tag },
+  { value: 'service', label: 'Servizi', Icon: Wrench },
+  { value: 'experience', label: 'Esperienze', Icon: Sparkles },
+  { value: 'other', label: 'Altro', Icon: Gift }
 ]
 
 const RewardsManagement: React.FC<RewardsManagementProps> = ({
@@ -96,7 +100,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   const fetchRewards = async () => {
     try {
       setLoading(true)
-      const allRewards = await rewardsService.getRewards(organizationId)
+      const allRewards = await rewardsService.getAll(organizationId)
       setRewards(allRewards)
     } catch (error) {
       console.error('Error fetching rewards:', error)
@@ -187,15 +191,23 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     setValidationError('')
 
     try {
+      // Map formData to RewardInput
       const rewardData = {
-        organization_id: organizationId,
-        ...formData
+        name: formData.name,
+        type: formData.type as any, // Needs proper mapping
+        value: formData.value,
+        points_required: formData.points_required,
+        required_tier: formData.required_tier,
+        description: formData.description,
+        image_url: formData.image_url,
+        is_active: formData.is_active,
+        stock_quantity: formData.stock_quantity
       }
 
       if (editingReward) {
-        await rewardsService.updateReward(editingReward.id, rewardData)
+        await rewardsService.update(editingReward.id, organizationId, rewardData)
       } else {
-        await rewardsService.createReward(rewardData)
+        await rewardsService.create(organizationId, rewardData)
       }
 
       await fetchRewards()
@@ -210,7 +222,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     if (!confirm('Sei sicuro di voler eliminare questo premio?')) return
 
     try {
-      await rewardsService.deleteReward(id)
+      await rewardsService.delete(id, organizationId)
       await fetchRewards()
     } catch (error) {
       console.error('Errore eliminazione premio:', error)
@@ -221,7 +233,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
-      await rewardsService.updateReward(id, { is_active: isActive })
+      await rewardsService.toggleStatus(id, organizationId, isActive)
       await fetchRewards()
     } catch (error) {
       console.error('Errore aggiornamento stato:', error)
@@ -329,7 +341,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
               className={`filter-btn ${selectedCategory === cat.value ? 'active' : ''}`}
               onClick={() => setSelectedCategory(cat.value)}
             >
-              <span>{cat.icon}</span>
+              <cat.Icon size={16} />
               <span>{cat.label}</span>
             </button>
           ))}
@@ -510,7 +522,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                   >
                     {CATEGORIES.map(cat => (
                       <option key={cat.value} value={cat.value}>
-                        {cat.icon} {cat.label}
+                        {cat.label}
                       </option>
                     ))}
                   </select>
@@ -532,8 +544,8 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                   <label>Punti Richiesti *</label>
                   <input
                     type="number"
-                    value={formData.points_required}
-                    onChange={(e) => setFormData({ ...formData, points_required: parseInt(e.target.value) })}
+                    value={formData.points_required || ''}
+                    onChange={(e) => setFormData({ ...formData, points_required: e.target.value ? parseInt(e.target.value) : 0 })}
                     min="0"
                   />
                 </div>
