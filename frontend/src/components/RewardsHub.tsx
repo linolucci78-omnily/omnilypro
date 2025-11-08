@@ -34,7 +34,7 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
   const fetchRewards = async () => {
     try {
       setLoading(true)
-      const allRewards = await rewardsService.getRewards(organizationId)
+      const allRewards = await rewardsService.getAll(organizationId)
       setRewards(allRewards)
 
       // Calcola statistiche

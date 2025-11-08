@@ -178,6 +178,13 @@
     overflow: hidden !important;
   }
 
+  /* FORZA REWARDS HUB - Fix scroll e altezza corretta */
+  .pos-layout .dashboard-content {
+    height: calc(100vh - 70px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
 }
 
 /* Prevenire scroll body quando sidebar è aperta */

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  CreditCard, 
-  Users, 
-  Star, 
-  Gift, 
-  Monitor, 
-  Printer, 
-  Wifi, 
+import {
+  CreditCard,
+  Users,
+  Star,
+  Gift,
+  Monitor,
+  Printer,
+  Wifi,
   Settings,
   Play,
   RotateCcw,
@@ -21,6 +21,7 @@ import {
   EyeOff,
   RefreshCw
 } from 'lucide-react'
+import { rewardsService, type Reward } from '../../services/rewardsService'
 import './MerchantControl.css'
 
 type DisplayState = 'idle' | 'welcome' | 'reading-card' | 'customer-found' | 'transaction' | 'rewards' | 'completed'
@@ -30,19 +31,23 @@ interface MerchantControlProps {
   onTransactionUpdate: (transaction: any) => void
   displayState: DisplayState
   zcsSDK: any // ZCS SDK reference
+  organizationId: string // Organization ID per caricare i premi reali
 }
 
 const MerchantControl: React.FC<MerchantControlProps> = ({
   onDisplayStateChange,
   onTransactionUpdate,
   displayState,
-  zcsSDK
+  zcsSDK,
+  organizationId
 }) => {
   const [currentCustomer, setCurrentCustomer] = useState<any>(null)
   const [transactionAmount, setTransactionAmount] = useState('')
   const [connectionStatus] = useState('connected')
   const [isReading, setIsReading] = useState(false)
   const [showCustomerDetails, setShowCustomerDetails] = useState(true)
+  const [rewards, setRewards] = useState<Reward[]>([])
+  const [loadingRewards, setLoadingRewards] = useState(true)
   
   interface Transaction {
     id: string;
@@ -88,12 +93,26 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
     }
   ]
 
-  const mockRewards = [
-    { id: '1', name: 'Sconto 10%', pointsRequired: 500, available: true },
-    { id: '2', name: 'Caffè Gratis', pointsRequired: 200, available: true },
-    { id: '3', name: 'Prodotto Omaggio', pointsRequired: 1000, available: true },
-    { id: '4', name: 'Sconto 20%', pointsRequired: 1500, available: false }
-  ]
+  // Carica i premi reali dal database
+  useEffect(() => {
+    const fetchRewards = async () => {
+      try {
+        setLoadingRewards(true)
+        const allRewards = await rewardsService.getAll(organizationId)
+        // Filtra solo i premi attivi
+        const activeRewards = allRewards.filter(r => r.is_active)
+        setRewards(activeRewards)
+      } catch (error) {
+        console.error('Errore caricamento premi:', error)
+      } finally {
+        setLoadingRewards(false)
+      }
+    }
+
+    if (organizationId) {
+      fetchRewards()
+    }
+  }, [organizationId])
 
   useEffect(() => {
     // Simulate hardware status checks
@@ -132,9 +151,11 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
           amount,
           pointsToEarn,
           customer,
-          rewards: mockRewards.map(r => ({
-            ...r,
-            available: customer.currentPoints >= r.pointsRequired
+          rewards: rewards.map(r => ({
+            id: r.id,
+            name: r.name,
+            pointsRequired: r.points_required,
+            available: customer.currentPoints >= r.points_required
           }))
         }
         
@@ -423,26 +444,40 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
               <h3>Premi Disponibili</h3>
               <Trophy size={20} />
             </div>
-            
+
             <div className="rewards-list">
-              {mockRewards.map(reward => (
-                <div 
-                  key={reward.id}
-                  className={`reward-item ${reward.available ? 'available' : 'unavailable'}`}
-                >
-                  <div className="reward-info">
-                    <div className="reward-name">{reward.name}</div>
-                    <div className="reward-points">{reward.pointsRequired} punti</div>
-                  </div>
-                  <div className="reward-status">
-                    {reward.available ? (
-                      <CheckCircle2 size={16} color="#10b981" />
-                    ) : (
-                      <Clock size={16} color="#6b7280" />
-                    )}
-                  </div>
+              {loadingRewards ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>
+                  Caricamento premi...
                 </div>
-              ))}
+              ) : rewards.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>
+                  <Gift size={32} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
+                  <p>Nessun premio disponibile</p>
+                </div>
+              ) : (
+                rewards.map(reward => {
+                  const isAvailable = currentCustomer.currentPoints >= reward.points_required
+                  return (
+                    <div
+                      key={reward.id}
+                      className={`reward-item ${isAvailable ? 'available' : 'unavailable'}`}
+                    >
+                      <div className="reward-info">
+                        <div className="reward-name">{reward.name}</div>
+                        <div className="reward-points">{reward.points_required} punti</div>
+                      </div>
+                      <div className="reward-status">
+                        {isAvailable ? (
+                          <CheckCircle2 size={16} color="#10b981" />
+                        ) : (
+                          <Clock size={16} color="#6b7280" />
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
         )}
