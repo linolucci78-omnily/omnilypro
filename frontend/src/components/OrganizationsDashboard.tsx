@@ -38,6 +38,7 @@ import POSIntegrationHub from './POSIntegrationHub'
 import AnalyticsReportsHub from './AnalyticsReportsHub'
 import BrandingSocialHub from './BrandingSocialHub'
 import SettingsHub from './SettingsHub'
+import ChannelsHub from './ChannelsHub'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -2546,56 +2547,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'channels':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Globe size={24} />
-              <h2>Canali di Integrazione</h2>
-              <p>Canali di vendita configurati nel wizard</p>
-            </div>
-
-            <div className="channels-grid">
-              <div className="channel-card">
-                <div className="channel-header">
-                  <Zap size={20} />
-                  <h3>POS</h3>
-                  <div className={`channel-status ${currentOrganization?.enable_pos ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.enable_pos ? 'Abilitato' : 'Disabilitato'}
-                  </div>
-                </div>
-                <p>Sistema punto vendita fisico</p>
-                {currentOrganization?.pos_type && (
-                  <div className="channel-detail">Tipo: {currentOrganization.pos_type}</div>
-                )}
-              </div>
-
-              <div className="channel-card">
-                <div className="channel-header">
-                  <Globe size={20} />
-                  <h3>E-commerce</h3>
-                  <div className={`channel-status ${currentOrganization?.enable_ecommerce ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.enable_ecommerce ? 'Abilitato' : 'Disabilitato'}
-                  </div>
-                </div>
-                <p>Negozio online integrato</p>
-                {currentOrganization?.ecommerce_platform && (
-                  <div className="channel-detail">Piattaforma: {currentOrganization.ecommerce_platform}</div>
-                )}
-              </div>
-
-              <div className="channel-card">
-                <div className="channel-header">
-                  <div style={{fontSize: '20px'}}>📱</div>
-                  <h3>App Mobile</h3>
-                  <div className={`channel-status ${currentOrganization?.enable_app ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.enable_app ? 'Abilitata' : 'Disabilitata'}
-                  </div>
-                </div>
-                <p>Applicazione mobile per clienti</p>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <ChannelsHub organization={currentOrganization} />
           </div>
-        )
+        ) : null
 
       case 'campaigns':
         return (
