@@ -118,7 +118,7 @@
 }
 
 .step-item.active .step-label {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-weight: 600;
 }
 
@@ -144,7 +144,7 @@
 .create-template-error {
   padding: 1rem;
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   border-radius: 8px;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
@@ -192,7 +192,7 @@
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -221,7 +221,7 @@
 .price-input {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 /* Subscription Types Grid */
@@ -241,12 +241,12 @@
 }
 
 .subscription-type-card:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: #f3f4f6;
 }
 
 .subscription-type-card.active {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
@@ -275,7 +275,7 @@
 
 .btn-add-tag {
   padding: 0.875rem 1.5rem;
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
   border: none;
   border-radius: 12px;
@@ -301,7 +301,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -309,7 +309,7 @@
 }
 
 .tag.excluded {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
 }
 
 .tag button {
@@ -348,12 +348,12 @@
 }
 
 .weekday-btn:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: #f3f4f6;
 }
 
 .weekday-btn.active {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
@@ -505,7 +505,7 @@
 
 .summary-item strong.price {
   font-size: 1.25rem;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 /* Footer Actions */
@@ -701,7 +701,7 @@
 }
 
 .success-message strong {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-weight: 700;
 }
 

@@ -206,7 +206,7 @@
 }
 
 .amount-input.error {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
 }
 
 /* Balance Preview */
@@ -240,11 +240,11 @@
 }
 
 .preview-row.deduction {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .preview-row.deduction .preview-amount {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .preview-row.total {

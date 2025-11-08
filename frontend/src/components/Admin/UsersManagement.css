@@ -299,9 +299,9 @@
 }
 
 .action-btn.delete:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
   color: white;
-  border-color: #dc2626;
+  border-color: var(--primary-color, #dc2626);
   box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
 }
 

@@ -123,7 +123,7 @@
 }
 
 .stat-trend.negative {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 /* Tabs */
@@ -357,7 +357,7 @@
 
 .status-badge.danger {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 /* Amount Info */
@@ -541,7 +541,7 @@
 
 .error-container h3 {
   margin: 16px 0 8px 0;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 /* Responsive */

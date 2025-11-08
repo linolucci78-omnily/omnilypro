@@ -214,7 +214,7 @@
 }
 
 .status-icon.error {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 @keyframes scaleIn {
@@ -253,7 +253,7 @@
 }
 
 .status-message.error {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 /* Certificate Details */

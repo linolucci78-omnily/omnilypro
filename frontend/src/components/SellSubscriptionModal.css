@@ -118,7 +118,7 @@
 }
 
 .step.active .step-label {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-weight: 600;
 }
 
@@ -144,7 +144,7 @@
 .sell-subscription-error {
   padding: 1rem;
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   border-radius: 8px;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
@@ -180,7 +180,7 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -205,7 +205,7 @@
 }
 
 .customer-item:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: #f3f4f6;
   transform: translateX(4px);
 }
@@ -232,8 +232,8 @@
   gap: 0.5rem;
   padding: 1rem;
   background: white;
-  color: #ef4444;
-  border: 2px dashed #ef4444;
+  color: var(--secondary-color, #ef4444);
+  border: 2px dashed var(--secondary-color, #ef4444);
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -280,7 +280,7 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -348,8 +348,8 @@
 
 .btn-print {
   background: white;
-  color: #ef4444;
-  border: 2px solid #ef4444;
+  color: var(--secondary-color, #ef4444);
+  border: 2px solid var(--secondary-color, #ef4444);
   margin-bottom: 1rem;
 }
 
@@ -416,7 +416,7 @@
 }
 
 .template-card:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
@@ -438,7 +438,7 @@
 .template-price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .template-description {
@@ -545,7 +545,7 @@
 
 .summary-total .summary-value {
   font-size: 1.5rem;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .payment-method-selection h3 {
@@ -575,12 +575,12 @@
 }
 
 .payment-method-btn:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: #f3f4f6;
 }
 
 .payment-method-btn.active {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
@@ -639,7 +639,7 @@
 .subscription-code {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   text-align: center;
   padding: 1rem;
   background: white;

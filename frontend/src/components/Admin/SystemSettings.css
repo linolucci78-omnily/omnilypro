@@ -76,7 +76,7 @@
 
 .status-indicator.danger {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 .uptime-info {
@@ -599,7 +599,7 @@
 
 .integration-status.disconnected {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 .integration-details {
@@ -661,7 +661,7 @@
 
 .error-container h3 {
   margin: 16px 0 8px 0;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 /* Button Styles */

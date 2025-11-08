@@ -140,12 +140,12 @@
 }
 
 .craft-btn-danger {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
 }
 
 .craft-btn-danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 .craft-btn-sm {
@@ -513,11 +513,11 @@
 }
 
 .toolbar-btn-close {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
 }
 
 .toolbar-btn-close:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 /* Editor Content */

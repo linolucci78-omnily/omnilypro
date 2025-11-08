@@ -173,7 +173,7 @@
 
 .nav-link:hover {
   background: #334155;
-  color: #ef4444 !important;
+  color: var(--secondary-color, #ef4444) !important;
 }
 
 .nav-link.active {
@@ -272,7 +272,7 @@
 }
 
 .footer-link:hover {
-  color: #ef4444 !important;
+  color: var(--secondary-color, #ef4444) !important;
 }
 
 /* Main Content */
@@ -323,7 +323,7 @@
 
 .mobile-menu-btn:hover {
   background: #f1f5f9;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .breadcrumb {
@@ -946,7 +946,7 @@ table tbody tr:hover {
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
@@ -990,7 +990,7 @@ table tbody tr:hover {
 }
 
 .btn-primary:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 .btn-secondary {

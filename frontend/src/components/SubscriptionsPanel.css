@@ -138,8 +138,8 @@
 
 .subscriptions-action-btn-secondary {
   background: white;
-  color: #ef4444;
-  border: 2px solid #ef4444;
+  color: var(--secondary-color, #ef4444);
+  border: 2px solid var(--secondary-color, #ef4444);
 }
 
 .subscriptions-action-btn-secondary:hover {
@@ -192,7 +192,7 @@
 }
 
 .manage-button:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
 }
 
 .templates-button .main-button-icon {
@@ -249,13 +249,13 @@
 }
 
 .subscriptions-tab:hover {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   background: #f9fafb;
 }
 
 .subscriptions-tab.active {
-  color: #ef4444;
-  border-bottom-color: #ef4444;
+  color: var(--secondary-color, #ef4444);
+  border-bottom-color: var(--secondary-color, #ef4444);
 }
 
 /* Search */
@@ -286,7 +286,7 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -333,7 +333,7 @@
 }
 
 .subscription-card:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -416,7 +416,7 @@
 }
 
 .template-card:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -437,7 +437,7 @@
 .template-price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .template-description {
@@ -686,8 +686,8 @@
 
 .modal-action-btn-secondary {
   background: white;
-  color: #ef4444;
-  border: 2px solid #ef4444;
+  color: var(--secondary-color, #ef4444);
+  border: 2px solid var(--secondary-color, #ef4444);
 }
 
 .modal-action-btn-secondary:hover {

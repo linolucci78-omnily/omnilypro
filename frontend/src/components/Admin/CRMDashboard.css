@@ -1126,6 +1126,6 @@
   --omnily-primary: #1e40af;
   --omnily-success: #10b981;
   --omnily-warning: #f59e0b;
-  --omnily-error: #ef4444;
+  --omnily-error: var(--secondary-color, #ef4444);
   --omnily-gray: #6b7280;
 }

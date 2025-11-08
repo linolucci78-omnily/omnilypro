@@ -108,7 +108,7 @@
 
 .agent-dashboard .stat-card.urgent .stat-icon {
   background: #fee2e2;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .agent-dashboard .stat-card.success .stat-icon {
@@ -215,7 +215,7 @@
 
 .agent-dashboard .badge.urgent {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 /* Task List */

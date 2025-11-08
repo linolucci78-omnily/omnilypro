@@ -289,12 +289,18 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
       setSaving(true)
       setMessage(null)
 
+      console.log('💾 INIZIO SALVATAGGIO BRANDING')
+      console.log('🎨 Colori da salvare:', {
+        primary: branding.primary_color,
+        secondary: branding.secondary_color
+      })
+
       // Converti hashtags da stringa a array
       const hashtagsArray = branding.hashtags
         ? branding.hashtags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
         : null
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('organizations')
         .update({
           // Colors
@@ -1313,6 +1319,7 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
             </div>
             <div className="email-preview-body">
               <iframe
+                key={`${branding.primary_color}-${branding.secondary_color}`}
                 srcDoc={generateEmailPreview()}
                 style={{
                   width: '100%',

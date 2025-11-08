@@ -945,7 +945,7 @@
 }
 
 .email-preview-close:hover {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
   transform: rotate(90deg);
 }

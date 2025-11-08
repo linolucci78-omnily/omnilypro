@@ -131,15 +131,15 @@
 }
 
 .step-indicator.active .step-circle {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: var(--secondary-color, #ef4444);
+  border-color: var(--secondary-color, #ef4444);
   color: white;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
 }
 
 .step-indicator.completed .step-circle {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: var(--secondary-color, #ef4444);
+  border-color: var(--secondary-color, #ef4444);
   color: white;
 }
 
@@ -151,12 +151,12 @@
 }
 
 .step-indicator.active .step-title {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-weight: 600;
 }
 
 .step-indicator.completed .step-title {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 /* Content */
@@ -214,18 +214,18 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .form-group input.error,
 .form-group select.error {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .error-text {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-size: 12px;
   font-weight: 500;
   margin-top: 4px;
@@ -309,8 +309,8 @@
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: var(--secondary-color, #ef4444);
+  border-color: var(--secondary-color, #ef4444);
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
@@ -350,7 +350,7 @@
 }
 
 .signature-container:hover {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   background: #f8fafc;
 }
 
@@ -369,7 +369,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
   border: none;
   padding: 6px 12px;
@@ -380,7 +380,7 @@
 }
 
 .clear-signature:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
   transform: scale(1.05);
 }
 
@@ -457,7 +457,7 @@
 .error-message {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   padding: 12px 16px;
   border-radius: 8px;
   margin: 16px 40px;
@@ -629,7 +629,7 @@
   .form-group input:focus,
   .form-group select:focus,
   .form-group textarea:focus {
-    border-color: #ef4444 !important;
+    border-color: var(--secondary-color, #ef4444) !important;
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
     outline: none !important;
   }
@@ -708,7 +708,7 @@
 
   .signature-container {
     position: relative !important;
-    border: 3px solid #ef4444 !important;
+    border: 3px solid var(--secondary-color, #ef4444) !important;
     border-radius: 12px !important;
     background: white !important;
     padding: 20px !important;
@@ -736,7 +736,7 @@
     position: absolute !important;
     top: 24px !important;
     right: 24px !important;
-    background: #ef4444 !important;
+    background: var(--secondary-color, #ef4444) !important;
     color: white !important;
     border: none !important;
     padding: 16px 24px !important;
@@ -750,7 +750,7 @@
   }
 
   .clear-signature:hover {
-    background: #dc2626 !important;
+    background: var(--primary-color, #dc2626) !important;
     transform: scale(1.05) !important;
   }
 

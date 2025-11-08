@@ -25,7 +25,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e5e7eb;
-  border-top-color: #dc2626;
+  border-top-color: var(--primary-color, #dc2626);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -56,7 +56,7 @@
 }
 
 .section-header svg {
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   flex-shrink: 0;
 }
 
@@ -95,7 +95,7 @@
 }
 
 .today-metric:hover {
-  border-color: #dc2626;
+  border-color: var(--primary-color, #dc2626);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
   transform: translateY(-2px);
 }
@@ -112,7 +112,7 @@
 
 .today-metric .metric-icon.visits {
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 .today-metric .metric-icon.revenue {
@@ -169,7 +169,7 @@
 }
 
 .today-metric .metric-trend.negative {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 /* ============================================
@@ -454,7 +454,7 @@
 .top-item .rank {
   font-size: 14px;
   font-weight: 700;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   min-width: 32px;
 }
 
@@ -605,7 +605,7 @@
 .stat-td-right strong {
   font-size: 22px;
   font-weight: 700;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   display: block;
   white-space: nowrap;
   margin: 0;
@@ -632,7 +632,7 @@
 }
 
 .action-item.priority-high {
-  border-color: #dc2626;
+  border-color: var(--primary-color, #dc2626);
   background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
 }
 
@@ -648,7 +648,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
   color: white;
   flex-shrink: 0;
 }
@@ -674,7 +674,7 @@
 
 .action-btn {
   padding: 10px 20px;
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
   color: white;
   border: none;
   border-radius: 8px;
@@ -913,7 +913,7 @@
   .stat-td-right strong {
     font-size: 18px !important;
     font-weight: 800 !important;
-    color: #dc2626 !important;
+    color: var(--primary-color, #dc2626) !important;
   }
 
   /* Metriche oggi - COMPATTE in portrait */
@@ -1049,7 +1049,7 @@ body:has(.pos-layout) .analytics-dashboard .stat-td-right strong {
   display: block !important;
   font-size: 26px !important;
   font-weight: 800 !important;
-  color: #dc2626 !important;
+  color: var(--primary-color, #dc2626) !important;
 }
 
 /* ============================================

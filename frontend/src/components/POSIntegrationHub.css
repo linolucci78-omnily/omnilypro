@@ -228,7 +228,7 @@
 .pos-hardware-card.status-offline,
 .pos-hardware-card.status-error,
 .pos-hardware-card.status-unavailable {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
 }
 
 .pos-hardware-card.status-checking {
@@ -298,7 +298,7 @@
 .pos-status-indicator.status-error,
 .pos-status-indicator.status-unavailable {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 .pos-status-indicator.status-checking {
@@ -351,7 +351,7 @@
 .pos-hardware-badge.status-error,
 .pos-hardware-badge.status-unavailable {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 .pos-hardware-badge.status-checking {
@@ -542,7 +542,7 @@
 .pos-test-badge.unavailable,
 .pos-test-badge.offline {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
 }
 
 .pos-test-badge.checking {
@@ -726,7 +726,7 @@
 }
 
 .matrix-log-error {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .matrix-log-warn {

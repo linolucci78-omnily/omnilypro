@@ -272,13 +272,13 @@
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 8px;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }
 
 .field-error {
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   font-size: 0.8rem;
   margin-top: 0.25rem;
   display: block;
@@ -372,7 +372,7 @@
 .remove-tier-btn {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -455,12 +455,12 @@
 
 .field-group input:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .field-group input.error {
-  border-color: #dc2626;
+  border-color: var(--primary-color, #dc2626);
   background: #fef2f2;
 }
 

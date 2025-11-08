@@ -161,7 +161,7 @@
 }
 
 .form-input.error {
-  border-color: #ef4444;
+  border-color: var(--secondary-color, #ef4444);
 }
 
 .form-textarea {
@@ -296,7 +296,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -313,7 +313,7 @@
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 10px;
-  color: #dc2626;
+  color: var(--primary-color, #dc2626);
   margin-bottom: 1rem;
 }
 

@@ -8,7 +8,7 @@
   border-radius: 16px !important;
   padding: 0 !important;
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15) !important;
-  border: 2px solid #ef4444 !important;
+  border: 2px solid var(--secondary-color, #ef4444) !important;
   transition: all 0.3s ease !important;
   overflow: hidden !important;
   position: relative !important;

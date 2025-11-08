@@ -72,7 +72,7 @@
 }
 
 .stat-card.offline {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--secondary-color, #ef4444);
 }
 
 .stat-card.kiosk {
@@ -151,7 +151,7 @@
 }
 
 .device-card.offline {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--secondary-color, #ef4444);
 }
 
 .device-card.setup {
@@ -207,7 +207,7 @@
 }
 
 .status-icon.offline {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .status-icon.setup {
@@ -305,12 +305,12 @@
 }
 
 .action-btn.danger {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
 }
 
 .action-btn.danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 .action-btn.warning {

@@ -583,12 +583,12 @@
 
 /* Delete button - Rosso */
 .action-button-circle:nth-child(3) {
-  background-color: #ef4444;
+  background-color: var(--secondary-color, #ef4444);
   color: white;
 }
 
 .action-button-circle:nth-child(3):hover {
-  background-color: #dc2626;
+  background-color: var(--primary-color, #dc2626);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
   transform: translateY(-1px);
 }

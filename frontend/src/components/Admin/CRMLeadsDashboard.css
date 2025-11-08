@@ -60,7 +60,7 @@
 
 .btn-fix-data {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  border-color: #dc2626;
+  border-color: var(--primary-color, #dc2626);
 }
 
 .btn-add-lead:hover {

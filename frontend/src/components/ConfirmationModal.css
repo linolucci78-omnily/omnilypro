@@ -81,7 +81,7 @@
 }
 
 .confirmation-modal-error .confirmation-modal-icon {
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
 }
 
 .confirmation-modal-warning .confirmation-modal-icon {
@@ -153,11 +153,11 @@
 }
 
 .confirmation-modal-error .confirmation-modal-button {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
 }
 
 .confirmation-modal-error .confirmation-modal-button:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 .confirmation-modal-warning .confirmation-modal-button {
