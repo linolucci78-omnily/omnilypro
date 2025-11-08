@@ -72,7 +72,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 2.5rem 2rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   position: relative;
   box-shadow:
     0 8px 32px rgba(239, 68, 68, 0.3),
@@ -297,7 +297,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem 2rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -319,7 +319,7 @@
 }
 
 .read-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 15px 40px rgba(239, 68, 68, 0.4);
 }
@@ -599,7 +599,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -620,7 +620,7 @@
 }
 
 .assign-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   transform: scale(1.05);
 }
 
@@ -708,7 +708,7 @@
 
 .btn-primary {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -727,7 +727,7 @@
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   transform: translateY(-1px);
 }
 
@@ -809,7 +809,7 @@
 
 .btn-danger {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: 2px solid var(--primary-color, #dc2626);
   border-radius: 12px;
@@ -820,8 +820,8 @@
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-  border-color: #b91c1c;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
+  border-color: var(--primary-color, #dc2626);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }

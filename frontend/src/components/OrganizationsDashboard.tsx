@@ -123,6 +123,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       onPreviewColorsChange(previewColors.primary, previewColors.secondary)
     }
   }, [previewColors.primary, previewColors.secondary, onPreviewColorsChange])
+
+  // IMPORTANTE: Imposta CSS variables GLOBALMENTE per tutti i componenti (anche modali)
+  useEffect(() => {
+    const colors = getActiveColors()
+    console.log('🎨 Impostazione CSS variables globali:', colors)
+    document.documentElement.style.setProperty('--primary-color', colors.primary)
+    document.documentElement.style.setProperty('--secondary-color', colors.secondary)
+  }, [previewColors.primary, previewColors.secondary, currentOrganization?.primary_color, currentOrganization?.secondary_color])
   const [qrResult, setQrResult] = useState<any>(null);
   const [nfcTimeoutId, setNfcTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
@@ -2946,10 +2954,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   return (
     <div
       className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}
-      style={{
-        '--primary-color': getActiveColors().primary,
-        '--secondary-color': getActiveColors().secondary
-      } as React.CSSProperties}
+      style={
+        isPOSMode
+          ? {} // In POS mode, eredita CSS variables da POSLayout (parent)
+          : {
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties
+      }
     >
       {/* DEBUG: POS Mode Indicator */}
       {isPOSMode && (

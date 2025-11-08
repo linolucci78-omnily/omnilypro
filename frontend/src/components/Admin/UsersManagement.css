@@ -229,7 +229,7 @@
 
 .status-badge.inactive {
   background: #fee2e2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .date-cell {
@@ -295,7 +295,7 @@
 .action-btn.delete {
   background: #fef2f2;
   border-color: #fca5a5;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .action-btn.delete:hover {

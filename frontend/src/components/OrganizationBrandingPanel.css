@@ -151,7 +151,7 @@
   align-items: center;
   gap: 10px;
   padding: 14px 32px;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -163,7 +163,7 @@
 }
 
 .btn-save-branding:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
 }

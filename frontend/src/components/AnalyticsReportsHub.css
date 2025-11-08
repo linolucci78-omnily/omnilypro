@@ -32,7 +32,7 @@
   width: 80px;
   height: 80px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +82,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   color: white;
   border: none;
   border-radius: 12px;
@@ -170,7 +170,7 @@
 .analytics-error p {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
   margin: 0;
 }
 
@@ -179,7 +179,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #dc2626, #ef4444);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #ef4444);
   color: white;
   border: none;
   border-radius: 12px;
@@ -503,7 +503,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   color: white;
   display: flex;
   align-items: center;
@@ -645,7 +645,7 @@
 }
 
 .analytics-action-card-primary .analytics-action-icon {
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
 }
 
 .analytics-action-card-secondary .analytics-action-icon {
@@ -818,7 +818,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   color: white;
   border: none;
   border-radius: 12px;
@@ -941,7 +941,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -1231,7 +1231,7 @@ input[type="date"].analytics-input {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   color: white;
   display: flex;
   align-items: center;

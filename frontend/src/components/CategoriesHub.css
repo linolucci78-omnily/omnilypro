@@ -27,7 +27,7 @@
   width: 80px;
   height: 80px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,7 +246,7 @@
 }
 
 .categories-hub-card-primary .categories-hub-card-icon {
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
 }
 
 .categories-hub-card-secondary .categories-hub-card-icon {

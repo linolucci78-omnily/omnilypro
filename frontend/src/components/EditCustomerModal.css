@@ -130,7 +130,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), color-mix(in srgb, var(--primary-color, #dc2626) 80%, black));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), color-mix(in srgb, var(--primary-color, #dc2626) 80%, black));
   color: white;
   font-size: 48px;
   font-weight: 700;

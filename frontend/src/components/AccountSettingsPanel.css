@@ -41,7 +41,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   color: white;
   box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
 }
@@ -65,7 +65,7 @@
 .save-notification.error {
   background: #fef2f2;
   border: 2px solid #fecaca;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 @keyframes slideDown {
@@ -297,7 +297,7 @@
 .btn-save {
   width: 100%;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -338,7 +338,7 @@
 
 .danger-section h4 {
   margin: 0 0 0.5rem 0;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
   font-size: 1.1rem;
 }
 
@@ -445,7 +445,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
   color: white;
   border: none;
   border-radius: 8px;

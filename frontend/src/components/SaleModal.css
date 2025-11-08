@@ -277,7 +277,7 @@
 .pinpad-debug p {
   margin: 0.5rem 0;
   font-size: 0.9rem;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .pinpad-status p {

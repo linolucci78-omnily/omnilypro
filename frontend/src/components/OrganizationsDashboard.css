@@ -32,7 +32,7 @@
 /* ========== POS HARDWARE PANEL ========== */
 .pos-hardware-panel {
   width: 100%;
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -221,7 +221,7 @@
 /* ========== SIDEBAR ========== */
 .sidebar {
   width: 280px;
-  background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
+  background: linear-gradient(180deg, var(--secondary-color, var(--secondary-color, #ef4444)) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -454,7 +454,7 @@
 
 .btn-logout:hover {
   background: var(--primary-color, #dc2626);
-  border-color: #b91c1c;
+  border-color: var(--primary-color, #dc2626);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
   transform: translateY(-1px);
 }
@@ -1592,7 +1592,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
   color: white;
   display: flex;
   align-items: center;
@@ -2748,7 +2748,7 @@
 }
 
 .reward-points svg {
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
   flex-shrink: 0;
   filter: drop-shadow(0 2px 4px rgba(127, 29, 29, 0.4));
 }
@@ -2758,7 +2758,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  background: linear-gradient(135deg, #f87171 0%, var(--secondary-color, #ef4444) 100%);
   border-radius: 20px;
   color: white;
   font-weight: 600;
@@ -3595,7 +3595,7 @@ input:checked + .slider:before {
   gap: 1rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   color: white;
   border-radius: 12px;
 }
@@ -3851,7 +3851,7 @@ input:checked + .slider:before {
 }
 
 .reward-card:hover .reward-header h3 {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -4045,7 +4045,7 @@ input:checked + .slider:before {
 
 .campaign-status.inactive {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 @media (max-width: 1024px) {
@@ -4183,7 +4183,7 @@ input:checked + .slider:before {
 }
 
 .status-inactive {
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
   font-weight: 600;
 }
 
@@ -4220,7 +4220,7 @@ input:checked + .slider:before {
 
 .feature-item.disabled {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 @media (max-width: 1024px) {
@@ -4295,7 +4295,7 @@ input:checked + .slider:before {
 
 .notification-status.inactive {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .sub-setting {
@@ -4310,7 +4310,7 @@ input:checked + .slider:before {
 }
 
 .sub-setting .disabled {
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
   font-weight: 600;
 }
 
@@ -4372,7 +4372,7 @@ input:checked + .slider:before {
 
 .status-badge.inactive {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .report-frequency {
@@ -4585,7 +4585,7 @@ input:checked + .slider:before {
 
 .channel-status.inactive {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .channel-detail {
@@ -4914,7 +4914,7 @@ input:checked + .slider:before {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -5011,7 +5011,7 @@ input:checked + .slider:before {
 .btn-test {
   margin-top: auto;
   padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -5027,7 +5027,7 @@ input:checked + .slider:before {
 }
 
 .btn-test:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
@@ -5260,7 +5260,7 @@ input:checked + .slider:before {
 }
 
 .view-toggle-btn.active {
-  background: linear-gradient(135deg, #dc2626, #ef4444);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #ef4444);
   color: white;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }

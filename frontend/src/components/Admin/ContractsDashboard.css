@@ -329,7 +329,7 @@
 .btn-icon.btn-danger:hover {
   background: #fecaca;
   border-color: var(--secondary-color, #ef4444);
-  color: #b91c1c;
+  color: var(--primary-color, #dc2626);
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
 }
 

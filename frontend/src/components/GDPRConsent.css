@@ -360,7 +360,7 @@
 
 .summary-item.declined {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
   border: 1px solid #fecaca;
 }
 

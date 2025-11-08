@@ -39,7 +39,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -84,7 +84,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -127,7 +127,7 @@
 }
 
 .subscriptions-action-btn-primary {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -188,7 +188,7 @@
 }
 
 .manage-button .main-button-icon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
 }
 
 .manage-button:hover {
@@ -391,7 +391,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -502,7 +502,7 @@
 }
 
 .stat-card-icon.revenue {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
 }
 
 .stat-card-icon.usage {
@@ -510,7 +510,7 @@
 }
 
 .stat-card-icon.expiring {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
 }
 
 .stat-card-content {
@@ -624,7 +624,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 2px solid #e5e7eb;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -675,7 +675,7 @@
 }
 
 .modal-action-btn-primary {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 

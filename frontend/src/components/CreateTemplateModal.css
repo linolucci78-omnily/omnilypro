@@ -38,7 +38,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -101,7 +101,7 @@
 }
 
 .step-item.active .step-number {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   transform: scale(1.1);
 }
@@ -247,7 +247,7 @@
 
 .subscription-type-card.active {
   border-color: var(--secondary-color, #ef4444);
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -354,7 +354,7 @@
 
 .weekday-btn.active {
   border-color: var(--secondary-color, #ef4444);
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -453,7 +453,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -544,7 +544,7 @@
 }
 
 .btn-next {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 

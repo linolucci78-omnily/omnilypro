@@ -461,7 +461,7 @@
 
 .admin-memberships-status-badge.expired {
   background: #fee2e2;
-  color: #991b1b;
+  color: var(--primary-color, #dc2626);
 }
 
 .admin-memberships-status-badge.cancelled {

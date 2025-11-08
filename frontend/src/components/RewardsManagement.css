@@ -40,7 +40,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   color: white;
   border: none;
   border-radius: 12px;
@@ -141,7 +141,7 @@
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   border-color: var(--primary-color, #dc2626);
   color: white;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
@@ -270,7 +270,7 @@
 }
 
 .reward-points-badge {
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   color: white;
 }
 
@@ -336,7 +336,7 @@
 }
 
 .btn-action-delete {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
   color: white;
 }
 
@@ -446,7 +446,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 2rem 2rem 1.5rem 2rem;
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   border-bottom: none;
 }
 
@@ -652,7 +652,7 @@
 }
 
 .btn-save {
-  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  background: linear-gradient(135deg, var(--primary-color, var(--primary-color, #dc2626)), var(--secondary-color, #ef4444));
   border: none;
   color: white;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);

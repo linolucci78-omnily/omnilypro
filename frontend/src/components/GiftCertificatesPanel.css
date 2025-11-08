@@ -62,7 +62,7 @@
   align-items: center;
   padding: 2.5rem 2rem;
   border-bottom: none;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   position: relative;
   box-shadow:
     0 8px 32px rgba(239, 68, 68, 0.3),
@@ -213,7 +213,7 @@
   left: -100%;
   width: 100%;
   height: 4px;
-  background: linear-gradient(90deg, #ef4444, #dc2626, #b91c1c);
+  background: linear-gradient(90deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626), var(--primary-color, #dc2626));
   transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -248,7 +248,7 @@
 
 .gift-certificates-stat-item:hover .gift-certificates-stat-icon {
   transform: translateY(-6px) scale(1.15) rotate(5deg);
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border-color: var(--secondary-color, #ef4444);
   box-shadow:
@@ -337,7 +337,7 @@
 }
 
 .gift-certificates-action-btn-primary {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   color: white;
   border: 2px solid transparent;
   box-shadow:
@@ -357,7 +357,7 @@
 }
 
 .gift-certificates-action-btn-primary:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   transform: translateY(-3px) scale(1.02);
   box-shadow:
     0 15px 40px rgba(239, 68, 68, 0.4),
@@ -380,7 +380,7 @@
 .gift-certificates-action-btn-secondary:hover {
   color: white;
   border-color: var(--primary-color, #dc2626);
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   transform: translateY(-3px) scale(1.02);
   box-shadow:
     0 15px 40px rgba(239, 68, 68, 0.3),
@@ -455,7 +455,7 @@
   top: 0;
   bottom: 0;
   width: 6px;
-  background: linear-gradient(180deg, #ef4444, #dc2626);
+  background: linear-gradient(180deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
   border-radius: 0 3px 3px 0;
   box-shadow: 2px 0 8px rgba(239, 68, 68, 0.2);
 }
@@ -624,13 +624,13 @@
 }
 
 .cert-action-btn.primary {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   border-color: transparent;
 }
 
 .cert-action-btn.primary:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 

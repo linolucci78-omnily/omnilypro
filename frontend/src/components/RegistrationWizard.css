@@ -46,7 +46,7 @@
 
 /* Header */
 .wizard-header {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   padding: 24px 32px;
   display: flex;
@@ -418,7 +418,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -440,7 +440,7 @@
 }
 
 .btn-success {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
 }
 
@@ -667,7 +667,7 @@
   }
 
   .btn-primary {
-    background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important;
+    background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%) !important;
     color: white !important;
   }
 
@@ -678,7 +678,7 @@
   }
 
   .btn-success {
-    background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important;
+    background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%) !important;
     color: white !important;
   }
 

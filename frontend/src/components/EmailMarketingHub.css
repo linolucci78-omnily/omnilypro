@@ -128,7 +128,7 @@
 
 .email-hub-close:hover {
   background: rgba(220, 38, 38, 0.1);
-  color: #b91c1c;
+  color: var(--primary-color, #dc2626);
   transform: scale(1.1);
 }
 

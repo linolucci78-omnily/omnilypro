@@ -59,7 +59,7 @@
 }
 
 .btn-fix-data {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   border-color: var(--primary-color, #dc2626);
 }
 
@@ -69,7 +69,7 @@
 }
 
 .btn-fix-data:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626) 0%, var(--primary-color, #dc2626) 100%);
   box-shadow: 0 -4px 12px rgba(220, 38, 38, 0.3);
 }
 
