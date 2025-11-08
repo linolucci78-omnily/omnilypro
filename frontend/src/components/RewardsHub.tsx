@@ -10,7 +10,7 @@ interface RewardsHubProps {
   secondaryColor: string
 }
 
-type ViewType = 'hub' | 'manage'
+type ViewType = 'hub' | 'manage' | 'customer-preview'
 
 const RewardsHub: React.FC<RewardsHubProps> = ({
   organizationId,
@@ -80,6 +80,182 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
         />
+      </div>
+    )
+  }
+
+  // Vista Cliente (Preview)
+  if (activeView === 'customer-preview') {
+    const activeRewards = rewards.filter(r => r.is_active)
+
+    return (
+      <div
+        style={{
+          '--primary-color': primaryColor,
+          '--secondary-color': secondaryColor
+        } as React.CSSProperties}
+      >
+        <button
+          className="back-button"
+          onClick={() => setActiveView('hub')}
+          style={{ color: primaryColor }}
+        >
+          <ArrowLeft size={20} />
+          <span>Torna a Premi</span>
+        </button>
+
+        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1f2937', margin: '0 0 0.5rem 0' }}>
+              Catalogo Premi
+            </h1>
+            <p style={{ fontSize: '1.125rem', color: '#6b7280', margin: 0 }}>
+              Scopri i premi che puoi riscattare con i tuoi punti
+            </p>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#6b7280' }}>
+              <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p>Caricamento premi...</p>
+            </div>
+          ) : activeRewards.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <Gift size={64} style={{ margin: '0 auto 1rem', color: '#9ca3af' }} />
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#4b5563', margin: '1rem 0 0.5rem 0' }}>
+                Nessun premio disponibile
+              </h3>
+              <p style={{ fontSize: '1rem', color: '#6b7280', margin: 0 }}>
+                Al momento non ci sono premi attivi nel catalogo
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: '2rem'
+            }}>
+              {activeRewards.map(reward => (
+                <div
+                  key={reward.id}
+                  style={{
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    transition: 'all 0.3s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = primaryColor
+                    e.currentTarget.style.boxShadow = `0 12px 32px ${primaryColor}26`
+                    e.currentTarget.style.transform = 'translateY(-4px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb'
+                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
+                >
+                  {reward.image_url ? (
+                    <img
+                      src={reward.image_url}
+                      alt={reward.name}
+                      style={{
+                        width: '100%',
+                        height: '200px',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '200px',
+                      background: 'linear-gradient(135deg, #f3f4f6, #e5e7eb)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9ca3af'
+                    }}>
+                      <Package size={64} />
+                    </div>
+                  )}
+
+                  <div style={{ padding: '1.5rem' }}>
+                    <h3 style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      color: '#1f2937',
+                      margin: '0 0 0.5rem 0'
+                    }}>
+                      {reward.name}
+                    </h3>
+
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#6b7280',
+                      margin: '0 0 1rem 0',
+                      lineHeight: 1.5
+                    }}>
+                      {reward.description}
+                    </p>
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      flexWrap: 'wrap',
+                      marginBottom: '1rem'
+                    }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        padding: '0.5rem 1rem',
+                        background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                        color: 'white',
+                        borderRadius: '20px',
+                        fontSize: '0.875rem',
+                        fontWeight: 700
+                      }}>
+                        <Star size={16} />
+                        {reward.points_required} punti
+                      </span>
+
+                      {reward.required_tier && (
+                        <span style={{
+                          padding: '0.5rem 0.875rem',
+                          background: '#f3f4f6',
+                          color: '#4b5563',
+                          borderRadius: '20px',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          border: '2px solid #e5e7eb'
+                        }}>
+                          {reward.required_tier}
+                        </span>
+                      )}
+                    </div>
+
+                    {reward.stock_quantity !== undefined && reward.stock_quantity !== null && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        fontSize: '0.875rem',
+                        color: reward.stock_quantity < 5 ? '#f59e0b' : '#6b7280',
+                        fontWeight: 600
+                      }}>
+                        <Package size={16} />
+                        {reward.stock_quantity} disponibili
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -200,7 +376,10 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
         </div>
 
         {/* Card: Anteprima Clienti */}
-        <div className="rewards-hub-card rewards-hub-card-secondary">
+        <div
+          className="rewards-hub-card rewards-hub-card-secondary"
+          onClick={() => setActiveView('customer-preview')}
+        >
           <div className="rewards-hub-card-icon">
             <Gift size={32} />
           </div>
@@ -213,7 +392,7 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
               <li><Smartphone size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Responsive design</li>
             </ul>
           </div>
-          <div className="rewards-hub-card-badge">Presto</div>
+          <div className="rewards-hub-card-arrow">→</div>
         </div>
       </div>
     </div>
