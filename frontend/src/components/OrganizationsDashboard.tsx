@@ -3215,7 +3215,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       default:
         return currentOrganization ? (
-          <div className="dashboard-content">
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
             <AnalyticsDashboard
               organization={currentOrganization}
               customers={customers}
