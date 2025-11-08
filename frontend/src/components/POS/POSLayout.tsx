@@ -8,9 +8,10 @@ interface POSLayoutProps {
   activeSection?: string;
   onSectionChange?: (section: string) => void;
   currentOrganization?: { plan_type?: string; primary_color?: string; secondary_color?: string; logo_url?: string; name?: string } | null;
+  previewColors?: { primary: string | null; secondary: string | null };
 }
 
-const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {}, currentOrganization }) => {
+const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashboard', onSectionChange = () => {}, currentOrganization, previewColors }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,18 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
       secondary: currentOrganization?.secondary_color
     });
   }, [currentOrganization?.primary_color, currentOrganization?.secondary_color]);
+
+  useEffect(() => {
+    console.log('🎨 POSLayout - Preview colors:', previewColors);
+  }, [previewColors]);
+
+  // Ottiene i colori attivi (preview o salvati)
+  const getActiveColors = () => {
+    return {
+      primary: previewColors?.primary || currentOrganization?.primary_color || '#dc2626',
+      secondary: previewColors?.secondary || currentOrganization?.secondary_color || '#ef4444'
+    };
+  };
 
   const toggleSidebar = () => {
     console.log('🔄 TOGGLE SIDEBAR CALLED, current:', sidebarOpen);
@@ -37,12 +50,14 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
     setSidebarOpen(false);
   };
 
+  const activeColors = getActiveColors();
+
   return (
     <div
       className="pos-layout"
       style={{
-        '--primary-color': currentOrganization?.primary_color || '#dc2626',
-        '--secondary-color': currentOrganization?.secondary_color || '#ef4444'
+        '--primary-color': activeColors.primary,
+        '--secondary-color': activeColors.secondary
       } as React.CSSProperties}
     >
       {/* Header fisso */}

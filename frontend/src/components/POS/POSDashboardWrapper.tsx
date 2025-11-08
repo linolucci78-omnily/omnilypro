@@ -10,6 +10,10 @@ interface POSDashboardWrapperProps {
 const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrganization: initialOrganization }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [organization, setOrganization] = useState(initialOrganization);
+  const [previewColors, setPreviewColors] = useState<{
+    primary: string | null
+    secondary: string | null
+  }>({ primary: null, secondary: null });
 
   /**
    * Invia dati al customer display tramite bridge Android.
@@ -46,6 +50,12 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
     }
   }, [updateCustomerDisplay]);
 
+  // Gestisce il cambio dei colori preview
+  const handlePreviewColorsChange = useCallback((primary: string | null, secondary: string | null) => {
+    console.log('🎨 POSDashboardWrapper - Preview colors changed:', { primary, secondary });
+    setPreviewColors({ primary, secondary });
+  }, []);
+
   // Setup iniziale - NESSUNA gestione di finestre
   useEffect(() => {
     console.log('🔄 POSDashboardWrapper montato - customer display gestito SOLO da Android');
@@ -76,11 +86,13 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
       activeSection={activeSection}
       onSectionChange={setActiveSection}
       currentOrganization={organization}
+      previewColors={previewColors}
     >
       <OrganizationsDashboard
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         onOrganizationChange={handleOrganizationChange}
+        onPreviewColorsChange={handlePreviewColorsChange}
       />
     </POSLayout>
   );

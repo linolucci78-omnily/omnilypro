@@ -46,12 +46,14 @@ interface OrganizationsDashboardProps {
   onSectionChange?: (section: string) => void;
   activeSection?: string;
   onOrganizationChange?: (organization: Organization | null) => void;
+  onPreviewColorsChange?: (primary: string | null, secondary: string | null) => void;
 }
 
 const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   onSectionChange,
   activeSection: externalActiveSection,
-  onOrganizationChange
+  onOrganizationChange,
+  onPreviewColorsChange
 }) => {
   // Detect POS mode
   const isPOSMode = typeof window !== 'undefined' &&
@@ -113,6 +115,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     primary: string | null
     secondary: string | null
   }>({ primary: null, secondary: null })
+
+  // Notifica il parent (POSDashboardWrapper) quando cambiano i previewColors
+  useEffect(() => {
+    if (onPreviewColorsChange) {
+      console.log('🎨 Notifica previewColors al parent:', previewColors)
+      onPreviewColorsChange(previewColors.primary, previewColors.secondary)
+    }
+  }, [previewColors.primary, previewColors.secondary, onPreviewColorsChange])
   const [qrResult, setQrResult] = useState<any>(null);
   const [nfcTimeoutId, setNfcTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
