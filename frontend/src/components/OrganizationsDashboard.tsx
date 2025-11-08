@@ -37,6 +37,7 @@ import CategoriesHub from './CategoriesHub'
 import POSIntegrationHub from './POSIntegrationHub'
 import AnalyticsReportsHub from './AnalyticsReportsHub'
 import BrandingSocialHub from './BrandingSocialHub'
+import SettingsHub from './SettingsHub'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -2620,38 +2621,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
       
       case 'settings':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Settings size={24} />
-              <h2>Impostazioni</h2>
-              <p>Configura e personalizza le impostazioni del tuo account</p>
-            </div>
-
-            <div className="cards-grid">
-              <div className="feature-card">
-                <h3>Configurazione Account</h3>
-                <p>Gestisci le impostazioni del tuo account e profilo</p>
-                <button className="btn-primary" onClick={() => setShowAccountSettingsPanel(true)}>Configura</button>
-              </div>
-              <div className="feature-card">
-                <h3>Fatturazione</h3>
-                <p>Visualizza e gestisci i tuoi piani di abbonamento</p>
-                <button className="btn-primary">Gestisci</button>
-              </div>
-              <div className="feature-card">
-                <h3>Sicurezza</h3>
-                <p>Configura autenticazione e permessi di accesso</p>
-                <button className="btn-primary">Sicurezza</button>
-              </div>
-              <div className="feature-card">
-                <h3>API & Integrazioni</h3>
-                <p>Gestisci chiavi API e integrazioni esterne</p>
-                <button className="btn-primary">API</button>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <SettingsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              onOpenAccountSettings={() => setShowAccountSettingsPanel(true)}
+              onNavigateToSection={(sectionId) => handleSectionChange(sectionId)}
+            />
           </div>
-        )
+        ) : null
       
       case 'support':
         return (

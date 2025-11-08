@@ -1,0 +1,388 @@
+/* ============================================
+   SETTINGS HUB - Modern Design
+   ============================================ */
+
+.settings-hub {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100%;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.settings-hub-header {
+  margin-bottom: 3rem;
+}
+
+.settings-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.settings-hub-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.3);
+  flex-shrink: 0;
+}
+
+.settings-hub-header-content h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.settings-hub-subtitle {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* ============================================
+   MESSAGE
+   ============================================ */
+
+.settings-message {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+.settings-message.success {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 2px solid #6ee7b7;
+}
+
+.settings-message.error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 2px solid #fca5a5;
+}
+
+.settings-message button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.settings-message button:hover {
+  opacity: 1;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   SETTINGS GRID
+   ============================================ */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* ============================================
+   CATEGORY CARDS
+   ============================================ */
+
+.settings-category-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.settings-category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--primary-color, #dc2626), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.settings-category-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color, #dc2626);
+}
+
+.settings-category-card:hover::before {
+  opacity: 1;
+}
+
+.settings-category-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.settings-category-content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.settings-category-description {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.settings-category-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-category-features li {
+  font-size: 0.95rem;
+  color: #4b5563;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.settings-category-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #10b981;
+  font-weight: 700;
+}
+
+.settings-category-arrow {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.settings-category-arrow span {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-color, #dc2626);
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.settings-category-card:hover .settings-category-arrow span {
+  transform: translateX(4px);
+}
+
+/* ============================================
+   FOOTER INFO
+   ============================================ */
+
+.settings-footer-info {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.settings-info-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  flex: 1;
+  min-width: 250px;
+}
+
+.settings-info-box svg {
+  color: var(--primary-color, #dc2626);
+  flex-shrink: 0;
+}
+
+.settings-info-box div {
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.settings-info-box strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .settings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-hub {
+    padding: 1.5rem;
+  }
+
+  .settings-hub-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .settings-hub-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .settings-hub-header-content h1 {
+    font-size: 2rem;
+  }
+
+  .settings-hub-subtitle {
+    font-size: 1rem;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .settings-footer-info {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .settings-info-box {
+    min-width: auto;
+  }
+}
+
+/* ============================================
+   POS MODE OPTIMIZATIONS
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .settings-hub {
+    padding: 1rem;
+  }
+
+  .settings-hub-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .settings-hub-header-content h1 {
+    font-size: 2.25rem;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .settings-category-card {
+    padding: 1.5rem;
+  }
+
+  .settings-category-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .settings-category-content h3 {
+    font-size: 1.3rem;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+.settings-category-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+.settings-category-card:nth-child(1) { animation-delay: 0.05s; }
+.settings-category-card:nth-child(2) { animation-delay: 0.1s; }
+.settings-category-card:nth-child(3) { animation-delay: 0.15s; }
+.settings-category-card:nth-child(4) { animation-delay: 0.2s; }
+.settings-category-card:nth-child(5) { animation-delay: 0.25s; }
+.settings-category-card:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
