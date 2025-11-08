@@ -883,7 +883,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 999999; /* Assicura che sia sopra tutti gli elementi POS inclusi hamburger e sidebar */
   padding: 20px;
   backdrop-filter: blur(4px);
 }
