@@ -2491,6 +2491,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         : org
                     )
                   )
+                  // IMPORTANTE: Propaga i cambiamenti al POSDashboardWrapper
+                  if (onOrganizationChange) {
+                    console.log('🎨 Chiamata onOrganizationChange con organizzazione aggiornata')
+                    onOrganizationChange(updatedOrg)
+                  }
                 }
               }}
               onPreviewChange={(previewMode, primary, secondary) => {
