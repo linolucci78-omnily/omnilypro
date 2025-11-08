@@ -37,6 +37,14 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
     };
   };
 
+  // IMPORTANTE: Imposta CSS variables GLOBALMENTE per tutti i componenti POS (anche modali)
+  useEffect(() => {
+    const colors = getActiveColors();
+    console.log('🎨 POSLayout - Impostazione CSS variables globali:', colors);
+    document.documentElement.style.setProperty('--primary-color', colors.primary);
+    document.documentElement.style.setProperty('--secondary-color', colors.secondary);
+  }, [previewColors?.primary, previewColors?.secondary, currentOrganization?.primary_color, currentOrganization?.secondary_color]);
+
   const toggleSidebar = () => {
     console.log('🔄 TOGGLE SIDEBAR CALLED, current:', sidebarOpen);
     setSidebarOpen(prev => {
