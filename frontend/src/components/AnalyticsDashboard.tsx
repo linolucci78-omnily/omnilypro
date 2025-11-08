@@ -167,6 +167,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
       // 2. TIER DISTRIBUTION
       const loyaltyTiers = organization.loyalty_tiers || []
+      console.log('📊 TIER CALCULATION:', {
+        totalCustomers: customers.length,
+        loyaltyTiersConfigured: loyaltyTiers.length,
+        tiers: loyaltyTiers
+      })
+
       const tiersMap = new Map<string, number>()
 
       customers.forEach(customer => {
@@ -180,6 +186,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         percentage: customers.length > 0 ? (count / customers.length) * 100 : 0,
         color: getTierColor(name)
       }))
+
+      console.log('📊 TIERS RESULT:', tiers)
 
       // 3. BEHAVIOR ANALYSIS
       const thirtyDaysAgo = new Date()
@@ -281,6 +289,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
           name: c.name,
           points: c.points || 0
         }))
+
+      console.log('🏆 TOP CUSTOMERS:', {
+        total: customers.length,
+        topCount: topCustomers.length,
+        topCustomers
+      })
 
       // 6. WEEKDAY STATS (last 30 days)
       const weekdayMap = new Map<number, number>()
