@@ -1939,8 +1939,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       'rewards': 'rewards',
       // 'categories': 'categories', // Rimosso blocco temporaneo
       // 'marketing-campaigns': 'marketingCampaigns', // Rimosso blocco temporaneo
+      // 'notifications': 'notifications', // Rimosso - ridondante con Email Automations
       'team-management': 'teamManagement',
-      'notifications': 'notifications',
       'analytics-reports': 'analyticsReports',
       'branding-social': 'brandingSocial',
       'channels': 'channelsIntegration'
@@ -1985,12 +1985,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: null },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
       { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: null },
-      { id: 'notifications', icon: Bell, label: 'Notifiche', feature: 'notifications' },
       { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
       { id: 'website-editor', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
-      { id: 'communications', icon: Gift, label: 'Comunicazioni', feature: null },
       { id: 'settings', icon: Settings, label: 'Impostazioni', feature: null },
       { id: 'support', icon: HelpCircle, label: 'Aiuto & Supporto', feature: null }
     ]
@@ -2412,58 +2410,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         ) : null
 
-      case 'notifications':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Bell size={24} />
-              <h2>Notifiche & Comunicazioni</h2>
-              <p>Impostazioni notifiche configurate nel wizard</p>
-            </div>
-
-            <div className="notifications-grid">
-              <div className="notification-card">
-                <div className="notification-header">
-                  <Mail size={20} />
-                  <h3>Email</h3>
-                  <div className={`notification-status ${currentOrganization?.enable_email_notifications ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.enable_email_notifications ? 'Attive' : 'Inattive'}
-                  </div>
-                </div>
-                <p>Notifiche via email per clienti e amministratori</p>
-                <div className="sub-setting">
-                  <span>Email di benvenuto: </span>
-                  <span className={currentOrganization?.welcome_email_enabled ? 'enabled' : 'disabled'}>
-                    {currentOrganization?.welcome_email_enabled ? 'Abilitata' : 'Disabilitata'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="notification-card">
-                <div className="notification-header">
-                  <Bell size={20} />
-                  <h3>Push Notifications</h3>
-                  <div className={`notification-status ${currentOrganization?.enable_push_notifications ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.enable_push_notifications ? 'Attive' : 'Inattive'}
-                  </div>
-                </div>
-                <p>Notifiche push per app mobile</p>
-              </div>
-
-              <div className="notification-card">
-                <div className="notification-header">
-                  <div style={{fontSize: '20px'}}>📱</div>
-                  <h3>SMS</h3>
-                  <div className={`notification-status ${currentOrganization?.enable_sms ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.enable_sms ? 'Attivi' : 'Inattivi'}
-                  </div>
-                </div>
-                <p>Notifiche SMS per promozioni urgenti</p>
-              </div>
-            </div>
-          </div>
-        )
-
       case 'analytics-reports':
         return (
           <div className="section-content">
@@ -2660,32 +2606,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         )
 
-      case 'communications':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Gift size={24} />
-              <h2>Comunicazioni</h2>
-              <p>Gestisci comunicazioni e messaggi con i tuoi clienti</p>
-            </div>
-            <div className="cards-grid">
-              <div className="feature-card">
-                <h3>Email Marketing</h3>
-                <p>Invia email personalizzate ai tuoi clienti</p>
-                <button className="btn-primary" onClick={() => setShowEmailMarketingPanel(true)}>
-                  <Mail size={18} />
-                  Gestisci Email
-                </button>
-              </div>
-              <div className="feature-card">
-                <h3>Notifiche Push</h3>
-                <p>Gestisci le notifiche push dell'app</p>
-                <button className="btn-primary">Configura</button>
-              </div>
-            </div>
-          </div>
-        )
-      
       case 'campaigns':
         return (
           <div className="section-content">
