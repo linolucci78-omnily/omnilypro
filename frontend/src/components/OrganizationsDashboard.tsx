@@ -20,6 +20,7 @@ import EmailAutomationsPanel from './EmailAutomationsPanel'
 import OrganizationBrandingPanel from './OrganizationBrandingPanel'
 import AnalyticsDashboard from './AnalyticsDashboard'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
+import GiftCertificatesHub from './GiftCertificatesHub'
 import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
 import SubscriptionsPanel from './SubscriptionsPanel'
 import SubscriptionStatsModal from './SubscriptionStatsModal'
@@ -3081,6 +3082,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'gift-certificates':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <GiftCertificatesHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              printService={printService}
+            />
+          </div>
+        ) : null
+
+      case 'gift-certificates-old':
         return (
           <div className="section-content">
             <div className="section-header">
