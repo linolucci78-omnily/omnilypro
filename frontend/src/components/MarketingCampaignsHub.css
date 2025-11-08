@@ -1,0 +1,267 @@
+/* ============================================
+   MARKETING CAMPAIGNS HUB
+   ============================================ */
+
+.marketing-campaigns-hub {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.marketing-campaigns-hub-header {
+  margin-bottom: 2.5rem;
+}
+
+.marketing-campaigns-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.marketing-campaigns-hub-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.3);
+  flex-shrink: 0;
+}
+
+.marketing-campaigns-hub-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.marketing-campaigns-hub-header p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   HUB CARDS
+   ============================================ */
+
+.marketing-campaigns-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.marketing-campaigns-hub-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 2.5rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.marketing-campaigns-hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 0%, rgba(220, 38, 38, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.marketing-campaigns-hub-card:hover::before {
+  opacity: 1;
+}
+
+.marketing-campaigns-hub-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 20px 48px rgba(220, 38, 38, 0.2);
+  transform: translateY(-8px);
+}
+
+.marketing-campaigns-hub-card-primary .marketing-campaigns-hub-card-icon {
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+}
+
+.marketing-campaigns-hub-card-secondary .marketing-campaigns-hub-card-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.marketing-campaigns-hub-card-tertiary .marketing-campaigns-hub-card-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.marketing-campaigns-hub-card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  transition: all 0.3s;
+}
+
+.marketing-campaigns-hub-card:hover .marketing-campaigns-hub-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.marketing-campaigns-hub-card-content h3 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.marketing-campaigns-hub-card-content p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.6;
+}
+
+.marketing-campaigns-hub-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.marketing-campaigns-hub-card-features li {
+  font-size: 0.9375rem;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.marketing-campaigns-hub-card-arrow {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 3rem;
+  color: var(--primary-color, #dc2626);
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.marketing-campaigns-hub-card:hover .marketing-campaigns-hub-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Coming Soon Badge */
+.coming-soon-badge {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: var(--primary-color, #dc2626);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 2rem;
+}
+
+.back-button:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
+  transform: translateX(-4px);
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .marketing-campaigns-hub {
+    padding: 1.5rem;
+  }
+
+  .marketing-campaigns-hub-header h1 {
+    font-size: 2rem;
+  }
+
+  .marketing-campaigns-hub-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .marketing-campaigns-hub-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .marketing-campaigns-hub {
+    padding: 1rem;
+  }
+
+  .marketing-campaigns-hub-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .marketing-campaigns-hub-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .marketing-campaigns-hub-header p {
+    font-size: 1rem;
+  }
+
+  .marketing-campaigns-hub-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-campaigns-hub-card {
+    padding: 1.5rem;
+  }
+}

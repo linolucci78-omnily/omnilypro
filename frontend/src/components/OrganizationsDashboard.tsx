@@ -17,12 +17,15 @@ import AccountSettingsHub from './AccountSettingsHub'
 import EmailMarketingPanel from './EmailMarketingPanel'
 import EmailMarketingHub from './EmailMarketingHub'
 import EmailAutomationsPanel from './EmailAutomationsPanel'
+import EmailAutomationsHub from './EmailAutomationsHub'
+import MarketingCampaignsHub from './MarketingCampaignsHub'
 import OrganizationBrandingPanel from './OrganizationBrandingPanel'
 import AnalyticsDashboard from './AnalyticsDashboard'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
 import GiftCertificatesHub from './GiftCertificatesHub'
 import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
 import SubscriptionsPanel from './SubscriptionsPanel'
+import SubscriptionsHub from './SubscriptionsHub'
 import SubscriptionStatsModal from './SubscriptionStatsModal'
 import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
@@ -1933,7 +1936,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       'loyalty-tiers': 'loyaltyTiers',
       'rewards': 'rewards',
       'categories': 'categories',
-      'marketing-campaigns': 'marketingCampaigns',
+      // 'marketing-campaigns': 'marketingCampaigns', // Rimosso blocco temporaneo
       'team-management': 'teamManagement',
       'notifications': 'notifications',
       'analytics-reports': 'analyticsReports',
@@ -1974,10 +1977,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
-      { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: 'emailAutomations' },
+      { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: null },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
-      { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
+      { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: null },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
       { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: 'posIntegration' },
       { id: 'notifications', icon: Bell, label: 'Notifiche', feature: 'notifications' },
@@ -2402,50 +2405,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'marketing-campaigns':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Mail size={24} />
-              <h2>Campagne Marketing</h2>
-              <p>Gestisci le campagne marketing automatiche configurate nel wizard</p>
-            </div>
-
-            <div className="campaigns-grid">
-              <div className="campaign-card">
-                <div className="campaign-header">
-                  <Gift size={20} />
-                  <h3>Campagna Benvenuto</h3>
-                  <div className={`campaign-status ${currentOrganization?.welcome_campaign ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.welcome_campaign ? 'Attiva' : 'Inattiva'}
-                  </div>
-                </div>
-                <p>Email di benvenuto automatica per nuovi clienti</p>
-              </div>
-
-              <div className="campaign-card">
-                <div className="campaign-header">
-                  <Star size={20} />
-                  <h3>Premi Compleanno</h3>
-                  <div className={`campaign-status ${currentOrganization?.birthday_rewards ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.birthday_rewards ? 'Attiva' : 'Inattiva'}
-                  </div>
-                </div>
-                <p>Premi speciali automatici nel giorno del compleanno</p>
-              </div>
-
-              <div className="campaign-card">
-                <div className="campaign-header">
-                  <AlertTriangle size={20} />
-                  <h3>Campagna Inattivi</h3>
-                  <div className={`campaign-status ${currentOrganization?.inactive_campaign ? 'active' : 'inactive'}`}>
-                    {currentOrganization?.inactive_campaign ? 'Attiva' : 'Inattiva'}
-                  </div>
-                </div>
-                <p>Riattivazione automatica per clienti inattivi</p>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <MarketingCampaignsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              onOpenEmailMarketingPanel={() => setShowEmailMarketingPanel(true)}
+            />
           </div>
-        )
+        ) : null
 
       case 'team-management':
         return currentOrganization ? (
@@ -3141,91 +3111,33 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'email-automations':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Mail size={24} />
-              <h2>Email Automations</h2>
-              <p>Gestisci branding e automazioni email per i tuoi clienti</p>
-            </div>
-            <div className="cards-grid">
-              <div className="feature-card">
-                <h3>Branding Email</h3>
-                <p>Personalizza logo, colori e informazioni aziendali per le email automatiche</p>
-                <button
-                  className="btn-primary"
-                  onClick={() => setShowBrandingPanel(true)}
-                >
-                  <Palette size={18} />
-                  Configura Branding
-                </button>
-              </div>
-              <div className="feature-card">
-                <h3>Automazioni Email</h3>
-                <p>Gestisci email automatiche (welcome, tier upgrade, birthday)</p>
-                <button
-                  className="btn-primary"
-                  onClick={() => setShowEmailAutomationsPanel(true)}
-                >
-                  <Zap size={18} />
-                  Configura Automazioni
-                </button>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <EmailAutomationsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+            />
           </div>
-        )
+        ) : null
 
       case 'subscriptions':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Package size={24} />
-              <h2>Abbonamenti</h2>
-              <p>Gestisci abbonamenti universali per qualsiasi tipo di attività</p>
-            </div>
-            <div className="cards-grid">
-              <div className="feature-card">
-                <h3>Gestione Abbonamenti</h3>
-                <p>Crea template, vendi e valida abbonamenti per i tuoi clienti</p>
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    setSubscriptionInitialModal('manage');
-                    setShowSubscriptionsPanel(true);
-                  }}
-                >
-                  <Package size={18} />
-                  Apri Gestionale
-                </button>
-              </div>
-              <div className="feature-card">
-                <h3>Template Personalizzati</h3>
-                <p>Crea abbonamenti adatti alla tua attività (pizze, caffè, palestra, etc.)</p>
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    setSubscriptionInitialModal('templates');
-                    setShowSubscriptionsPanel(true);
-                  }}
-                >
-                  <Plus size={18} />
-                  Crea Template
-                </button>
-              </div>
-              <div className="feature-card">
-                <h3>Statistiche e Report</h3>
-                <p>Monitora vendite, utilizzi e performance dei tuoi abbonamenti</p>
-                <button
-                  className="btn-primary"
-                  onClick={() => setShowSubscriptionStatsModal(true)}
-                >
-                  <BarChart3 size={18} />
-                  Visualizza Report
-                </button>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <SubscriptionsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              onOpenSubscriptionsPanel={(mode) => {
+                if (mode) setSubscriptionInitialModal(mode)
+                setShowSubscriptionsPanel(true)
+              }}
+              onOpenStatsModal={() => setShowSubscriptionStatsModal(true)}
+            />
           </div>
-        )
+        ) : null
 
       default:
         return currentOrganization ? (
