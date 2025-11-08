@@ -346,9 +346,14 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
 
       if (error) throw error
 
-      setMessage({ type: 'success', text: 'Branding salvato con successo! Ricarica la pagina per vedere i cambiamenti.' })
+      console.log('✅ Branding salvato con successo!')
+      console.log('🎨 Aggiornamento colori:', branding.primary_color, branding.secondary_color)
 
+      setMessage({ type: 'success', text: 'Branding salvato con successo! I colori si aggiorneranno automaticamente.' })
+
+      // IMPORTANTE: Chiama onColorsUpdate DOPO il salvataggio riuscito
       if (onColorsUpdate) {
+        console.log('🎨 Chiamata onColorsUpdate...')
         onColorsUpdate(branding.primary_color, branding.secondary_color)
       }
     } catch (error) {

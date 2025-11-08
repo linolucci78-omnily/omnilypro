@@ -230,10 +230,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       primary: previewColors.primary || currentOrganization?.primary_color || '#dc2626',
       secondary: previewColors.secondary || currentOrganization?.secondary_color || '#ef4444'
     }
-    // Debug log per vedere se i colori cambiano
-    if (previewColors.primary) {
-      console.log('🎨 PREVIEW COLORS ACTIVE:', colors)
-    }
     return colors
   }
 
@@ -2477,11 +2473,25 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               currentSecondaryColor={currentOrganization.secondary_color || '#ef4444'}
               onColorsUpdate={(primary, secondary) => {
                 // Aggiorna i colori nell'organizzazione corrente
-                setCurrentOrganization({
-                  ...currentOrganization,
-                  primary_color: primary,
-                  secondary_color: secondary
-                })
+                console.log('🎨 Dashboard ricevuto onColorsUpdate:', primary, secondary)
+                if (currentOrganization) {
+                  // Crea un nuovo oggetto per forzare React re-render
+                  const updatedOrg = {
+                    ...currentOrganization,
+                    primary_color: primary,
+                    secondary_color: secondary
+                  }
+                  console.log('🎨 Aggiornamento currentOrganization con nuovi colori')
+                  setCurrentOrganization(updatedOrg)
+                  // Forza un re-render aggiornando anche organizations array
+                  setOrganizations(orgs =>
+                    orgs.map(org =>
+                      org.id === currentOrganization.id
+                        ? updatedOrg
+                        : org
+                    )
+                  )
+                }
               }}
               onPreviewChange={(previewMode, primary, secondary) => {
                 // Aggiorna i colori preview globali
