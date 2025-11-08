@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { hasAccess, getUpgradePlan, PlanType } from '../../utils/planPermissions';
 import {
   MdDashboard,
   MdLoyalty,
@@ -25,8 +24,7 @@ import {
   MdFlashOn,
   MdPublic,
   MdPalette,
-  MdLanguage,
-  MdLock
+  MdLanguage
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -107,11 +105,11 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'support', icon: MdHelp, label: 'Aiuto & Supporto', feature: null }
   ];
 
-  // Add locked status based on user plan (like desktop)
+  // DISABILITATO - Tutte le sezioni sono accessibili senza limitazioni
   const menuItems = baseMenuItems.map(item => ({
     ...item,
-    locked: item.feature ? !hasAccess(userPlan, item.feature as any) : false,
-    color: item.locked ? '#6b7280' : getItemColor(item.id)
+    locked: false, // Accesso sempre consentito - nessun blocco upgrade
+    color: getItemColor(item.id)
   }));
 
   // Color mapping function
@@ -191,19 +189,13 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
             <button
               key={item.id}
               onClick={() => handleMenuClick(item.id)}
-              className={`pos-menu-item ${activeSection === item.id ? 'pos-menu-item-active' : ''} ${item.locked ? 'pos-menu-item-locked' : ''}`}
+              className={`pos-menu-item ${activeSection === item.id ? 'pos-menu-item-active' : ''}`}
               style={{ '--item-color': item.color } as React.CSSProperties}
-              disabled={item.locked && activeSection === item.id}
             >
               <span className="pos-menu-icon">
                 <item.icon size={24} />
               </span>
               <span className="pos-menu-label">{item.label}</span>
-              {item.locked && (
-                <span className="pos-lock-icon">
-                  <MdLock size={16} />
-                </span>
-              )}
             </button>
           ))}
         </nav>
