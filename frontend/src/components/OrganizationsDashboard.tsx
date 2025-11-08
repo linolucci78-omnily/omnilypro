@@ -33,6 +33,8 @@ import TeamManagementHub from './TeamManagementHub'
 import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
 import CustomersCardView from './CustomersCardView'
 import RewardsHub from './RewardsHub'
+import CategoriesHub from './CategoriesHub'
+import POSIntegrationHub from './POSIntegrationHub'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -1935,7 +1937,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     const featureMap: Record<string, keyof typeof import('../utils/planPermissions').PLAN_FEATURES[keyof typeof import('../utils/planPermissions').PLAN_FEATURES]> = {
       'loyalty-tiers': 'loyaltyTiers',
       'rewards': 'rewards',
-      'categories': 'categories',
+      // 'categories': 'categories', // Rimosso blocco temporaneo
       // 'marketing-campaigns': 'marketingCampaigns', // Rimosso blocco temporaneo
       'team-management': 'teamManagement',
       'notifications': 'notifications',
@@ -1979,10 +1981,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
       { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: null },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
-      { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
+      { id: 'categories', icon: Package, label: 'Categorie', feature: null },
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: null },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
-      { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: 'posIntegration' },
+      { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: null },
       { id: 'notifications', icon: Bell, label: 'Notifiche', feature: 'notifications' },
       { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
@@ -2341,68 +2343,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         ) : null
 
       case 'categories':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Package size={24} />
-              <h2>Categorie Prodotti</h2>
-              <p>Gestisci le categorie prodotti configurate nel wizard</p>
-            </div>
-
-            {currentOrganization?.product_categories && Array.isArray(currentOrganization.product_categories) && currentOrganization.product_categories.length > 0 ? (
-              <div className="cards-grid">
-                {currentOrganization.product_categories.map((category: any, index: number) => {
-                  // Gestisce sia stringhe che oggetti
-                  const categoryName = typeof category === 'string' ? category : category.name
-                  const categoryDescription = typeof category === 'object' ? category.description : null
-                  const categoryColor = typeof category === 'object' ? category.color : '#3b82f6'
-
-                  return (
-                    <div key={index} className="feature-card category-card">
-                      <div className="category-header" style={{ borderColor: categoryColor }}>
-                        <Package size={20} style={{ color: categoryColor }} />
-                        <h3>{categoryName}</h3>
-                      </div>
-                      {categoryDescription && (
-                        <div className="category-description">
-                          {categoryDescription}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <Package size={48} />
-                <h3>Nessuna categoria configurata</h3>
-                <p>Le categorie prodotti vengono configurate durante la creazione dell'organizzazione tramite wizard.</p>
-              </div>
-            )}
-
-            {/* Bonus Categories */}
-            {currentOrganization?.bonus_categories && Array.isArray(currentOrganization.bonus_categories) && currentOrganization.bonus_categories.length > 0 && (
-              <div style={{ marginTop: '2rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>Moltiplicatori Punti per Categoria</h3>
-                <div className="cards-grid">
-                  {currentOrganization.bonus_categories.map((bonus: any, index: number) => (
-                    <div key={index} className="feature-card">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <Package size={16} style={{ display: 'inline-block', marginRight: '0.5rem' }} />
-                          <strong>{bonus.category}</strong>
-                        </div>
-                        <div style={{ fontSize: '1.5rem', color: '#3b82f6', fontWeight: 'bold' }}>
-                          {bonus.multiplier}x
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <CategoriesHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              productCategories={currentOrganization.product_categories || []}
+              bonusCategories={currentOrganization.bonus_categories || []}
+            />
           </div>
-        )
+        ) : null
 
       case 'marketing-campaigns':
         return currentOrganization ? (
@@ -2437,257 +2389,28 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         )
 
       case 'pos-integration':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Activity size={24} />
-              <h2>Stato POS</h2>
-              <p>Monitoraggio in tempo reale dello stato hardware e connessioni</p>
-            </div>
-
-            <div className="hardware-monitoring-grid">
-              {/* Bridge Android Status */}
-              <div className={`hardware-status-card ${hardwareStatus.bridge.status}`}>
-                <div className="hardware-card-header">
-                  <div className="hardware-icon">
-                    <Zap size={24} />
-                  </div>
-                  <h3>Bridge Android</h3>
-                  <div className={`status-indicator ${hardwareStatus.bridge.status}`}>
-                    {hardwareStatus.bridge.status === 'connected' && <CheckCircle2 size={20} />}
-                    {hardwareStatus.bridge.status === 'disconnected' && <XCircle size={20} />}
-                    {hardwareStatus.bridge.status === 'checking' && <AlertTriangle size={20} />}
-                  </div>
-                </div>
-                <div className="hardware-status-info">
-                  <p className="status-message" style={{ color: '#1a1a1a' }}>
-                    {hardwareStatus.bridge.message || 'Verifica in corso...'}
-                    {hardwareStatus.bridge.version && (
-                      <>
-                        <br />
-                        <strong style={{ color: '#1a1a1a' }}>Versione:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.bridge.version}</span>
-                      </>
-                    )}
-                  </p>
-                  <span className={`status-badge ${hardwareStatus.bridge.status}`}>
-                    {hardwareStatus.bridge.status === 'connected' && 'Connesso'}
-                    {hardwareStatus.bridge.status === 'disconnected' && 'Disconnesso'}
-                    {hardwareStatus.bridge.status === 'checking' && 'Verifica...'}
-                  </span>
-                </div>
-                <button className="btn-test" onClick={checkHardwareStatus}>
-                  <RefreshCw size={16} />
-                  Aggiorna
-                </button>
-              </div>
-
-              {/* Network Status */}
-              <div className={`hardware-status-card ${hardwareStatus.network.status}`}>
-                <div className="hardware-card-header">
-                  <div className="hardware-icon">
-                    <Wifi size={24} />
-                  </div>
-                  <h3>Connessione</h3>
-                  <div className={`status-indicator ${hardwareStatus.network.status}`}>
-                    {hardwareStatus.network.status === 'online' && <CheckCircle2 size={20} />}
-                    {hardwareStatus.network.status === 'offline' && <XCircle size={20} />}
-                    {hardwareStatus.network.status === 'checking' && <AlertTriangle size={20} />}
-                  </div>
-                </div>
-                <div className="hardware-status-info">
-                  <p className="status-message" style={{ color: '#1a1a1a' }}>
-                    <strong style={{ color: '#1a1a1a' }}>IP:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.network.ip || 'N/A'}</span><br />
-                    <strong style={{ color: '#1a1a1a' }}>Tipo:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.network.type || 'N/A'}</span>
-                  </p>
-                  <span className={`status-badge ${hardwareStatus.network.status}`}>
-                    {hardwareStatus.network.status === 'online' && 'Online'}
-                    {hardwareStatus.network.status === 'offline' && 'Offline'}
-                    {hardwareStatus.network.status === 'checking' && 'Verifica...'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Printer Status */}
-              <div className={`hardware-status-card ${hardwareStatus.printer.status}`}>
-                <div className="hardware-card-header">
-                  <div className="hardware-icon">
-                    <Printer size={24} />
-                  </div>
-                  <h3>Stampante</h3>
-                  <div className={`status-indicator ${hardwareStatus.printer.status}`}>
-                    {hardwareStatus.printer.status === 'ready' && <CheckCircle2 size={20} />}
-                    {hardwareStatus.printer.status === 'error' && <XCircle size={20} />}
-                    {hardwareStatus.printer.status === 'offline' && <XCircle size={20} />}
-                    {hardwareStatus.printer.status === 'checking' && <AlertTriangle size={20} />}
-                  </div>
-                </div>
-                <div className="hardware-status-info">
-                  <p className="status-message" style={{ color: '#1a1a1a' }}>
-                    {hardwareStatus.printer.message || 'Verifica in corso...'}
-                    {hardwareStatus.printer.model && (
-                      <>
-                        <br />
-                        <strong style={{ color: '#1a1a1a' }}>Modello:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.printer.model}</span>
-                      </>
-                    )}
-                  </p>
-                  <span className={`status-badge ${hardwareStatus.printer.status}`}>
-                    {hardwareStatus.printer.status === 'ready' && 'Pronta'}
-                    {hardwareStatus.printer.status === 'error' && 'Errore'}
-                    {hardwareStatus.printer.status === 'offline' && 'Offline'}
-                    {hardwareStatus.printer.status === 'checking' && 'Verifica...'}
-                  </span>
-                </div>
-                <button className="btn-test" onClick={testPrinter} disabled={hardwareStatus.printer.status !== 'ready'}>
-                  <Printer size={16} />
-                  Test Stampa
-                </button>
-              </div>
-
-              {/* NFC Reader Status */}
-              <div className={`hardware-status-card ${hardwareStatus.nfc.status}`}>
-                <div className="hardware-card-header">
-                  <div className="hardware-icon">
-                    <Smartphone size={24} />
-                  </div>
-                  <h3>Lettore NFC</h3>
-                  <div className={`status-indicator ${hardwareStatus.nfc.status}`}>
-                    {hardwareStatus.nfc.status === 'available' && <CheckCircle2 size={20} />}
-                    {hardwareStatus.nfc.status === 'unavailable' && <XCircle size={20} />}
-                    {hardwareStatus.nfc.status === 'checking' && <AlertTriangle size={20} />}
-                  </div>
-                </div>
-                <div className="hardware-status-info">
-                  <p className="status-message" style={{ color: '#1a1a1a' }}>{hardwareStatus.nfc.message || 'Verifica in corso...'}</p>
-                  <span className={`status-badge ${hardwareStatus.nfc.status}`}>
-                    {hardwareStatus.nfc.status === 'available' && 'Disponibile'}
-                    {hardwareStatus.nfc.status === 'unavailable' && 'Non disponibile'}
-                    {hardwareStatus.nfc.status === 'checking' && 'Verifica...'}
-                  </span>
-                  
-                  {/* Dati tessera NFC letta */}
-                  {nfcResult && (
-                    <div className="nfc-card-data" style={{ 
-                      marginTop: '12px', 
-                      padding: '8px', 
-                      backgroundColor: '#f0f9ff', 
-                      border: '1px solid #0ea5e9', 
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      <div style={{ fontWeight: 'bold', color: '#0369a1', marginBottom: '4px' }}>
-                        📱 Tessera Letta:
-                      </div>
-                      <div><strong>UID:</strong> {nfcResult.cardUID?.slice(0, 12)}...</div>
-                      <div><strong>Tipo:</strong> {nfcResult.cardType || 'N/A'}</div>
-                      {nfcResult.customerName && (
-                        <div><strong>Cliente:</strong> {nfcResult.customerName}</div>
-                      )}
-                      {nfcResult.loyaltyPoints !== undefined && (
-                        <div><strong>Punti:</strong> {nfcResult.loyaltyPoints}</div>
-                      )}
-                      <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>
-                        {new Date(nfcResult.timestamp || Date.now()).toLocaleString('it-IT')}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button className="btn-test" onClick={testNFC} disabled={hardwareStatus.nfc.status !== 'available'}>
-                  <Smartphone size={16} />
-                  Test NFC
-                </button>
-              </div>
-
-              {/* EMV/PinPad Status */}
-              <div className={`hardware-status-card ${hardwareStatus.emv.status}`}>
-                <div className="hardware-card-header">
-                  <div className="hardware-icon">
-                    <CreditCard size={24} />
-                  </div>
-                  <h3>Terminale Pagamenti</h3>
-                  <div className={`status-indicator ${hardwareStatus.emv.status}`}>
-                    {hardwareStatus.emv.status === 'available' && <CheckCircle2 size={20} />}
-                    {hardwareStatus.emv.status === 'unavailable' && <XCircle size={20} />}
-                    {hardwareStatus.emv.status === 'checking' && <AlertTriangle size={20} />}
-                  </div>
-                </div>
-                <div className="hardware-status-info">
-                  <p className="status-message" style={{ color: '#1a1a1a' }}>{hardwareStatus.emv.message || 'Verifica in corso...'}</p>
-                  <span className={`status-badge ${hardwareStatus.emv.status}`}>
-                    {hardwareStatus.emv.status === 'available' && 'Disponibile'}
-                    {hardwareStatus.emv.status === 'unavailable' && 'Non disponibile'}
-                    {hardwareStatus.emv.status === 'checking' && 'Verifica...'}
-                  </span>
-                </div>
-              </div>
-
-              {/* System Info */}
-              <div className="hardware-status-card system-info">
-                <div className="hardware-card-header">
-                  <div className="hardware-icon">
-                    <Building2 size={24} />
-                  </div>
-                  <h3>Informazioni Sistema</h3>
-                </div>
-                <div className="hardware-status-info">
-                  <p className="status-message" style={{ color: '#1a1a1a' }}>
-                    <strong style={{ color: '#1a1a1a' }}>Organizzazione:</strong> <span style={{ color: '#1a1a1a' }}>{currentOrganization?.name || 'Caricamento...'}</span><br />
-                    <strong style={{ color: '#1a1a1a' }}>Modello POS:</strong> <span style={{ color: '#1a1a1a' }}>{currentOrganization?.pos_model || 'OMNILY POS Standard'}</span><br />
-                    <strong style={{ color: '#1a1a1a' }}>Tipo:</strong> <span style={{ color: '#1a1a1a' }}>{currentOrganization?.pos_connection || 'Android Terminal'}</span>
-                    {(hardwareStatus.system.manufacturer || hardwareStatus.system.model) && (
-                      <span style={{ display: 'block', color: '#000', opacity: 1, visibility: 'visible' }}>
-                        <br />
-                        <strong style={{ color: '#000' }}>Dispositivo:</strong> <span style={{ color: '#000' }}>{hardwareStatus.system.manufacturer ? `${hardwareStatus.system.manufacturer} ${hardwareStatus.system.model || ''}` : hardwareStatus.system.model}</span>
-                      </span>
-                    )}
-                    {hardwareStatus.system.androidVersion && (
-                      <span style={{ display: 'block', color: '#1a1a1a' }}>
-                        <br />
-                        <strong style={{ color: '#1a1a1a' }}>Android:</strong> <span style={{ color: '#1a1a1a' }}>{hardwareStatus.system.androidVersion} {hardwareStatus.system.sdkVersion && `(SDK ${hardwareStatus.system.sdkVersion})`}</span>
-                      </span>
-                    )}
-                  </p>
-                  <span className={`status-badge ${hardwareStatus.bridge.status === 'connected' ? 'connected' : 'disconnected'}`}>
-                    {hardwareStatus.bridge.status === 'connected' ? 'Sistema Operativo' : 'Sistema Offline'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Matrix Monitor */}
-            <div className="matrix-monitor">
-              <div className="matrix-header">
-                <Terminal size={20} />
-                <h3>Monitor Sistema</h3>
-                <div className="matrix-controls">
-                  <button
-                    className={`btn-toggle-monitor ${monitorEnabled ? 'active' : 'inactive'}`}
-                    onClick={() => setMonitorEnabled(!monitorEnabled)}
-                  >
-                    {monitorEnabled ? '● ON' : '○ OFF'}
-                  </button>
-                  <button className="btn-clear-logs" onClick={() => setMatrixLogs([])}>
-                    <Trash2 size={16} />
-                    Pulisci
-                  </button>
-                </div>
-              </div>
-              <div className="matrix-logs" ref={matrixLogsRef}>
-                {matrixLogs.length === 0 ? (
-                  <div className="matrix-empty">In attesa di eventi...</div>
-                ) : (
-                  matrixLogs.map((log, index) => {
-                    const logClass = log.includes('[ERROR]') ? 'matrix-log-error' :
-                                     log.includes('[WARN]') ? 'matrix-log-warn' :
-                                     log.includes('[INFO]') ? 'matrix-log-info' :
-                                     'matrix-log-line';
-                    return <div key={index} className={`matrix-log-line ${logClass}`}>{log}</div>
-                  })
-                )}
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <POSIntegrationHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              posModel={currentOrganization.pos_model}
+              posConnection={currentOrganization.pos_connection}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              hardwareStatus={hardwareStatus}
+              nfcResult={nfcResult}
+              matrixLogs={matrixLogs}
+              monitorEnabled={monitorEnabled}
+              matrixLogsRef={matrixLogsRef}
+              onCheckHardware={checkHardwareStatus}
+              onTestPrinter={testPrinter}
+              onTestNFC={testNFC}
+              onToggleMonitor={() => setMonitorEnabled(!monitorEnabled)}
+              onClearLogs={() => setMatrixLogs([])}
+            />
           </div>
-        )
+        ) : null
 
       case 'notifications':
         return (

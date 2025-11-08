@@ -1,0 +1,972 @@
+/* ============================================
+   POS INTEGRATION HUB
+   ============================================ */
+
+.pos-integration-hub {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ============================================
+   HEADER WITH POS IMAGE
+   ============================================ */
+
+.pos-hub-header {
+  margin-bottom: 2.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 24px;
+  padding: 2.5rem;
+  border: 2px solid #e5e7eb;
+}
+
+.pos-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.pos-device-showcase {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pos-device-image {
+  width: 200px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  background: white;
+  padding: 1rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pos-device-image:hover {
+  transform: scale(1.05) rotate(2deg);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+}
+
+.pos-device-badge {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+  white-space: nowrap;
+}
+
+.pos-hub-header-text {
+  flex: 1;
+}
+
+.pos-hub-header-text h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.pos-hub-header-text p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.pos-org-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.pos-org-info .separator {
+  color: #d1d5db;
+}
+
+/* ============================================
+   STATS GRID
+   ============================================ */
+
+.pos-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.pos-stat-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pos-stat-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.15);
+  transform: translateY(-4px);
+}
+
+.pos-stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pos-stat-content {
+  flex: 1;
+}
+
+.pos-stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.pos-stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   HARDWARE MONITORING SECTION
+   ============================================ */
+
+.pos-hardware-section {
+  margin-bottom: 2.5rem;
+}
+
+.pos-hardware-section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-refresh-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: var(--primary-color, #dc2626);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pos-refresh-btn:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
+  transform: translateY(-2px);
+}
+
+.pos-hardware-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.pos-hardware-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.pos-hardware-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Status-based border colors */
+.pos-hardware-card.status-connected,
+.pos-hardware-card.status-online,
+.pos-hardware-card.status-ready,
+.pos-hardware-card.status-available {
+  border-color: #10b981;
+}
+
+.pos-hardware-card.status-disconnected,
+.pos-hardware-card.status-offline,
+.pos-hardware-card.status-error,
+.pos-hardware-card.status-unavailable {
+  border-color: #ef4444;
+}
+
+.pos-hardware-card.status-checking {
+  border-color: #f59e0b;
+}
+
+.pos-hardware-card.pos-system-info {
+  border-color: #3b82f6;
+}
+
+.pos-hardware-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pos-hardware-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pos-hardware-title {
+  flex: 1;
+}
+
+.pos-hardware-title h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.pos-hardware-title p {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.pos-status-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pos-status-indicator.status-connected,
+.pos-status-indicator.status-online,
+.pos-status-indicator.status-ready,
+.pos-status-indicator.status-available {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.pos-status-indicator.status-disconnected,
+.pos-status-indicator.status-offline,
+.pos-status-indicator.status-error,
+.pos-status-indicator.status-unavailable {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pos-status-indicator.status-checking {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.pos-hardware-body {
+  margin-bottom: 1rem;
+}
+
+.pos-hardware-message {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
+.pos-hardware-detail {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0.25rem 0;
+}
+
+.pos-hardware-detail strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.pos-hardware-badge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.pos-hardware-badge.status-connected,
+.pos-hardware-badge.status-online,
+.pos-hardware-badge.status-ready,
+.pos-hardware-badge.status-available {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.pos-hardware-badge.status-disconnected,
+.pos-hardware-badge.status-offline,
+.pos-hardware-badge.status-error,
+.pos-hardware-badge.status-unavailable {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pos-hardware-badge.status-checking {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.pos-hardware-badge.system {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.pos-hardware-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.pos-test-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pos-test-btn:hover:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+  transform: translateY(-2px);
+}
+
+.pos-test-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* NFC Result Card */
+.nfc-result-card {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #3b82f6;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+}
+
+.nfc-result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e40af;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.nfc-result-detail {
+  color: #1f2937;
+  margin: 0.25rem 0;
+}
+
+.nfc-result-detail strong {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.nfc-result-timestamp {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* ============================================
+   TESTING SUITE - SEZIONE TEST HARDWARE
+   ============================================ */
+
+.pos-testing-suite {
+  margin-bottom: 2.5rem;
+}
+
+.pos-testing-suite h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-testing-description {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.pos-testing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.pos-test-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pos-test-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.15);
+  transform: translateY(-4px);
+}
+
+.pos-test-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.pos-test-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.pos-test-info {
+  flex: 1;
+}
+
+.pos-test-info h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.pos-test-info p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pos-test-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.pos-test-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.pos-test-badge.ready,
+.pos-test-badge.available,
+.pos-test-badge.online {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.pos-test-badge.error,
+.pos-test-badge.unavailable,
+.pos-test-badge.offline {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pos-test-badge.checking {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.pos-test-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.pos-test-action-btn:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+  transform: translateY(-2px);
+}
+
+.pos-test-action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pos-test-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================
+   MATRIX MONITOR - LOG SISTEMA
+   ============================================ */
+
+.pos-matrix-section {
+  margin: 2.5rem 0;
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid #2d2d2d;
+}
+
+.pos-matrix-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.pos-matrix-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #10b981;
+}
+
+.pos-matrix-title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #10b981;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.pos-matrix-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pos-monitor-toggle {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Courier New', monospace;
+}
+
+.pos-monitor-toggle.active {
+  background: #10b981;
+  color: white;
+}
+
+.pos-monitor-toggle.inactive {
+  background: #374151;
+  color: #9ca3af;
+}
+
+.pos-monitor-toggle:hover {
+  transform: scale(1.05);
+}
+
+.pos-clear-logs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #374151;
+  color: #e5e7eb;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pos-clear-logs:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+}
+
+.pos-matrix-logs {
+  padding: 1.5rem;
+  background: #0a0a0a;
+  min-height: 300px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.pos-matrix-logs::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pos-matrix-logs::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.pos-matrix-logs::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+.pos-matrix-logs::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+.pos-matrix-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.pos-matrix-empty p {
+  margin: 1rem 0 0.25rem 0;
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.pos-matrix-empty small {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.pos-matrix-line {
+  color: #10b981;
+  margin-bottom: 0.25rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.matrix-log-error {
+  color: #ef4444;
+}
+
+.matrix-log-warn {
+  color: #f59e0b;
+}
+
+.matrix-log-info {
+  color: #3b82f6;
+}
+
+.matrix-log-success {
+  color: #10b981;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   ACTION CARDS
+   ============================================ */
+
+.pos-action-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.pos-action-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 2.5rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pos-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 0%, rgba(220, 38, 38, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.pos-action-card:hover::before {
+  opacity: 1;
+}
+
+.pos-action-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 20px 48px rgba(220, 38, 38, 0.2);
+  transform: translateY(-8px);
+}
+
+.pos-action-card-primary .pos-action-icon {
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+}
+
+.pos-action-card-secondary .pos-action-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.pos-action-card-tertiary .pos-action-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.pos-action-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  transition: all 0.3s;
+}
+
+.pos-action-card:hover .pos-action-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.pos-action-content h3 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.pos-action-content p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.6;
+}
+
+.pos-action-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pos-action-features li {
+  font-size: 0.9375rem;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+/* Coming Soon Badge */
+.coming-soon-badge {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .pos-integration-hub {
+    padding: 1.5rem;
+  }
+
+  .pos-hub-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .pos-device-image {
+    width: 150px;
+  }
+
+  .pos-hub-header-text h1 {
+    font-size: 2rem;
+  }
+
+  .pos-hardware-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  .pos-action-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .pos-integration-hub {
+    padding: 1rem;
+  }
+
+  .pos-hub-header {
+    padding: 1.5rem;
+  }
+
+  .pos-device-image {
+    width: 120px;
+  }
+
+  .pos-hub-header-text h1 {
+    font-size: 1.75rem;
+  }
+
+  .pos-hub-header-text p {
+    font-size: 1rem;
+  }
+
+  .pos-org-info {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .pos-org-info .separator {
+    display: none;
+  }
+
+  .pos-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-hardware-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-action-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-action-card {
+    padding: 1.5rem;
+  }
+
+  .pos-stat-value {
+    font-size: 1.5rem;
+  }
+
+  .pos-hardware-section h2 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .pos-refresh-btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
