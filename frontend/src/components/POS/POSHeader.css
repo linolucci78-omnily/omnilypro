@@ -43,7 +43,7 @@
 
 .pos-hamburger-btn:active {
   transform: scale(0.95);
-  background: #ef4444 !important; /* DEBUG: rosso quando cliccato */
+  background: var(--secondary-color, #ef4444) !important; /* DEBUG: rosso quando cliccato */
 }
 
 .pos-hamburger-btn:focus {
@@ -111,7 +111,7 @@
   background: transparent !important;
   border: none !important;
   border-radius: 8px !important;
-  color: #dc2626 !important;
+  color: var(--primary-color, #dc2626) !important;
   font-size: 2rem !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
@@ -128,7 +128,7 @@
   background: transparent !important;
   border: none !important;
   border-radius: 8px !important;
-  color: #dc2626 !important;
+  color: var(--primary-color, #dc2626) !important;
   font-size: 2rem !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;

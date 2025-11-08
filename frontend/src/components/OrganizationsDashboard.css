@@ -103,7 +103,7 @@
 
 .pos-nav-tab.active {
   background: white;
-  color: #ef4444;
+  color: var(--secondary-color, #ef4444);
   font-weight: 600;
 }
 
@@ -221,7 +221,7 @@
 /* ========== SIDEBAR ========== */
 .sidebar {
   width: 280px;
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -659,8 +659,8 @@
 }
 
 .tab-btn.active {
-  color: #ef4444;
-  border-bottom-color: #ef4444;
+  color: var(--secondary-color, #ef4444);
+  border-bottom-color: var(--secondary-color, #ef4444);
 }
 
 .tab-btn:hover {
@@ -1050,7 +1050,7 @@
 
 /* ========== BUTTONS - UNIFIED STANDARD ========== */
 .btn-primary {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -1063,7 +1063,7 @@
 }
 
 .btn-primary:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 .dashboard-layout.pos-mode .btn-primary {
@@ -2043,7 +2043,7 @@
 }
 
 .btn-primary {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
   color: white;
   border: none;
   border-radius: 6px;
@@ -2058,7 +2058,7 @@
 }
 
 .btn-primary:hover {
-  background: #dc2626;
+  background: var(--primary-color, #dc2626);
 }
 
 /* Scrollbar styling for customer list */

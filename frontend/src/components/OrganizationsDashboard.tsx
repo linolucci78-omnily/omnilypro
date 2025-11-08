@@ -35,6 +35,8 @@ import CustomersCardView from './CustomersCardView'
 import RewardsHub from './RewardsHub'
 import CategoriesHub from './CategoriesHub'
 import POSIntegrationHub from './POSIntegrationHub'
+import AnalyticsReportsHub from './AnalyticsReportsHub'
+import BrandingSocialHub from './BrandingSocialHub'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -105,6 +107,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [nfcResult, setNfcResult] = useState<any>(null);
   const [qrStatus, setQrStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
+
+  // Preview Colors State - per vedere i colori su tutta la dashboard prima di salvare
+  const [previewColors, setPreviewColors] = useState<{
+    primary: string | null
+    secondary: string | null
+  }>({ primary: null, secondary: null })
   const [qrResult, setQrResult] = useState<any>(null);
   const [nfcTimeoutId, setNfcTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
@@ -214,6 +222,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       type: config.type || 'info'
     })
     setShowConfirmModal(true)
+  }
+
+  // Helper function per ottenere i colori corretti (preview o salvati)
+  const getActiveColors = () => {
+    const colors = {
+      primary: previewColors.primary || currentOrganization?.primary_color || '#dc2626',
+      secondary: previewColors.secondary || currentOrganization?.secondary_color || '#ef4444'
+    }
+    // Debug log per vedere se i colori cambiano
+    if (previewColors.primary) {
+      console.log('🎨 PREVIEW COLORS ACTIVE:', colors)
+    }
+    return colors
   }
 
   // FORCE RESET NFC STATE on component mount to prevent stuck states
@@ -1932,33 +1953,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }, [activeSection, monitorEnabled]); // Re-run when monitor is toggled
 
   // Function to check if user can access a section
+  // DISABILITATO - Tutte le sezioni sono accessibili senza limitazioni
   const checkSectionAccess = (sectionId: string, featureName: string) => {
-    const userPlan = currentOrganization?.plan_type || 'free'
-    const featureMap: Record<string, keyof typeof import('../utils/planPermissions').PLAN_FEATURES[keyof typeof import('../utils/planPermissions').PLAN_FEATURES]> = {
-      'loyalty-tiers': 'loyaltyTiers',
-      'rewards': 'rewards',
-      // 'categories': 'categories', // Rimosso blocco temporaneo
-      // 'marketing-campaigns': 'marketingCampaigns', // Rimosso blocco temporaneo
-      // 'notifications': 'notifications', // Rimosso - ridondante con Email Automations
-      'team-management': 'teamManagement',
-      'analytics-reports': 'analyticsReports',
-      'branding-social': 'brandingSocial',
-      'channels': 'channelsIntegration'
-    }
-
-    const feature = featureMap[sectionId]
-    if (!feature) return true // Always allow access to core sections
-
-    if (!hasAccess(userPlan, feature)) {
-      const upgradePlan = getUpgradePlan(userPlan, feature)
-      if (upgradePlan) {
-        setUpgradeFeature(featureName)
-        setRequiredPlan(upgradePlan)
-        setShowUpgradePrompt(true)
-      }
-      return false
-    }
-    return true
+    return true // Accesso sempre consentito - nessun blocco upgrade
   }
 
   // Handle section change with access control
@@ -1985,7 +1982,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: null },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
       { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: null },
-      { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
+      { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: null },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
       { id: 'website-editor', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
@@ -1995,7 +1992,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
     return allItems.map(item => ({
       ...item,
-      locked: item.feature ? !hasAccess(userPlan, item.feature as any) : false
+      locked: false // Tutte le funzionalità sono sempre sbloccate
     }))
   }
 
@@ -2323,7 +2320,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
             <LoyaltyTiersDisplay
               tiers={currentOrganization.loyalty_tiers || []}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              primaryColor={getActiveColors().primary}
               onEdit={() => setShowLoyaltyTiersPanel(true)}
             />
           </div>
@@ -2331,23 +2328,39 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'rewards':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
             <RewardsHub
               organizationId={currentOrganization.id}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
-              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
             />
           </div>
         ) : null
 
       case 'categories':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
             <CategoriesHub
               organizationId={currentOrganization.id}
               organizationName={currentOrganization.name}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
-              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
               productCategories={currentOrganization.product_categories || []}
               bonusCategories={currentOrganization.bonus_categories || []}
             />
@@ -2356,12 +2369,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'marketing-campaigns':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
             <MarketingCampaignsHub
               organizationId={currentOrganization.id}
               organizationName={currentOrganization.name}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
-              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
               onOpenEmailMarketingPanel={() => setShowEmailMarketingPanel(true)}
             />
           </div>
@@ -2372,8 +2393,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
             <TeamManagementHub
               organizationId={currentOrganization.id}
-              primaryColor={currentOrganization.primary_color}
-              secondaryColor={currentOrganization.secondary_color}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
             />
           </div>
         ) : (
@@ -2388,14 +2409,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'pos-integration':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
             <POSIntegrationHub
               organizationId={currentOrganization.id}
               organizationName={currentOrganization.name}
               posModel={currentOrganization.pos_model}
               posConnection={currentOrganization.pos_connection}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
-              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
               hardwareStatus={hardwareStatus}
               nfcResult={nfcResult}
               matrixLogs={matrixLogs}
@@ -2411,133 +2440,61 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         ) : null
 
       case 'analytics-reports':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <TrendingUp size={24} />
-              <h2>Analytics & Report</h2>
-              <p>Configurazione analytics dal wizard</p>
-            </div>
-
-            <div className="analytics-config">
-              <div className="analytics-card">
-                <h3>Analytics Avanzate</h3>
-                <div className={`status-badge ${currentOrganization?.enable_advanced_analytics ? 'active' : 'inactive'}`}>
-                  {currentOrganization?.enable_advanced_analytics ? 'Abilitate' : 'Disabilitate'}
-                </div>
-                <p>Analisi dettagliate comportamento clienti e performance</p>
-              </div>
-
-              <div className="reports-card">
-                <h3>Frequenza Report</h3>
-                <div className="report-frequency">
-                  {currentOrganization?.report_frequency || 'Non configurata'}
-                </div>
-                <p>Report automatici via email</p>
-              </div>
-
-              {currentOrganization?.kpi_tracking && currentOrganization.kpi_tracking.length > 0 && (
-                <div className="kpi-card">
-                  <h3>KPI Monitorati</h3>
-                  <ul className="kpi-list">
-                    {Array.isArray(currentOrganization.kpi_tracking) && currentOrganization.kpi_tracking.map((kpi, index) => (
-                      <li key={index} className="kpi-item">
-                        <CheckCircle2 size={16} />
-                        <span>{kpi.replace('_', ' ').toUpperCase()}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+        return currentOrganization ? (
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
+            <AnalyticsReportsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
+            />
           </div>
-        )
+        ) : null
 
       case 'branding-social':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <Palette size={24} />
-              <h2>Branding & Social Media</h2>
-              <p>Personalizzazione brand e social links dal wizard</p>
-            </div>
-
-            <div className="branding-grid">
-              <div className="brand-card">
-                <h3>Colori Brand</h3>
-                <div className="color-display">
-                  <div className="color-item">
-                    <div
-                      className="color-preview"
-                      style={{ backgroundColor: currentOrganization?.primary_color || '#ef4444' }}
-                    ></div>
-                    <span>Primario: {currentOrganization?.primary_color || '#ef4444'}</span>
-                  </div>
-                  <div className="color-item">
-                    <div
-                      className="color-preview"
-                      style={{ backgroundColor: currentOrganization?.secondary_color || '#dc2626' }}
-                    ></div>
-                    <span>Secondario: {currentOrganization?.secondary_color || '#dc2626'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="logo-card">
-                <h3>Logo Aziendale</h3>
-                {currentOrganization?.logo_url ? (
-                  <div className="logo-display">
-                    <img src={currentOrganization.logo_url} alt="Logo" className="org-logo" />
-                  </div>
-                ) : (
-                  <div className="no-logo">Nessun logo configurato</div>
-                )}
-              </div>
-
-              <div className="social-card">
-                <h3>Social Media</h3>
-                <div className="social-links">
-                  {currentOrganization?.facebook_url && (
-                    <div className="social-item">
-                      <span>📘 Facebook</span>
-                      <a href={currentOrganization.facebook_url} target="_blank" rel="noopener noreferrer">
-                        Apri profilo
-                      </a>
-                    </div>
-                  )}
-                  {currentOrganization?.instagram_url && (
-                    <div className="social-item">
-                      <span>📷 Instagram</span>
-                      <a href={currentOrganization.instagram_url} target="_blank" rel="noopener noreferrer">
-                        Apri profilo
-                      </a>
-                    </div>
-                  )}
-                  {currentOrganization?.linkedin_url && (
-                    <div className="social-item">
-                      <span>💼 LinkedIn</span>
-                      <a href={currentOrganization.linkedin_url} target="_blank" rel="noopener noreferrer">
-                        Apri profilo
-                      </a>
-                    </div>
-                  )}
-                  {currentOrganization?.twitter_url && (
-                    <div className="social-item">
-                      <span>🐦 Twitter</span>
-                      <a href={currentOrganization.twitter_url} target="_blank" rel="noopener noreferrer">
-                        Apri profilo
-                      </a>
-                    </div>
-                  )}
-                  {!currentOrganization?.facebook_url && !currentOrganization?.instagram_url &&
-                   !currentOrganization?.linkedin_url && !currentOrganization?.twitter_url && (
-                    <div className="no-social">Nessun social media configurato</div>
-                  )}
-                </div>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
+            <BrandingSocialHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              currentPrimaryColor={currentOrganization.primary_color || '#dc2626'}
+              currentSecondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              onColorsUpdate={(primary, secondary) => {
+                // Aggiorna i colori nell'organizzazione corrente
+                setCurrentOrganization({
+                  ...currentOrganization,
+                  primary_color: primary,
+                  secondary_color: secondary
+                })
+              }}
+              onPreviewChange={(previewMode, primary, secondary) => {
+                // Aggiorna i colori preview globali
+                console.log('🎨 PREVIEW MODE CHANGED:', previewMode, primary, secondary)
+                if (previewMode && primary && secondary) {
+                  setPreviewColors({ primary, secondary })
+                } else {
+                  setPreviewColors({ primary: null, secondary: null })
+                }
+              }}
+            />
           </div>
-        )
+        ) : null
 
       case 'website-editor':
         return currentOrganization ? (
@@ -2767,12 +2724,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'subscriptions':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
             <SubscriptionsHub
               organizationId={currentOrganization.id}
               organizationName={currentOrganization.name}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
-              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
               onOpenSubscriptionsPanel={(mode) => {
                 if (mode) setSubscriptionInitialModal(mode)
                 setShowSubscriptionsPanel(true)
@@ -2954,7 +2919,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   if (error) return <div className="error">Errore: {error}</div>
 
   return (
-    <div className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}>
+    <div
+      className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}
+      style={{
+        '--primary-color': getActiveColors().primary,
+        '--secondary-color': getActiveColors().secondary
+      } as React.CSSProperties}
+    >
       {/* DEBUG: POS Mode Indicator */}
       {isPOSMode && (
         <div style={{

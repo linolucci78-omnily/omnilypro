@@ -64,7 +64,7 @@
 }
 
 .status-dot.disconnected {
-  background: #ef4444;
+  background: var(--secondary-color, #ef4444);
 }
 
 @keyframes pulse {
