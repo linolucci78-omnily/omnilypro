@@ -470,7 +470,13 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       {showModal && (
         <>
           <div className="modal-overlay" onClick={handleCloseModal} />
-          <div className="modal-reward">
+          <div
+            className="modal-reward"
+            style={{
+              '--primary-color': primaryColor,
+              '--secondary-color': secondaryColor
+            } as React.CSSProperties}
+          >
             <div className="modal-header">
               <h2>{editingReward ? 'Modifica Premio' : 'Nuovo Premio'}</h2>
               <button className="btn-close-modal" onClick={handleCloseModal}>
@@ -674,7 +680,14 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       {deleteConfirmId && (
         <>
           <div className="modal-overlay" onClick={() => setDeleteConfirmId(null)} />
-          <div className="modal-reward" style={{ maxWidth: '500px' }}>
+          <div
+            className="modal-reward"
+            style={{
+              maxWidth: '500px',
+              '--primary-color': primaryColor,
+              '--secondary-color': secondaryColor
+            } as React.CSSProperties}
+          >
             <div className="modal-header">
               <h2>Conferma Eliminazione</h2>
               <button className="btn-close-modal" onClick={() => setDeleteConfirmId(null)}>
