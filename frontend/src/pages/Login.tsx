@@ -145,6 +145,14 @@ const Login: React.FC = () => {
       console.log('🔐 NFC Read in Login - Raw:', rawResult);
       console.log('🔐 Type:', typeof rawResult);
 
+      // DEBUG TOAST - Mostra i dati ricevuti
+      const debugInfo = typeof rawResult === 'object'
+        ? `Tipo: object, Chiavi: ${Object.keys(rawResult || {}).join(', ')}, Dati: ${JSON.stringify(rawResult)}`
+        : `Tipo: ${typeof rawResult}, Valore: ${String(rawResult)}`;
+
+      showInfo('DEBUG NFC Ricevuto', debugInfo);
+      console.log('📱 DEBUG Toast mostrato:', debugInfo);
+
       let nfcUid = '';
 
       // Prova tutti i possibili formati

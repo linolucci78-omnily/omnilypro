@@ -47,18 +47,30 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
     const handleNFCRead = async (rawResult: any) => {
       console.log('🔐 NFC Read for operator card:', rawResult)
 
+      // DEBUG TOAST - Mostra i dati ricevuti
+      const debugInfo = typeof rawResult === 'object'
+        ? `Tipo: object, Chiavi: ${Object.keys(rawResult || {}).join(', ')}, Dati: ${JSON.stringify(rawResult)}`
+        : `Tipo: ${typeof rawResult}, Valore: ${String(rawResult)}`;
+
+      showInfo('DEBUG NFC Ricevuto', debugInfo);
+      console.log('📱 DEBUG Toast mostrato (Management):', debugInfo);
+
       let nfcUid = ''
       if (typeof rawResult === 'string') {
         try {
           const parsed = JSON.parse(rawResult)
-          nfcUid = parsed.uid || parsed.nfcUid || ''
+          nfcUid = parsed.uid || parsed.nfcUid || parsed.id || parsed.serialNumber || ''
         } catch {
-          nfcUid = rawResult
+          nfcUid = rawResult.trim()
         }
       } else if (rawResult?.uid) {
         nfcUid = rawResult.uid
       } else if (rawResult?.nfcUid) {
         nfcUid = rawResult.nfcUid
+      } else if (rawResult?.id) {
+        nfcUid = rawResult.id
+      } else if (rawResult?.serialNumber) {
+        nfcUid = rawResult.serialNumber
       }
 
       if (!nfcUid) {
