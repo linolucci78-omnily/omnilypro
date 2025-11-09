@@ -41,4 +41,4 @@ GRANT EXECUTE ON FUNCTION public.get_organization_users_with_auth(UUID) TO authe
 GRANT EXECUTE ON FUNCTION public.get_organization_users_with_auth(UUID) TO anon;
 
 -- Comment
-COMMENT ON FUNCTION public.get_organization_users_with_auth IS 'Ottiene gli utenti di un\'organizzazione con i dati di autenticazione';
+COMMENT ON FUNCTION public.get_organization_users_with_auth IS 'Ottiene gli utenti di un''organizzazione con i dati di autenticazione';
