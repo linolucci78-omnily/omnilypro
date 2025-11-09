@@ -18,6 +18,7 @@ import {
   clearTierUpgradeNotification,
   cleanupOldTierUpgrades
 } from '../utils/tierUpgradeHelper';
+import { logPointsAdded, logPointsRemoved, logRewardRedeemed, logSale } from '../lib/activityLogger';
 
 interface CustomerSlidePanelProps {
   customer: Customer | null;
@@ -356,6 +357,25 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           points: pointsChange
         });
         console.log('✅ Attività creata:', activity);
+
+        // 📝 LOG STAFF ACTIVITY
+        if (pointsChange > 0) {
+          await logPointsAdded(
+            customer.organization_id,
+            customer.id,
+            customer.name,
+            pointsChange,
+            reason
+          );
+        } else {
+          await logPointsRemoved(
+            customer.organization_id,
+            customer.id,
+            customer.name,
+            Math.abs(pointsChange),
+            reason
+          );
+        }
       } catch (error) {
         console.error('❌ Errore creazione attività:', error);
       }
@@ -401,6 +421,16 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       }
 
       console.log(`✅ Premio "${selectedReward.name}" riscattato! Punti scalati: -${selectedReward.points_required}`);
+
+      // 📝 LOG STAFF ACTIVITY
+      await logRewardRedeemed(
+        customer.organization_id,
+        customer.id,
+        customer.name,
+        selectedReward.id,
+        selectedReward.name,
+        selectedReward.points_required
+      );
 
       // Aggiorna localCustomer immediatamente con i nuovi punti
       const newPoints = localCustomer.points - selectedReward.points_required;
@@ -526,6 +556,17 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         if (result.success) {
           // Transazione COMPLETATA con successo!
           console.log('Transazione completata con successo!');
+
+          // 📝 LOG STAFF ACTIVITY
+          if (customer.organization_id) {
+            await logSale(
+              customer.organization_id,
+              customer.id,
+              customer.name,
+              amount,
+              pointsEarned
+            );
+          }
 
           // 🔊 SUONO CELEBRAZIONE - Riprodotto dal POS principale
           playCoinSound();

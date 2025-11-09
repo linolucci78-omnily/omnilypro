@@ -13,7 +13,8 @@ import {
   Database,
   Zap,
   Save,
-  AlertCircle
+  AlertCircle,
+  Smartphone
 } from 'lucide-react'
 import './SettingsHub.css'
 
@@ -81,6 +82,21 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Sicurezza e termini'
       ],
       onClick: onOpenGiftCertificatesSettings
+    },
+    {
+      id: 'operator-nfc',
+      icon: Smartphone,
+      title: 'Tessere Operatori POS',
+      description: 'Associa tessere NFC per login rapido operatori',
+      color: '#c0392b',
+      gradient: 'linear-gradient(135deg, #c0392b 0%, #a93226 100%)',
+      features: [
+        'Login NFC istantaneo',
+        'Gestione tessere operatori',
+        'Log accessi e sicurezza',
+        'Attiva/disattiva tessere'
+      ],
+      onClick: () => onNavigateToSection('operator-nfc-management')
     },
     {
       id: 'billing',

@@ -11,6 +11,9 @@ import CustomerSlidePanel from './CustomerSlidePanel'
 import EditCustomerModal from './EditCustomerModal'
 import CardManagementPanel from './CardManagementPanel'
 import CardManagementHub from './CardManagementHub'
+import CardManagementFullPage from './CardManagementFullPage'
+import CardStatisticsPage from './CardStatisticsPage'
+import OperatorNFCManagementFullPage from './OperatorNFCManagementFullPage'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import AccountSettingsHub from './AccountSettingsHub'
@@ -2030,11 +2033,49 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             organizationId={currentOrganization.id}
             primaryColor={currentOrganization.primary_color}
             secondaryColor={currentOrganization.secondary_color}
-            onOpenManagement={() => setShowCardManagementPanel(true)}
+            onOpenManagement={() => handleSectionChange('card-management-full')}
+            onOpenStatistics={() => handleSectionChange('card-statistics')}
             onBack={() => handleSectionChange('settings')}
           />
         ) : null
-      
+
+      case 'card-management-full':
+        return currentOrganization ? (
+          <CardManagementFullPage
+            customers={customers}
+            organizationId={currentOrganization.id}
+            onBack={() => handleSectionChange('stamps')}
+            onAssignCard={(cardId, customerId) => {
+              console.log('✅ Tessera assegnata:', { cardId, customerId })
+              // Ricarica i dati se necessario
+              fetchCustomers(currentOrganization.id)
+            }}
+            onReassignCard={(cardId, customerId) => {
+              console.log('🔄 Tessera riassegnata:', { cardId, customerId })
+              fetchCustomers(currentOrganization.id)
+            }}
+          />
+        ) : null
+
+      case 'card-statistics':
+        return currentOrganization ? (
+          <CardStatisticsPage
+            organizationId={currentOrganization.id}
+            primaryColor={currentOrganization.primary_color}
+            secondaryColor={currentOrganization.secondary_color}
+            onBack={() => handleSectionChange('stamps')}
+          />
+        ) : null
+
+      case 'operator-nfc-management':
+        return currentOrganization ? (
+          <OperatorNFCManagementFullPage
+            organizationId={currentOrganization.id}
+            organizationUsers={customers}
+            onBack={() => handleSectionChange('settings')}
+          />
+        ) : null
+
       case 'members':
         return (
           <div

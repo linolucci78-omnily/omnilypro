@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { getAdminPermissions, type AdminRole } from '../utils/adminPermissions';
+import { operatorNFCService, type OperatorAuthResult } from '../services/operatorNFCService';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
 const Login: React.FC = () => {
@@ -10,10 +12,16 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
 
+  // POS NFC Login states
+  const [loginMethod, setLoginMethod] = useState<'nfc' | 'password'>('nfc');
+  const [isReadingNFC, setIsReadingNFC] = useState(false);
+  const [recognizedOperator, setRecognizedOperator] = useState<OperatorAuthResult | null>(null);
+  const nfcCallbackRef = useRef<any>(null);
+
   const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin, userRole, loading: authLoading } = useAuth();
+  const { showSuccess, showError, showInfo } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -76,17 +84,23 @@ const Login: React.FC = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
     try {
       if (authMode === 'signup') {
         await signUp(email, password);
-        setMessage('✅ Registrazione completata! Controlla la tua email per confermare l\'account.');
+        showSuccess('Registrazione completata', 'Controlla la tua email per confermare l\'account');
       } else {
         await signIn(email, password);
-        setMessage('✅ Login effettuato con successo!');
+        showSuccess('Login effettuato con successo');
       }
     } catch (error) {
-      setMessage(`❌ Errore: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
+      if (errorMessage.includes('Invalid login credentials')) {
+        showError('Credenziali non valide', 'Email o password non corretti');
+      } else if (errorMessage.includes('Email not confirmed')) {
+        showError('Email non confermata', 'Controlla la tua email per confermare l\'account');
+      } else {
+        showError('Errore di autenticazione', errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -95,12 +109,11 @@ const Login: React.FC = () => {
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
     try {
       await resetPassword(email);
-      setMessage('✅ Se l\'email è corretta, riceverai un link per il reset della password.');
+      showSuccess('Email inviata', 'Controlla la tua email per il link di reset della password');
     } catch (error) {
-      setMessage(`❌ Errore: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
+      showError('Errore reset password', error instanceof Error ? error.message : 'Errore sconosciuto');
     } finally {
       setLoading(false);
     }
@@ -110,7 +123,7 @@ const Login: React.FC = () => {
     try {
       await signInWithGoogle();
     } catch (error) {
-      setMessage(`❌ Errore Google Login: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
+      showError('Errore Google Login', error instanceof Error ? error.message : 'Errore sconosciuto');
     }
   };
 
@@ -120,54 +133,270 @@ const Login: React.FC = () => {
     return 'Accedi';
   };
 
+  // ====================================
+  // POS NFC Login Functions
+  // ====================================
+
+  useEffect(() => {
+    if (!isPosMode || loginMethod !== 'nfc') return;
+
+    // Setup NFC callback
+    const handleNFCRead = async (rawResult: any) => {
+      console.log('🔐 NFC Read in Login:', rawResult);
+
+      let nfcUid = '';
+      if (typeof rawResult === 'string') {
+        try {
+          const parsed = JSON.parse(rawResult);
+          nfcUid = parsed.uid || parsed.nfcUid || '';
+        } catch {
+          nfcUid = rawResult;
+        }
+      } else if (rawResult?.uid) {
+        nfcUid = rawResult.uid;
+      } else if (rawResult?.nfcUid) {
+        nfcUid = rawResult.nfcUid;
+      }
+
+      if (!nfcUid) {
+        showError('Errore NFC', 'Impossibile leggere la tessera');
+        setIsReadingNFC(false);
+        return;
+      }
+
+      try {
+        // Cerca l'operatore nel database
+        const operatorAuth = await operatorNFCService.authenticateViaNFC(nfcUid);
+
+        if (!operatorAuth) {
+          showError('Tessera non riconosciuta', 'Questa tessera non è associata a nessun operatore');
+          setIsReadingNFC(false);
+          return;
+        }
+
+        // Mostra l'operatore riconosciuto
+        setRecognizedOperator(operatorAuth);
+        showSuccess('Operatore Riconosciuto!', `Benvenuto ${operatorAuth.operator_name}`);
+
+        // Attendi 1 secondo per mostrare il riconoscimento
+        setTimeout(async () => {
+          try {
+            // Effettua il login con le credenziali dell'operatore
+            // Nota: questo richiede che l'operatore abbia un account Supabase Auth
+            // In alternativa, potresti generare un token temporaneo
+            await signIn(operatorAuth.user_email, ''); // Password vuota, gestita server-side
+
+            // Log del login
+            await operatorNFCService.logLogin({
+              operator_card_id: operatorAuth.card_id,
+              user_id: operatorAuth.user_id,
+              organization_id: operatorAuth.organization_id,
+              nfc_uid: nfcUid,
+              success: true
+            });
+
+            showSuccess('Login effettuato!', 'Accesso completato');
+          } catch (error) {
+            console.error('Errore durante login NFC:', error);
+            showError('Errore Login', 'Impossibile effettuare il login. Usa email e password.');
+            setLoginMethod('password');
+          } finally {
+            setIsReadingNFC(false);
+            setRecognizedOperator(null);
+          }
+        }, 1500);
+
+      } catch (error) {
+        console.error('Errore autenticazione NFC:', error);
+        showError('Errore', 'Errore durante l\'autenticazione NFC');
+        setIsReadingNFC(false);
+      }
+    };
+
+    // Registra il callback globale
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      (window as any).loginNFCHandler = handleNFCRead;
+      nfcCallbackRef.current = handleNFCRead;
+      console.log('✅ Login NFC handler registered');
+    }
+
+    return () => {
+      // Cleanup
+      if (typeof window !== 'undefined') {
+        delete (window as any).loginNFCHandler;
+        const bridge = (window as any).OmnilyPOS;
+        if (bridge && bridge.stopNFCReading) {
+          bridge.stopNFCReading();
+        }
+      }
+    };
+  }, [isPosMode, loginMethod, showError, showSuccess, signIn]);
+
+  const handleStartNFCReading = () => {
+    const bridge = (window as any).OmnilyPOS;
+    if (!bridge || !bridge.readNFCCard) {
+      showError('Errore', 'Funzione NFC non disponibile');
+      return;
+    }
+
+    setIsReadingNFC(true);
+    setRecognizedOperator(null);
+
+    if (bridge.showToast) {
+      bridge.showToast('Avvicina la tua tessera operatore...');
+    }
+
+    // Avvia la lettura NFC
+    bridge.readNFCCard('loginNFCHandler');
+    console.log('🔐 NFC Reading started for login');
+  };
+
+  const handleStopNFCReading = () => {
+    const bridge = (window as any).OmnilyPOS;
+    if (bridge && bridge.stopNFCReading) {
+      bridge.stopNFCReading();
+    }
+    setIsReadingNFC(false);
+    setRecognizedOperator(null);
+  };
+
+  // ====================================
   // Layout specifico per il POS
+  // ====================================
   if (isPosMode) {
     return (
       <div className={styles.posWrapper}>
         <div className={styles.posCard}>
+          {/* Logo */}
           <div className={styles.logoContainer}>
             <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" />
           </div>
           <h2 className={styles.title}>Accesso POS</h2>
-          <form onSubmit={handleAuth} className={styles.form}>
-            <input
-              type="email"
-              placeholder="Email operatore"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <div className={styles.passwordInputContainer}>
+
+          {/* Toggle Method */}
+          <div className={styles.loginMethodToggle}>
+            <button
+              type="button"
+              className={`${styles.toggleButton} ${loginMethod === 'nfc' ? styles.active : ''}`}
+              onClick={() => {
+                setLoginMethod('nfc');
+                if (isReadingNFC) handleStopNFCReading();
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                <line x1="12" y1="18" x2="12.01" y2="18"/>
+              </svg>
+              Tessera NFC
+            </button>
+            <button
+              type="button"
+              className={`${styles.toggleButton} ${loginMethod === 'password' ? styles.active : ''}`}
+              onClick={() => {
+                setLoginMethod('password');
+                if (isReadingNFC) handleStopNFCReading();
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Password
+            </button>
+          </div>
+
+          {/* NFC Mode */}
+          {loginMethod === 'nfc' && (
+            <div className={styles.nfcMode}>
+              {!isReadingNFC && !recognizedOperator && (
+                <button
+                  type="button"
+                  className={styles.nfcStartButton}
+                  onClick={handleStartNFCReading}
+                >
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                    <line x1="12" y1="18" x2="12.01" y2="18"/>
+                  </svg>
+                  <span>Avvicina la Tessera</span>
+                </button>
+              )}
+
+              {isReadingNFC && !recognizedOperator && (
+                <div className={styles.nfcReading}>
+                  <div className={styles.nfcPulse}>
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                      <line x1="12" y1="18" x2="12.01" y2="18"/>
+                    </svg>
+                  </div>
+                  <p>In attesa della tessera...</p>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={handleStopNFCReading}
+                  >
+                    Annulla
+                  </button>
+                </div>
+              )}
+
+              {recognizedOperator && (
+                <div className={styles.operatorRecognized}>
+                  <div className={styles.checkIcon}>
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <h3>Operatore Riconosciuto</h3>
+                  <p className={styles.operatorName}>{recognizedOperator.operator_name}</p>
+                  <p className={styles.accessingText}>Accesso in corso...</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Password Mode */}
+          {loginMethod === 'password' && (
+            <form onSubmit={handleAuth} className={styles.form}>
               <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                placeholder="Email operatore"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <button
-                type="button"
-                className={styles.passwordToggle}
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
-              >
-                {showPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="12" cy="12" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
+              <div className={styles.passwordInputContainer}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggle}
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="12" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <button type="submit" disabled={loading}>
+                {loading ? 'Accesso...' : 'Entra'}
               </button>
-            </div>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Accesso...' : 'Entra'}
-            </button>
-            {message && <p className={styles.errorMessage}>{message}</p>}
-          </form>
+            </form>
+          )}
         </div>
       </div>
     );
@@ -189,20 +418,36 @@ const Login: React.FC = () => {
         {authMode === 'reset' ? (
           <form onSubmit={handlePasswordReset} className="login-form">
             <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" required />
+              <label htmlFor="email" className="sr-only">Email</label>
+              <div className="input-with-icon">
+                <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" required />
+              </div>
             </div>
             <button type="submit" className="btn btn-primary btn-full" disabled={loading}>{loading ? 'Invio...' : 'Invia link per il reset'}</button>
           </form>
         ) : (
           <form onSubmit={handleAuth} className="login-form">
             <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" required />
+              <label htmlFor="email" className="sr-only">Email</label>
+              <div className="input-with-icon">
+                <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" required />
+              </div>
             </div>
             <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="password-input-container">
+              <label htmlFor="password" className="sr-only">Password</label>
+              <div className="input-with-icon password-input-container">
+                <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
                 <input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="La tua password" required minLength={6} />
                 <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} disabled={loading}>
                   {showPassword ? <svg width="20" height="20" viewBox="0 0 24 24"><path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <svg width="20" height="20" viewBox="0 0 24 24"><path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
@@ -215,7 +460,6 @@ const Login: React.FC = () => {
             <button type="button" onClick={handleGoogleLogin} className="btn btn-google btn-full">Continua con Google</button>
           </form>
         )}
-        {message && <div className={`auth-message ${message.includes('❌') ? 'error' : 'success'}`}>{message}</div>}
         <div className="auth-switch">
           {authMode === 'login' && <p>Non hai un account? <button type="button" onClick={() => setAuthMode('signup')} className="link-button">Registrati qui</button></p>}
           {authMode === 'signup' && <p>Hai già un account? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Accedi qui</button></p>}

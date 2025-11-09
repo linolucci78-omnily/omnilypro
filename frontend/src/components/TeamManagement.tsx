@@ -619,10 +619,22 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
 
       {/* MODAL: ADD/EDIT STAFF */}
       {showStaffModal && (
-        <div className="modal-overlay" onClick={closeStaffModal}>
+        <div
+          className="modal-overlay"
+          onClick={closeStaffModal}
+          style={{
+            '--primary-color': primaryColor,
+            '--secondary-color': secondaryColor
+          } as React.CSSProperties}
+        >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingStaff ? 'Modifica Membro' : 'Nuovo Membro'}</h2>
+            <div
+              className="modal-header"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}0D 0%, ${primaryColor}1F 100%)`
+              }}
+            >
+              <h2 style={{ color: primaryColor }}>{editingStaff ? 'Modifica Membro' : 'Nuovo Membro'}</h2>
               <button className="modal-close" onClick={closeStaffModal}>
                 <X size={24} />
               </button>
@@ -691,7 +703,11 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
               <button className="btn-secondary" onClick={closeStaffModal}>
                 Annulla
               </button>
-              <button className="btn-primary" onClick={handleSaveStaff}>
+              <button
+                className="btn-primary"
+                onClick={handleSaveStaff}
+                style={{ background: primaryColor }}
+              >
                 {editingStaff ? 'Salva Modifiche' : 'Crea Membro'}
               </button>
             </div>

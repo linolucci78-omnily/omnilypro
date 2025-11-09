@@ -7,6 +7,7 @@ interface CardManagementHubProps {
   primaryColor: string
   secondaryColor: string
   onOpenManagement: () => void
+  onOpenStatistics: () => void
   onBack: () => void
 }
 
@@ -17,6 +18,7 @@ const CardManagementHub: React.FC<CardManagementHubProps> = ({
   primaryColor,
   secondaryColor,
   onOpenManagement,
+  onOpenStatistics,
   onBack
 }) => {
   const [activeView, setActiveView] = useState<ViewType>('hub')
@@ -71,7 +73,7 @@ const CardManagementHub: React.FC<CardManagementHubProps> = ({
           </div>
 
         {/* Card 2: Statistiche Punti */}
-        <div className="card-hub-card" onClick={() => alert('Statistiche in arrivo!')}>
+        <div className="card-hub-card" onClick={onOpenStatistics}>
           <div className="card-hub-card-icon statistics">
             <BarChart3 size={48} />
           </div>

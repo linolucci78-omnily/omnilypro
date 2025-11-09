@@ -209,7 +209,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin + '/auth/callback'
+        emailRedirectTo: window.location.origin + '/auth/callback',
+        // DEVELOPMENT: Auto-confirm email per evitare problemi con email non recapitate
+        data: {
+          email_confirmed: true
+        }
       }
     })
 
@@ -217,6 +221,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Log per debug
     console.log('SignUp result:', data)
+    console.log('User email confirmed:', data.user?.email_confirmed_at)
 
     return data
   }

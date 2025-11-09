@@ -21,10 +21,23 @@ const AuthCallback: React.FC = () => {
           setStatus('success')
           setMessage('Account confermato con successo!')
 
+          // Controlla se l'utente ha già un'organizzazione
+          const { data: orgData } = await supabase
+            .from('organization_users')
+            .select('organization_id')
+            .eq('user_id', data.session.user.id)
+            .limit(1)
+            .maybeSingle()
+
           // Reindirizza dopo 2 secondi mantenendo i parametri POS
           setTimeout(() => {
             const searchParams = window.location.search
-            navigate(`/dashboard${searchParams}`)
+            // Se non ha organizzazioni, vai all'onboarding
+            if (!orgData) {
+              navigate(`/onboarding${searchParams}`)
+            } else {
+              navigate(`/dashboard${searchParams}`)
+            }
           }, 2000)
         } else {
           // Prova a gestire il callback URL

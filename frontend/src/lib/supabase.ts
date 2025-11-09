@@ -1016,16 +1016,111 @@ export const rewardsApi = {
 // STAFF MANAGEMENT API
 // ============================================
 export const staffApi = {
-  // Get all staff members for organization
+  // Get all staff members for organization (includes super admins)
   async getAll(organizationId: string): Promise<StaffMember[]> {
-    const { data, error } = await supabase
+    console.log('🔍 [STAFF API] Getting all staff for organization:', organizationId)
+
+    // Get regular staff members
+    const { data: staffMembers, error: staffError } = await supabase
       .from('staff_members')
       .select('*')
       .eq('organization_id', organizationId)
       .order('name', { ascending: true })
 
-    if (error) throw error
-    return data || []
+    if (staffError) throw staffError
+    console.log('👥 [STAFF API] Regular staff members:', staffMembers?.length || 0)
+
+    // Get super admin users from organization_users table (without join)
+    // Note: Super admins are global and have access to all organizations
+    const { data: orgUsers, error: orgError } = await supabase
+      .from('organization_users')
+      .select('user_id, role, created_at')
+      .eq('role', 'super_admin')
+
+    console.log('🔐 [STAFF API] Organization users query result:', { orgUsers, orgError })
+
+    if (orgError) {
+      console.warn('⚠️ Could not fetch super admin organization users:', orgError)
+      return staffMembers || []
+    }
+
+    // If no super admins found, just return staff members
+    if (!orgUsers || orgUsers.length === 0) {
+      console.log('ℹ️ No super admins found in organization_users')
+      return staffMembers || []
+    }
+
+    // Get user details for each super admin (filter out null user_ids)
+    const userIds = orgUsers.map(ou => ou.user_id).filter(id => id !== null)
+    console.log('👤 [STAFF API] Fetching user details for IDs:', userIds)
+
+    if (userIds.length === 0) {
+      console.log('ℹ️ No valid user IDs found for super admins')
+      return staffMembers || []
+    }
+
+    const { data: usersData, error: usersError } = await supabase
+      .from('users')
+      .select('id, email, full_name')
+      .in('id', userIds)
+
+    console.log('👥 [STAFF API] Users query result:', { usersData, usersError })
+
+    if (usersError) {
+      console.warn('⚠️ Could not fetch user details:', usersError)
+      return staffMembers || []
+    }
+
+    // Create a map of user_id -> user data for quick lookup
+    const usersMap = new Map((usersData || []).map(u => [u.id, u]))
+
+    // Transform super admins to match StaffMember interface (only those with valid user_id)
+    const transformedAdmins: StaffMember[] = orgUsers
+      .filter((orgUser: any) => orgUser.user_id !== null)
+      .map((orgUser: any) => {
+        const userData = usersMap.get(orgUser.user_id)
+        return {
+          id: orgUser.user_id,
+          organization_id: organizationId,
+          name: userData?.full_name || userData?.email || 'Super Admin',
+          email: userData?.email,
+          role: 'admin' as const,
+          pin_code: '', // Super admins don't have PIN codes
+          is_active: true,
+          created_at: orgUser.created_at,
+          updated_at: orgUser.created_at, // Use created_at since updated_at doesn't exist
+          last_login: undefined
+        }
+      })
+
+    console.log('✨ [STAFF API] Transformed admins:', transformedAdmins)
+
+    // Merge staff members and super admins, removing duplicates by email
+    // Use a Map to deduplicate by email (super admins take precedence over virtual staff records)
+    const membersByEmail = new Map<string, StaffMember>()
+
+    // First add super admins (they take precedence)
+    transformedAdmins.forEach(admin => {
+      if (admin.email) {
+        membersByEmail.set(admin.email.toLowerCase(), admin)
+      }
+    })
+
+    // Then add staff members only if their email is not already in the map
+    // This filters out virtual staff records created for super admins
+    staffMembers?.forEach(staff => {
+      const emailKey = staff.email?.toLowerCase()
+      if (emailKey && !membersByEmail.has(emailKey)) {
+        membersByEmail.set(emailKey, staff)
+      } else if (!emailKey) {
+        // Staff without email (shouldn't happen but handle it)
+        membersByEmail.set(`no-email-${staff.id}`, staff)
+      }
+    })
+
+    const allMembers = Array.from(membersByEmail.values())
+    console.log('📋 [STAFF API] Total members after deduplication:', allMembers.length)
+    return allMembers.sort((a, b) => a.name.localeCompare(b.name))
   },
 
   // Get single staff member by ID
@@ -1300,6 +1395,101 @@ export const staffApi = {
       totalActions: totalActions || 0,
       lastLogin: lastLoginData?.[0]?.created_at,
       mostActiveStaff
+    }
+  },
+
+  // Get or create virtual staff member for super admin
+  // Super admins need a staff_member record to log activities
+  async getOrCreateVirtualStaffMember(
+    organizationId: string,
+    userId: string,
+    userName: string,
+    userEmail: string
+  ): Promise<string> {
+    console.log('🔍 [STAFF API] Getting or creating virtual staff member for super admin:', { userId, userName })
+
+    // Try to find existing virtual staff member for this user
+    const { data: existing, error: findError } = await supabase
+      .from('staff_members')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('email', userEmail)
+      .eq('role', 'admin')
+      .maybeSingle()
+
+    if (findError) {
+      console.error('❌ [STAFF API] Error finding virtual staff member:', findError)
+      throw findError
+    }
+
+    if (existing) {
+      console.log('✅ [STAFF API] Found existing virtual staff member:', existing.id)
+      return existing.id
+    }
+
+    // Create virtual staff member
+    console.log('➕ [STAFF API] Creating virtual staff member for super admin')
+    const { data: created, error: createError } = await supabase
+      .from('staff_members')
+      .insert({
+        organization_id: organizationId,
+        name: userName,
+        email: userEmail,
+        role: 'admin',
+        pin_code: `SA${userId.substring(0, 4)}`, // Virtual PIN for super admin
+        is_active: true
+      })
+      .select('id')
+      .single()
+
+    if (createError) {
+      console.error('❌ [STAFF API] Error creating virtual staff member:', createError)
+      throw createError
+    }
+
+    console.log('✅ [STAFF API] Created virtual staff member:', created.id)
+    return created.id
+  },
+
+  // Log an activity action
+  async logActivity(
+    organizationId: string,
+    staffId: string,
+    action: string,
+    entityType?: string,
+    entityId?: string,
+    details?: any
+  ): Promise<void> {
+    console.log('📝 [ACTIVITY LOG]', {
+      organizationId,
+      staffId,
+      action,
+      entityType,
+      entityId,
+      details
+    })
+
+    try {
+      const { error } = await supabase
+        .from('staff_activity_logs')
+        .insert({
+          organization_id: organizationId,
+          staff_id: staffId,
+          action,
+          entity_type: entityType,
+          entity_id: entityId,
+          details
+        })
+
+      if (error) {
+        console.error('❌ [ACTIVITY LOG] Error logging activity:', error)
+        // Don't throw - logging errors shouldn't break the main flow
+      } else {
+        console.log('✅ [ACTIVITY LOG] Activity logged successfully')
+      }
+    } catch (err) {
+      console.error('❌ [ACTIVITY LOG] Exception logging activity:', err)
+      // Don't throw - logging errors shouldn't break the main flow
     }
   }
 }
