@@ -1,7 +1,8 @@
 /* Operator NFC Management Full Page */
 
 .operator-nfc-fullpage {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
   padding-bottom: 2rem;
 }
