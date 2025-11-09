@@ -21,6 +21,8 @@ interface SettingsHubProps {
   organizationId: string
   organizationName: string
   onOpenAccountSettings: () => void
+  onOpenLoyaltySystem: () => void
+  onOpenGiftCertificatesSettings: () => void
   onNavigateToSection: (sectionId: string) => void
 }
 
@@ -28,6 +30,8 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
   organizationId,
   organizationName,
   onOpenAccountSettings,
+  onOpenLoyaltySystem,
+  onOpenGiftCertificatesSettings,
   onNavigateToSection
 }) => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
@@ -47,6 +51,36 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Social media links'
       ],
       onClick: onOpenAccountSettings
+    },
+    {
+      id: 'loyalty',
+      icon: Zap,
+      title: 'Sistema Fedeltà & Punti',
+      description: 'Gestisci punti, ricompense e reset periodici',
+      color: '#f59e0b',
+      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+      features: [
+        'Configurazione punti e gemme',
+        'Bonus benvenuto e scadenza',
+        'Reset programmati',
+        'Sistema tier e livelli'
+      ],
+      onClick: onOpenLoyaltySystem
+    },
+    {
+      id: 'gift-certificates',
+      icon: Settings,
+      title: 'Gift Certificates',
+      description: 'Configura buoni regalo, sicurezza e automazioni',
+      color: '#8b5cf6',
+      gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+      features: [
+        'Impostazioni generali',
+        'Importi e validità',
+        'Email automations',
+        'Sicurezza e termini'
+      ],
+      onClick: onOpenGiftCertificatesSettings
     },
     {
       id: 'billing',

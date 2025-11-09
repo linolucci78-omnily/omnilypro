@@ -40,6 +40,9 @@ import BrandingSocialHub from './BrandingSocialHub'
 import SettingsHub from './SettingsHub'
 import ChannelsHub from './ChannelsHub'
 import SupportHub from './SupportHub'
+import LoyaltySystemHub from './LoyaltySystemHub'
+import BusinessDetailsHub from './BusinessDetailsHub'
+import GiftCertificatesSettingsHub from './GiftCertificatesSettingsHub'
 import AdminTicketsPanel from './AdminTicketsPanel'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
@@ -606,6 +609,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showCardManagementPanel, setShowCardManagementPanel] = useState(false)
   const [showLoyaltyTiersPanel, setShowLoyaltyTiersPanel] = useState(false)
   const [showAccountSettingsPanel, setShowAccountSettingsPanel] = useState(false)
+  const [showLoyaltySystemHub, setShowLoyaltySystemHub] = useState(false)
+  const [showBusinessDetailsHub, setShowBusinessDetailsHub] = useState(false)
+  const [showGiftCertificatesSettingsHub, setShowGiftCertificatesSettingsHub] = useState(false)
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showGiftCertificatesStatsModal, setShowGiftCertificatesStatsModal] = useState(false)
   const [showSubscriptionsPanel, setShowSubscriptionsPanel] = useState(false)
@@ -2584,7 +2590,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             <SettingsHub
               organizationId={currentOrganization.id}
               organizationName={currentOrganization.name}
-              onOpenAccountSettings={() => setShowAccountSettingsPanel(true)}
+              onOpenAccountSettings={() => setShowBusinessDetailsHub(true)}
+              onOpenLoyaltySystem={() => setShowLoyaltySystemHub(true)}
+              onOpenGiftCertificatesSettings={() => setShowGiftCertificatesSettingsHub(true)}
               onNavigateToSection={(sectionId) => handleSectionChange(sectionId)}
             />
           </div>
@@ -3196,6 +3204,49 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           setShowEmailMarketingPanel(false)
         }}
       />
+
+      {/* Business Details Hub */}
+      {showBusinessDetailsHub && currentOrganization && (
+        <BusinessDetailsHub
+          organizationId={currentOrganization.id}
+          organizationName={currentOrganization.name}
+          primaryColor={currentOrganization.primary_color || '#dc2626'}
+          secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+          organization={currentOrganization}
+          onBack={() => setShowBusinessDetailsHub(false)}
+          onUpdate={() => {
+            fetchOrganizations()
+            setShowBusinessDetailsHub(false)
+          }}
+        />
+      )}
+
+      {/* Loyalty System Hub */}
+      {showLoyaltySystemHub && currentOrganization && (
+        <LoyaltySystemHub
+          organizationId={currentOrganization.id}
+          organizationName={currentOrganization.name}
+          primaryColor={currentOrganization.primary_color || '#dc2626'}
+          secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+          organization={currentOrganization}
+          onBack={() => setShowLoyaltySystemHub(false)}
+          onUpdate={() => {
+            fetchOrganizations()
+            setShowLoyaltySystemHub(false)
+          }}
+        />
+      )}
+
+      {/* Gift Certificates Settings Hub */}
+      {showGiftCertificatesSettingsHub && currentOrganization && (
+        <GiftCertificatesSettingsHub
+          organizationId={currentOrganization.id}
+          organizationName={currentOrganization.name}
+          primaryColor={currentOrganization.primary_color || '#dc2626'}
+          secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+          onBack={() => setShowGiftCertificatesSettingsHub(false)}
+        />
+      )}
 
       {/* Gift Certificates Panel */}
       <GiftCertificatesPanel
