@@ -140,54 +140,47 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (!isPosMode || loginMethod !== 'nfc') return;
 
-    // Setup NFC callback
+    // Setup NFC callback (stesso formato di CardManagementPanel)
     const handleNFCRead = async (rawResult: any) => {
       console.log('🔐 NFC Read in Login - Raw:', rawResult);
       console.log('🔐 Type:', typeof rawResult);
 
-      // DEBUG TOAST - Mostra i dati ricevuti
-      const debugInfo = typeof rawResult === 'object'
-        ? `Tipo: object, Chiavi: ${Object.keys(rawResult || {}).join(', ')}, Dati: ${JSON.stringify(rawResult)}`
-        : `Tipo: ${typeof rawResult}, Valore: ${String(rawResult)}`;
-
-      showInfo('DEBUG NFC Ricevuto', debugInfo);
-      console.log('📱 DEBUG Toast mostrato:', debugInfo);
-
-      let nfcUid = '';
-
-      // Prova tutti i possibili formati
+      // Handle both string and object results from Android bridge
+      let result = rawResult;
       if (typeof rawResult === 'string') {
-        // Potrebbe essere un JSON string o un UID diretto
         try {
-          const parsed = JSON.parse(rawResult);
-          console.log('🔐 Parsed JSON:', parsed);
-          nfcUid = parsed.uid || parsed.nfcUid || parsed.id || parsed.serialNumber || '';
-        } catch {
-          // È una stringa diretta (es: "04A1B2C3D4E5F6")
-          console.log('🔐 Direct string UID:', rawResult);
-          nfcUid = rawResult.trim();
+          result = JSON.parse(rawResult);
+          console.log('🔄 Parsed JSON result:', result);
+        } catch (e) {
+          console.error('❌ Failed to parse JSON result:', e);
+          result = { success: false, error: 'Parse failed' };
         }
-      } else if (rawResult?.uid) {
-        console.log('🔐 Object with uid:', rawResult.uid);
-        nfcUid = rawResult.uid;
-      } else if (rawResult?.nfcUid) {
-        console.log('🔐 Object with nfcUid:', rawResult.nfcUid);
-        nfcUid = rawResult.nfcUid;
-      } else if (rawResult?.id) {
-        console.log('🔐 Object with id:', rawResult.id);
-        nfcUid = rawResult.id;
-      } else if (rawResult?.serialNumber) {
-        console.log('🔐 Object with serialNumber:', rawResult.serialNumber);
-        nfcUid = rawResult.serialNumber;
       }
 
-      console.log('🔐 Final nfcUid:', nfcUid);
+      console.log('🔐 NFC CALLBACK - Parsed result:', result);
+      setIsReadingNFC(false);
 
-      if (!nfcUid || nfcUid.trim() === '') {
-        console.error('❌ UID vuoto! Raw data:', rawResult);
-        showError('Errore Lettura NFC', 'UID della tessera non rilevato. Riprova avvicinando la tessera.');
-        setIsReadingNFC(false);
+      // Controlla se la lettura è riuscita
+      if (!result || !result.success) {
+        showError('Errore Lettura NFC', result?.error || 'Lettura fallita o annullata');
         return;
+      }
+
+      // Estrai l'UID (stesso formato del CardManagementPanel)
+      const nfcUid = result.cardNo || result.rfUid;
+
+      if (!nfcUid) {
+        console.error('❌ UID non trovato nel risultato:', result);
+        showError('Errore Lettura NFC', 'UID della tessera non rilevato. Riprova avvicinando la tessera.');
+        return;
+      }
+
+      console.log('✅ NFC SUCCESS - Card UID:', nfcUid);
+
+      // Beep di conferma
+      const bridge = (window as any).OmnilyPOS;
+      if (bridge?.beep) {
+        bridge.beep("1", "150");
       }
 
       try {
@@ -196,7 +189,6 @@ const Login: React.FC = () => {
 
         if (!operatorAuth) {
           showWarning('Tessera Non Associata', 'Vai su Impostazioni → Tessere Operatori POS per associare questa tessera ad un operatore');
-          setIsReadingNFC(false);
           return;
         }
 
