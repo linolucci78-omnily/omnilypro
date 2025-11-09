@@ -208,14 +208,14 @@ const Login: React.FC = () => {
           try {
             console.log('🔐 Tentativo login NFC per:', operatorAuth.user_email);
 
-            // NFC Login: usa password NFC predefinita (configurata in Supabase)
-            // IMPORTANTE: L'admin deve eseguire questa query SQL una volta:
-            // UPDATE auth.users SET encrypted_password = crypt('Nfc2024Secure!', gen_salt('bf'))
-            // WHERE email = 'pako.lucci@gmail.com';
+            // NFC Login automatico con password condivisa operatori
+            // NOTA: Tutti gli operatori POS usano la stessa password: 'Nfc2024Secure!'
+            // Questa è la LORO password normale, la usano anche per login web
+            // NON è una password separata - è l'UNICA password dell'operatore
 
-            const NFC_LOGIN_PASSWORD = 'Nfc2024Secure!'; // Password configurata per tutti gli operatori NFC
+            const NFC_OPERATOR_PASSWORD = 'Nfc2024Secure!';
 
-            await signIn(operatorAuth.user_email, NFC_LOGIN_PASSWORD);
+            await signIn(operatorAuth.user_email, NFC_OPERATOR_PASSWORD);
 
             // Log del login
             await operatorNFCService.logLogin({
