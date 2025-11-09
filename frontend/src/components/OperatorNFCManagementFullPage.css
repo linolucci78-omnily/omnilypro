@@ -622,6 +622,30 @@
   flex-shrink: 0;
 }
 
+/* Form Fields */
+.operator-nfc-fullpage .form-field {
+  margin-bottom: 1.5rem;
+}
+
+.operator-nfc-fullpage .form-field:last-child {
+  margin-bottom: 0;
+}
+
+.operator-nfc-fullpage .field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.operator-nfc-fullpage .field-hint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
 /* Input Operator Name */
 .operator-nfc-fullpage .input-operator-name {
   width: 100%;

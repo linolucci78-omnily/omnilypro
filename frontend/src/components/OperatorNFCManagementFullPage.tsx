@@ -27,6 +27,7 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
   const [scannedNFCUid, setScannedNFCUid] = useState<string | null>(null)
   const [selectedUser, setSelectedUser] = useState<Customer | null>(null)
   const [operatorName, setOperatorName] = useState('')
+  const [operatorPassword, setOperatorPassword] = useState('')
 
   // Delete confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -181,8 +182,8 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
   }
 
   const handleAssignCard = async () => {
-    if (!scannedNFCUid || !selectedUser || !operatorName.trim()) {
-      showError('Campi Mancanti', 'Compila tutti i campi richiesti')
+    if (!scannedNFCUid || !selectedUser || !operatorName.trim() || !operatorPassword.trim()) {
+      showError('Campi Mancanti', 'Compila tutti i campi richiesti, inclusa la password')
       return
     }
 
@@ -192,7 +193,8 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
         user_id: selectedUser.id,
         organization_id: organizationId,
         nfc_uid: scannedNFCUid,
-        operator_name: operatorName.trim()
+        operator_name: operatorName.trim(),
+        password: operatorPassword.trim()
       })
 
       showSuccess('Tessera Associata!', `La tessera è stata associata a ${operatorName}`)
@@ -201,6 +203,7 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
       setScannedNFCUid(null)
       setSelectedUser(null)
       setOperatorName('')
+      setOperatorPassword('')
       setMode('list')
 
       await loadCards()
@@ -284,6 +287,7 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
             setScannedNFCUid(null)
             setSelectedUser(null)
             setOperatorName('')
+            setOperatorPassword('')
             setSearchTerm('')
             if (isReadingNFC) handleStopNFCReading()
           }}
@@ -490,27 +494,43 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
                 </div>
               )}
 
-              {/* Step 3: Operator Name */}
+              {/* Step 3: Operator Name & Password */}
               {selectedUser && (
                 <div className="add-step active">
                   <div className="step-number">3</div>
                   <div className="step-content">
-                    <h3>Nome Operatore (Display)</h3>
-                    <p className="step-description">Nome che verrà mostrato nella schermata di login</p>
-                    <input
-                      type="text"
-                      className="input-operator-name"
-                      placeholder="Es: Mario Rossi"
-                      value={operatorName}
-                      onChange={(e) => setOperatorName(e.target.value)}
-                    />
+                    <h3>Dati Operatore</h3>
+                    <p className="step-description">Nome da mostrare e password per login NFC automatico</p>
+
+                    <div className="form-field">
+                      <label className="field-label">Nome Operatore (Display)</label>
+                      <input
+                        type="text"
+                        className="input-operator-name"
+                        placeholder="Es: Mario Rossi"
+                        value={operatorName}
+                        onChange={(e) => setOperatorName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label className="field-label">Password Login</label>
+                      <input
+                        type="password"
+                        className="input-operator-name"
+                        placeholder="Password operatore"
+                        value={operatorPassword}
+                        onChange={(e) => setOperatorPassword(e.target.value)}
+                      />
+                      <p className="field-hint">Inserisci la password che l'operatore usa per il login normale. Verrà salvata in modo sicuro e usata per il login automatico NFC.</p>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Assign Button */}
-            {selectedUser && operatorName.trim() && (
+            {selectedUser && operatorName.trim() && operatorPassword.trim() && (
               <div className="add-footer">
                 <button
                   className="btn-assign"

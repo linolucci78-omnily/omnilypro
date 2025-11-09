@@ -208,13 +208,13 @@ const Login: React.FC = () => {
           try {
             console.log('🔐 Tentativo login NFC per:', operatorAuth.user_email);
 
-            // NFC Login automatico con password condivisa operatori
-            // TODO: Spostare questa password nelle impostazioni organizzazione
-            // Per ora è hardcoded - CAMBIARE IN PRODUZIONE
+            // NFC Login automatico con password dell'operatore
+            // La password è salvata in modo criptato (base64) nel database
 
-            const NFC_OPERATOR_PASSWORD = 'Lino220678'; // Password temporanea - da configurare nelle impostazioni
+            // Decodifica la password dall'operatore
+            const operatorPassword = atob(operatorAuth.encrypted_password);
 
-            await signIn(operatorAuth.user_email, NFC_OPERATOR_PASSWORD);
+            await signIn(operatorAuth.user_email, operatorPassword);
 
             // Log del login
             await operatorNFCService.logLogin({

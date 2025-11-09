@@ -6,6 +6,7 @@ export interface OperatorNFCCard {
   organization_id: string
   nfc_uid: string
   operator_name: string
+  encrypted_password?: string
   is_active: boolean
   last_used_at?: string
   created_at: string
@@ -19,6 +20,7 @@ export interface OperatorAuthResult {
   operator_name: string
   organization_id: string
   card_id: string
+  encrypted_password: string
 }
 
 export interface OperatorNFCLoginLog {
@@ -151,6 +153,7 @@ export const operatorNFCService = {
     organization_id: string
     nfc_uid: string
     operator_name: string
+    password: string
     created_by?: string
   }): Promise<OperatorNFCCard> {
     // Prima controlla se esiste già una tessera con questo UID
@@ -159,10 +162,19 @@ export const operatorNFCService = {
       throw new Error('Questa tessera è già associata ad un operatore')
     }
 
+    // Simple base64 encoding for password obfuscation
+    // TODO: This should be properly encrypted on the server side with PostgreSQL encryption
+    const encryptedPassword = btoa(card.password)
+
     const { data, error } = await supabase
       .from('operator_nfc_cards')
       .insert({
-        ...card,
+        user_id: card.user_id,
+        organization_id: card.organization_id,
+        nfc_uid: card.nfc_uid,
+        operator_name: card.operator_name,
+        encrypted_password: encryptedPassword,
+        created_by: card.created_by,
         is_active: true
       })
       .select()
