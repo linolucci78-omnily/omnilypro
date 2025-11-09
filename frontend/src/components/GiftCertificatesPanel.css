@@ -35,13 +35,13 @@
   right: 0;
 }
 
-/* Responsive Widths - Desktop: 500px, POS: 100vw */
+/* Responsive Widths - FULL WIDTH PROFESSIONAL */
 @media (min-width: 1025px) {
   .gift-certificates-panel {
-    width: 500px !important;
-    max-width: 500px !important;
-    top: 69px;
-    height: calc(100vh - 69px);
+    width: 100vw !important;
+    max-width: 100vw !important;
+    top: 0;
+    height: 100vh;
     z-index: 998;
   }
 }
