@@ -209,11 +209,10 @@ const Login: React.FC = () => {
             console.log('🔐 Tentativo login NFC per:', operatorAuth.user_email);
 
             // NFC Login automatico con password condivisa operatori
-            // NOTA: Tutti gli operatori POS usano la stessa password: 'Nfc2024Secure!'
-            // Questa è la LORO password normale, la usano anche per login web
-            // NON è una password separata - è l'UNICA password dell'operatore
+            // TODO: Spostare questa password nelle impostazioni organizzazione
+            // Per ora è hardcoded - CAMBIARE IN PRODUZIONE
 
-            const NFC_OPERATOR_PASSWORD = 'Nfc2024Secure!';
+            const NFC_OPERATOR_PASSWORD = 'Lino220678'; // Password temporanea - da configurare nelle impostazioni
 
             await signIn(operatorAuth.user_email, NFC_OPERATOR_PASSWORD);
 
