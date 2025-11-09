@@ -142,24 +142,42 @@ const Login: React.FC = () => {
 
     // Setup NFC callback
     const handleNFCRead = async (rawResult: any) => {
-      console.log('🔐 NFC Read in Login:', rawResult);
+      console.log('🔐 NFC Read in Login - Raw:', rawResult);
+      console.log('🔐 Type:', typeof rawResult);
 
       let nfcUid = '';
+
+      // Prova tutti i possibili formati
       if (typeof rawResult === 'string') {
+        // Potrebbe essere un JSON string o un UID diretto
         try {
           const parsed = JSON.parse(rawResult);
-          nfcUid = parsed.uid || parsed.nfcUid || '';
+          console.log('🔐 Parsed JSON:', parsed);
+          nfcUid = parsed.uid || parsed.nfcUid || parsed.id || parsed.serialNumber || '';
         } catch {
-          nfcUid = rawResult;
+          // È una stringa diretta (es: "04A1B2C3D4E5F6")
+          console.log('🔐 Direct string UID:', rawResult);
+          nfcUid = rawResult.trim();
         }
       } else if (rawResult?.uid) {
+        console.log('🔐 Object with uid:', rawResult.uid);
         nfcUid = rawResult.uid;
       } else if (rawResult?.nfcUid) {
+        console.log('🔐 Object with nfcUid:', rawResult.nfcUid);
         nfcUid = rawResult.nfcUid;
+      } else if (rawResult?.id) {
+        console.log('🔐 Object with id:', rawResult.id);
+        nfcUid = rawResult.id;
+      } else if (rawResult?.serialNumber) {
+        console.log('🔐 Object with serialNumber:', rawResult.serialNumber);
+        nfcUid = rawResult.serialNumber;
       }
 
-      if (!nfcUid) {
-        showError('Errore NFC', 'Impossibile leggere la tessera');
+      console.log('🔐 Final nfcUid:', nfcUid);
+
+      if (!nfcUid || nfcUid.trim() === '') {
+        console.error('❌ UID vuoto! Raw data:', rawResult);
+        showError('Errore Lettura NFC', 'UID della tessera non rilevato. Riprova avvicinando la tessera.');
         setIsReadingNFC(false);
         return;
       }
