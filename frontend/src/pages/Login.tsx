@@ -180,8 +180,8 @@ const Login: React.FC = () => {
         // Toast visibile e chiaro con nome operatore
         showToast({
           type: 'success',
-          title: '✅ Operatore Riconosciuto!',
-          message: `🙋‍♂️ ${operatorAuth.operator_name} • Login automatico in corso...`,
+          title: 'Operatore Riconosciuto',
+          message: `${operatorAuth.operator_name} • Login automatico in corso...`,
           duration: 10000 // 10 secondi
         });
 
