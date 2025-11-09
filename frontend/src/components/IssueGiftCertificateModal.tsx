@@ -271,7 +271,7 @@ const IssueGiftCertificateModal: React.FC<IssueGiftCertificateModalProps> = ({
     <>
       <div className="modal-overlay" onClick={onClose} />
 
-      <div className="issue-gc-modal">
+      <div className="issue-gc-panel open">
         {/* Header */}
         <div className="modal-header">
           <div className="modal-header-content">

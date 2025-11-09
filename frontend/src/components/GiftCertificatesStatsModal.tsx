@@ -106,7 +106,7 @@ const GiftCertificatesStatsModal: React.FC<GiftCertificatesStatsModalProps> = ({
   return (
     <>
       <div className="gift-stats-modal-overlay" onClick={onClose} />
-      <div className="gift-stats-modal">
+      <div className="gift-stats-panel open">
         {/* Header */}
         <div className="gift-stats-header">
           <div>

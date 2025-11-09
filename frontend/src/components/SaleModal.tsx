@@ -181,7 +181,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
   return (
     <>
       <div className="sale-modal-backdrop" onClick={onClose} />
-      <div className="sale-modal">
+      <div className="sale-panel open">
         <div className="sale-modal-header">
           <div className="sale-modal-title">
             <ShoppingBag size={24} />

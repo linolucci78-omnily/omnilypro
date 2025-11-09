@@ -86,7 +86,7 @@ const GiftCertificateDetailsModal: React.FC<GiftCertificateDetailsModalProps> = 
     <>
       <div className="modal-overlay" onClick={onClose} />
 
-      <div className="gc-details-modal">
+      <div className="gc-details-panel open">
         {/* Header */}
         <div className="modal-header">
           <div className="modal-header-content">

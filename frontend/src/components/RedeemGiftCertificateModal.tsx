@@ -208,7 +208,7 @@ const RedeemGiftCertificateModal: React.FC<RedeemGiftCertificateModalProps> = ({
     <>
       <div className="modal-overlay" onClick={!isRedeeming ? onClose : undefined} />
 
-      <div className="redeem-gc-modal">
+      <div className="redeem-gc-panel open">
         {/* Header */}
         <div className="modal-header">
           <div className="modal-header-content">

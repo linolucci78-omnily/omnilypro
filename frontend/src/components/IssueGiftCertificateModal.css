@@ -25,22 +25,23 @@
   }
 }
 
-/* Modal Container */
-.issue-gc-modal {
+/* Side Panel - Slides from Right */
+.issue-gc-panel {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  right: -100%;
+  width: 100vw;
+  height: 100vh;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   z-index: 9999;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s ease;
+  transition: right 0.3s ease;
+  overflow: hidden;
+}
+
+.issue-gc-panel.open {
+  right: 0;
 }
 
 @keyframes slideUp {

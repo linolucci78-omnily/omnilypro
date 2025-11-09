@@ -67,7 +67,7 @@ const OpenTicketModal: React.FC<OpenTicketModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="open-ticket-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="open-ticket-panel open" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Apri Ticket di Supporto</h2>
           <button className="close-btn" onClick={onClose} disabled={loading}>

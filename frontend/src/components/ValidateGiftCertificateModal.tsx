@@ -305,7 +305,7 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
     <>
       <div className="modal-overlay" onClick={onClose} />
 
-      <div className="validate-gc-modal">
+      <div className="validate-gc-panel open">
         {/* Header */}
         <div className="modal-header">
           <div className="modal-header-content">

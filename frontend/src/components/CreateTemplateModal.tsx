@@ -240,7 +240,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
     <>
       <div className="create-template-overlay" onClick={onClose} />
 
-      <div className="create-template-modal">
+      <div className="create-template-panel open">
         {/* Header */}
         <div className="create-template-header">
           <div className="create-template-header-info">

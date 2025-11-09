@@ -60,7 +60,7 @@ const SubscriptionStatsModal: React.FC<SubscriptionStatsModalProps> = ({
   return (
     <>
       <div className="subscription-stats-modal-overlay" onClick={onClose} />
-      <div className="subscription-stats-modal">
+      <div className="subscription-stats-panel open">
         <div className="subscription-stats-modal-header">
           <h2>Statistiche Abbonamenti</h2>
           <button onClick={onClose} className="modal-close-btn">

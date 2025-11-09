@@ -481,7 +481,7 @@ const ValidateSubscriptionModal: React.FC<ValidateSubscriptionModalProps> = ({
     <>
       <div className="validate-subscription-overlay" onClick={onClose} />
 
-      <div className="validate-subscription-modal">
+      <div className="validate-subscription-panel open">
         {/* Header */}
         <div className="validate-subscription-header">
           <div className="validate-subscription-header-info">

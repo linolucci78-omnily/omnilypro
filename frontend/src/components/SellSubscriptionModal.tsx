@@ -264,7 +264,7 @@ const SellSubscriptionModal: React.FC<SellSubscriptionModalProps> = ({
     <>
       <div className="sell-subscription-overlay" onClick={onClose} />
 
-      <div className="sell-subscription-modal">
+      <div className="sell-subscription-panel open">
         {/* Header */}
         <div className="sell-subscription-header">
           <div className="sell-subscription-header-info">
