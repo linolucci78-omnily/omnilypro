@@ -10,6 +10,7 @@ interface EditCustomerModalProps {
   customer: Customer
   onUpdate: (customerId: string, updates: Partial<Customer>) => Promise<void>
   primaryColor?: string
+  secondaryColor?: string
 }
 
 const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
@@ -17,7 +18,8 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
   onClose,
   customer,
   onUpdate,
-  primaryColor = '#dc2626'
+  primaryColor = '#dc2626',
+  secondaryColor = '#ef4444'
 }) => {
   const [formData, setFormData] = useState({
     name: customer.name || '',
@@ -63,8 +65,6 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
     setAvatarPreview(customer.avatar_url || null)
   }, [customer])
 
-  if (!isOpen) return null
-
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
@@ -74,13 +74,13 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 
     // Verifica che sia un'immagine
     if (!file.type.startsWith('image/')) {
-      alert('Per favore seleziona un file immagine')
+      console.error('File non valido: deve essere un\'immagine')
       return
     }
 
     // Verifica dimensione (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('L\'immagine è troppo grande. Massimo 5MB.')
+      console.error('Immagine troppo grande (max 5MB)')
       return
     }
 
@@ -123,7 +123,6 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 
     } catch (error) {
       console.error('❌ Errore caricamento avatar:', error)
-      alert('Errore durante il caricamento dell\'immagine')
       setAvatarPreview(customer.avatar_url || null)
     } finally {
       setIsUploading(false)
@@ -165,7 +164,6 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       onClose()
     } catch (error) {
       console.error('❌ Errore salvataggio cliente:', error)
-      alert('Errore durante il salvataggio')
     } finally {
       setIsSaving(false)
     }
@@ -614,314 +612,329 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       .slice(0, 2)
   }
 
+  if (!isOpen) return null
+
   return (
     <>
       {/* Overlay */}
       <div className="edit-customer-overlay" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="edit-customer-modal" style={{ '--primary-color': primaryColor } as React.CSSProperties}>
+      {/* Side Panel */}
+      <div
+        className={`edit-customer-panel ${isOpen ? 'open' : ''}`}
+        style={{ '--primary-color': primaryColor, '--secondary-color': secondaryColor } as React.CSSProperties}
+      >
         {/* Header */}
         <div className="edit-customer-header">
-          <div>
-            <h2>Modifica Dati Cliente</h2>
-            <p>Aggiorna le informazioni e l'avatar di {customer.name}</p>
+          <div className="edit-customer-header-info">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <User size={28} />
+              <div>
+                <h2>Modifica Dati Cliente</h2>
+                <p style={{ margin: 0, fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.9)' }}>
+                  Aggiorna le informazioni e l'avatar di {customer.name}
+                </p>
+              </div>
+            </div>
           </div>
           <button className="edit-customer-close" onClick={onClose}>
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
-        {/* Avatar Section */}
-        <div className="edit-customer-avatar-section">
-          <div className="avatar-preview-wrapper">
-            {avatarPreview ? (
-              <img
-                src={avatarPreview}
-                alt={customer.name}
-                className="avatar-preview-image"
-              />
-            ) : (
-              <div className="avatar-preview-placeholder" style={{ background: primaryColor }}>
-                <span>{getInitials(customer.name)}</span>
-              </div>
-            )}
-            {isUploading && (
-              <div className="avatar-upload-overlay">
-                <Loader className="spinner" size={32} />
-              </div>
-            )}
-          </div>
+        {/* Content Scrollable */}
+        <div className="edit-customer-content">
+          {/* Avatar Section */}
+          <div className="edit-customer-avatar-section">
+            <div className="avatar-preview-wrapper">
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt={customer.name}
+                  className="avatar-preview-image"
+                />
+              ) : (
+                <div className="avatar-preview-placeholder" style={{ background: primaryColor }}>
+                  <span>{getInitials(customer.name)}</span>
+                </div>
+              )}
+              {isUploading && (
+                <div className="avatar-upload-overlay">
+                  <Loader className="spinner" size={32} />
+                </div>
+              )}
+            </div>
 
-          <div className="avatar-upload-buttons">
-            {/* Mostra "Scatta Foto" solo su dispositivi touch (mobile/tablet) */}
-            {isTouchDevice && (
+            <div className="avatar-upload-buttons">
+              {/* Mostra "Scatta Foto" solo su dispositivi touch (mobile/tablet) */}
+              {isTouchDevice && (
+                <button
+                  className="avatar-upload-btn camera"
+                  onClick={handleCameraClick}
+                  disabled={isUploading}
+                >
+                  <Camera size={20} />
+                  Scatta Foto
+                </button>
+              )}
               <button
-                className="avatar-upload-btn camera"
-                onClick={handleCameraClick}
+                className="avatar-upload-btn gallery"
+                onClick={handleGalleryClick}
                 disabled={isUploading}
               >
-                <Camera size={20} />
-                Scatta Foto
+                <Upload size={20} />
+                Carica {isTouchDevice ? 'Foto' : 'Immagine'}
               </button>
-            )}
-            <button
-              className="avatar-upload-btn gallery"
-              onClick={handleGalleryClick}
-              disabled={isUploading}
-            >
-              <Upload size={20} />
-              Carica {isTouchDevice ? 'Foto' : 'Immagine'}
-            </button>
-          </div>
-
-          {/* Hidden file inputs */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleFileSelect(file)
-            }}
-          />
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            style={{ display: 'none' }}
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleFileSelect(file)
-            }}
-          />
-        </div>
-
-        {/* Form Fields */}
-        <div className="edit-customer-form">
-          {/* Nome */}
-          <div className="form-group">
-            <label>
-              <User size={18} />
-              Nome Completo
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Mario Rossi"
-            />
-          </div>
-
-          {/* Email */}
-          <div className="form-group">
-            <label>
-              <Mail size={18} />
-              Email
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="mario.rossi@example.com"
-            />
-          </div>
-
-          {/* Telefono */}
-          <div className="form-group">
-            <label>
-              <Phone size={18} />
-              Telefono
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="+39 333 1234567"
-            />
-          </div>
-
-          {/* Indirizzo */}
-          <div className="form-group">
-            <label>
-              <MapPin size={18} />
-              Indirizzo
-            </label>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Via Roma 123, Milano"
-            />
-          </div>
-
-          {/* Genere */}
-          <div className="form-group">
-            <label>
-              <Users size={18} />
-              Genere
-            </label>
-            <div className="gender-options">
-              <label className={`gender-option ${formData.gender === 'male' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="gender"
-                  value="male"
-                  checked={formData.gender === 'male'}
-                  onChange={(e) => handleInputChange('gender', e.target.value)}
-                />
-                <span>👨 Maschio</span>
-              </label>
-              <label className={`gender-option ${formData.gender === 'female' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="gender"
-                  value="female"
-                  checked={formData.gender === 'female'}
-                  onChange={(e) => handleInputChange('gender', e.target.value)}
-                />
-                <span>👩 Femmina</span>
-              </label>
             </div>
-          </div>
 
-          {/* Data di Nascita */}
-          <div className="form-group">
-            <label>
-              <Calendar size={18} />
-              Data di Nascita
-            </label>
+            {/* Hidden file inputs */}
             <input
-              type="date"
-              value={formData.birth_date}
-              onChange={(e) => handleInputChange('birth_date', e.target.value)}
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleFileSelect(file)
+              }}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleFileSelect(file)
+              }}
             />
           </div>
 
-          {/* Marketing Consent */}
-          <div className="form-group-toggle">
-            <div className="toggle-header">
-              <div className="toggle-label">
-                <UserCheck size={18} />
-                <span>Consenso Marketing</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={formData.marketing_consent}
-                  onChange={(e) => handleInputChange('marketing_consent', e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
+          {/* Form Fields */}
+          <div className="edit-customer-form">
+            {/* Nome */}
+            <div className="form-group">
+              <label>
+                <User size={18} />
+                Nome Completo
               </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="Mario Rossi"
+              />
             </div>
-            <p className="toggle-description">Accetta di ricevere comunicazioni promozionali</p>
-          </div>
 
-          {/* Notifications Enabled */}
-          <div className="form-group-toggle">
-            <div className="toggle-header">
-              <div className="toggle-label">
-                <Bell size={18} />
-                <span>Notifiche Attive</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={formData.notifications_enabled}
-                  onChange={(e) => handleInputChange('notifications_enabled', e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
+            {/* Email */}
+            <div className="form-group">
+              <label>
+                <Mail size={18} />
+                Email
               </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="mario.rossi@example.com"
+              />
             </div>
-            <p className="toggle-description">Riceve notifiche email sui suoi punti e premi</p>
-          </div>
 
-          {/* Codice Referral */}
-          <div className="form-group">
-            <label>
-              <Gift size={18} />
-              Codice Referral
-            </label>
-            <input
-              type="text"
-              value={formData.referral_code}
-              onChange={(e) => handleInputChange('referral_code', e.target.value)}
-              placeholder="Codice referral del cliente"
-            />
-          </div>
+            {/* Telefono */}
+            <div className="form-group">
+              <label>
+                <Phone size={18} />
+                Telefono
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="+39 333 1234567"
+              />
+            </div>
 
-          {/* Referito da */}
-          <div className="form-group">
-            <label>
-              <Users size={18} />
-              Referito da
-            </label>
-            <input
-              type="text"
-              value={formData.referred_by}
-              onChange={(e) => handleInputChange('referred_by', e.target.value)}
-              placeholder="Chi ha riferito questo cliente"
-            />
-          </div>
+            {/* Indirizzo */}
+            <div className="form-group">
+              <label>
+                <MapPin size={18} />
+                Indirizzo
+              </label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                placeholder="Via Roma 123, Milano"
+              />
+            </div>
 
-          {/* Note */}
-          <div className="form-group">
-            <label>
-              <FileText size={18} />
-              Note Interne
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Aggiungi note o informazioni aggiuntive sul cliente..."
-              rows={4}
-            />
-          </div>
-
-          {/* Privacy Info - Solo visualizzazione */}
-          {customer.privacy_consent && (
-            <div className="privacy-info-box">
-              <div className="privacy-info-header">
-                <CheckCircle size={20} style={{ color: '#10b981' }} />
-                <span>Privacy Firmata</span>
+            {/* Genere */}
+            <div className="form-group">
+              <label>
+                <Users size={18} />
+                Genere
+              </label>
+              <div className="gender-options">
+                <label className={`gender-option ${formData.gender === 'male' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="male"
+                    checked={formData.gender === 'male'}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                  />
+                  <span>👨 Maschio</span>
+                </label>
+                <label className={`gender-option ${formData.gender === 'female' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="female"
+                    checked={formData.gender === 'female'}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                  />
+                  <span>👩 Femmina</span>
+                </label>
               </div>
-              <div className="privacy-info-content">
-                {customer.privacy_signed_at && (
-                  <p>
-                    <strong>Data firma:</strong>{' '}
-                    {new Date(customer.privacy_signed_at).toLocaleDateString('it-IT', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                )}
-                {customer.signature_data && (
-                  <div className="signature-preview">
-                    <div className="signature-preview-header">
-                      <strong>Firma:</strong>
-                      <button
-                        className="download-privacy-btn"
-                        onClick={handleDownloadPrivacy}
-                        title="Scarica Privacy Firmata"
-                      >
-                        <Download size={16} />
-                        Scarica
-                      </button>
+            </div>
+
+            {/* Data di Nascita */}
+            <div className="form-group">
+              <label>
+                <Calendar size={18} />
+                Data di Nascita
+              </label>
+              <input
+                type="date"
+                value={formData.birth_date}
+                onChange={(e) => handleInputChange('birth_date', e.target.value)}
+              />
+            </div>
+
+            {/* Marketing Consent */}
+            <div className="form-group-toggle">
+              <div className="toggle-header">
+                <div className="toggle-label">
+                  <UserCheck size={18} />
+                  <span>Consenso Marketing</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={formData.marketing_consent}
+                    onChange={(e) => handleInputChange('marketing_consent', e.target.checked)}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              <p className="toggle-description">Accetta di ricevere comunicazioni promozionali</p>
+            </div>
+
+            {/* Notifications Enabled */}
+            <div className="form-group-toggle">
+              <div className="toggle-header">
+                <div className="toggle-label">
+                  <Bell size={18} />
+                  <span>Notifiche Attive</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={formData.notifications_enabled}
+                    onChange={(e) => handleInputChange('notifications_enabled', e.target.checked)}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              <p className="toggle-description">Riceve notifiche email sui suoi punti e premi</p>
+            </div>
+
+            {/* Codice Referral */}
+            <div className="form-group">
+              <label>
+                <Gift size={18} />
+                Codice Referral
+              </label>
+              <input
+                type="text"
+                value={formData.referral_code}
+                onChange={(e) => handleInputChange('referral_code', e.target.value)}
+                placeholder="Codice referral del cliente"
+              />
+            </div>
+
+            {/* Referito da */}
+            <div className="form-group">
+              <label>
+                <Users size={18} />
+                Referito da
+              </label>
+              <input
+                type="text"
+                value={formData.referred_by}
+                onChange={(e) => handleInputChange('referred_by', e.target.value)}
+                placeholder="Chi ha riferito questo cliente"
+              />
+            </div>
+
+            {/* Note */}
+            <div className="form-group">
+              <label>
+                <FileText size={18} />
+                Note Interne
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Aggiungi note o informazioni aggiuntive sul cliente..."
+                rows={4}
+              />
+            </div>
+
+            {/* Privacy Info - Solo visualizzazione */}
+            {customer.privacy_consent && (
+              <div className="privacy-info-box">
+                <div className="privacy-info-header">
+                  <CheckCircle size={20} style={{ color: '#10b981' }} />
+                  <span>Privacy Firmata</span>
+                </div>
+                <div className="privacy-info-content">
+                  {customer.privacy_signed_at && (
+                    <p>
+                      <strong>Data firma:</strong>{' '}
+                      {new Date(customer.privacy_signed_at).toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  )}
+                  {customer.signature_data && (
+                    <div className="signature-preview">
+                      <div className="signature-preview-header">
+                        <strong>Firma:</strong>
+                        <button
+                          className="download-privacy-btn"
+                          onClick={handleDownloadPrivacy}
+                          title="Scarica Privacy Firmata"
+                        >
+                          <Download size={16} />
+                          Scarica
+                        </button>
+                      </div>
+                      <img src={customer.signature_data} alt="Firma cliente" />
                     </div>
-                    <img src={customer.signature_data} alt="Firma cliente" />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions Footer */}
         <div className="edit-customer-actions">
           <button className="btn-cancel" onClick={onClose} disabled={isSaving}>
             Annulla

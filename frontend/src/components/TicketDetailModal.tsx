@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Send, Clock, User, Tag, AlertCircle, CheckCircle2, Shield, Building2 } from 'lucide-react'
+import { X, Send, Clock, Tag, AlertCircle, CheckCircle2, Shield, Building2, Ticket } from 'lucide-react'
 import { supportTicketsApi, ticketMessagesApi, SupportTicket, TicketMessage, supabase } from '../lib/supabase'
 import './TicketDetailModal.css'
 
@@ -11,6 +11,7 @@ interface TicketDetailModalProps {
   onClose: () => void
   onUpdate: () => void
   isAdmin?: boolean // true = admin risponde, false/undefined = organizzazione risponde
+  isOpen?: boolean // Per controllare l'animazione slide
 }
 
 const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
@@ -20,7 +21,8 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   secondaryColor,
   onClose,
   onUpdate,
-  isAdmin = false
+  isAdmin = false,
+  isOpen = true
 }) => {
   const [messages, setMessages] = useState<TicketMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
@@ -160,20 +162,51 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     }
   }
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'open': return 'Aperto'
+      case 'in_progress': return 'In Lavorazione'
+      case 'waiting_reply': return 'In Attesa Risposta'
+      case 'resolved': return 'Risolto'
+      case 'closed': return 'Chiuso'
+      default: return status
+    }
+  }
+
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'Urgente'
+      case 'high': return 'Alta'
+      case 'medium': return 'Media'
+      case 'low': return 'Bassa'
+      default: return priority
+    }
+  }
+
   return (
-    <div className="ticket-modal-overlay" onClick={onClose}>
+    <>
+      {/* Overlay */}
+      <div className="ticket-panel-overlay" onClick={onClose} />
+
+      {/* Side Panel */}
       <div
-        className="ticket-modal-content"
-        onClick={(e) => e.stopPropagation()}
+        className={`ticket-panel ${isOpen ? 'open' : ''}`}
         style={{ '--primary-color': primaryColor, '--secondary-color': secondaryColor } as React.CSSProperties}
       >
         {/* Header */}
-        <div className="ticket-modal-header">
-          <div className="ticket-modal-title">
-            <h2>Ticket {currentTicket.ticket_number}</h2>
-            <p>{currentTicket.subject}</p>
+        <div className="ticket-panel-header">
+          <div className="ticket-panel-header-info">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Ticket size={28} />
+              <div>
+                <h2>Ticket {currentTicket.ticket_number}</h2>
+                <p style={{ margin: 0, fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.9)' }}>
+                  {currentTicket.subject}
+                </p>
+              </div>
+            </div>
           </div>
-          <button className="ticket-modal-close" onClick={onClose}>
+          <button onClick={onClose} className="ticket-panel-close-btn">
             <X size={24} />
           </button>
         </div>
@@ -188,6 +221,32 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             <div className="ticket-info-item">
               <Tag size={16} />
               <span>{currentTicket.category}</span>
+            </div>
+            <div className="ticket-info-item">
+              <span className="status-badge" style={{
+                backgroundColor: currentTicket.status === 'open' || currentTicket.status === 'in_progress'
+                  ? '#ef4444'
+                  : '#10b981',
+                color: 'white',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                fontWeight: 600
+              }}>
+                {getStatusLabel(currentTicket.status)}
+              </span>
+            </div>
+            <div className="ticket-info-item">
+              <span className="priority-badge" style={{
+                backgroundColor: getPriorityColor(currentTicket.priority),
+                color: 'white',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                fontWeight: 600
+              }}>
+                {getPriorityLabel(currentTicket.priority)}
+              </span>
             </div>
           </div>
 
@@ -304,7 +363,7 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
