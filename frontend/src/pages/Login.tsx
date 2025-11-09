@@ -238,11 +238,11 @@ const Login: React.FC = () => {
       }
     };
 
-    // Registra il callback globale
-    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+    // Registra il callback globale (sempre, anche su desktop per testing)
+    if (typeof window !== 'undefined') {
       (window as any).loginNFCHandler = handleNFCRead;
       nfcCallbackRef.current = handleNFCRead;
-      console.log('✅ Login NFC handler registered');
+      console.log('✅ Login NFC handler registered', (window as any).OmnilyPOS ? '(Android bridge available)' : '(Desktop mode - use console for testing)');
     }
 
     return () => {
@@ -260,7 +260,14 @@ const Login: React.FC = () => {
   const handleStartNFCReading = () => {
     const bridge = (window as any).OmnilyPOS;
     if (!bridge || !bridge.readNFCCard) {
-      showError('Errore', 'Funzione NFC non disponibile');
+      // Desktop mode - mostra istruzioni per testing
+      showInfo(
+        'Modalità Test Desktop',
+        'Usa la console (F12) per simulare: window.loginNFCHandler({ uid: "TEST-CARD-001" })'
+      );
+      console.log('💡 Per testare NFC su desktop, apri la console e usa:');
+      console.log('   window.loginNFCHandler({ uid: "TEST-CARD-001" });');
+      setIsReadingNFC(true); // Attiva lo stato per mostrare l'animazione
       return;
     }
 
