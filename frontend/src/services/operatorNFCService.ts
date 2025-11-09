@@ -44,13 +44,20 @@ export const operatorNFCService = {
     try {
       const { data, error } = await supabase
         .rpc('authenticate_operator_via_nfc', { p_nfc_uid: nfcUid })
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
       if (error) {
         console.error('Error authenticating via NFC:', error)
         return null
       }
 
+      // data will be null if no card found (0 rows)
+      if (!data) {
+        console.log('ℹ️ No operator card found for UID:', nfcUid)
+        return null
+      }
+
+      console.log('✅ Operator authenticated:', data)
       return data
     } catch (error) {
       console.error('Exception in authenticateViaNFC:', error)
