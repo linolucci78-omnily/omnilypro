@@ -39,6 +39,8 @@ import AnalyticsReportsHub from './AnalyticsReportsHub'
 import BrandingSocialHub from './BrandingSocialHub'
 import SettingsHub from './SettingsHub'
 import ChannelsHub from './ChannelsHub'
+import SupportHub from './SupportHub'
+import AdminTicketsPanel from './AdminTicketsPanel'
 import ConfirmModal from './UI/ConfirmModal'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -2406,7 +2408,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'team-management':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
             <TeamManagementHub
               organizationId={currentOrganization.id}
               primaryColor={getActiveColors().primary}
@@ -2589,35 +2591,28 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         ) : null
       
       case 'support':
-        return (
-          <div className="section-content">
-            <div className="section-header">
-              <HelpCircle size={24} />
-              <h2>Aiuto & Supporto</h2>
-              <p>Trova assistenza e risposte alle tue domande</p>
-            </div>
-            <div className="cards-grid">
-              <div className="feature-card">
-                <HelpCircle size={48} style={{ color: '#3b82f6', marginBottom: '1rem' }} />
-                <h3>Centro Assistenza</h3>
-                <p>Trova risposte alle domande più frequenti</p>
-                <button className="btn-primary">Esplora</button>
-              </div>
-              <div className="feature-card">
-                <Mail size={48} style={{ color: '#10b981', marginBottom: '1rem' }} />
-                <h3>Contatta il Supporto</h3>
-                <p>Richiedi assistenza tecnica personalizzata</p>
-                <button className="btn-primary">Contatta</button>
-              </div>
-              <div className="feature-card" onClick={() => setShowDocsModal(true)} style={{ cursor: 'pointer' }}>
-                <BookOpen size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
-                <h3>Documentazione</h3>
-                <p>Guide dettagliate per utilizzare Membership e altri componenti</p>
-                <button className="btn-primary">Leggi Guide</button>
-              </div>
-            </div>
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <SupportHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
+              onNavigateToTickets={() => handleSectionChange('my-tickets')}
+            />
           </div>
-        )
+        ) : null
+
+      case 'my-tickets':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <AdminTicketsPanel
+              organizationId={currentOrganization.id}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
+            />
+          </div>
+        ) : null
 
       case 'gift-certificates':
         return currentOrganization ? (

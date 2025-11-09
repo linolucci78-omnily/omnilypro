@@ -331,6 +331,49 @@ export interface StaffMemberPermission {
   updated_at: string
 }
 
+export interface SupportTicket {
+  id: string
+  organization_id: string
+  created_by: string | null
+  customer_id: string | null
+
+  ticket_number: string
+  subject: string
+  description: string
+  category: 'general' | 'technical' | 'billing' | 'feature_request'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'open' | 'in_progress' | 'waiting_reply' | 'resolved' | 'closed'
+
+  assigned_to: string | null
+
+  first_response_at: string | null
+  resolved_at: string | null
+  closed_at: string | null
+
+  tags: string[] | null
+  attachments: any[] | null
+  metadata: any
+
+  created_at: string
+  updated_at: string
+
+  organization_name?: string // Nome dell'organizzazione (caricato via JOIN)
+}
+
+export interface TicketMessage {
+  id: string
+  ticket_id: string
+  author_id: string | null
+  author_type: 'customer' | 'staff' | 'system'
+
+  message: string
+  attachments: any[] | null
+  is_internal: boolean
+
+  created_at: string
+  updated_at: string
+}
+
 // API functions
 export const organizationsApi = {
   // Get all organizations
@@ -1425,5 +1468,299 @@ export const staffMemberPermissionsApi = {
 
       if (error) throw error
     }
+  }
+}
+
+// Support Tickets API
+export const supportTicketsApi = {
+  // Get ALL tickets (for admin dashboard)
+  async getAll(): Promise<SupportTicket[]> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .select(`
+        *,
+        organization:organizations(name)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data || []).map(ticket => ({
+      ...ticket,
+      organization_name: ticket.organization?.name || 'Organizzazione Sconosciuta'
+    }))
+  },
+
+  // Get all tickets for an organization
+  async getByOrganization(organizationId: string): Promise<SupportTicket[]> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .select(`
+        *,
+        organization:organizations(name)
+      `)
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data || []).map(ticket => ({
+      ...ticket,
+      organization_name: ticket.organization?.name || 'Organizzazione Sconosciuta'
+    }))
+  },
+
+  // Get ticket by ID
+  async getById(ticketId: string): Promise<SupportTicket | null> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .select(`
+        *,
+        organization:organizations(name)
+      `)
+      .eq('id', ticketId)
+      .single()
+
+    if (error) throw error
+    return data ? {
+      ...data,
+      organization_name: data.organization?.name || 'Organizzazione Sconosciuta'
+    } : null
+  },
+
+  // Get tickets created by user
+  async getByUser(userId: string): Promise<SupportTicket[]> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .select('*')
+      .eq('created_by', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Create new ticket
+  async create(ticketData: {
+    organization_id: string
+    subject: string
+    description: string
+    category?: 'general' | 'technical' | 'billing' | 'feature_request'
+    priority?: 'low' | 'medium' | 'high' | 'urgent'
+    customer_id?: string | null
+    tags?: string[]
+  }): Promise<SupportTicket> {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .insert({
+        organization_id: ticketData.organization_id,
+        created_by: user.id, // IMPORTANTE: RLS policy richiede questo
+        subject: ticketData.subject,
+        description: ticketData.description,
+        category: ticketData.category || 'general',
+        priority: ticketData.priority || 'medium',
+        customer_id: ticketData.customer_id || null,
+        tags: ticketData.tags || null,
+        status: 'open'
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Update ticket
+  async update(ticketId: string, updates: Partial<SupportTicket>): Promise<SupportTicket> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Update ticket status
+  async updateStatus(
+    ticketId: string,
+    status: 'open' | 'in_progress' | 'waiting_reply' | 'resolved' | 'closed'
+  ): Promise<SupportTicket> {
+    const updates: any = {
+      status,
+      updated_at: new Date().toISOString()
+    }
+
+    // Set timestamps based on status
+    if (status === 'resolved' && !updates.resolved_at) {
+      updates.resolved_at = new Date().toISOString()
+    }
+    if (status === 'closed' && !updates.closed_at) {
+      updates.closed_at = new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .update(updates)
+      .eq('id', ticketId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Assign ticket to staff member
+  async assign(ticketId: string, staffUserId: string): Promise<SupportTicket> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .update({
+        assigned_to: staffUserId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete ticket
+  async delete(ticketId: string): Promise<void> {
+    const { error } = await supabase
+      .from('support_tickets')
+      .delete()
+      .eq('id', ticketId)
+
+    if (error) throw error
+  },
+
+  // Get ticket statistics
+  async getStats(organizationId: string): Promise<{
+    total: number
+    open: number
+    in_progress: number
+    resolved: number
+    closed: number
+    by_priority: { low: number; medium: number; high: number; urgent: number }
+    by_category: { general: number; technical: number; billing: number; feature_request: number }
+  }> {
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .select('status, priority, category')
+      .eq('organization_id', organizationId)
+
+    if (error) throw error
+
+    const tickets = data || []
+
+    return {
+      total: tickets.length,
+      open: tickets.filter(t => t.status === 'open').length,
+      in_progress: tickets.filter(t => t.status === 'in_progress').length,
+      resolved: tickets.filter(t => t.status === 'resolved').length,
+      closed: tickets.filter(t => t.status === 'closed').length,
+      by_priority: {
+        low: tickets.filter(t => t.priority === 'low').length,
+        medium: tickets.filter(t => t.priority === 'medium').length,
+        high: tickets.filter(t => t.priority === 'high').length,
+        urgent: tickets.filter(t => t.priority === 'urgent').length
+      },
+      by_category: {
+        general: tickets.filter(t => t.category === 'general').length,
+        technical: tickets.filter(t => t.category === 'technical').length,
+        billing: tickets.filter(t => t.category === 'billing').length,
+        feature_request: tickets.filter(t => t.category === 'feature_request').length
+      }
+    }
+  }
+}
+
+// Ticket Messages API
+export const ticketMessagesApi = {
+  // Get all messages for a ticket
+  async getByTicket(ticketId: string): Promise<TicketMessage[]> {
+    const { data, error } = await supabase
+      .from('ticket_messages')
+      .select('*')
+      .eq('ticket_id', ticketId)
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Create new message
+  async create(messageData: {
+    ticket_id: string
+    message: string
+    author_type: 'customer' | 'staff' | 'system'
+    is_internal?: boolean
+    attachments?: any[]
+  }): Promise<TicketMessage> {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const { data, error } = await supabase
+      .from('ticket_messages')
+      .insert({
+        ticket_id: messageData.ticket_id,
+        author_id: user.id, // IMPORTANTE: imposta l'autore del messaggio
+        message: messageData.message,
+        author_type: messageData.author_type,
+        is_internal: messageData.is_internal || false,
+        attachments: messageData.attachments || null
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Update ticket's first_response_at if this is the first staff response
+    if (messageData.author_type === 'staff') {
+      const ticket = await supportTicketsApi.getById(messageData.ticket_id)
+      if (ticket && !ticket.first_response_at) {
+        await supportTicketsApi.update(messageData.ticket_id, {
+          first_response_at: new Date().toISOString()
+        })
+      }
+    }
+
+    return data
+  },
+
+  // Update message
+  async update(messageId: string, updates: { message?: string; attachments?: any[] }): Promise<TicketMessage> {
+    const { data, error } = await supabase
+      .from('ticket_messages')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', messageId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete message
+  async delete(messageId: string): Promise<void> {
+    const { error} = await supabase
+      .from('ticket_messages')
+      .delete()
+      .eq('id', messageId)
+
+    if (error) throw error
   }
 }

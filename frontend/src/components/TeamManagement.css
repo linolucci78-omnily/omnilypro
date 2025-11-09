@@ -8,8 +8,8 @@
   max-width: 100%;
   padding: 20px;
   background: color-mix(in srgb, var(--primary-color, #dc2626) 5%, white);
-  min-height: 100vh;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 /* ============================================
@@ -844,10 +844,12 @@
 
   .staff-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .stat-value {

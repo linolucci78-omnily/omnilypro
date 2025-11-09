@@ -7,8 +7,8 @@
   max-width: 100%;
   padding: 20px;
   background: color-mix(in srgb, var(--primary-color, #dc2626) 3%, white);
-  min-height: 100vh;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 /* ============================================
@@ -137,7 +137,8 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 /* ============================================
@@ -291,6 +292,8 @@
 
 .permissions-main {
   padding: 32px;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .permissions-role-info {
@@ -337,7 +340,7 @@
 
 .permissions-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
 }
 
@@ -515,6 +518,53 @@
 }
 
 /* ============================================
+   RESPONSIVE - POS MODE (800px Portrait)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 850px) and (orientation: portrait) {
+  .permissions-management {
+    padding: 12px;
+  }
+
+  .permissions-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .permissions-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px;
+  }
+
+  .role-list {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+  }
+
+  .role-item {
+    min-width: 140px;
+    flex-shrink: 0;
+  }
+
+  .permissions-main {
+    padding: 20px;
+  }
+
+  .permissions-groups {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .permission-group {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* ============================================
    RESPONSIVE - TABLET
    ============================================ */
 
@@ -535,11 +585,15 @@
   }
 
   .role-item {
-    min-width: 200px;
+    min-width: 160px;
   }
 
   .permissions-groups {
     grid-template-columns: 1fr;
+  }
+
+  .permission-group {
+    min-width: unset;
   }
 }
 
