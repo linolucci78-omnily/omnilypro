@@ -514,25 +514,50 @@ export class OrganizationService {
      * Uses RPC function to join with auth.users
      */
     async getOrganizationUsers(orgId: string) {
-        // Use RPC function to get users with auth data
-        const { data, error } = await supabase
-            .rpc('get_organization_users_with_auth', { p_org_id: orgId })
+        try {
+            // Try RPC function first (requires migration 051)
+            const { data, error } = await supabase
+                .rpc('get_organization_users_with_auth', { p_org_id: orgId })
 
-        if (error) {
-            console.error('Failed to get organization users:', error)
+            if (!error && data) {
+                // Transform to match Customer interface format
+                return data?.map((item: any) => ({
+                    id: item.user_id,
+                    email: item.user_email || item.user_id,
+                    name: item.full_name || item.user_email?.split('@')[0] || 'User',
+                    phone: item.phone || '',
+                    organization_id: orgId,
+                    role: item.role,
+                    joined_at: item.joined_at
+                })) || []
+            }
+
+            // Fallback: if RPC doesn't exist, use direct query
+            console.warn('⚠️ RPC function not found, using fallback query')
+            const { data: orgUsers, error: fallbackError } = await supabase
+                .from('organization_users')
+                .select('user_id, role, joined_at')
+                .eq('org_id', orgId)
+
+            if (fallbackError) {
+                console.error('Failed to get organization users (fallback):', fallbackError)
+                throw fallbackError
+            }
+
+            // Return minimal data without auth.users join
+            return orgUsers?.map((item: any) => ({
+                id: item.user_id,
+                email: `User ${item.user_id.substring(0, 8)}`, // Show partial UUID
+                name: `${item.role === 'org_admin' ? 'Administrator' : item.role === 'super_admin' ? 'Super Admin' : 'User'} (${item.user_id.substring(0, 8)})`,
+                phone: '',
+                organization_id: orgId,
+                role: item.role,
+                joined_at: item.joined_at
+            })) || []
+        } catch (error) {
+            console.error('Error in getOrganizationUsers:', error)
             throw error
         }
-
-        // Transform to match Customer interface format
-        return data?.map((item: any) => ({
-            id: item.user_id,
-            email: item.user_email || item.user_id, // Fallback to user_id if no email
-            name: item.full_name || item.user_email?.split('@')[0] || 'User',
-            phone: item.phone || '',
-            organization_id: orgId,
-            role: item.role,
-            joined_at: item.joined_at
-        })) || []
     }
 }
 

@@ -134,10 +134,16 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
     try {
       const users = await organizationService.getOrganizationUsers(organizationId)
       console.log('✅ Caricati', users.length, 'utenti dell\'organizzazione:', users)
-      setOrganizationUsers(users)
-    } catch (error) {
+      setOrganizationUsers(users || [])
+
+      if (!users || users.length === 0) {
+        console.warn('⚠️ Nessun utente trovato in organization_users per org:', organizationId)
+        console.warn('💡 Suggerimento: Assicurati che il tuo account sia stato aggiunto a organization_users')
+      }
+    } catch (error: any) {
       console.error('Error loading organization users:', error)
-      showError('Errore Caricamento', 'Impossibile caricare gli utenti dell\'organizzazione')
+      console.error('Error details:', error.message, error.code)
+      showError('Errore Caricamento', `Impossibile caricare gli utenti dell\'organizzazione: ${error.message || 'Errore sconosciuto'}`)
     }
   }
 
