@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, CreditCard, Users, Search, UserPlus, Trash2, Power, Shield, AlertCircle, CheckCircle } from 'lucide-react'
 import { operatorNFCService, type OperatorNFCCard } from '../services/operatorNFCService'
+import { organizationService } from '../services/organizationService'
 import type { Customer } from '../lib/supabase'
 import { useToast } from '../contexts/ToastContext'
 import './OperatorNFCManagementFullPage.css'
 
 interface OperatorNFCManagementFullPageProps {
   organizationId: string
-  organizationUsers: Customer[]
   onBack: () => void
 }
 
 const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps> = ({
   organizationId,
-  organizationUsers,
   onBack
 }) => {
   const { showSuccess, showError } = useToast()
   const [mode, setMode] = useState<'list' | 'add'>('list')
   const [cards, setCards] = useState<OperatorNFCCard[]>([])
+  const [organizationUsers, setOrganizationUsers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -37,6 +37,7 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
   useEffect(() => {
     if (organizationId) {
       loadCards()
+      loadOrganizationUsers()
     }
   }, [organizationId])
 
@@ -126,6 +127,17 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
       showError('Errore Caricamento', 'Impossibile caricare le tessere operatori')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadOrganizationUsers = async () => {
+    try {
+      const users = await organizationService.getOrganizationUsers(organizationId)
+      console.log('✅ Caricati', users.length, 'utenti dell\'organizzazione:', users)
+      setOrganizationUsers(users)
+    } catch (error) {
+      console.error('Error loading organization users:', error)
+      showError('Errore Caricamento', 'Impossibile caricare gli utenti dell\'organizzazione')
     }
   }
 

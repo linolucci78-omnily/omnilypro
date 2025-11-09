@@ -508,6 +508,44 @@ export class OrganizationService {
         if (error) throw error
         return data
     }
+
+    /**
+     * Get organization users (staff/team members)
+     * Returns users with their auth.users data joined
+     */
+    async getOrganizationUsers(orgId: string) {
+        const { data, error } = await supabase
+            .from('organization_users')
+            .select(`
+                user_id,
+                role,
+                joined_at,
+                users:user_id (
+                    id,
+                    email,
+                    raw_user_meta_data
+                )
+            `)
+            .eq('org_id', orgId)
+
+        if (error) {
+            console.error('Failed to get organization users:', error)
+            throw error
+        }
+
+        // Transform to match Customer interface format
+        return data?.map((item: any) => ({
+            id: item.user_id,
+            email: item.users?.email || '',
+            name: item.users?.raw_user_meta_data?.full_name ||
+                  item.users?.raw_user_meta_data?.name ||
+                  item.users?.email?.split('@')[0] || 'User',
+            phone: item.users?.raw_user_meta_data?.phone || '',
+            organization_id: orgId,
+            role: item.role,
+            joined_at: item.joined_at
+        })) || []
+    }
 }
 
 // Export singleton instance

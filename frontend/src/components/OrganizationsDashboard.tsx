@@ -2071,7 +2071,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return currentOrganization ? (
           <OperatorNFCManagementFullPage
             organizationId={currentOrganization.id}
-            organizationUsers={customers}
             onBack={() => handleSectionChange('settings')}
           />
         ) : null
