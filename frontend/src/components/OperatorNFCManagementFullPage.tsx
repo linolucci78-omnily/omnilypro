@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, CreditCard, Users, Search, UserPlus, Trash2, Power, Shield, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, CreditCard, Users, Search, UserPlus, Trash2, Power, Shield, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { operatorNFCService, type OperatorNFCCard } from '../services/operatorNFCService'
 import { organizationService } from '../services/organizationService'
 import type { Customer } from '../lib/supabase'
@@ -28,6 +28,7 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
   const [selectedUser, setSelectedUser] = useState<Customer | null>(null)
   const [operatorName, setOperatorName] = useState('')
   const [operatorPassword, setOperatorPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   // Delete confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -515,13 +516,23 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
                     <div className="form-field">
                       <label className="field-label">Password Login</label>
-                      <input
-                        type="password"
-                        className="input-operator-name"
-                        placeholder="Password operatore"
-                        value={operatorPassword}
-                        onChange={(e) => setOperatorPassword(e.target.value)}
-                      />
+                      <div className="password-input-wrapper">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          className="input-operator-name"
+                          placeholder="Password operatore"
+                          value={operatorPassword}
+                          onChange={(e) => setOperatorPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle-btn"
+                          onClick={() => setShowPassword(!showPassword)}
+                          title={showPassword ? "Nascondi password" : "Mostra password"}
+                        >
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
                       <p className="field-hint">Inserisci la password che l'operatore usa per il login normale. Verrà salvata in modo sicuro e usata per il login automatico NFC.</p>
                     </div>
                   </div>
