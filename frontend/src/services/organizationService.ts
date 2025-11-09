@@ -511,22 +511,12 @@ export class OrganizationService {
 
     /**
      * Get organization users (staff/team members)
-     * Returns users with their auth.users data joined
+     * Uses RPC function to join with auth.users
      */
     async getOrganizationUsers(orgId: string) {
+        // Use RPC function to get users with auth data
         const { data, error } = await supabase
-            .from('organization_users')
-            .select(`
-                user_id,
-                role,
-                joined_at,
-                users:user_id (
-                    id,
-                    email,
-                    raw_user_meta_data
-                )
-            `)
-            .eq('org_id', orgId)
+            .rpc('get_organization_users_with_auth', { p_org_id: orgId })
 
         if (error) {
             console.error('Failed to get organization users:', error)
@@ -536,11 +526,9 @@ export class OrganizationService {
         // Transform to match Customer interface format
         return data?.map((item: any) => ({
             id: item.user_id,
-            email: item.users?.email || '',
-            name: item.users?.raw_user_meta_data?.full_name ||
-                  item.users?.raw_user_meta_data?.name ||
-                  item.users?.email?.split('@')[0] || 'User',
-            phone: item.users?.raw_user_meta_data?.phone || '',
+            email: item.user_email || item.user_id, // Fallback to user_id if no email
+            name: item.full_name || item.user_email?.split('@')[0] || 'User',
+            phone: item.phone || '',
             organization_id: orgId,
             role: item.role,
             joined_at: item.joined_at
