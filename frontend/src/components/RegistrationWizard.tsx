@@ -1370,7 +1370,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             <ArrowLeft size={20} />
             Torna Indietro
           </button>
-          <h2>Registrazione Nuovo Cliente</h2>
+          <h2>Registrazione Nuovo Cliente [v2-FULL-PAGE]</h2>
           <div style={{ width: '120px' }}></div>
         </div>
 
