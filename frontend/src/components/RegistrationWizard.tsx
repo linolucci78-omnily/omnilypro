@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Mail, FileText, Shield, Printer, Download } from 'lucide-react';
+import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X } from 'lucide-react';
 import { customersApi, supabase } from '../lib/supabase';
 import { sendWelcomeEmail } from '../services/emailAutomationService';
 import GDPRConsent from './GDPRConsent';
@@ -1362,14 +1362,16 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="wizard-overlay">
       <div className="wizard-modal">
         <div className="wizard-header">
+          <button className="back-btn" onClick={onClose}>
+            <ArrowLeft size={20} />
+            Torna Indietro
+          </button>
           <h2>Registrazione Nuovo Cliente</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <div style={{ width: '120px' }}></div>
         </div>
 
         <div className="wizard-progress">

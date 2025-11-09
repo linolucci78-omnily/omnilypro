@@ -101,7 +101,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }
 
 
-  const [showRegistrationWizard, setShowRegistrationWizard] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
   // Customer view mode: 'card' or 'table'
@@ -2075,6 +2074,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           />
         ) : null
 
+      case 'registration-wizard':
+        return currentOrganization ? (
+          <RegistrationWizard
+            isOpen={true}
+            onClose={() => setActiveSection('members')}
+            organizationId={currentOrganization.id}
+            onCustomerCreated={() => {
+              fetchCustomers(currentOrganization.id)
+              setActiveSection('members')
+            }}
+          />
+        ) : null
+
       case 'members':
         return (
           <div
@@ -2224,9 +2236,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       )}
                     </div>
                   )}
-                  <button 
+                  <button
                     className="btn-primary"
-                    onClick={() => setShowRegistrationWizard(true)}
+                    onClick={() => setActiveSection('registration-wizard')}
                   >
                     <Users size={16} />
                     <span>Nuovo Cliente</span>
@@ -2368,13 +2380,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               )}
             </div>
 
-            {/* Professional Registration Wizard */}
-            <RegistrationWizard
-              isOpen={showRegistrationWizard}
-              onClose={() => setShowRegistrationWizard(false)}
-              organizationId={organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'}
-              onCustomerCreated={fetchCustomers}
-            />
           </div>
         )
 
