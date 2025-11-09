@@ -44,12 +44,14 @@ import { crmService } from '../../services/crmService'
 import type { Customer, Campaign, CustomerSegment, CRMStats, CustomerInput } from '../../services/crmService'
 import PageLoader from '../UI/PageLoader'
 import CustomerModal from './CustomerModal'
+import NewCustomerFullPage from '../NewCustomerFullPage'
 import './CRMDashboard.css'
 
 // Interfaces importate dal service CRMService
 
 const CRMDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'dashboard' | 'new-customer'>('dashboard')
   const [activeTab, setActiveTab] = useState('overview')
   const [customers, setCustomers] = useState<Customer[]>([])
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -257,6 +259,16 @@ const CRMDashboard: React.FC = () => {
     return <PageLoader />
   }
 
+  // Show New Customer Full Page
+  if (viewMode === 'new-customer') {
+    return (
+      <NewCustomerFullPage
+        onBack={() => setViewMode('dashboard')}
+        onSave={handleSaveCustomer}
+      />
+    )
+  }
+
   return (
     <div className="crm-dashboard">
       {/* Header */}
@@ -400,7 +412,7 @@ const CRMDashboard: React.FC = () => {
 
               <button
                 className="crm-add-button"
-                onClick={() => setShowCustomerModal(true)}
+                onClick={() => setViewMode('new-customer')}
               >
                 <Plus size={18} />
                 Nuovo Cliente
