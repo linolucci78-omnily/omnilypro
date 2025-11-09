@@ -1,12 +1,28 @@
 /* ============================================
-   CARD MANAGEMENT HUB - SEZIONE CON 2 CARD
+   CARD MANAGEMENT HUB - FULL PAGE OVERLAY
    ============================================ */
 
 .card-hub {
-  max-width: 1400px;
-  margin: 0 auto;
-  box-sizing: border-box;
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 10000;
+  overflow-y: auto;
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 /* ============================================
@@ -14,20 +30,72 @@
    ============================================ */
 
 .card-hub-header {
-  margin-bottom: 32px;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #ef4444));
+  color: white;
+  padding: 2rem;
+  margin-bottom: 0;
+}
+
+.card-hub-back-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-hub-back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(-4px);
+}
+
+.card-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.card-hub-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .card-hub-header h1 {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 8px 0;
-  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  color: white;
 }
 
 .card-hub-header p {
-  font-size: 16px;
-  color: #6b7280;
+  font-size: 1rem;
+  color: white;
+  opacity: 0.9;
   margin: 0;
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+
+.card-hub-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 /* ============================================

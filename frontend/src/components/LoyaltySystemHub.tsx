@@ -104,7 +104,7 @@ const LoyaltySystemHub: React.FC<LoyaltySystemHubProps> = ({
   }
 
   const handleResetNow = async () => {
-    if (resetConfirmText !== 'RESET') {
+    if (resetConfirmText.trim().toUpperCase() !== 'RESET') {
       setMessage({ type: 'error', text: 'Digita "RESET" per confermare l\'azzeramento' })
       return
     }
@@ -114,7 +114,10 @@ const LoyaltySystemHub: React.FC<LoyaltySystemHubProps> = ({
       await organizationService.resetAllPoints(organizationId)
       setMessage({ type: 'success', text: 'Tutti i punti sono stati azzerati!' })
       setResetConfirmText('')
-      setTimeout(() => setMessage(null), 3000)
+      setTimeout(() => {
+        setMessage(null)
+        onUpdate()
+      }, 3000)
     } catch (error) {
       console.error('Error resetting points:', error)
       setMessage({ type: 'error', text: 'Errore nell\'azzeramento dei punti' })
@@ -322,11 +325,14 @@ const LoyaltySystemHub: React.FC<LoyaltySystemHubProps> = ({
 
           <button
             className="btn-danger"
-            onClick={handleResetNow}
-            disabled={saving || resetConfirmText !== 'RESET'}
+            onClick={() => {
+              console.log('BUTTON CLICKED!', resetConfirmText)
+              handleResetNow()
+            }}
+            style={{ cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 9999 }}
           >
             <RefreshCw size={20} />
-            Azzera Tutti i Punti Ora
+            {saving ? 'Azzeramento...' : 'Azzera Tutti i Punti Ora'}
           </button>
         </div>
       </div>

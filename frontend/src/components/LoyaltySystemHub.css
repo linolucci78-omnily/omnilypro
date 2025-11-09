@@ -10,7 +10,7 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: #f9fafb;
+  background: #ffffff;
   z-index: 10000;
   overflow-y: auto;
   animation: slideInFromRight 0.3s ease-out;
@@ -152,7 +152,7 @@
    ============================================ */
 
 .loyalty-section {
-  background: white;
+  background: #ffffff !important;
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -220,6 +220,8 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s;
+  background: #ffffff !important;
+  color: #1f2937 !important;
 }
 
 .form-group input:focus {
@@ -347,6 +349,8 @@
 .danger-zone {
   border: 2px solid #fca5a5;
   background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
+  position: relative;
+  z-index: 100;
 }
 
 .danger-warning {
@@ -371,6 +375,8 @@
   font-weight: 700;
   text-align: center;
   letter-spacing: 2px;
+  background: #ffffff !important;
+  color: #1f2937 !important;
 }
 
 /* ============================================

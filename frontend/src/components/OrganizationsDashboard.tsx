@@ -2026,14 +2026,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     switch (activeSection) {
       case 'stamps':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
-            <CardManagementHub
-              organizationId={currentOrganization.id}
-              primaryColor={currentOrganization.primary_color}
-              secondaryColor={currentOrganization.secondary_color}
-              onOpenManagement={() => setShowCardManagementPanel(true)}
-            />
-          </div>
+          <CardManagementHub
+            organizationId={currentOrganization.id}
+            primaryColor={currentOrganization.primary_color}
+            secondaryColor={currentOrganization.secondary_color}
+            onOpenManagement={() => setShowCardManagementPanel(true)}
+            onBack={() => handleSectionChange('settings')}
+          />
         ) : null
       
       case 'members':

@@ -10,7 +10,7 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: #f9fafb;
+  background: #ffffff;
   z-index: 10000;
   overflow-y: auto;
   animation: slideInFromRight 0.3s ease-out;
