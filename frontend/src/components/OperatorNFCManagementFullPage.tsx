@@ -132,18 +132,26 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
   const loadOrganizationUsers = async () => {
     try {
+      console.log('🔍 Caricamento utenti per org:', organizationId)
       const users = await organizationService.getOrganizationUsers(organizationId)
-      console.log('✅ Caricati', users.length, 'utenti dell\'organizzazione:', users)
+      console.log('✅ Caricati', users?.length || 0, 'utenti:', users)
+
       setOrganizationUsers(users || [])
 
+      // DEBUG: Toast temporaneo per vedere sul POS
       if (!users || users.length === 0) {
-        console.warn('⚠️ Nessun utente trovato in organization_users per org:', organizationId)
-        console.warn('💡 Suggerimento: Assicurati che il tuo account sia stato aggiunto a organization_users')
+        console.warn('⚠️ Nessun utente trovato')
+        showError('Debug', `Nessun utente trovato in organization_users per org: ${organizationId.substring(0, 8)}`)
+      } else {
+        // Mostra i primi utenti trovati
+        const userNames = users.slice(0, 3).map((u: any) => u.name).join(', ')
+        showSuccess('Debug Utenti', `Trovati ${users.length} utenti: ${userNames}${users.length > 3 ? '...' : ''}`)
       }
     } catch (error: any) {
       console.error('Error loading organization users:', error)
       console.error('Error details:', error.message, error.code)
-      showError('Errore Caricamento', `Impossibile caricare gli utenti dell\'organizzazione: ${error.message || 'Errore sconosciuto'}`)
+      const errorMsg = error?.message || error?.toString() || 'Errore sconosciuto'
+      showError('Errore Caricamento', `Impossibile caricare utenti: ${errorMsg.substring(0, 100)}`)
     }
   }
 
