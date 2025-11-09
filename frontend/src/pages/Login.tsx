@@ -21,7 +21,7 @@ const Login: React.FC = () => {
   const nfcCallbackRef = useRef<any>(null);
 
   const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin, userRole, loading: authLoading } = useAuth();
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -169,7 +169,7 @@ const Login: React.FC = () => {
         const operatorAuth = await operatorNFCService.authenticateViaNFC(nfcUid);
 
         if (!operatorAuth) {
-          showError('Tessera non riconosciuta', 'Questa tessera non è associata a nessun operatore');
+          showWarning('Tessera Non Associata', 'Vai su Impostazioni → Tessere Operatori POS per associare questa tessera ad un operatore');
           setIsReadingNFC(false);
           return;
         }
