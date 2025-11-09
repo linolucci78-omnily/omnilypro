@@ -134,7 +134,7 @@ CREATE OR REPLACE FUNCTION public.authenticate_operator_via_nfc(
 RETURNS TABLE (
   user_id UUID,
   user_email TEXT,
-  operator_name VARCHAR(255),
+  operator_name TEXT,
   organization_id UUID,
   card_id UUID
 ) AS $$
@@ -142,8 +142,8 @@ BEGIN
   RETURN QUERY
   SELECT
     onc.user_id,
-    u.email,
-    onc.operator_name,
+    u.email::TEXT,
+    onc.operator_name::TEXT,
     onc.organization_id,
     onc.id as card_id
   FROM public.operator_nfc_cards onc
