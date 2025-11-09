@@ -21,7 +21,7 @@ const Login: React.FC = () => {
   const nfcCallbackRef = useRef<any>(null);
 
   const { user, signIn, signUp, signInWithGoogle, resetPassword, isSuperAdmin, userRole, loading: authLoading } = useAuth();
-  const { showSuccess, showError, showWarning, showInfo } = useToast();
+  const { showToast, showSuccess, showError, showWarning, showInfo } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -176,7 +176,14 @@ const Login: React.FC = () => {
 
         // Mostra l'operatore riconosciuto
         setRecognizedOperator(operatorAuth);
-        showSuccess('Operatore Riconosciuto!', `Benvenuto ${operatorAuth.operator_name}`);
+
+        // Toast visibile e chiaro con nome operatore
+        showToast({
+          type: 'success',
+          title: '✅ Operatore Riconosciuto!',
+          message: `🙋‍♂️ ${operatorAuth.operator_name} • Login automatico in corso...`,
+          duration: 10000 // 10 secondi
+        });
 
         // Attendi 1 secondo per mostrare il riconoscimento
         setTimeout(async () => {
@@ -195,7 +202,7 @@ const Login: React.FC = () => {
               success: true
             });
 
-            showSuccess('Login effettuato!', 'Accesso completato');
+            // Il redirect automatico conferma il login, no need for toast
           } catch (error) {
             console.error('Errore durante login NFC:', error);
             showError('Errore Login', 'Impossibile effettuare il login. Usa email e password.');
