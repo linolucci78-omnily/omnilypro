@@ -206,10 +206,16 @@ const Login: React.FC = () => {
         // Attendi 1 secondo per mostrare il riconoscimento
         setTimeout(async () => {
           try {
-            // Effettua il login con le credenziali dell'operatore
-            // Nota: questo richiede che l'operatore abbia un account Supabase Auth
-            // In alternativa, potresti generare un token temporaneo
-            await signIn(operatorAuth.user_email, ''); // Password vuota, gestita server-side
+            console.log('🔐 Tentativo login NFC per:', operatorAuth.user_email);
+
+            // NFC Login: usa password NFC predefinita (configurata in Supabase)
+            // IMPORTANTE: L'admin deve eseguire questa query SQL una volta:
+            // UPDATE auth.users SET encrypted_password = crypt('Nfc2024Secure!', gen_salt('bf'))
+            // WHERE email = 'pako.lucci@gmail.com';
+
+            const NFC_LOGIN_PASSWORD = 'Nfc2024Secure!'; // Password configurata per tutti gli operatori NFC
+
+            await signIn(operatorAuth.user_email, NFC_LOGIN_PASSWORD);
 
             // Log del login
             await operatorNFCService.logLogin({
@@ -220,11 +226,24 @@ const Login: React.FC = () => {
               success: true
             });
 
-            // Il redirect automatico conferma il login, no need for toast
+            // Il redirect automatico conferma il login
+            console.log('✅ Login NFC completato');
           } catch (error) {
             console.error('Errore durante login NFC:', error);
-            showError('Errore Login', 'Impossibile effettuare il login. Usa email e password.');
+            showError(
+              'Configurazione Mancante',
+              'Password NFC non configurata. Contatta l\'amministratore per configurare il login NFC.'
+            );
             setLoginMethod('password');
+
+            // Log tentativo fallito
+            await operatorNFCService.logLogin({
+              operator_card_id: operatorAuth.card_id,
+              user_id: operatorAuth.user_id,
+              organization_id: operatorAuth.organization_id,
+              nfc_uid: nfcUid,
+              success: false
+            });
           } finally {
             setIsReadingNFC(false);
             setRecognizedOperator(null);
