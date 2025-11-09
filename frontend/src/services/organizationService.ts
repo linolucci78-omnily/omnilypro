@@ -521,15 +521,21 @@ export class OrganizationService {
 
             if (!error && data) {
                 // Transform to match Customer interface format
-                return data?.map((item: any) => ({
-                    id: item.user_id,
-                    email: item.user_email || item.user_id,
-                    name: item.full_name || item.user_email?.split('@')[0] || 'User',
-                    phone: item.phone || '',
-                    organization_id: orgId,
-                    role: item.role,
-                    joined_at: item.joined_at
-                })) || []
+                return data?.map((item: any) => {
+                    const userId = item?.user_id || 'unknown'
+                    const userEmail = item?.user_email || ''
+                    const fullName = item?.full_name || userEmail?.split('@')?.[0] || 'User'
+
+                    return {
+                        id: userId,
+                        email: userEmail || userId,
+                        name: fullName,
+                        phone: item?.phone || '',
+                        organization_id: orgId,
+                        role: item?.role || 'user',
+                        joined_at: item?.joined_at || new Date().toISOString()
+                    }
+                }) || []
             }
 
             // Fallback: if RPC doesn't exist, use direct query
@@ -545,15 +551,21 @@ export class OrganizationService {
             }
 
             // Return minimal data without auth.users join
-            return orgUsers?.map((item: any) => ({
-                id: item.user_id,
-                email: `User ${item.user_id.substring(0, 8)}`, // Show partial UUID
-                name: `${item.role === 'org_admin' ? 'Administrator' : item.role === 'super_admin' ? 'Super Admin' : 'User'} (${item.user_id.substring(0, 8)})`,
-                phone: '',
-                organization_id: orgId,
-                role: item.role,
-                joined_at: item.joined_at
-            })) || []
+            return orgUsers?.map((item: any) => {
+                const userId = item?.user_id || 'unknown'
+                const userIdShort = typeof userId === 'string' ? userId.substring(0, 8) : 'unknown'
+                const role = item?.role || 'user'
+
+                return {
+                    id: userId,
+                    email: `User ${userIdShort}`, // Show partial UUID
+                    name: `${role === 'org_admin' ? 'Administrator' : role === 'super_admin' ? 'Super Admin' : 'User'} (${userIdShort})`,
+                    phone: '',
+                    organization_id: orgId,
+                    role: role,
+                    joined_at: item?.joined_at || new Date().toISOString()
+                }
+            }) || []
         } catch (error) {
             console.error('Error in getOrganizationUsers:', error)
             throw error
