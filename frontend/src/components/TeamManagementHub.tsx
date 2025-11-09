@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Users, Shield, ArrowLeft } from 'lucide-react'
+import { Users, Shield, ArrowLeft, Edit2, Key, Clock, BarChart3, Lock, Eye, CheckCircle, AlertCircle } from 'lucide-react'
 import TeamManagement from './TeamManagement'
 import PermissionsManagement from './PermissionsManagement'
 import './TeamManagementHub.css'
@@ -84,18 +84,16 @@ const TeamManagementHub: React.FC<TeamManagementHubProps> = ({
             <Users size={48} />
           </div>
           <div className="team-hub-card-content">
-            <h2>Gestisci Team</h2>
+            <h3>Gestisci Team</h3>
             <p>Aggiungi membri, assegna ruoli e PIN, monitora accessi e attività del personale</p>
             <ul className="team-hub-features">
-              <li>Crea e modifica membri</li>
-              <li>Assegna ruoli e PIN</li>
-              <li>Log accessi e audit trail</li>
-              <li>Statistiche e report</li>
+              <li><Edit2 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Crea e modifica membri</li>
+              <li><Key size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Assegna ruoli e PIN</li>
+              <li><Clock size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Log accessi e audit trail</li>
+              <li><BarChart3 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Statistiche e report</li>
             </ul>
           </div>
-          <div className="team-hub-card-arrow">
-            <span>Apri →</span>
-          </div>
+          <div className="team-hub-card-arrow">→</div>
         </div>
 
         {/* Card 2: Gestisci Accessi */}
@@ -107,18 +105,16 @@ const TeamManagementHub: React.FC<TeamManagementHubProps> = ({
             <Shield size={48} />
           </div>
           <div className="team-hub-card-content">
-            <h2>Gestisci Accessi</h2>
+            <h3>Gestisci Accessi</h3>
             <p>Configura i permessi per ogni membro del team e controlla l'accesso alle sezioni</p>
             <ul className="team-hub-features">
-              <li>Permessi granulari per ruolo</li>
-              <li>Toggle on/off per ogni sezione</li>
-              <li>Protezione aree sensibili</li>
-              <li>Controllo completo accessi</li>
+              <li><Lock size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Permessi granulari per ruolo</li>
+              <li><CheckCircle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Toggle on/off per ogni sezione</li>
+              <li><AlertCircle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Protezione aree sensibili</li>
+              <li><Eye size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Controllo completo accessi</li>
             </ul>
           </div>
-          <div className="team-hub-card-arrow">
-            <span>Apri →</span>
-          </div>
+          <div className="team-hub-card-arrow">→</div>
         </div>
       </div>
     </div>
