@@ -207,14 +207,13 @@ export class ZCSPrintService {
     try {
       // Print header text
       const lines: string[] = [
-        'OMNILY PRO',
+        this.printConfig.storeName,
         'CARTA FEDELTÀ',
         '----------------------------------------',
         `Cliente: ${customerName}`,
         `Carta: ${cardNumber}`,
         `Punti attuali: ${points}`,
-        '',
-        this.printConfig.storeName
+        ''
       ]
       const headerText = lines.join('\n')
 

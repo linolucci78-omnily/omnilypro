@@ -3472,6 +3472,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         bonusCategories={currentOrganization?.bonus_categories || []}
         pointsName={currentOrganization?.points_name || 'Punti'}
         organizationName={currentOrganization?.name || 'OMNILY PRO'}
+        organizationAddress={currentOrganization?.address || ''}
+        organizationPhone={currentOrganization?.phone || ''}
+        organizationTax={currentOrganization?.partita_iva || ''}
         primaryColor={currentOrganization?.primary_color || '#dc2626'}
       />
 

@@ -32,6 +32,9 @@ interface CustomerSlidePanelProps {
   bonusCategories?: any[]; // Categorie prodotti con moltiplicatori bonus
   pointsName?: string; // Nome personalizzato punti (es. "Gemme", "Stelle")
   organizationName?: string; // Nome organizzazione per email tier upgrade
+  organizationAddress?: string; // Indirizzo organizzazione per stampe
+  organizationPhone?: string; // Telefono organizzazione per stampe
+  organizationTax?: string; // Partita IVA organizzazione per stampe
   primaryColor?: string; // Colore primario organizzazione
 }
 
@@ -47,6 +50,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   bonusCategories = [], // Default array vuoto se non specificato
   pointsName = 'Punti', // Default "Punti" se non specificato
   organizationName = 'OMNILY PRO', // Default name se non specificato
+  organizationAddress = '', // Default vuoto
+  organizationPhone = '', // Default vuoto
+  organizationTax = '', // Default vuoto
   primaryColor = '#dc2626' // Default red se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
@@ -606,12 +612,12 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           try {
             console.log('🖨️ Iniziando stampa automatica scontrino...');
 
-            // Configurazione stampante
+            // Configurazione stampante con dati organizzazione
             const printConfig = {
-              storeName: 'OMNILY PRO',
-              storeAddress: 'Via Roma 123, Milano',
-              storePhone: 'Tel: 02-12345678',
-              storeTax: 'P.IVA: 12345678901',
+              storeName: organizationName,
+              storeAddress: organizationAddress,
+              storePhone: organizationPhone,
+              storeTax: organizationTax,
               paperWidth: 384, // 58mm
               fontSizeNormal: 24,
               fontSizeLarge: 30,
