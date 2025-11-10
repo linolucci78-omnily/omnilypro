@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X } from 'lucide-react';
+import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X, QrCode, Calendar, Phone, MapPin, MessageSquare, Gift } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { customersApi, supabase } from '../lib/supabase';
 import { sendWelcomeEmail } from '../services/emailAutomationService';
 import GDPRConsent from './GDPRConsent';
@@ -43,12 +44,21 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [organization, setOrganization] = useState<any>(null);
   const [loadingOrganization, setLoadingOrganization] = useState(false);
+  const [showQrScanner, setShowQrScanner] = useState(false);
+  const [scannerError, setScannerError] = useState('');
+  const qrScannerRef = useRef<Html5Qrcode | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
 
   const addDebugInfo = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     const debugMessage = `${timestamp}: ${message}`;
     setDebugInfo(prev => [...prev.slice(-4), debugMessage]); // Keep last 5 messages
     console.log(debugMessage);
+  };
+
+  const showToast = (message: string, type: 'error' | 'success' | 'info' = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000); // Auto-hide after 4 seconds
   };
 
   // Fetch organization data dynamically from database
@@ -905,13 +915,17 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
     console.log('❌ Errori trovati:', JSON.stringify(newErrors, null, 2));
     console.log('📊 Numero errori:', Object.keys(newErrors).length);
-    
+
     if (Object.keys(newErrors).length > 0) {
+      // Show toast with all error messages
+      const errorMessages = Object.values(newErrors).join(', ');
+      showToast(`Campi obbligatori mancanti: ${errorMessages}`, 'error');
+
       Object.entries(newErrors).forEach(([field, error]) => {
         console.log(`   ❌ ${field}: ${error}`);
       });
     }
-    
+
     setErrors(newErrors);
     const isValid = Object.keys(newErrors).length === 0;
     console.log(`✅ Validazione ${isValid ? 'superata' : 'fallita'}`);
@@ -960,6 +974,64 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     // Fallback: if no organization tiers configured, return first available or undefined
     console.log('⚠️ No organization loyalty tiers configured');
     return undefined;
+  };
+
+  // QR Scanner Functions
+  const startQrScanner = async () => {
+    try {
+      setScannerError('');
+      setShowQrScanner(true);
+
+      // Wait for the DOM element to be available
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const html5QrCode = new Html5Qrcode('qr-reader');
+      qrScannerRef.current = html5QrCode;
+
+      await html5QrCode.start(
+        { facingMode: 'environment' }, // Use back camera
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+          console.log('✅ QR Code scanned:', decodedText);
+
+          // Extract referral code from URL or use direct code
+          let referralCode = decodedText;
+          if (decodedText.includes('ref=')) {
+            const urlParams = new URLSearchParams(decodedText.split('?')[1]);
+            referralCode = urlParams.get('ref') || decodedText;
+          }
+
+          // Set the referral code
+          handleInputChange('referralCode', referralCode);
+
+          // Stop scanner and close modal
+          stopQrScanner();
+        },
+        (errorMessage) => {
+          // Errors during scanning (not critical)
+        }
+      );
+    } catch (err: any) {
+      console.error('❌ Error starting QR scanner:', err);
+      setScannerError('Impossibile avviare la fotocamera. Verifica i permessi.');
+      setShowQrScanner(false);
+    }
+  };
+
+  const stopQrScanner = async () => {
+    if (qrScannerRef.current) {
+      try {
+        await qrScannerRef.current.stop();
+        qrScannerRef.current = null;
+      } catch (err) {
+        console.error('Error stopping scanner:', err);
+      }
+    }
+    setShowQrScanner(false);
+    setScannerError('');
   };
 
   const handleSubmit = async () => {
@@ -1092,7 +1164,10 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       case 1:
         return (
           <div className="wizard-step-content">
-            <h3>Dati Personali</h3>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a' }}>
+              <User size={24} color="#ef4444" />
+              Dati Personali
+            </h3>
 
             {/* Loading indicator for organization data */}
             {loadingOrganization && (
@@ -1142,47 +1217,58 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             <div className="form-row">
               <div className="form-group">
                 <label>Nome *</label>
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={errors.firstName ? 'error' : ''}
-                />
-                {errors.firstName && <span className="error-text">{errors.firstName}</span>}
+                <div className="input-with-icon">
+                  <User size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    className={errors.firstName ? 'error' : ''}
+                    placeholder="Inserisci nome"
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Cognome *</label>
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={errors.lastName ? 'error' : ''}
-                />
-                {errors.lastName && <span className="error-text">{errors.lastName}</span>}
+                <div className="input-with-icon">
+                  <User size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    className={errors.lastName ? 'error' : ''}
+                    placeholder="Inserisci cognome"
+                  />
+                </div>
               </div>
             </div>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label>Data di Nascita</label>
-                <input
-                  type="date"
-                  value={formData.birthDate}
-                  onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                />
+                <div className="input-with-icon">
+                  <Calendar size={18} className="input-icon" />
+                  <input
+                    type="date"
+                    value={formData.birthDate}
+                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Genere *</label>
-                <select
-                  value={formData.gender}
-                  onChange={(e) => handleInputChange('gender', e.target.value)}
-                  className={errors.gender ? 'error' : ''}
-                >
-                  <option value="">Seleziona...</option>
-                  <option value="male">Maschio</option>
-                  <option value="female">Femmina</option>
-                </select>
-                {errors.gender && <span className="error-text">{errors.gender}</span>}
+                <div className="input-with-icon">
+                  <User size={18} className="input-icon" />
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                    className={errors.gender ? 'error' : ''}
+                  >
+                    <option value="">Seleziona...</option>
+                    <option value="male">Maschio</option>
+                    <option value="female">Femmina</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -1191,62 +1277,83 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       case 2:
         return (
           <div className="wizard-step-content">
-            <h3>Informazioni di Contatto</h3>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a' }}>
+              <Mail size={24} color="#ef4444" />
+              Informazioni di Contatto
+            </h3>
             <div className="form-group">
               <label>Email *</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className={errors.email ? 'error' : ''}
-                autoComplete="off"
-                name="customer-email-registration"
-                form="customer-registration-form"
-                data-form="customer-wizard"
-                spellCheck="false"
-              />
-              {errors.email && <span className="error-text">{errors.email}</span>}
+              <div className="input-with-icon">
+                <Mail size={18} className="input-icon" />
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={errors.email ? 'error' : ''}
+                  autoComplete="off"
+                  name="customer-email-registration"
+                  form="customer-registration-form"
+                  data-form="customer-wizard"
+                  spellCheck="false"
+                  placeholder="esempio@email.com"
+                />
+              </div>
             </div>
-            
+
             <div className="form-group">
               <label>Telefono *</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                className={errors.phone ? 'error' : ''}
-              />
-              {errors.phone && <span className="error-text">{errors.phone}</span>}
+              <div className="input-with-icon">
+                <Phone size={18} className="input-icon" />
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className={errors.phone ? 'error' : ''}
+                  placeholder="+39 123 456 7890"
+                />
+              </div>
             </div>
 
             {duplicateWarning && (
               <div className="duplicate-warning">{duplicateWarning}</div>
             )}
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label>Indirizzo</label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                />
+                <div className="input-with-icon">
+                  <MapPin size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    placeholder="Via, numero civico"
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Città</label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                />
+                <div className="input-with-icon">
+                  <MapPin size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="Nome città"
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>CAP</label>
-                <input
-                  type="text"
-                  value={formData.zipCode}
-                  onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                />
+                <div className="input-with-icon">
+                  <MapPin size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.zipCode}
+                    onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                    placeholder="00100"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1255,9 +1362,15 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       case 3:
         return (
           <div className="wizard-step-content">
-            <h3>Note e Referral</h3>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a' }}>
+              <FileText size={24} color="#ef4444" />
+              Note e Referral
+            </h3>
             <div className="form-group">
-              <label>Note Aggiuntive</label>
+              <label>
+                <MessageSquare size={16} />
+                Note Aggiuntive
+              </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
@@ -1265,15 +1378,59 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 placeholder="Inserisci eventuali note sul cliente..."
               />
             </div>
-            
+
             <div className="form-group">
-              <label>Codice Referral</label>
-              <input
-                type="text"
-                value={formData.referralCode}
-                onChange={(e) => handleInputChange('referralCode', e.target.value)}
-                placeholder="Se il cliente è stato invitato, inserisci il codice"
-              />
+              <label>
+                <Gift size={16} />
+                Codice Referral
+              </label>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div className="input-with-icon" style={{ flex: 1 }}>
+                  <Gift size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.referralCode}
+                    onChange={(e) => handleInputChange('referralCode', e.target.value)}
+                    placeholder="Inserisci il codice referral"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={startQrScanner}
+                  style={{
+                    padding: '10px 16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+                  }}
+                >
+                  <QrCode size={18} />
+                  Scansiona QR
+                </button>
+              </div>
+              {scannerError && (
+                <p style={{ color: '#ef4444', fontSize: '13px', marginTop: '8px' }}>
+                  {scannerError}
+                </p>
+              )}
             </div>
           </div>
         );
@@ -1281,6 +1438,10 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       case 4:
         return (
           <div className="wizard-step-content">
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a', marginBottom: '20px' }}>
+              <Shield size={24} color="#ef4444" />
+              Privacy & Consensi
+            </h3>
             <GDPRConsent
               onConsentChange={(consents) => {
                 console.log('🔐 GDPR Consents changed:', consents);
@@ -1313,7 +1474,6 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                   Cancella
                 </button>
               </div>
-              {errors.signature && <span className="error-text">{errors.signature}</span>}
             </div>
 
             {/* Debug Panel for POS - only show on step 4 */}
@@ -1434,8 +1594,8 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         {errors.submit && (
           <div className="error-message">
             <div>{errors.submit}</div>
-            <button 
-              className="btn-secondary" 
+            <button
+              className="btn-secondary"
               onClick={onClose}
               style={{ marginTop: '12px' }}
             >
@@ -1444,6 +1604,129 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           </div>
         )}
       </div>
+
+      {/* QR Scanner Modal */}
+      {showQrScanner && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
+          onClick={stopQrScanner}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '500px',
+              width: '90%',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={stopQrScanner}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#6b7280'
+              }}
+            >
+              <X size={24} />
+            </button>
+
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600 }}>
+              Scansiona QR Code Referral
+            </h3>
+            <p style={{ margin: '0 0 20px 0', color: '#6b7280', fontSize: '14px' }}>
+              Posiziona il QR code davanti alla fotocamera
+            </p>
+
+            <div
+              id="qr-reader"
+              style={{
+                width: '100%',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            background: toast.type === 'error' ? '#ef4444' : toast.type === 'success' ? '#10b981' : '#3b82f6',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            maxWidth: '400px',
+            zIndex: 10001,
+            animation: 'slideInRight 0.3s ease-out'
+          }}
+        >
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: 'white',
+            flexShrink: 0
+          }} />
+          <span style={{
+            fontSize: '14px',
+            fontWeight: 500,
+            lineHeight: 1.5
+          }}>
+            {toast.message}
+          </span>
+          <button
+            onClick={() => setToast(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              marginLeft: 'auto',
+              opacity: 0.8,
+              transition: 'opacity 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

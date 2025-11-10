@@ -56,23 +56,26 @@ interface EmailCampaign {
 }
 
 interface EmailMarketingPanelProps {
-  isOpen: boolean
   onClose: () => void
   organizationId: string
   organizationName: string
+  primaryColor?: string
+  secondaryColor?: string
   defaultTab?: 'logs' | 'templates' | 'campaigns' | 'settings' | 'analytics'
 }
 
 const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
-  isOpen,
   onClose,
   organizationId,
   organizationName,
+  primaryColor = '#ef4444',
+  secondaryColor = '#dc2626',
   defaultTab = 'campaigns'
 }) => {
   const [activeTab, setActiveTab] = useState<'logs' | 'templates' | 'campaigns' | 'settings'>(
     defaultTab === 'analytics' ? 'logs' : defaultTab
   )
+  const [view, setView] = useState<'panel' | 'create-campaign'>('panel')
   const [logs, setLogs] = useState<EmailLog[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
@@ -87,7 +90,6 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
   // Campaigns state
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([])
   const [campaignsLoading, setCampaignsLoading] = useState(false)
-  const [showCreateCampaign, setShowCreateCampaign] = useState(false)
 
   // Settings state
   const [emailSettings, setEmailSettings] = useState<any>(null)
@@ -97,13 +99,13 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
   const { showError, showSuccess } = useToast()
 
   useEffect(() => {
-    if (isOpen && organizationId) {
+    if (organizationId) {
       loadEmailLogs()
       loadTemplates()
       loadCampaigns()
       loadEmailSettings()
     }
-  }, [isOpen, organizationId])
+  }, [organizationId])
 
   const loadEmailLogs = async () => {
     setIsLoading(true)
@@ -343,28 +345,38 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
     pending: logs.filter(l => l.status === 'pending').length
   }
 
-  if (!isOpen) return null
+  // Se la vista è create-campaign, mostra il wizard fullpage
+  if (view === 'create-campaign') {
+    return (
+      <CreateCampaignWizard
+        onClose={() => setView('panel')}
+        organizationId={organizationId}
+        organizationName={organizationName}
+        onCampaignCreated={() => {
+          loadCampaigns()
+          setView('panel')
+        }}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+      />
+    )
+  }
 
   return (
-    <>
-      {/* Overlay */}
-      <div className="card-management-overlay" onClick={onClose} />
-
-      {/* Panel */}
-      <div className={`card-management-panel ${isOpen ? 'open' : ''}`}>
-        {/* Header */}
-        <div className="card-management-header">
-          <div className="header-info">
-            <h2>Email Marketing</h2>
-            <p>{organizationName}</p>
-          </div>
-          <button className="close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
+    <div style={{ width: '100%', height: '100%', backgroundColor: '#f9fafb' }}>
+      {/* Header */}
+      <div className="card-management-header" style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}>
+        <div className="header-info">
+          <h2 style={{ color: 'white' }}>Email Marketing</h2>
+          <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{organizationName}</p>
         </div>
+        <button className="close-btn" onClick={onClose} style={{ color: 'white', border: '2px solid white' }}>
+          <X size={20} />
+        </button>
+      </div>
 
-        {/* Mode Tabs - 3 per riga max, 4° va sotto su POS */}
-        <div className="mode-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      {/* Mode Tabs - 3 per riga max, 4° va sotto su POS */}
+      <div className="mode-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           <button
             className={`mode-tab ${activeTab === 'campaigns' ? 'active' : ''}`}
             onClick={() => setActiveTab('campaigns')}
@@ -406,7 +418,7 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
               {/* Header con bottone Crea Campagna */}
               <div style={{ marginBottom: '24px' }}>
                 <button
-                  onClick={() => setShowCreateCampaign(true)}
+                  onClick={() => setView('create-campaign')}
                   style={{
                     width: '100%',
                     padding: '24px',
@@ -1196,19 +1208,6 @@ const EmailMarketingPanel: React.FC<EmailMarketingPanelProps> = ({
           )}
         </div>
       </div>
-
-      {/* Create Campaign Wizard */}
-      <CreateCampaignWizard
-        isOpen={showCreateCampaign}
-        onClose={() => setShowCreateCampaign(false)}
-        organizationId={organizationId}
-        organizationName={organizationName}
-        onCampaignCreated={() => {
-          loadCampaigns()
-          setShowCreateCampaign(false)
-        }}
-      />
-    </>
   )
 }
 

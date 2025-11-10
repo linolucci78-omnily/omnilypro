@@ -141,6 +141,32 @@ export interface ReferralStats {
   };
 }
 
+export interface ReferralSettings {
+  id: string;
+  organization_id: string;
+  // Punti e Rewards
+  points_per_referral: number;
+  welcome_bonus_points: number;
+  first_purchase_bonus: number;
+  // Configurazione Codici
+  code_format: 'auto' | 'name' | 'custom';
+  code_prefix: string;
+  code_length: number;
+  code_validity_days: number;
+  // Automazioni Email
+  email_welcome_enabled: boolean;
+  auto_assign_points: boolean;
+  auto_upgrade_tiers: boolean;
+  notify_conversions: boolean;
+  // Stato Programma
+  program_active: boolean;
+  max_referrals_per_user: number;
+  require_first_purchase: boolean;
+  // Metadata
+  created_at: string;
+  updated_at: string;
+}
+
 // =====================================================
 // REFERRAL TIERS SERVICE
 // =====================================================
@@ -661,6 +687,109 @@ class ReferralAnalyticsService {
 }
 
 // =====================================================
+// REFERRAL SETTINGS SERVICE
+// =====================================================
+
+class ReferralSettingsService {
+  /**
+   * Get settings for organization
+   */
+  async getSettings(organizationId: string): Promise<ReferralSettings | null> {
+    const { data, error } = await supabase
+      .from('referral_settings')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }
+
+  /**
+   * Update settings
+   */
+  async updateSettings(
+    organizationId: string,
+    updates: Partial<Omit<ReferralSettings, 'id' | 'organization_id' | 'created_at' | 'updated_at'>>
+  ): Promise<ReferralSettings> {
+    // First check if settings exist
+    const existing = await this.getSettings(organizationId);
+
+    if (existing) {
+      // Update existing settings
+      const { data, error } = await supabase
+        .from('referral_settings')
+        .update(updates)
+        .eq('organization_id', organizationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      // Create new settings
+      return this.createDefaultSettings(organizationId, updates);
+    }
+  }
+
+  /**
+   * Create default settings for organization
+   */
+  async createDefaultSettings(
+    organizationId: string,
+    overrides?: Partial<Omit<ReferralSettings, 'id' | 'organization_id' | 'created_at' | 'updated_at'>>
+  ): Promise<ReferralSettings> {
+    const defaultSettings = {
+      organization_id: organizationId,
+      points_per_referral: 100,
+      welcome_bonus_points: 50,
+      first_purchase_bonus: 150,
+      code_format: 'auto' as const,
+      code_prefix: '',
+      code_length: 8,
+      code_validity_days: 0,
+      email_welcome_enabled: true,
+      auto_assign_points: true,
+      auto_upgrade_tiers: true,
+      notify_conversions: true,
+      program_active: true,
+      max_referrals_per_user: 0,
+      require_first_purchase: true,
+      ...overrides,
+    };
+
+    const { data, error } = await supabase
+      .from('referral_settings')
+      .insert(defaultSettings)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Toggle program active status
+   */
+  async toggleProgram(organizationId: string, isActive: boolean): Promise<ReferralSettings> {
+    return this.updateSettings(organizationId, { program_active: isActive });
+  }
+
+  /**
+   * Get or create settings (ensures settings always exist)
+   */
+  async getOrCreateSettings(organizationId: string): Promise<ReferralSettings> {
+    let settings = await this.getSettings(organizationId);
+
+    if (!settings) {
+      settings = await this.createDefaultSettings(organizationId);
+    }
+
+    return settings;
+  }
+}
+
+// =====================================================
 // UTILITY FUNCTIONS
 // =====================================================
 
@@ -719,12 +848,14 @@ export const referralTiersService = new ReferralTiersService();
 export const referralProgramsService = new ReferralProgramsService();
 export const referralConversionsService = new ReferralConversionsService();
 export const referralAnalyticsService = new ReferralAnalyticsService();
+export const referralSettingsService = new ReferralSettingsService();
 
 export default {
   tiers: referralTiersService,
   programs: referralProgramsService,
   conversions: referralConversionsService,
   analytics: referralAnalyticsService,
+  settings: referralSettingsService,
   utils: {
     generateReferralLink,
     generateWhatsAppShareUrl,

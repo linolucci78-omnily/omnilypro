@@ -2282,8 +2282,8 @@
 }
 
 .customer-avatar-new {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2291,6 +2291,10 @@
   color: white;
   font-weight: 600;
   flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15),
+              0 2px 4px rgba(0, 0, 0, 0.1),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .customer-avatar-new.male {
@@ -2311,7 +2315,7 @@
 
 /* Avatar Initials - Placeholder con iniziali */
 .customer-avatar-initials {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   color: white;
 }
@@ -2338,19 +2342,52 @@
 .contact-cell {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  align-items: flex-start;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 13px;
   color: #6b7280;
+  width: 100%;
 }
 
-.contact-item span:first-child {
+.contact-item .contact-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+}
+
+.contact-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* Referral Cell */
+.referral-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.referral-code-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 6px;
   font-size: 12px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
 
 /* Points Cell */
@@ -2422,107 +2459,34 @@
   gap: 8px;
 }
 
-/* Action Buttons - BELLISSIMI E ANIMATI */
-.action-btn-view {
-  width: 36px;
-  height: 36px;
-  border: 2px solid #6366f1;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+/* Action Buttons - SEMPLICI E PULITI */
+.action-btn-view,
+.action-btn-edit,
+.action-btn-mail {
+  width: 46px;
+  height: 46px;
+  border: none;
   color: white;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.action-btn-view svg {
-  position: relative;
-  z-index: 2;
-  pointer-events: none;
+.action-btn-view:hover,
+.action-btn-edit:hover,
+.action-btn-mail:hover {
+  opacity: 0.85;
+  filter: brightness(0.95);
 }
 
-.action-btn-view::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.3s, height 0.3s;
-  z-index: 1;
-}
-
-.action-btn-view:hover::before {
-  width: 120%;
-  height: 120%;
-}
-
-.action-btn-view:hover {
-  background: linear-gradient(135deg, #4f46e5, #4338ca);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
-}
-
-.action-btn-view:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.action-btn-edit {
-  width: 36px;
-  height: 36px;
-  border: 2px solid #3b82f6;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.action-btn-edit svg {
-  position: relative;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.action-btn-edit::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.3s, height 0.3s;
-  z-index: 1;
-}
-
-.action-btn-edit:hover::before {
-  width: 120%;
-  height: 120%;
-}
-
-.action-btn-edit:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
-}
-
-.action-btn-edit:active {
-  transform: translateY(0) scale(0.98);
+.action-btn-view svg,
+.action-btn-edit svg,
+.action-btn-mail svg {
+  color: white !important;
+  stroke-width: 2.5;
 }
 
 /* Gestione Premi Avanzata */
@@ -3048,14 +3012,16 @@ input:checked + .slider:before {
   }
 
   .action-btn-view,
-  .action-btn-edit {
+  .action-btn-edit,
+  .action-btn-mail {
     width: 50px !important;
     height: 50px !important;
     border-radius: 12px !important;
   }
 
   .action-btn-view svg,
-  .action-btn-edit svg {
+  .action-btn-edit svg,
+  .action-btn-mail svg {
     width: 20px !important;
     height: 20px !important;
   }
@@ -3485,6 +3451,24 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.customer-table-controls .table-actions .btn-primary,
+.customer-table-controls .table-actions .btn-secondary {
+  padding: 10px 16px !important;
+  min-height: auto !important;
+  height: 38px !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  border: 1px solid transparent !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
 }
 
 .btn-secondary {

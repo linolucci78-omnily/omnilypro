@@ -126,6 +126,7 @@ const EmailAutomationsHub: React.FC<EmailAutomationsHubProps> = ({
           onClose={() => setActiveView('hub')}
           organizationId={organizationId}
           organizationName={organizationName}
+          fullpage={true}
         />
       </div>
     )
@@ -397,7 +398,7 @@ const EmailAutomationsHub: React.FC<EmailAutomationsHubProps> = ({
         {/* Card: Gestione Completa */}
         <div
           className="email-automations-hub-card email-automations-hub-card-primary"
-          onClick={() => setShowAutomationsPanel(true)}
+          onClick={() => setActiveView('manage')}
         >
           <div className="email-automations-hub-card-icon">
             <Settings size={32} />

@@ -21,6 +21,7 @@ interface BrandingData {
   logo_url?: string
   primary_color?: string
   secondary_color?: string
+  slogan?: string
   facebook_url?: string
   instagram_url?: string
   twitter_url?: string
@@ -44,23 +45,41 @@ export class EmailService {
    */
   private async getEmailFooter(organizationId?: string, organizationName?: string): Promise<string> {
     if (!organizationId) {
+      console.log('⚠️ No organizationId provided, using basic footer')
       return this.getBasicFooter(organizationName || 'OMNILY PRO')
     }
 
     try {
+      console.log('📧 Loading branding data for organization:', organizationId)
       const { data: org, error } = await supabase
         .from('organizations')
-        .select('logo_url, primary_color, secondary_color, facebook_url, instagram_url, twitter_url, linkedin_url, youtube_url, tiktok_url, pinterest_url, telegram_url, whatsapp_business, email, phone, address, website_url, name')
+        .select('logo_url, primary_color, secondary_color, slogan, facebook_url, instagram_url, twitter_url, linkedin_url, youtube_url, tiktok_url, pinterest_url, telegram_url, whatsapp_business, email, phone, address, website_url, name')
         .eq('id', organizationId)
         .single()
 
-      if (error || !org) {
+      if (error) {
+        console.error('❌ Error loading organization:', error)
         return this.getBasicFooter(organizationName || 'OMNILY PRO')
       }
 
+      if (!org) {
+        console.log('⚠️ Organization not found')
+        return this.getBasicFooter(organizationName || 'OMNILY PRO')
+      }
+
+      console.log('✅ Organization data loaded:', {
+        name: org.name,
+        hasLogo: !!org.logo_url,
+        hasFacebook: !!org.facebook_url,
+        hasInstagram: !!org.instagram_url,
+        hasPhone: !!org.phone,
+        hasEmail: !!org.email,
+        hasAddress: !!org.address
+      })
+
       return this.getBrandedFooter(org, organizationName || org.name || 'OMNILY PRO')
     } catch (error) {
-      console.error('Error loading branding for email footer:', error)
+      console.error('❌ Error loading branding for email footer:', error)
       return this.getBasicFooter(organizationName || 'OMNILY PRO')
     }
   }
@@ -78,7 +97,7 @@ export class EmailService {
   }
 
   /**
-   * Footer branded con social e contatti
+   * Footer branded con social e contatti (table-based per compatibilità email)
    */
   private getBrandedFooter(branding: BrandingData, organizationName: string): string {
     const primaryColor = branding.primary_color || '#dc2626'
@@ -88,83 +107,118 @@ export class EmailService {
     const socialLinks = []
 
     if (branding.facebook_url) {
-      socialLinks.push(`<a href="${branding.facebook_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width: 32px; height: 32px;" /></a>`)
+      socialLinks.push(`<td style="padding: 0 5px;"><a href="${branding.facebook_url}"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="32" height="32" style="display: block;" /></a></td>`)
     }
     if (branding.instagram_url) {
-      socialLinks.push(`<a href="${branding.instagram_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width: 32px; height: 32px;" /></a>`)
+      socialLinks.push(`<td style="padding: 0 5px;"><a href="${branding.instagram_url}"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="32" height="32" style="display: block;" /></a></td>`)
     }
     if (branding.twitter_url) {
-      socialLinks.push(`<a href="${branding.twitter_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" style="width: 32px; height: 32px;" /></a>`)
+      socialLinks.push(`<td style="padding: 0 5px;"><a href="${branding.twitter_url}"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" width="32" height="32" style="display: block;" /></a></td>`)
     }
     if (branding.linkedin_url) {
-      socialLinks.push(`<a href="${branding.linkedin_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733561.png" alt="LinkedIn" style="width: 32px; height: 32px;" /></a>`)
+      socialLinks.push(`<td style="padding: 0 5px;"><a href="${branding.linkedin_url}"><img src="https://cdn-icons-png.flaticon.com/512/733/733561.png" alt="LinkedIn" width="32" height="32" style="display: block;" /></a></td>`)
     }
     if (branding.youtube_url) {
-      socialLinks.push(`<a href="${branding.youtube_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733646.png" alt="YouTube" style="width: 32px; height: 32px;" /></a>`)
-    }
-    if (branding.tiktok_url) {
-      socialLinks.push(`<a href="${branding.tiktok_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/3046/3046126.png" alt="TikTok" style="width: 32px; height: 32px;" /></a>`)
-    }
-    if (branding.pinterest_url) {
-      socialLinks.push(`<a href="${branding.pinterest_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733614.png" alt="Pinterest" style="width: 32px; height: 32px;" /></a>`)
-    }
-    if (branding.telegram_url) {
-      socialLinks.push(`<a href="${branding.telegram_url}" style="text-decoration: none; margin: 0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" style="width: 32px; height: 32px;" /></a>`)
-    }
-
-    // Contatti (solo quelli presenti)
-    const contacts = []
-
-    if (branding.email) {
-      contacts.push(`<a href="mailto:${branding.email}" style="color: ${primaryColor}; text-decoration: none; margin: 0 12px; font-size: 14px;">✉️ ${branding.email}</a>`)
-    }
-    if (branding.phone) {
-      contacts.push(`<a href="tel:${branding.phone}" style="color: ${primaryColor}; text-decoration: none; margin: 0 12px; font-size: 14px;">📞 ${branding.phone}</a>`)
-    }
-    if (branding.whatsapp_business) {
-      contacts.push(`<a href="https://wa.me/${branding.whatsapp_business.replace(/[^0-9]/g, '')}" style="color: ${primaryColor}; text-decoration: none; margin: 0 12px; font-size: 14px;">💬 WhatsApp</a>`)
-    }
-    if (branding.address) {
-      contacts.push(`<span style="color: #6b7280; margin: 0 12px; font-size: 14px;">📍 ${branding.address}</span>`)
+      socialLinks.push(`<td style="padding: 0 5px;"><a href="${branding.youtube_url}"><img src="https://cdn-icons-png.flaticon.com/512/733/733646.png" alt="YouTube" width="32" height="32" style="display: block;" /></a></td>`)
     }
 
     return `
-      <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 20px; margin-top: 40px; border-radius: 0 0 10px 10px; text-align: center;">
-        ${branding.logo_url ? `
-          <div style="margin-bottom: 20px;">
-            <img src="${branding.logo_url}" alt="${organizationName}" style="max-width: 150px; max-height: 60px; object-fit: contain;" />
-          </div>
-        ` : ''}
-
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 20px; text-align: center;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
         ${socialLinks.length > 0 ? `
-          <div style="margin: 20px 0;">
-            <p style="color: white; font-size: 14px; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Seguici Su</p>
-            <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px;">
-              ${socialLinks.join('')}
-            </div>
-          </div>
+        <tr>
+          <td style="text-align: center; padding: 20px 0;">
+            <p style="color: white; font-size: 14px; font-weight: 600; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px;">Seguici Su</p>
+            <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+              <tr>
+                ${socialLinks.join('')}
+              </tr>
+            </table>
+          </td>
+        </tr>
         ` : ''}
 
-        ${contacts.length > 0 ? `
-          <div style="margin: 25px 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
-            <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px;">
-              ${contacts.join('')}
-            </div>
-          </div>
-        ` : ''}
+        <tr>
+          <td style="text-align: center; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.3);">
+            ${branding.phone ? `<p style="color: white; font-size: 15px; margin: 8px 0;">📞 <a href="tel:${branding.phone}" style="color: white; text-decoration: none;">${branding.phone}</a></p>` : ''}
+            ${branding.email ? `<p style="color: white; font-size: 15px; margin: 8px 0;">✉️ <a href="mailto:${branding.email}" style="color: white; text-decoration: none;">${branding.email}</a></p>` : ''}
+            ${branding.address ? `<p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0;">📍 ${branding.address}</p>` : ''}
+            ${branding.whatsapp_business ? `<p style="color: white; font-size: 15px; margin: 8px 0;">💬 <a href="https://wa.me/${branding.whatsapp_business.replace(/[^0-9]/g, '')}" style="color: white; text-decoration: none;">WhatsApp</a></p>` : ''}
+          </td>
+        </tr>
 
         ${branding.website_url ? `
-          <div style="margin-top: 20px;">
-            <a href="${branding.website_url}" style="display: inline-block; background: white; color: ${primaryColor}; padding: 10px 24px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px;">🌐 Visita il nostro sito</a>
-          </div>
+        <tr>
+          <td style="text-align: center; padding: 20px 0;">
+            <a href="${branding.website_url}" style="display: inline-block; background: white; color: ${primaryColor}; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px;">🌐 Visita il nostro sito</a>
+          </td>
+        </tr>
         ` : ''}
 
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
-          <p style="color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 600; margin: 5px 0;">Grazie per aver scelto ${organizationName}!</p>
-          <p style="color: rgba(255,255,255,0.7); font-size: 11px; margin: 5px 0; text-transform: uppercase; letter-spacing: 1px;">Powered by OMNILY PRO</p>
-        </div>
-      </div>
+        <tr>
+          <td style="text-align: center; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.3);">
+            <p style="color: white; font-size: 18px; font-weight: 600; margin: 5px 0;">Grazie per aver scelto ${organizationName}!</p>
+            <p style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 10px 0; text-transform: uppercase; letter-spacing: 1px;">Powered by OMNILY PRO</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
     `
+  }
+
+  /**
+   * Wrappa l'HTML dell'email con logo nell'header e footer branded
+   */
+  async wrapEmailWithFooter(html: string, organizationId?: string, organizationName?: string): Promise<string> {
+    // Carica dati organizzazione
+    let logoUrl = ''
+    let slogan = ''
+
+    if (organizationId) {
+      try {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('logo_url, slogan')
+          .eq('id', organizationId)
+          .single()
+
+        if (org?.logo_url) {
+          logoUrl = org.logo_url
+        }
+        if (org?.slogan) {
+          slogan = org.slogan
+        }
+      } catch (error) {
+        console.error('Error loading logo for header:', error)
+      }
+    }
+
+    // Sostituisci il logo nell'header
+    const sloganHtml = slogan ? `<p style="margin: 12px 0 0 0; font-size: 16px; font-weight: 500; color: white; text-align: center; line-height: 1.4;">${slogan}</p>` : ''
+
+    const logoHtml = logoUrl
+      ? `<img src="${logoUrl}" alt="${organizationName || 'Logo'}" style="max-width: 240px; max-height: 80px; height: auto; width: auto; display: block; margin: 0 auto 12px auto;" />
+         <h2 style="margin: 0 0 ${slogan ? '8px' : '0'} 0; font-size: 24px; font-weight: 700; color: white; text-align: center; letter-spacing: 0.5px;">${organizationName || 'OMNILY PRO'}</h2>
+         ${sloganHtml}`
+      : `<h1 style="margin: 0 0 ${slogan ? '8px' : '0'} 0; font-size: 26px; font-weight: 700; color: white; letter-spacing: 0.5px;">${organizationName || 'OMNILY PRO'}</h1>
+         ${sloganHtml}`
+
+    let htmlWithLogo = html.replace('<!-- LOGO PLACEHOLDER -->', logoHtml)
+
+    // Aggiungi footer in basso
+    const footer = await this.getEmailFooter(organizationId, organizationName)
+
+    return htmlWithLogo.replace('<!-- FOOTER PLACEHOLDER -->', `
+    <!-- FOOTER -->
+    <tr>
+      <td style="padding: 0;">
+        ${footer}
+      </td>
+    </tr>`)
   }
 
   /**

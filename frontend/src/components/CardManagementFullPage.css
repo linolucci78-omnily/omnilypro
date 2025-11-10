@@ -10,10 +10,11 @@
 }
 
 .fullpage-header {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: white;
+  padding: 0;
+  border-bottom: none;
+  background: transparent;
   flex-shrink: 0;
+  display: none;
 }
 
 .back-button {

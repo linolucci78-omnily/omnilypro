@@ -28,13 +28,15 @@ interface EmailAutomationsPanelProps {
   onClose: () => void
   organizationId: string
   organizationName: string
+  fullpage?: boolean
 }
 
 const EmailAutomationsPanel: React.FC<EmailAutomationsPanelProps> = ({
   isOpen,
   onClose,
   organizationId,
-  organizationName
+  organizationName,
+  fullpage = false
 }) => {
   const [automations, setAutomations] = useState<EmailAutomation[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -211,29 +213,12 @@ const EmailAutomationsPanel: React.FC<EmailAutomationsPanelProps> = ({
     }
   }
 
-  if (!isOpen) return null
+  if (!isOpen && !fullpage) return null
 
-  return (
+  // Content comune per entrambe le modalità
+  const renderContent = () => (
     <>
-      {/* Overlay */}
-      <div className="card-management-overlay" onClick={onClose} />
-
-      {/* Panel */}
-      <div className={`card-management-panel ${isOpen ? 'open' : ''}`}>
-        {/* Header */}
-        <div className="card-management-header">
-          <div className="header-info">
-            <h2>Automazioni Email</h2>
-            <p>{organizationName}</p>
-          </div>
-          <button className="close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="panel-content">
-          {isLoading ? (
+      {isLoading ? (
             <div className="email-automations-panel loading">
               <div className="loading-spinner"></div>
               <p>Caricamento automazioni...</p>
@@ -409,6 +394,40 @@ const EmailAutomationsPanel: React.FC<EmailAutomationsPanelProps> = ({
       </div>
             </div>
           )}
+    </>
+  )
+
+  // Modalità Fullpage
+  if (fullpage) {
+    return (
+      <div className="email-automations-panel-fullpage">
+        {renderContent()}
+      </div>
+    )
+  }
+
+  // Modalità Side Panel
+  return (
+    <>
+      {/* Overlay */}
+      <div className="card-management-overlay" onClick={onClose} />
+
+      {/* Panel */}
+      <div className={`card-management-panel ${isOpen ? 'open' : ''}`}>
+        {/* Header */}
+        <div className="card-management-header">
+          <div className="header-info">
+            <h2>Automazioni Email</h2>
+            <p>{organizationName}</p>
+          </div>
+          <button className="close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="panel-content">
+          {renderContent()}
         </div>
       </div>
     </>

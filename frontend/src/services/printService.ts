@@ -580,6 +580,104 @@ export class ZCSPrintService {
   }
 
   /**
+   * Print referral code voucher
+   */
+  async printReferralCode(data: {
+    referral_code: string
+    customer_name: string
+    customer_email?: string
+    total_referrals: number
+    successful_referrals: number
+    total_points_earned: number
+    organizationName: string
+    referralUrl?: string
+  }): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('❌ Printer not initialized')
+      return false
+    }
+
+    try {
+      const lines: string[] = [
+        '',
+        this.centerText('🎁 CODICE REFERRAL 🎁'),
+        this.centerText(data.organizationName),
+        this.createSeparatorLine(),
+        '',
+        this.centerText('INVITA I TUOI AMICI!'),
+        this.centerText('Ottieni vantaggi esclusivi'),
+        '',
+        this.createSeparatorLine(),
+        '',
+        `Cliente: ${data.customer_name}`,
+      ]
+
+      if (data.customer_email) {
+        lines.push(`Email: ${data.customer_email}`)
+      }
+
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('IL TUO CODICE PERSONALE'))
+      lines.push(this.createSeparatorLine())
+      lines.push('')
+      lines.push(this.centerText(data.referral_code))
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('LE TUE STATISTICHE'))
+      lines.push(this.createSeparatorLine())
+      lines.push('')
+      lines.push(`Amici invitati: ${data.total_referrals}`)
+      lines.push(`Registrazioni riuscite: ${data.successful_referrals}`)
+      lines.push(`Punti guadagnati: ${data.total_points_earned}`)
+
+      if (data.referralUrl) {
+        lines.push('')
+        lines.push(this.createSeparatorLine())
+        lines.push('Link di registrazione:')
+        lines.push(data.referralUrl)
+      }
+
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('Condividi il QR code o il'))
+      lines.push(this.centerText('codice con i tuoi amici!'))
+      lines.push('')
+
+      const headerText = lines.join('\n')
+
+      return new Promise((resolve) => {
+        (window as any).omnilyReferralPrintHandler = (result: any) => {
+          if (result.success) {
+            // Print QR code with referral code
+            const qrData = data.referralUrl || `REFERRAL:${data.referral_code}:${data.customer_name}`;
+
+            (window as any).omnilyReferralQRHandler = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('✅ Referral code printed successfully')
+                resolve(true)
+              } else {
+                console.error('❌ QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilyReferralQRHandler')
+          } else {
+            console.error('❌ Referral code print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(headerText, 'omnilyReferralPrintHandler')
+      })
+    } catch (error) {
+      console.error('Referral code print error:', error)
+      return false
+    }
+  }
+
+  /**
    * Print subscription usage receipt
    */
   async printSubscriptionUsage(data: {

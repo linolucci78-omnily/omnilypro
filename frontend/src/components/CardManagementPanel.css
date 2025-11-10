@@ -69,15 +69,36 @@
 /* Header */
 .card-management-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2.5rem 2rem;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
   background: linear-gradient(135deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 50%, var(--primary-color, #dc2626) 100%);
   position: relative;
   box-shadow:
     0 8px 32px rgba(239, 68, 68, 0.3),
     0 4px 16px rgba(239, 68, 68, 0.2);
   overflow: hidden;
+}
+
+.back-button-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  align-self: flex-start;
+  backdrop-filter: blur(10px);
+}
+
+.back-button-header:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(-2px);
 }
 
 /* Desktop: Header compatto ma elegante */
@@ -194,7 +215,7 @@
 /* Mode Tabs */
 .mode-tabs {
   display: flex;
-  padding: 0 2rem;
+  padding: 0;
   background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
   border-bottom: 1px solid #e5e7eb;
 }
@@ -203,7 +224,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1.25rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   background: none;
   border: none;
   cursor: pointer;
@@ -243,8 +264,10 @@
 /* Panel Content */
 .panel-content {
   flex: 1;
-  padding: 2rem;
+  padding: 0;
   background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Read Mode */
@@ -252,6 +275,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .nfc-reader-area {
@@ -260,10 +285,12 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 3rem 2rem;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 2px dashed #d1d5db;
-  border-radius: 20px;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
   transition: all 0.4s ease;
 }
 

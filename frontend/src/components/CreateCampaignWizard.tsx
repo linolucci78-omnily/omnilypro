@@ -7,11 +7,12 @@ import ImageUploadModal from './UI/ImageUploadModal'
 import ConfirmModal from './UI/ConfirmModal'
 
 interface CreateCampaignWizardProps {
-  isOpen: boolean
   onClose: () => void
   organizationId: string
   organizationName: string
   onCampaignCreated: () => void
+  primaryColor?: string
+  secondaryColor?: string
 }
 
 interface EmailTemplate {
@@ -35,11 +36,12 @@ interface Customer {
 }
 
 const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
-  isOpen,
   onClose,
   organizationId,
   organizationName,
-  onCampaignCreated
+  onCampaignCreated,
+  primaryColor = '#ef4444',
+  secondaryColor = '#dc2626'
 }) => {
   const [step, setStep] = useState(1)
   const { showError, showSuccess } = useToast()
@@ -93,12 +95,10 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
-    if (isOpen) {
-      loadTemplates()
-      loadCustomers()
-      loadOrganization()
-    }
-  }, [isOpen])
+    loadTemplates()
+    loadCustomers()
+    loadOrganization()
+  }, [organizationId])
 
   useEffect(() => {
     if (selectedTemplate) {
@@ -165,14 +165,33 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const loadOrganization = async () => {
     setOrgLoading(true)
     try {
-      const { data, error } = await supabase
+      // Carica email settings per il branding
+      const { data: emailSettingsData, error: settingsError } = await supabase
+        .from('email_settings')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .single()
+
+      // Carica dati organizzazione per informazioni di contatto
+      const { data: orgData, error: orgError } = await supabase
         .from('organizations')
-        .select('id, name, logo_url, primary_color, secondary_color, email, phone, address, website')
+        .select('name, email, phone, address, website')
         .eq('id', organizationId)
         .single()
 
-      if (error) throw error
-      setOrgData(data)
+      if (orgError) throw orgError
+
+      // Combina i dati: branding da email_settings, contatti da organizations
+      setOrgData({
+        name: orgData.name,
+        logo_url: emailSettingsData?.logo_url || null,
+        primary_color: emailSettingsData?.primary_color || primaryColor,
+        secondary_color: emailSettingsData?.secondary_color || secondaryColor,
+        email: orgData.email,
+        phone: orgData.phone,
+        address: orgData.address,
+        website: orgData.website
+      })
     } catch (error) {
       console.error('Error loading organization:', error)
       showError('Errore nel caricamento dati organizzazione')
@@ -439,7 +458,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       deleteButton.textContent = '🗑️ Elimina Immagine'
       deleteButton.type = 'button'
       deleteButton.style.padding = '8px 16px'
-      deleteButton.style.backgroundColor = '#ef4444'
+      deleteButton.style.backgroundColor = primaryColor
       deleteButton.style.color = 'white'
       deleteButton.style.border = 'none'
       deleteButton.style.borderRadius = '6px'
@@ -449,11 +468,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
       deleteButton.style.transition = 'all 0.2s'
 
       deleteButton.addEventListener('mouseenter', () => {
-        deleteButton.style.backgroundColor = '#dc2626'
+        deleteButton.style.backgroundColor = secondaryColor
       })
 
       deleteButton.addEventListener('mouseleave', () => {
-        deleteButton.style.backgroundColor = '#ef4444'
+        deleteButton.style.backgroundColor = primaryColor
       })
 
       deleteButton.addEventListener('click', (e) => {
@@ -715,50 +734,21 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
   const canProceedStep4 = true // Preview step sempre valido
   const canProceedStep5 = selectedCustomerIds.length > 0
 
-  if (!isOpen) return null
-
   return (
-    <>
-      {/* Overlay */}
+    <div style={{ width: '100%', height: '100%', backgroundColor: '#f9fafb' }}>
+      {/* Wizard Fullpage */}
       <div
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}
-        onClick={handleClose}
-      />
-
-      {/* Wizard Modal */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          maxWidth: '800px',
-          maxHeight: '90vh',
+          width: '100%',
+          height: '100%',
           backgroundColor: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
-          zIndex: 10000,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column'
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ padding: '24px', backgroundColor: '#ef4444', color: 'white', flexShrink: 0 }}>
+        <div style={{ padding: '24px', background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`, color: 'white', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700' }}>
@@ -1512,9 +1502,9 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         flexShrink: 0
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ef4444'
+                        e.currentTarget.style.backgroundColor = primaryColor
                         e.currentTarget.style.color = 'white'
-                        e.currentTarget.style.borderColor = '#ef4444'
+                        e.currentTarget.style.borderColor = primaryColor
                       }}
                       onMouseOut={(e) => {
                         e.currentTarget.style.backgroundColor = 'white'
@@ -1757,7 +1747,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
               }}>
                 {/* Preview Email Content */}
                 <div style={{
-                  backgroundColor: orgData?.primary_color || '#ef4444',
+                  backgroundColor: orgData?.primary_color || primaryColor,
                   padding: '30px',
                   textAlign: 'center',
                   color: 'white'
@@ -1801,7 +1791,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         .replace(/__([^_]+)__/g, '<u>$1</u>')
                         .replace(/\[COLOR:([^\]]+)\]([^\[]+)\[\/COLOR\]/g, '<span style="color:$1">$2</span>')
                         // Elementi speciali (bottoni e immagini)
-                        .replace(/\[BUTTON:([^\|]+)\|([^\]]+)\]/g, '<div style="text-align: center; margin: 24px 0;"><a href="$2" style="display: inline-block; padding: 14px 32px; background-color: ' + (orgData?.primary_color || '#ef4444') + '; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">$1</a></div>')
+                        .replace(/\[BUTTON:([^\|]+)\|([^\]]+)\]/g, '<div style="text-align: center; margin: 24px 0;"><a href="$2" style="display: inline-block; padding: 14px 32px; background-color: ' + (orgData?.primary_color || primaryColor) + '; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">$1</a></div>')
                         .replace(/\[IMAGE:([^\]]+)\]/g, '<div style="text-align: center; margin: 20px 0;"><img src="$1" alt="Immagine email" style="max-width: 100%; height: auto; border-radius: 8px;" /></div>')
                         // Converti newline in <br>
                         .replace(/\n/g, '<br>')
@@ -2054,7 +2044,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                         style={{
                           width: '100%',
                           padding: '12px',
-                          backgroundColor: '#ef4444',
+                          backgroundColor: primaryColor,
                           border: 'none',
                           borderRadius: '8px',
                           fontSize: '15px',
@@ -2473,7 +2463,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
                   backgroundColor:
                     (isCreating || (sendOption === 'schedule' && (!scheduledDate || !scheduledTime)))
                       ? '#9ca3af'
-                      : sendOption === 'now' ? '#ef4444' : '#3b82f6',
+                      : sendOption === 'now' ? primaryColor : '#3b82f6',
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '18px',
@@ -2560,7 +2550,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({
         onConfirm={handleConfirmDelete}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-    </>
+    </div>
   )
 }
 

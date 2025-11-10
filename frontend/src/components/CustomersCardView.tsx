@@ -1,11 +1,12 @@
 import React from 'react'
-import { User, Award, Euro, TrendingUp, Mail, Phone, MapPin } from 'lucide-react'
+import { User, Award, Euro, TrendingUp, Mail, Phone, MapPin, Star, Crown, Sparkles, Medal, Zap, Trophy, Shield, Gem } from 'lucide-react'
 import './CustomersCardView.css'
 import type { Customer } from '../lib/supabase'
 
 interface CustomersCardViewProps {
   customers: Customer[]
   onCustomerClick: (customer: Customer) => void
+  onReferralClick?: (customer: Customer) => void
   primaryColor?: string
   secondaryColor?: string
   pointsName?: string
@@ -15,6 +16,7 @@ interface CustomersCardViewProps {
 const CustomersCardView: React.FC<CustomersCardViewProps> = ({
   customers,
   onCustomerClick,
+  onReferralClick,
   primaryColor = '#dc2626',
   secondaryColor = '#dc2626',
   pointsName = 'Punti',
@@ -30,33 +32,37 @@ const CustomersCardView: React.FC<CustomersCardViewProps> = ({
   }
 
   const getTierInfo = (points: number) => {
+    // Array di icone da usare in base all'ordine del tier (cicla se ci sono più di 5 livelli)
+    const tierIcons = [Crown, Trophy, Star, Shield, Award]
+
     if (!loyaltyTiers || loyaltyTiers.length === 0) {
       // Fallback ai tiers fissi
-      if (points >= 1000) return { name: 'Platinum', color: '#e5e7eb', icon: '👑' }
-      if (points >= 500) return { name: 'Gold', color: '#f59e0b', icon: '⭐' }
-      if (points >= 200) return { name: 'Silver', color: '#64748b', icon: '✨' }
-      return { name: 'Bronze', color: '#a3a3a3', icon: '🥉' }
+      if (points >= 1000) return { name: 'Platinum', color: '#e5e7eb', icon: Crown }
+      if (points >= 500) return { name: 'Gold', color: '#f59e0b', icon: Trophy }
+      if (points >= 200) return { name: 'Silver', color: '#64748b', icon: Star }
+      return { name: 'Bronze', color: '#a3a3a3', icon: Shield }
     }
 
     // Ordina tiers per soglia decrescente
     const sortedTiers = [...loyaltyTiers].sort((a, b) => parseFloat(b.threshold) - parseFloat(a.threshold))
 
-    for (const tier of sortedTiers) {
+    for (let i = 0; i < sortedTiers.length; i++) {
+      const tier = sortedTiers[i]
       if (points >= parseFloat(tier.threshold)) {
         return {
           name: tier.name,
           color: tier.color || '#64748b',
-          icon: tier.name === 'Platinum' ? '👑' : tier.name === 'Gold' ? '⭐' : tier.name === 'Silver' ? '✨' : '🥉'
+          icon: tierIcons[i % tierIcons.length] // Cicla le icone con modulo
         }
       }
     }
 
-    // Default primo tier
-    const firstTier = loyaltyTiers[0]
+    // Default primo tier (quello con soglia più bassa)
+    const firstTier = sortedTiers[sortedTiers.length - 1]
     return {
       name: firstTier.name,
       color: firstTier.color || '#64748b',
-      icon: '🥉'
+      icon: tierIcons[(sortedTiers.length - 1) % tierIcons.length] // Cicla le icone
     }
   }
 
@@ -81,8 +87,8 @@ const CustomersCardView: React.FC<CustomersCardViewProps> = ({
               <div className="customer-card-shine"></div>
 
               {/* Tier badge */}
-              <div className="customer-card-tier-badge" style={{ background: tierInfo.color }}>
-                <span className="tier-icon">{tierInfo.icon}</span>
+              <div className="customer-card-tier-badge" style={{ '--tier-color': tierInfo.color } as React.CSSProperties}>
+                {React.createElement(tierInfo.icon, { size: 8, strokeWidth: 2.5, className: 'tier-icon' })}
                 <span className="tier-name">{tierInfo.name}</span>
               </div>
 
@@ -130,6 +136,26 @@ const CustomersCardView: React.FC<CustomersCardViewProps> = ({
                   )}
                 </div>
               </div>
+
+              {/* Referral Code */}
+              {customer.referral_code && (
+                <div className="customer-card-referral">
+                  <span
+                    className="referral-code-badge"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (onReferralClick) {
+                        onReferralClick(customer)
+                      }
+                    }}
+                    style={{
+                      cursor: onReferralClick ? 'pointer' : 'default'
+                    }}
+                  >
+                    {customer.referral_code}
+                  </span>
+                </div>
+              )}
 
               {/* Stats Grid */}
               <div className="customer-card-stats-grid">

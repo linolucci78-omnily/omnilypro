@@ -84,6 +84,21 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
       onClick: onOpenGiftCertificatesSettings
     },
     {
+      id: 'referral',
+      icon: Users,
+      title: 'Programma Referral',
+      description: 'Gestisci referral, livelli gamification e analytics',
+      color: '#10b981',
+      gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      features: [
+        'Punti e rewards referral',
+        'Livelli e gamification',
+        'Codici referral personalizzati',
+        'Automazioni e notifiche'
+      ],
+      onClick: () => onNavigateToSection('referral-system')
+    },
+    {
       id: 'operator-nfc',
       icon: Smartphone,
       title: 'Tessere Operatori POS',

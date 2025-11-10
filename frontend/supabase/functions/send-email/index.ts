@@ -14,11 +14,17 @@ const corsHeaders = {
 }
 
 interface EmailRequest {
-  organization_id: string
-  template_type: string // 'receipt', 'welcome', 'notification', ecc.
-  to_email: string
+  organization_id?: string
+  template_type?: string // 'receipt', 'welcome', 'notification', ecc.
+  to_email?: string
   to_name?: string
-  dynamic_data: Record<string, any> // Dati per sostituire variabili nel template
+  dynamic_data?: Record<string, any> // Dati per sostituire variabili nel template
+  // Direct send mode (bypassa templates)
+  to?: string
+  subject?: string
+  html?: string
+  from?: string
+  organizationId?: string
 }
 
 interface EmailSettings {
@@ -41,6 +47,215 @@ interface EmailTemplate {
   text_body: string | null
 }
 
+// Handle direct HTML email sending (bypasses templates)
+async function handleDirectSend(requestBody: EmailRequest): Promise<Response> {
+  try {
+    const { to, subject, html, organizationId } = requestBody
+
+    // Validate required fields
+    if (!to || !subject || !html) {
+      throw new Error('Missing required fields for direct send: to, subject, html')
+    }
+
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Try to load organization email settings (for from_email and API key)
+    let emailSettings: Partial<EmailSettings> = {
+      from_name: 'OMNILY PRO',
+      from_email: 'noreply@omnilypro.com',
+      primary_color: '#dc2626',
+      secondary_color: '#dc2626'
+    }
+
+    if (organizationId) {
+      console.log('📋 Loading email settings for org:', organizationId)
+      const { data: settings } = await supabaseClient
+        .from('email_settings')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .single()
+
+      if (settings) {
+        emailSettings = settings
+        console.log('✅ Organization settings loaded')
+      } else {
+        console.log('⚠️ Org settings not found, trying global settings')
+        const { data: globalSettings } = await supabaseClient
+          .from('email_settings')
+          .select('*')
+          .is('organization_id', null)
+          .limit(1)
+
+        if (globalSettings && globalSettings.length > 0) {
+          emailSettings = globalSettings[0]
+          console.log('✅ Using global settings')
+        }
+      }
+    }
+
+    // Get Resend API key - SEMPRE fallback alla chiave globale
+    let resendApiKey = emailSettings.resend_api_key
+
+    // Se l'org non ha una chiave, usa quella globale
+    if (!resendApiKey) {
+      console.log('⚠️ Org non ha API key, cerco chiave globale...')
+      const { data: globalSettings } = await supabaseClient
+        .from('email_settings')
+        .select('resend_api_key')
+        .is('organization_id', null)
+        .eq('enabled', true)
+        .not('resend_api_key', 'is', null)
+        .limit(1)
+
+      if (globalSettings && globalSettings.length > 0) {
+        resendApiKey = globalSettings[0].resend_api_key
+        console.log('✅ Uso chiave globale')
+      } else {
+        resendApiKey = Deno.env.get('RESEND_API_KEY')
+        console.log('✅ Uso chiave da environment variable')
+      }
+    }
+
+    if (!resendApiKey) {
+      throw new Error('Resend API Key not configured - nessuna chiave disponibile')
+    }
+
+    console.log('🔑 API Key trovata:', resendApiKey ? 're_***' + resendApiKey.slice(-6) : 'none')
+
+    // Send email via Resend
+    console.log('📤 Sending direct email via Resend...')
+
+    // Check if HTML contains data URL images (like QR codes) and convert to attachments
+    const attachments: any[] = []
+    let finalHtmlBody = html
+
+    // Find all data URL images in the HTML
+    const dataUrlPattern = /src="(data:image\/[^;]+;base64,[^"]+)"/g
+    const matches = [...html.matchAll(dataUrlPattern)]
+
+    if (matches.length > 0) {
+      console.log(`📎 Converting ${matches.length} data URL image(s) to inline attachment(s)...`)
+
+      matches.forEach((match, index) => {
+        const dataUrl = match[1]
+        const urlMatches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
+
+        if (urlMatches) {
+          const mimeType = urlMatches[1]
+          const base64Data = urlMatches[2]
+          const filename = `image_${index}.png`
+
+          // Add as inline attachment with CID
+          attachments.push({
+            filename: filename,
+            content: base64Data,
+            content_type: mimeType,
+            disposition: 'inline'
+          })
+
+          // Replace data URL in HTML with cid reference
+          finalHtmlBody = finalHtmlBody.replace(
+            dataUrl,
+            `cid:${filename}`
+          )
+
+          console.log(`✅ Converted data URL to inline attachment: ${filename}`)
+        }
+      })
+    }
+
+    const resendPayload: any = {
+      from: `${emailSettings.from_name} <${emailSettings.from_email}>`,
+      to: [to],
+      subject: subject,
+      html: finalHtmlBody,
+      ...(emailSettings.reply_to_email && { reply_to: emailSettings.reply_to_email }),
+      ...(attachments.length > 0 && { attachments })
+    }
+
+    console.log('📧 Resend payload:', {
+      from: resendPayload.from,
+      to: resendPayload.to,
+      subject: resendPayload.subject,
+      has_attachments: attachments.length > 0,
+      attachments_count: attachments.length
+    })
+
+    const resendResponse = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resendPayload),
+    })
+
+    const resendData = await resendResponse.json()
+
+    if (!resendResponse.ok) {
+      console.error('❌ Resend error:', resendData)
+      throw new Error(`Resend API error: ${JSON.stringify(resendData)}`)
+    }
+
+    console.log('✅ Email sent via Resend:', resendData.id)
+
+    // Log email send (optional, non-blocking)
+    if (organizationId) {
+      try {
+        await supabaseClient.from('email_logs').insert({
+          organization_id: organizationId,
+          template_type: 'direct_send',
+          to_email: to,
+          subject: subject,
+          from_email: emailSettings.from_email,
+          from_name: emailSettings.from_name,
+          status: 'sent',
+          resend_email_id: resendData.id,
+          sent_at: new Date().toISOString()
+        })
+      } catch (err) {
+        console.error('⚠️ Error logging email:', err)
+      }
+    }
+
+    console.log('🎉 Direct email sent successfully!')
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        emailId: resendData.id,
+        message: 'Email sent successfully'
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    )
+  } catch (error) {
+    console.error('❌ Error in direct send:', error)
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
+    )
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -50,16 +265,32 @@ serve(async (req) => {
   try {
     // Parse request body
     const requestBody: EmailRequest = await req.json()
+
+    // Detect mode: direct send or template send
+    const isDirectSend = requestBody.to && requestBody.subject && requestBody.html
+
+    if (isDirectSend) {
+      // DIRECT SEND MODE - Bypass templates, send HTML directly
+      console.log('📧 Direct Send Email Request:', {
+        to: requestBody.to,
+        subject: requestBody.subject,
+        organizationId: requestBody.organizationId
+      })
+
+      return await handleDirectSend(requestBody)
+    }
+
+    // TEMPLATE SEND MODE - Original behavior
     const { organization_id, template_type, to_email, to_name, dynamic_data } = requestBody
 
-    console.log('📧 Send Email Request:', {
+    console.log('📧 Template Send Email Request:', {
       organization_id,
       template_type,
       to_email,
       to_name
     })
 
-    // Validate required fields
+    // Validate required fields for template mode
     if (!organization_id || !template_type || !to_email) {
       throw new Error('Missing required fields: organization_id, template_type, to_email')
     }

@@ -5,7 +5,8 @@ import { rewardsService } from '../services/rewardsService'
 import { ZCSPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
 import EditCustomerModal from './EditCustomerModal'
@@ -48,6 +49,7 @@ import BusinessDetailsHub from './BusinessDetailsHub'
 import GiftCertificatesSettingsHub from './GiftCertificatesSettingsHub'
 import AdminTicketsPanel from './AdminTicketsPanel'
 import ConfirmModal from './UI/ConfirmModal'
+import { emailService } from '../services/emailService'
 import ReferralHub from './ReferralHub'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
@@ -232,6 +234,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     type: 'info' as 'warning' | 'danger' | 'info'
   })
 
+  // Email Modal state
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailCustomer, setEmailCustomer] = useState<Customer | null>(null)
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [showEmailPreview, setShowEmailPreview] = useState(false)
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState('')
+  const [emailQrCode, setEmailQrCode] = useState('')
+
+  // Referral Modal state
+  const [showReferralModal, setShowReferralModal] = useState(false)
+  const [referralCustomer, setReferralCustomer] = useState<Customer | null>(null)
+  const [printingReferral, setPrintingReferral] = useState(false)
+
   // Helper function to show confirm modal
   const showModal = (config: {
     title?: string
@@ -252,6 +269,156 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     setShowConfirmModal(true)
   }
 
+  // Function to send email
+  const handleSendEmail = async () => {
+    if (!emailCustomer || !emailSubject || !emailMessage) {
+      showModal({
+        title: 'Campi mancanti',
+        message: 'Per favore compila tutti i campi richiesti.',
+        type: 'warning'
+      })
+      return
+    }
+
+    setSendingEmail(true)
+    try {
+      // Crea HTML professionale dal messaggio (table-based per compatibilità email)
+      // NOTA: Logo nell'header, no titolo (titolo è già nell'oggetto email)
+      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; margin: 0; padding: 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <!-- HEADER CON LOGO -->
+    <tr>
+      <td style="background: linear-gradient(135deg, ${getActiveColors().primary} 0%, ${getActiveColors().secondary} 100%); color: white; padding: 30px; text-align: center;">
+        <!-- LOGO PLACEHOLDER -->
+      </td>
+    </tr>
+    <!-- CONTENT -->
+    <tr>
+      <td style="background: #ffffff; padding: 40px 30px;">
+        <p style="font-size: 16px; margin: 0 0 20px 0; color: #333;">Ciao <strong>${emailCustomer.name}</strong>,</p>
+        <div style="white-space: pre-wrap; line-height: 1.8; font-size: 15px; color: #333;">${emailMessage}</div>
+        ${emailQrCode ? `
+        <!-- QR CODE -->
+        <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 2px solid #f3f4f6;">
+          <p style="font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 15px;">Il tuo QR Code Referral</p>
+          <img src="${emailQrCode}" alt="QR Code" style="max-width: 250px; height: auto; display: inline-block; border: 3px solid #f3f4f6; border-radius: 12px; padding: 15px; background: white;" />
+        </div>
+        ` : ''}
+      </td>
+    </tr>
+    <!-- FOOTER PLACEHOLDER -->
+  </table>
+</body>
+</html>`
+
+      // Aggiungi footer branded professionale
+      const htmlWithFooter = await emailService.wrapEmailWithFooter(
+        htmlContent,
+        currentOrganization?.id,
+        currentOrganization?.name
+      )
+
+      // Invia email tramite emailService
+      const result = await emailService.sendEmail({
+        to: emailCustomer.email,
+        subject: emailSubject,
+        html: htmlWithFooter,
+        organizationId: currentOrganization?.id
+      })
+
+      if (result.success) {
+        setShowEmailModal(false)
+        setEmailCustomer(null)
+        setEmailSubject('')
+        setEmailMessage('')
+        setShowEmailPreview(false)
+        setEmailQrCode('')
+
+        showModal({
+          title: 'Email inviata!',
+          message: `Email inviata con successo a ${emailCustomer.name} (${emailCustomer.email})`,
+          type: 'info'
+        })
+      } else {
+        showModal({
+          title: 'Errore invio email',
+          message: `Impossibile inviare l'email: ${result.error || 'Servizio email non configurato'}`,
+          type: 'danger'
+        })
+      }
+    } catch (error) {
+      showModal({
+        title: 'Errore',
+        message: error instanceof Error ? error.message : 'Si è verificato un errore durante l\'invio dell\'email.',
+        type: 'danger'
+      })
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  // Aggiorna anteprima LIVE mentre scrivi
+  React.useEffect(() => {
+    if (!emailCustomer || !emailSubject || !emailMessage) {
+      setEmailPreviewHtml('')
+      return
+    }
+
+    const generatePreview = async () => {
+      try {
+        console.log('🔄 Generazione anteprima, QR code presente:', !!emailQrCode)
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; margin: 0; padding: 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <tr>
+      <td style="background: linear-gradient(135deg, ${getActiveColors().primary} 0%, ${getActiveColors().secondary} 100%); color: white; padding: 50px 30px; text-align: center;">
+        <!-- LOGO PLACEHOLDER -->
+      </td>
+    </tr>
+    <tr>
+      <td style="background: #ffffff; padding: 40px 30px;">
+        <p style="font-size: 16px; margin: 0 0 20px 0; color: #333;">Ciao <strong>${emailCustomer.name}</strong>,</p>
+        <div style="white-space: pre-wrap; line-height: 1.8; font-size: 15px; color: #333;">${emailMessage}</div>
+        ${emailQrCode ? `
+        <!-- QR CODE -->
+        <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 2px solid #f3f4f6;">
+          <p style="font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 15px;">Il tuo QR Code Referral</p>
+          <img src="${emailQrCode}" alt="QR Code" style="max-width: 250px; height: auto; display: inline-block; border: 3px solid #f3f4f6; border-radius: 12px; padding: 15px; background: white;" />
+        </div>
+        ` : ''}
+      </td>
+    </tr>
+    <!-- FOOTER PLACEHOLDER -->
+  </table>
+</body>
+</html>`
+
+        const htmlWithFooter = await emailService.wrapEmailWithFooter(
+          htmlContent,
+          currentOrganization?.id,
+          currentOrganization?.name
+        )
+
+        setEmailPreviewHtml(htmlWithFooter)
+      } catch (error) {
+        console.error('Error generating preview:', error)
+      }
+    }
+
+    generatePreview()
+  }, [emailCustomer, emailSubject, emailMessage, emailQrCode, currentOrganization])
+
   // Helper function per ottenere i colori corretti (preview o salvati)
   const getActiveColors = () => {
     const colors = {
@@ -259,6 +426,118 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       secondary: previewColors.secondary || currentOrganization?.secondary_color || '#ef4444'
     }
     return colors
+  }
+
+  // Referral modal functions
+  const handleCopyReferralCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      showModal({
+        title: 'Copiato!',
+        message: `Codice referral "${code}" copiato negli appunti`,
+        type: 'info'
+      })
+    } catch (error) {
+      showModal({
+        title: 'Errore',
+        message: 'Impossibile copiare il codice',
+        type: 'danger'
+      })
+    }
+  }
+
+  const handlePrintReferralCode = async () => {
+    if (!referralCustomer || !referralCustomer.referral_code) return
+
+    setPrintingReferral(true)
+    try {
+      // Initialize printer if not already done
+      if (!printService) {
+        showModal({
+          title: 'Stampante non inizializzata',
+          message: 'Impossibile stampare. Verifica la configurazione della stampante.',
+          type: 'warning'
+        })
+        return
+      }
+
+      // Get referral program stats from database
+      const { data: referralProgram } = await supabase
+        .from('referral_programs')
+        .select('*')
+        .eq('customer_id', referralCustomer.id)
+        .single()
+
+      const referralUrl = `${window.location.origin}/register?ref=${referralCustomer.referral_code}`
+
+      const success = await printService.printReferralCode({
+        referral_code: referralCustomer.referral_code,
+        customer_name: referralCustomer.name,
+        customer_email: referralCustomer.email || undefined,
+        total_referrals: referralProgram?.total_referrals || 0,
+        successful_referrals: referralProgram?.successful_referrals || 0,
+        total_points_earned: referralProgram?.total_points_earned || 0,
+        organizationName: currentOrganization?.name || 'OMNILY PRO',
+        referralUrl
+      })
+
+      if (success) {
+        showModal({
+          title: 'Stampato!',
+          message: 'Voucher referral stampato con successo',
+          type: 'info'
+        })
+      } else {
+        throw new Error('Stampa fallita')
+      }
+    } catch (error) {
+      showModal({
+        title: 'Errore stampa',
+        message: error instanceof Error ? error.message : 'Impossibile stampare il voucher',
+        type: 'danger'
+      })
+    } finally {
+      setPrintingReferral(false)
+    }
+  }
+
+  const handleWhatsAppShare = (code: string, customerName: string) => {
+    const message = `Ciao! Usa il mio codice referral *${code}* per registrarti e ottenere vantaggi esclusivi! 🎁\n\n${window.location.origin}/register?ref=${code}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  const handleEmailReferralShare = async (code: string, customerName: string) => {
+    // Chiudi il modal referral
+    setShowReferralModal(false)
+
+    // Genera QR code come data URL
+    const qrCodeUrl = `${window.location.origin}/register?ref=${code}`
+
+    // Crea un canvas temporaneo per generare il QR code
+    const QRCode = (await import('qrcode')).default
+    const qrDataUrl = await QRCode.toDataURL(qrCodeUrl, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    })
+
+    console.log('📧 QR Code generato:', qrDataUrl.substring(0, 50) + '...')
+
+    // Prepara il contenuto dell'email con QR code
+    const subject = `${currentOrganization?.name || 'Noi'} - Il tuo codice referral!`
+    const body = `Ciao ${customerName}!\n\nEcco il tuo codice referral personale: ${code}\n\nCondividilo con i tuoi amici e invitali a registrarsi presso la nostra sede per ottenere vantaggi esclusivi!\n\nPuoi anche mostrare il QR code qui sotto che trovi allegato all'email.\n\nGrazie per far parte della nostra community!`
+
+    // Apri il modal email con i dati pre-compilati
+    setEmailCustomer(referralCustomer)
+    setEmailSubject(subject)
+    setEmailMessage(body)
+    setEmailQrCode(qrDataUrl) // Salva il QR code
+
+    setShowEmailModal(true)
   }
 
   // FORCE RESET NFC STATE on component mount to prevent stuck states
@@ -620,7 +899,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showSubscriptionsPanel, setShowSubscriptionsPanel] = useState(false)
   const [subscriptionInitialModal, setSubscriptionInitialModal] = useState<'manage' | 'templates' | undefined>(undefined)
   const [showSubscriptionStatsModal, setShowSubscriptionStatsModal] = useState(false)
-  const [showEmailMarketingPanel, setShowEmailMarketingPanel] = useState(false)
   const [showEmailAutomationsPanel, setShowEmailAutomationsPanel] = useState(false)
   const [showBrandingPanel, setShowBrandingPanel] = useState(false)
 
@@ -1047,7 +1325,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }, [])
 
   useEffect(() => {
-    if (activeSection === 'members') {
+    if (activeSection === 'members' || activeSection === 'dashboard') {
       fetchCustomers()
     }
   }, [activeSection])
@@ -2002,6 +2280,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'members', icon: Users, label: 'Clienti', feature: null },
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
+      { id: 'referral', icon: Share2, label: 'Sistema Referral', feature: null },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
       { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: null },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
@@ -2194,6 +2473,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <div className="table-actions">
                   <button
                     className={`btn-secondary qr-button ${qrStatus}`}
+                    style={{ background: getActiveColors().primary, borderColor: getActiveColors().primary }}
                     onClick={handleQRScan}
                   >
                     <QrCode size={16} />
@@ -2213,8 +2493,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       )}
                     </div>
                   )}
-                  <button 
+                  <button
                     className={`btn-secondary nfc-button ${nfcStatus}`}
+                    style={{ background: getActiveColors().primary, borderColor: getActiveColors().primary }}
                     onClick={handleNFCRead}
                   >
                     {nfcStatus === 'reading' && <StopCircle size={16} />}
@@ -2239,6 +2520,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   )}
                   <button
                     className="btn-primary"
+                    style={{ background: getActiveColors().primary, borderColor: getActiveColors().primary }}
                     onClick={() => setActiveSection('registration-wizard')}
                   >
                     <Users size={16} />
@@ -2261,6 +2543,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 <CustomersCardView
                   customers={filteredCustomers}
                   onCustomerClick={handleCustomerClick}
+                  onReferralClick={(customer) => {
+                    setReferralCustomer(customer)
+                    setShowReferralModal(true)
+                  }}
                   primaryColor={currentOrganization?.primary_color || '#dc2626'}
                   secondaryColor={currentOrganization?.secondary_color || '#dc2626'}
                   pointsName={currentOrganization?.points_name || 'Punti'}
@@ -2273,6 +2559,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       <tr>
                         <th>Cliente</th>
                         <th>Contatti</th>
+                        <th>Referral</th>
                         <th>Punti</th>
                         <th>Livello</th>
                         <th>Stato</th>
@@ -2283,7 +2570,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <tbody>
                       {filteredCustomers.length === 0 ? (
                         <tr>
-                          <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
+                          <td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}>
                             <div>Nessun cliente trovato per "{searchTerm}"</div>
                           </td>
                         </tr>
@@ -2319,15 +2606,45 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                             <div className="contact-cell">
                               {customer.email && (
                                 <div className="contact-item">
-                                  <span>📧</span>
+                                  <Mail size={16} className="contact-icon" />
                                   <span>{customer.email}</span>
                                 </div>
                               )}
                               {customer.phone && (
                                 <div className="contact-item">
-                                  <span>📱</span>
+                                  <Phone size={16} className="contact-icon" />
                                   <span>{customer.phone}</span>
                                 </div>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="referral-cell">
+                              {customer.referral_code ? (
+                                <span
+                                  className="referral-code-badge"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setReferralCustomer(customer)
+                                    setShowReferralModal(true)
+                                  }}
+                                  style={{
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'scale(1.05)'
+                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.5)'
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'scale(1)'
+                                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(102, 126, 234, 0.3)'
+                                  }}
+                                >
+                                  {customer.referral_code}
+                                </span>
+                              ) : (
+                                <span style={{ color: '#9ca3af', fontSize: '13px' }}>-</span>
                               )}
                             </div>
                           </td>
@@ -2351,25 +2668,29 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                           <td>
                             <div className="action-buttons">
                               <button
-                                className="action-btn-view"
+                                className="action-btn-edit"
+                                style={{ background: getActiveColors().primary }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCustomerClick(customer);
                                 }}
-                                title="Visualizza Cliente"
+                                title="Modifica Cliente"
                               >
-                                <Users size={16} />
+                                <Edit2 size={24} />
                               </button>
                               <button
-                                className="action-btn-edit"
+                                className="action-btn-mail"
+                                style={{ background: getActiveColors().secondary }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedCustomerForEdit(customer);
-                                  setShowEditModalFromTable(true);
+                                  setEmailCustomer(customer);
+                                  setEmailSubject('');
+                                  setEmailMessage('');
+                                  setShowEmailModal(true);
                                 }}
-                                title="Modifica Dati"
+                                title="Invia Email"
                               >
-                                <UserCog size={16} />
+                                <Mail size={24} />
                               </button>
                             </div>
                           </td>
@@ -2452,7 +2773,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               organizationName={currentOrganization.name}
               primaryColor={getActiveColors().primary}
               secondaryColor={getActiveColors().secondary}
-              onOpenEmailMarketingPanel={() => setShowEmailMarketingPanel(true)}
             />
           </div>
         ) : null
@@ -2738,6 +3058,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         ) : null
 
+      case 'referral-system':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <ReferralHub
+              organizationId={currentOrganization.id}
+              primaryColor={currentOrganization.primary_color || '#667eea'}
+              secondaryColor={currentOrganization.secondary_color || '#764ba2'}
+              onBack={() => handleSectionChange('settings')}
+              initialView="settings"
+            />
+          </div>
+        ) : null
+
       case 'subscriptions':
         return currentOrganization ? (
           <div
@@ -2767,6 +3100,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return currentOrganization ? (
           <ReferralHub
             organizationId={currentOrganization.id}
+            primaryColor={currentOrganization.primary_color || '#dc2626'}
+            secondaryColor={currentOrganization.secondary_color || '#ef4444'}
             onBack={() => setActiveSection('members')}
           />
         ) : null
@@ -3186,15 +3521,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }}
       />
 
-      {/* Email Marketing Hub */}
-      <EmailMarketingHub
-        isOpen={showEmailMarketingPanel}
-        onClose={() => setShowEmailMarketingPanel(false)}
-        organizationId={currentOrganization?.id || ''}
-        organizationName={currentOrganization?.name || 'Organizzazione'}
-        primaryColor={currentOrganization?.primary_color || '#dc2626'}
-        secondaryColor={currentOrganization?.secondary_color || '#dc2626'}
-      />
 
       {/* Organization Branding Panel */}
       <OrganizationBrandingPanel
@@ -3253,8 +3579,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onUpdate={() => {
           fetchOrganizations()
           setShowAccountSettingsPanel(false)
-          // Chiudi anche EmailMarketingPanel se aperto per forzare refresh dei dati
-          setShowEmailMarketingPanel(false)
         }}
       />
 
@@ -3803,6 +4127,562 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             </div>
           </div>
         </>
+      )}
+
+      {/* Email Modal */}
+      {showEmailModal && emailCustomer && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => {
+            if (!sendingEmail) {
+              setShowEmailModal(false)
+              setEmailCustomer(null)
+              setEmailSubject('')
+              setEmailMessage('')
+              setShowEmailPreview(false)
+              setEmailQrCode('')
+            }
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                  Invia Email
+                </h2>
+                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+                  A: {emailCustomer.name} ({emailCustomer.email})
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  if (!sendingEmail) {
+                    setShowEmailModal(false)
+                    setEmailCustomer(null)
+                    setEmailSubject('')
+                    setEmailMessage('')
+                    setShowEmailPreview(false)
+                    setEmailQrCode('')
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#6b7280',
+                  cursor: sendingEmail ? 'not-allowed' : 'pointer',
+                  padding: '8px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: sendingEmail ? 0.5 : 1
+                }}
+                disabled={sendingEmail}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body - Form + Preview Below */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              overflow: 'hidden'
+            }}>
+              {/* Top: Form */}
+              <div style={{
+                width: '100%',
+                padding: '24px',
+                borderBottom: showEmailPreview ? '1px solid #e5e7eb' : 'none',
+                overflow: 'auto'
+              }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#374151'
+                  }}>
+                    Oggetto *
+                  </label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Scrivi l'oggetto dell'email..."
+                    disabled={sendingEmail}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                      opacity: sendingEmail ? 0.6 : 1
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = getActiveColors().primary}
+                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#374151'
+                  }}>
+                    Messaggio *
+                  </label>
+                  <textarea
+                    value={emailMessage}
+                    onChange={(e) => setEmailMessage(e.target.value)}
+                    placeholder="Scrivi il tuo messaggio..."
+                    disabled={sendingEmail}
+                    rows={12}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                      transition: 'border-color 0.2s',
+                      opacity: sendingEmail ? 0.6 : 1
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = getActiveColors().primary}
+                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom: Live Preview */}
+              {showEmailPreview && (
+                <div style={{
+                  flex: 1,
+                  padding: '24px',
+                  background: '#f5f5f5',
+                  overflow: 'auto',
+                  minHeight: '400px',
+                  maxHeight: '600px'
+                }}>
+                  <div style={{
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280' }}>
+                      📧 Anteprima LIVE
+                    </span>
+                    <button
+                      onClick={() => setShowEmailPreview(false)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#6b7280',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#e5e7eb'
+                        e.currentTarget.style.color = '#374151'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.color = '#6b7280'
+                      }}
+                      title="Chiudi anteprima"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                {emailSubject && emailMessage ? (
+                  <iframe
+                    srcDoc={emailPreviewHtml}
+                    style={{
+                      width: '100%',
+                      height: '500px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      background: 'white'
+                    }}
+                    title="Email Preview"
+                  />
+                ) : (
+                  <div style={{
+                    height: '300px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9ca3af',
+                    fontSize: '14px',
+                    textAlign: 'center',
+                    padding: '20px'
+                  }}>
+                    Compila oggetto e messaggio per vedere l'anteprima
+                  </div>
+                )}
+              </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '20px 24px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'space-between'
+            }}>
+              <button
+                onClick={() => {
+                  setShowEmailModal(false)
+                  setEmailCustomer(null)
+                  setEmailSubject('')
+                  setEmailMessage('')
+                  setShowEmailPreview(false)
+                  setEmailQrCode('')
+                }}
+                disabled={sendingEmail}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid #d1d5db',
+                  background: 'white',
+                  color: '#374151',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: sendingEmail ? 'not-allowed' : 'pointer',
+                  opacity: sendingEmail ? 0.5 : 1
+                }}
+              >
+                Annulla
+              </button>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {/* Toggle Anteprima */}
+                {!showEmailPreview && (
+                  <button
+                    onClick={() => setShowEmailPreview(true)}
+                    disabled={sendingEmail || !emailSubject || !emailMessage}
+                    style={{
+                      padding: '10px 20px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: getActiveColors().primary,
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: (sendingEmail || !emailSubject || !emailMessage) ? 'not-allowed' : 'pointer',
+                      opacity: (sendingEmail || !emailSubject || !emailMessage) ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <Eye size={16} />
+                    Mostra Anteprima
+                  </button>
+                )}
+              <button
+                onClick={handleSendEmail}
+                disabled={sendingEmail || !emailSubject || !emailMessage}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  background: sendingEmail || !emailSubject || !emailMessage ? '#9ca3af' : getActiveColors().primary,
+                  color: 'white',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: sendingEmail || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                {sendingEmail ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid white',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 0.6s linear infinite'
+                    }} />
+                    Invio in corso...
+                  </>
+                ) : (
+                  <>
+                    <Mail size={16} />
+                    Invia Email
+                  </>
+                )}
+              </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Referral Code Modal - POS Touch Optimized */}
+      {showReferralModal && referralCustomer && referralCustomer.referral_code && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={() => setShowReferralModal(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '500px',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb',
+              background: `linear-gradient(135deg, ${getActiveColors().primary}, ${getActiveColors().secondary})`,
+              borderRadius: '20px 20px 0 0',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <button
+                onClick={() => setShowReferralModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  padding: '8px',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <X size={20} />
+              </button>
+              <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 700 }}>
+                Codice Referral
+              </h2>
+              <p style={{ margin: 0, fontSize: '14px', opacity: 0.9 }}>
+                {referralCustomer.name}
+              </p>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '32px', textAlign: 'center' }}>
+              {/* QR Code */}
+              <div style={{
+                background: 'white',
+                padding: '24px',
+                borderRadius: '16px',
+                border: '3px solid #f3f4f6',
+                marginBottom: '24px',
+                display: 'inline-block'
+              }}>
+                <QRCodeSVG
+                  value={`${window.location.origin}/register?ref=${referralCustomer.referral_code}`}
+                  size={220}
+                  level="H"
+                  includeMargin={false}
+                />
+              </div>
+
+              {/* Referral Code */}
+              <div style={{
+                background: `linear-gradient(135deg, ${getActiveColors().primary}15, ${getActiveColors().secondary}15)`,
+                padding: '20px',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                border: `2px solid ${getActiveColors().primary}30`
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Codice Personale
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 700, color: getActiveColors().primary, letterSpacing: '2px', fontFamily: 'monospace' }}>
+                  {referralCustomer.referral_code}
+                </div>
+              </div>
+
+              {/* Action Buttons - Touch Optimized */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                {/* Print Button */}
+                <button
+                  onClick={handlePrintReferralCode}
+                  disabled={printingReferral}
+                  style={{
+                    background: getActiveColors().primary,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: printingReferral ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    opacity: printingReferral ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                    minHeight: '80px'
+                  }}
+                >
+                  <Printer size={24} />
+                  {printingReferral ? 'Stampa...' : 'Stampa'}
+                </button>
+
+                {/* Copy Button */}
+                <button
+                  onClick={() => handleCopyReferralCode(referralCustomer.referral_code!)}
+                  style={{
+                    background: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    minHeight: '80px'
+                  }}
+                >
+                  <Copy size={24} />
+                  Copia
+                </button>
+
+                {/* WhatsApp Button */}
+                <button
+                  onClick={() => handleWhatsAppShare(referralCustomer.referral_code!, referralCustomer.name)}
+                  style={{
+                    background: '#25D366',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    minHeight: '80px'
+                  }}
+                >
+                  <Send size={24} />
+                  WhatsApp
+                </button>
+
+                {/* Email Button */}
+                <button
+                  onClick={() => handleEmailReferralShare(referralCustomer.referral_code!, referralCustomer.name)}
+                  style={{
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    minHeight: '80px'
+                  }}
+                >
+                  <Mail size={24} />
+                  Email
+                </button>
+              </div>
+
+              <p style={{ fontSize: '13px', color: '#6b7280', margin: '16px 0 0 0' }}>
+                Condividi il QR code o il codice con i tuoi clienti per farli registrare!
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Confirm Modal */}

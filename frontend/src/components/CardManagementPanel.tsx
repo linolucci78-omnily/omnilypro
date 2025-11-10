@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings, Trash2, QrCode } from 'lucide-react';
+import { X, CreditCard, Users, Search, UserCheck, AlertTriangle, Target, Settings, Trash2, QrCode, ArrowLeft } from 'lucide-react';
 import type { Customer, NFCCard } from '../lib/supabase';
 import { nfcCardsApi } from '../lib/supabase';
 import './CardManagementPanel.css';
@@ -472,13 +472,14 @@ const CardManagementPanel: React.FC<CardManagementPanelProps> = ({
       <div className={`card-management-panel ${isOpen ? 'open' : ''}`}>
         {/* Header */}
         <div className="card-management-header">
+          <button className="back-button-header" onClick={onClose}>
+            <ArrowLeft size={20} />
+            Indietro
+          </button>
           <div className="header-info">
             <h2>Gestione Tessere NFC</h2>
             <p>Leggi, assegna e gestisci le tessere per i clienti</p>
           </div>
-          <button className="close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
         </div>
 
         {/* Mode Tabs */}

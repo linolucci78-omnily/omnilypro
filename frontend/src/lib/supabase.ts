@@ -523,7 +523,10 @@ export const customersApi = {
   async getAll(organizationId?: string): Promise<Customer[]> {
     let query = supabase
       .from('customers')
-      .select('*')
+      .select(`
+        *,
+        referral_programs!left(referral_code)
+      `)
       .order('created_at', { ascending: false })
 
     if (organizationId) {
@@ -532,8 +535,24 @@ export const customersApi = {
 
     const { data, error } = await query
 
-    if (error) throw error
-    return data || []
+    if (error) {
+      console.error('Error fetching customers:', error)
+      throw error
+    }
+
+    console.log('Customers with referral data:', data)
+
+    // Map referral_code from nested object to customer
+    return (data || []).map(customer => {
+      const referralCode = Array.isArray(customer.referral_programs)
+        ? customer.referral_programs[0]?.referral_code
+        : customer.referral_programs?.referral_code
+
+      return {
+        ...customer,
+        referral_code: referralCode || undefined
+      }
+    })
   },
 
   // Get customer by ID

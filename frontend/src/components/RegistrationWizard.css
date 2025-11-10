@@ -32,6 +32,17 @@
   }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Header */
 .wizard-header {
   background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
@@ -204,8 +215,30 @@
 
 .form-group label {
   font-weight: 600;
-  color: #0f172a;
+  color: #1f2937;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  color: #9ca3af;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-with-icon input,
+.input-with-icon select {
+  padding-left: 48px !important;
 }
 
 .form-group input,

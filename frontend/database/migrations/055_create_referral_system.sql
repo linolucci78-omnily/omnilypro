@@ -218,93 +218,83 @@ COMMENT ON TABLE public.referral_analytics IS 'Metriche aggregate per analytics 
 -- Referral Tiers
 ALTER TABLE public.referral_tiers ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view referral tiers of their organization"
+CREATE POLICY "Authenticated users can view referral tiers"
   ON public.referral_tiers FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY "Admins can manage referral tiers"
+CREATE POLICY "Authenticated users can manage referral tiers"
   ON public.referral_tiers FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
 
 -- Referral Programs
 ALTER TABLE public.referral_programs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view referral programs of their organization"
+CREATE POLICY "Authenticated users can view referral programs"
   ON public.referral_programs FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY "Users can manage referral programs"
+CREATE POLICY "Authenticated users can manage referral programs"
   ON public.referral_programs FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
 
 -- Referral Conversions
 ALTER TABLE public.referral_conversions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view conversions of their organization"
+CREATE POLICY "Authenticated users can view conversions"
   ON public.referral_conversions FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY "Users can manage conversions"
+CREATE POLICY "Authenticated users can manage conversions"
   ON public.referral_conversions FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
 
 -- Referral Rewards
 ALTER TABLE public.referral_rewards ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view rewards of their organization"
+CREATE POLICY "Authenticated users can view rewards"
   ON public.referral_rewards FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Authenticated users can manage rewards"
+  ON public.referral_rewards FOR ALL
+  USING (auth.uid() IS NOT NULL);
 
 -- Referral Analytics
 ALTER TABLE public.referral_analytics ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view analytics of their organization"
+CREATE POLICY "Authenticated users can view analytics"
   ON public.referral_analytics FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.organization_members
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Authenticated users can manage analytics"
+  ON public.referral_analytics FOR ALL
+  USING (auth.uid() IS NOT NULL);
 
 -- =====================================================
 -- 7. FUNCTIONS & TRIGGERS
 -- =====================================================
+
+-- Drop existing functions if they exist (all versions)
+DO $$
+BEGIN
+    DROP FUNCTION IF EXISTS public.generate_referral_code CASCADE;
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    DROP FUNCTION IF EXISTS public.calculate_referral_tier CASCADE;
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    DROP FUNCTION IF EXISTS public.update_referral_stats CASCADE;
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END $$;
 
 -- Function: Generate Unique Referral Code
 CREATE OR REPLACE FUNCTION public.generate_referral_code(
