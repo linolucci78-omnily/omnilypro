@@ -48,6 +48,7 @@ import BusinessDetailsHub from './BusinessDetailsHub'
 import GiftCertificatesSettingsHub from './GiftCertificatesSettingsHub'
 import AdminTicketsPanel from './AdminTicketsPanel'
 import ConfirmModal from './UI/ConfirmModal'
+import ReferralHub from './ReferralHub'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
@@ -2760,6 +2761,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               onOpenStatsModal={() => setShowSubscriptionStatsModal(true)}
             />
           </div>
+        ) : null
+
+      case 'referral':
+        return currentOrganization ? (
+          <ReferralHub
+            organizationId={currentOrganization.id}
+            onBack={() => setActiveSection('members')}
+          />
         ) : null
 
       default:
