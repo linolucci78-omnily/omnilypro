@@ -451,8 +451,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
     setPrintingReferral(true)
     try {
+      // Debug log
+      console.log('🖨️ handlePrintReferralCode - printService:', printService)
+      console.log('🖨️ isPOSMode:', isPOSMode)
+      console.log('🖨️ currentOrganization:', currentOrganization?.name)
+
       // Initialize printer if not already done
       if (!printService) {
+        console.error('❌ printService is NULL!')
         showModal({
           title: 'Stampante non inizializzata',
           message: 'Impossibile stampare. Verifica la configurazione della stampante.',
