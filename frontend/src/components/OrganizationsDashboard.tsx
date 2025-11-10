@@ -68,9 +68,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   onOrganizationChange,
   onPreviewColorsChange
 }) => {
-  // Detect POS mode
+  // Detect POS mode (check URL or localStorage)
   const isPOSMode = typeof window !== 'undefined' &&
-    window.location.search.includes('posomnily=true')
+    (window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true')
   const { user } = useAuth()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
