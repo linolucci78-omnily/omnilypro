@@ -4589,7 +4589,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               }}>
                 {/* Print Button */}
                 <button
-                  onClick={handlePrintReferralCode}
+                  onClick={() => {
+                    console.log('🔴 PULSANTE STAMPA CLICCATO!')
+                    handlePrintReferralCode()
+                  }}
                   disabled={printingReferral}
                   style={{
                     background: getActiveColors().primary,
