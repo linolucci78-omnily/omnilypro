@@ -446,6 +446,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
+  // Debug: Log modal state changes
+  React.useEffect(() => {
+    if (showReferralModal) {
+      console.log('✅ REFERRAL MODAL OPENED!', {
+        customerName: referralCustomer?.name,
+        hasReferralCode: !!referralCustomer?.referral_code,
+        referralCode: referralCustomer?.referral_code
+      })
+    } else {
+      console.log('❌ REFERRAL MODAL CLOSED')
+    }
+  }, [showReferralModal, referralCustomer])
+
   const handlePrintReferralCode = async () => {
     if (!referralCustomer || !referralCustomer.referral_code) return
 
@@ -2550,6 +2563,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   customers={filteredCustomers}
                   onCustomerClick={handleCustomerClick}
                   onReferralClick={(customer) => {
+                    console.log('🔵 REFERRAL ICON CLICKED!', {
+                      customerName: customer.name,
+                      hasReferralCode: !!customer.referral_code,
+                      referralCode: customer.referral_code
+                    })
                     setReferralCustomer(customer)
                     setShowReferralModal(true)
                   }}
@@ -4478,6 +4496,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       )}
 
       {/* Referral Code Modal - POS Touch Optimized */}
+      {(() => {
+        console.log('🔍 MODAL RENDER CHECK:', {
+          showReferralModal,
+          hasReferralCustomer: !!referralCustomer,
+          customerName: referralCustomer?.name,
+          hasReferralCode: !!referralCustomer?.referral_code,
+          referralCode: referralCustomer?.referral_code
+        })
+        return null
+      })()}
       {showReferralModal && referralCustomer && referralCustomer.referral_code && (
         <div
           style={{
