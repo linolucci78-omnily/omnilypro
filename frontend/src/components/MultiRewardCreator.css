@@ -1,0 +1,354 @@
+/* Container - Inline Section */
+.multi-reward-container {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header */
+.multi-reward-header {
+  padding: 24px 32px;
+  border-bottom: 2px solid #e5e7eb;
+  position: relative;
+}
+
+.multi-reward-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.multi-reward-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  color: #374151;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.close-button:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Actions Bar */
+.multi-reward-actions {
+  padding: 16px 32px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-row:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-add-row:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-info {
+  flex: 1;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-save-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save-all:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save-all:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Table Container */
+.rewards-table-container {
+  flex: 1;
+  overflow: auto;
+  background: #f9fafb;
+  padding: 16px 32px 32px 32px;
+}
+
+.rewards-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Table Header */
+.rewards-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rewards-table th {
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 2px solid #d1d5db;
+  border-right: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.rewards-table th:last-child {
+  border-right: none;
+}
+
+/* Table Body */
+.rewards-table tbody tr {
+  transition: background 0.15s;
+}
+
+.rewards-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.rewards-table tbody tr:hover {
+  background: #f0f9ff;
+}
+
+.rewards-table tbody tr.row-error {
+  background: #fef2f2 !important;
+}
+
+.rewards-table td {
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.rewards-table td:last-child {
+  border-right: none;
+}
+
+.row-number {
+  text-align: center;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f9fafb !important;
+  font-size: 13px;
+}
+
+/* Form Elements */
+.rewards-table input[type="text"],
+.rewards-table input[type="number"],
+.rewards-table select,
+.rewards-table textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  color: #111827;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.rewards-table input:focus,
+.rewards-table select:focus,
+.rewards-table textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.rewards-table input.input-error,
+.rewards-table textarea.input-error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.rewards-table textarea {
+  resize: vertical;
+  min-height: 50px;
+  font-family: inherit;
+}
+
+/* Image Upload Cell */
+.image-upload-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.upload-button:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.image-preview-thumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+}
+
+/* Row Actions */
+.row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.btn-icon {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #374151;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-icon.btn-danger:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Errors Summary */
+.errors-summary {
+  padding: 16px 32px;
+  background: #fef2f2;
+  border-top: 2px solid #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Scrollbar Styling */
+.rewards-table-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.rewards-table-container::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.rewards-table-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 8px;
+  border: 2px solid #f3f4f6;
+}
+
+.rewards-table-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Mobile: nasconde questo componente */
+@media (max-width: 1024px) {
+  .multi-reward-container {
+    display: none;
+  }
+}

@@ -19,10 +19,12 @@ import {
   Tag,
   Wrench,
   Sparkles,
-  Gift
+  Gift,
+  Table
 } from 'lucide-react'
 import { rewardsService, type Reward } from '../services/rewardsService'
 import { supabase } from '../lib/supabase'
+import MultiRewardCreator from './MultiRewardCreator'
 import './RewardsManagement.css'
 
 interface RewardsManagementProps {
@@ -76,6 +78,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   const [rewards, setRewards] = useState<Reward[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showMultiModal, setShowMultiModal] = useState(false)
   const [editingReward, setEditingReward] = useState<Reward | null>(null)
   const [uploading, setUploading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -315,17 +318,29 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
           <h1>Gestione Premi</h1>
           <p>Crea e gestisci il catalogo premi del tuo programma fedeltà</p>
         </div>
-        <button
-          className="btn-add-reward"
-          onClick={() => setShowModal(true)}
-        >
-          <Plus size={20} />
-          <span>Nuovo Premio</span>
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            className="btn-add-reward"
+            onClick={() => setShowMultiModal(true)}
+          >
+            <Table size={20} />
+            <span>Crea Premi Multipli</span>
+          </button>
+          <button
+            className="btn-add-reward"
+            onClick={() => setShowModal(true)}
+          >
+            <Plus size={20} />
+            <span>Nuovo Premio</span>
+          </button>
+        </div>
       </div>
 
-      {/* Filtri e Ricerca */}
-      <div className="rewards-filters">
+      {/* Conditional: Show rewards list OR multi-creator */}
+      {!showMultiModal ? (
+        <>
+          {/* Filtri e Ricerca */}
+          <div className="rewards-filters">
         <div className="search-box">
           <Search size={20} />
           <input
@@ -435,14 +450,14 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                         onClick={() => handleEdit(reward)}
                         title="Modifica"
                       >
-                        <Edit2 size={16} />
+                        <Edit2 size={20} strokeWidth={2.5} />
                       </button>
                       <button
                         className="btn-action-delete"
                         onClick={() => setDeleteConfirmId(reward.id)}
                         title="Elimina"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={20} strokeWidth={2.5} />
                       </button>
                     </div>
                   </div>
@@ -721,6 +736,20 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
             </div>
           </div>
         </>
+      )}
+      </>
+      ) : (
+        <MultiRewardCreator
+          isOpen={showMultiModal}
+          onClose={() => setShowMultiModal(false)}
+          onSuccess={() => {
+            setShowMultiModal(false)
+            fetchRewards()
+          }}
+          organizationId={organizationId}
+          loyaltyTiers={loyaltyTiers}
+          pointsName="Punti"
+        />
       )}
     </div>
   )

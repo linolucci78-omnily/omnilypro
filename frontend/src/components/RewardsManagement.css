@@ -304,45 +304,49 @@
 
 .btn-action-edit,
 .btn-action-delete {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  background: white;
 }
 
 .btn-action-edit svg,
 .btn-action-delete svg {
-  width: 16px;
-  height: 16px;
-  color: white;
-  stroke: currentColor;
-  stroke-width: 2;
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
   flex-shrink: 0;
+  fill: none !important;
+  color: inherit !important;
 }
 
 .btn-action-edit {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
+  border-color: #3b82f6;
+  color: #3b82f6 !important;
 }
 
 .btn-action-edit:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  background: #3b82f6;
+  color: white !important;
+  transform: translateY(-1px);
 }
 
 .btn-action-delete {
-  background: linear-gradient(135deg, var(--secondary-color, #ef4444), var(--primary-color, #dc2626));
-  color: white;
+  border-color: var(--primary-color, #dc2626);
+  color: var(--primary-color, #dc2626) !important;
 }
 
 .btn-action-delete:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  background: var(--primary-color, #dc2626);
+  color: white !important;
+  transform: translateY(-1px);
 }
 
 /* Toggle Switch Modern */
