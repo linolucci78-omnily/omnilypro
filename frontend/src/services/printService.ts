@@ -802,15 +802,15 @@ export class ZCSPrintService {
       addSeparator()
       addSectionSpacing()
 
-      // Receipt Info
-      lines.push(alignText(`N. ${receipt.receiptNumber}`, 'left'))
+      // Receipt Info (uses header alignment)
+      lines.push(alignText(`N. ${receipt.receiptNumber}`, layout?.header_alignment || 'left'))
       addLineSpacing()
-      lines.push(alignText(`Data: ${this.formatDateTime(receipt.timestamp)}`, 'left'))
+      lines.push(alignText(`Data: ${this.formatDateTime(receipt.timestamp)}`, layout?.header_alignment || 'left'))
       addLineSpacing()
 
       // Show operator if enabled
       if (layout?.show_operator !== false) {
-        lines.push(alignText(`Operatore: ${receipt.cashierName}`, 'left'))
+        lines.push(alignText(`Operatore: ${receipt.cashierName}`, layout?.header_alignment || 'left'))
         addLineSpacing()
       }
 
@@ -840,17 +840,17 @@ export class ZCSPrintService {
       addSeparator()
       addSectionSpacing()
 
-      // Totals
-      lines.push(alignText(`Subtotale:${' '.repeat(21)}€${receipt.subtotal.toFixed(2)}`, 'left'))
+      // Totals (uses footer alignment)
+      lines.push(alignText(`Subtotale:${' '.repeat(21)}€${receipt.subtotal.toFixed(2)}`, layout?.footer_alignment || 'left'))
       addLineSpacing()
-      lines.push(alignText(`IVA (22%):${' '.repeat(21)}€${receipt.tax.toFixed(2)}`, 'left'))
+      lines.push(alignText(`IVA (22%):${' '.repeat(21)}€${receipt.tax.toFixed(2)}`, layout?.footer_alignment || 'left'))
       addLineSpacing()
       addSeparator()
       const totalLine = `TOTALE:${' '.repeat(24)}€${receipt.total.toFixed(2)}`
-      lines.push(alignText(totalLine, 'left'))
+      lines.push(alignText(totalLine, layout?.footer_alignment || 'left'))
       addSeparator()
       addSectionSpacing()
-      lines.push(alignText(`Pagamento: ${receipt.paymentMethod}`, 'left'))
+      lines.push(alignText(`Pagamento: ${receipt.paymentMethod}`, layout?.footer_alignment || 'left'))
 
       // Loyalty points
       if (receipt.customerPoints) {
