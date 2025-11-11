@@ -68,9 +68,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   onOrganizationChange,
   onPreviewColorsChange
 }) => {
-  // Detect POS mode (check URL or localStorage)
+  // Detect POS mode (check URL, localStorage, or OmnilyPOS bridge existence)
   const isPOSMode = typeof window !== 'undefined' &&
-    (window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true')
+    (window.location.search.includes('posomnily=true') ||
+     localStorage.getItem('pos-mode') === 'true' ||
+     !!(window as any).OmnilyPOS)
+
+  // Debug log for POS detection
+  console.log('🔍 POS MODE DETECTION:', {
+    isPOSMode,
+    urlHasParam: typeof window !== 'undefined' && window.location.search.includes('posomnily=true'),
+    localStorageValue: typeof window !== 'undefined' && localStorage.getItem('pos-mode'),
+    hasOmnilyPOSBridge: typeof window !== 'undefined' && !!(window as any).OmnilyPOS
+  })
+
   const { user } = useAuth()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
