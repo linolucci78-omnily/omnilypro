@@ -2188,26 +2188,35 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     });
 
     if (isPOSMode && currentOrganization && !printService) {
-      console.log('🔧 Initializing print service for Gift Certificates...');
-      const newPrintService = new ZCSPrintService({
-        storeName: currentOrganization.name,
-        storeAddress: currentOrganization.address || '',
-        storePhone: currentOrganization.phone || '',
-        storeTax: currentOrganization.partita_iva || '',
-        paperWidth: 384,
-        fontSizeNormal: 24,
-        fontSizeLarge: 32,
-        printDensity: 3
-      });
+      const initializePrintService = async () => {
+        console.log('🔧 Initializing print service for Gift Certificates...');
 
-      newPrintService.initialize().then(success => {
+        // Load receipt layout settings
+        const layoutSettings = await ZCSPrintService.loadLayoutSettings(currentOrganization.id);
+        console.log('📐 Layout settings loaded:', layoutSettings ? 'Custom settings' : 'Default settings');
+
+        const newPrintService = new ZCSPrintService({
+          storeName: currentOrganization.name,
+          storeAddress: currentOrganization.address || '',
+          storePhone: currentOrganization.phone || '',
+          storeTax: currentOrganization.partita_iva || '',
+          paperWidth: 384,
+          fontSizeNormal: 24,
+          fontSizeLarge: 32,
+          printDensity: 3,
+          layoutSettings: layoutSettings || undefined
+        });
+
+        const success = await newPrintService.initialize();
         if (success) {
-          console.log('✅ Print service initialized for Gift Certificates');
+          console.log('✅ Print service initialized with layout settings');
           setPrintService(newPrintService);
         } else {
           console.error('❌ Failed to initialize print service');
         }
-      });
+      };
+
+      initializePrintService();
     } else {
       console.log('⚠️ Print service NOT initialized - conditions not met');
     }

@@ -28,15 +28,16 @@ const Toast: React.FC<ToastProps> = ({
   }, [isVisible, autoClose, duration, onClose])
 
   const getIcon = () => {
+    const iconStyle = { strokeWidth: 2 }
     switch (type) {
       case 'success':
-        return <CheckCircle size={20} />
+        return <CheckCircle size={18} style={{ ...iconStyle, color: '#10b981' }} />
       case 'error':
-        return <AlertTriangle size={20} />
+        return <AlertTriangle size={18} style={{ ...iconStyle, color: '#ef4444' }} />
       case 'warning':
-        return <AlertTriangle size={20} />
+        return <AlertTriangle size={18} style={{ ...iconStyle, color: '#f59e0b' }} />
       case 'info':
-        return <Info size={20} />
+        return <Info size={18} style={{ ...iconStyle, color: '#3b82f6' }} />
     }
   }
 
@@ -46,18 +47,18 @@ const Toast: React.FC<ToastProps> = ({
       top: '20px',
       right: '20px',
       zIndex: 9999,
-      padding: '12px 16px',
-      borderRadius: '8px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+      padding: '10px 14px',
+      borderRadius: '6px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)',
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      minWidth: '280px',
-      maxWidth: '420px',
+      gap: '8px',
+      minWidth: '240px',
+      maxWidth: '360px',
       fontSize: '13px',
-      fontWeight: '500',
+      fontWeight: '400',
       transform: isVisible ? 'translateX(0)' : 'translateX(120%)',
-      transition: 'transform 0.3s ease-in-out',
+      transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       border: '1px solid'
     }
 
@@ -65,10 +66,10 @@ const Toast: React.FC<ToastProps> = ({
       case 'success':
         return {
           ...baseStyles,
-          backgroundColor: 'rgba(209, 250, 229, 0.5)',
-          borderColor: 'rgba(16, 185, 129, 0.3)',
-          color: '#047857',
-          backdropFilter: 'blur(8px)'
+          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+          borderColor: 'rgba(16, 185, 129, 0.15)',
+          color: '#374151',
+          backdropFilter: 'blur(12px)'
         }
       case 'error':
         return {

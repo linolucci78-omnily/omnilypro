@@ -22,6 +22,7 @@ interface ReceiptLayoutSettings {
   show_store_info: boolean
   qr_size: 'small' | 'medium' | 'large'
   bold_totals: boolean
+  show_operator: boolean
 }
 
 interface PrintConfig {
@@ -806,7 +807,13 @@ export class ZCSPrintService {
       addLineSpacing()
       lines.push(alignText(`Data: ${this.formatDateTime(receipt.timestamp)}`, 'left'))
       addLineSpacing()
-      lines.push(alignText(`Operatore: ${receipt.cashierName}`, 'left'))
+
+      // Show operator if enabled
+      if (layout?.show_operator !== false) {
+        lines.push(alignText(`Operatore: ${receipt.cashierName}`, 'left'))
+        addLineSpacing()
+      }
+
       addSectionSpacing()
 
       addSeparator()

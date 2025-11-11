@@ -16,7 +16,8 @@ import {
   Info,
   CheckCircle,
   XCircle,
-  X
+  X,
+  Upload
 } from 'lucide-react'
 import './ReceiptLayoutEditor.css'
 
@@ -46,6 +47,7 @@ interface ReceiptLayoutSettings {
   show_store_info: boolean
   qr_size: 'small' | 'medium' | 'large'
   bold_totals: boolean
+  show_operator: boolean
 }
 
 interface ReceiptLayoutEditorProps {
@@ -83,7 +85,8 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
     header_text: 'SCONTRINO FISCALE',
     show_store_info: true,
     qr_size: 'medium',
-    bold_totals: true
+    bold_totals: true,
+    show_operator: true
   })
 
   const [saving, setSaving] = useState(false)
@@ -181,6 +184,14 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
 
   const loadSettings = async () => {
     try {
+      // Load organization light logo (white logo for receipts)
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('logo_light')
+        .eq('id', organizationId)
+        .single()
+
+      // Load receipt layout settings
       const { data, error } = await supabase
         .from('receipt_layout_settings')
         .select('*')
@@ -188,7 +199,17 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
         .single()
 
       if (data && !error) {
-        setSettings(data)
+        // If no logo_url in settings, use organization light logo
+        if (!data.logo_url && orgData?.logo_light) {
+          setSettings({ ...data, logo_url: orgData.logo_light })
+        } else {
+          setSettings(data)
+        }
+      } else {
+        // No settings exist, use organization light logo in defaults
+        if (orgData?.logo_light) {
+          setSettings(prev => ({ ...prev, logo_url: orgData.logo_light }))
+        }
       }
     } catch (error) {
       console.log('Nessuna configurazione esistente, uso valori di default')
@@ -649,6 +670,18 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
                   />
                 </div>
               )}
+
+              <label className="receipt-editor-checkbox-label">
+                <span className="receipt-editor-checkbox-text">Mostra operatore</span>
+                <label className="receipt-editor-toggle">
+                  <input
+                    type="checkbox"
+                    checked={settings.show_operator}
+                    onChange={(e) => setSettings({ ...settings, show_operator: e.target.checked })}
+                  />
+                  <span className="receipt-editor-toggle-slider"></span>
+                </label>
+              </label>
             </div>
 
             <div className="receipt-editor-info">
