@@ -677,6 +677,99 @@ export class ZCSPrintService {
   }
 
   /**
+   * Print receipt with optimized compact layout (like referral voucher)
+   */
+  async printReceiptOptimized(receipt: Receipt): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('❌ Printer not initialized')
+      return false
+    }
+
+    try {
+      const lines: string[] = [
+        '',
+        this.centerText(this.printConfig.storeName),
+        this.centerText('SCONTRINO FISCALE'),
+        this.createSeparatorLine(),
+        '',
+        `N. ${receipt.receiptNumber}`,
+        `Data: ${this.formatDateTime(receipt.timestamp)}`,
+        `Operatore: ${receipt.cashierName}`,
+        '',
+        this.createSeparatorLine(),
+        this.centerText('ARTICOLI'),
+        this.createSeparatorLine(),
+        ''
+      ]
+
+      // Add items in compact format
+      receipt.items.forEach(item => {
+        const itemName = item.name.substring(0, 22) // Truncate if too long
+        const qty = `${item.quantity}x`
+        const price = `€${item.total.toFixed(2)}`
+
+        // Format: "2x Caffè Espresso      €3.00"
+        const padding = 32 - qty.length - itemName.length - price.length
+        lines.push(`${qty} ${itemName}${' '.repeat(Math.max(1, padding))}${price}`)
+      })
+
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(`Subtotale:${' '.repeat(21)}€${receipt.subtotal.toFixed(2)}`)
+      lines.push(`IVA (22%):${' '.repeat(21)}€${receipt.tax.toFixed(2)}`)
+      lines.push(this.createSeparatorLine())
+      lines.push(`TOTALE:${' '.repeat(24)}€${receipt.total.toFixed(2)}`)
+      lines.push(this.createSeparatorLine())
+      lines.push('')
+      lines.push(`Pagamento: ${receipt.paymentMethod}`)
+
+      if (receipt.customerPoints) {
+        lines.push('')
+        lines.push(this.createSeparatorLine())
+        lines.push(this.centerText('💎 PUNTI FEDELTÀ 💎'))
+        lines.push(this.centerText(`Punti guadagnati: ${receipt.customerPoints}`))
+      }
+
+      lines.push('')
+      lines.push(this.createSeparatorLine())
+      lines.push(this.centerText('Grazie per la visita!'))
+      lines.push(this.centerText('Arrivederci'))
+      lines.push('')
+
+      const receiptText = lines.join('\n')
+
+      return new Promise((resolve) => {
+        (window as any).omnilyReceiptOptimizedHandler = (result: any) => {
+          if (result.success) {
+            // Print QR code with receipt data
+            const qrData = `RECEIPT:${receipt.receiptNumber}:${receipt.total}`;
+
+            (window as any).omnilyReceiptQRHandler = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('✅ Receipt printed successfully (optimized)')
+                resolve(true)
+              } else {
+                console.error('❌ Receipt QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilyReceiptQRHandler')
+          } else {
+            console.error('❌ Receipt print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(receiptText, 'omnilyReceiptOptimizedHandler')
+      })
+    } catch (error) {
+      console.error('Receipt print error:', error)
+      return false
+    }
+  }
+
+  /**
    * Print subscription usage receipt
    */
   async printSubscriptionUsage(data: {

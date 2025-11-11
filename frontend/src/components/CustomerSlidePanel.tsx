@@ -648,9 +648,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             const initialized = await printService.initialize();
 
             if (initialized) {
-              const printed = await printService.printReceipt(receiptData);
+              const printed = await printService.printReceiptOptimized(receiptData);
               if (printed) {
-                console.log('✅ Scontrino stampato con successo!');
+                console.log('✅ Scontrino stampato con successo (layout ottimizzato)!');
               } else {
                 console.error('❌ Errore durante la stampa dello scontrino');
               }
