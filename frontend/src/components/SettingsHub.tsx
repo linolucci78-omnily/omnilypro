@@ -119,10 +119,7 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Logo e dimensioni font',
         'Mostra/nascondi elementi'
       ],
-      onClick: () => {
-        const posParam = isPOSMode ? '&posomnily=true' : ''
-        navigate(`/receipt-layout-editor?org=${organizationId}${posParam}`)
-      }
+      onClick: onOpenReceiptLayout
     },
     {
       id: 'operator-nfc',

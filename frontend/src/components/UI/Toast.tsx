@@ -46,15 +46,15 @@ const Toast: React.FC<ToastProps> = ({
       top: '20px',
       right: '20px',
       zIndex: 9999,
-      padding: '16px 20px',
-      borderRadius: '12px',
-      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+      padding: '12px 16px',
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
-      minWidth: '320px',
-      maxWidth: '480px',
-      fontSize: '14px',
+      gap: '10px',
+      minWidth: '280px',
+      maxWidth: '420px',
+      fontSize: '13px',
       fontWeight: '500',
       transform: isVisible ? 'translateX(0)' : 'translateX(120%)',
       transition: 'transform 0.3s ease-in-out',
@@ -65,9 +65,10 @@ const Toast: React.FC<ToastProps> = ({
       case 'success':
         return {
           ...baseStyles,
-          backgroundColor: '#d1fae5',
-          borderColor: '#10b981',
-          color: '#065f46'
+          backgroundColor: 'rgba(209, 250, 229, 0.5)',
+          borderColor: 'rgba(16, 185, 129, 0.3)',
+          color: '#047857',
+          backdropFilter: 'blur(8px)'
         }
       case 'error':
         return {
