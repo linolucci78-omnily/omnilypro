@@ -96,6 +96,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
   const [printingTest, setPrintingTest] = useState(false)
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [logoLoadError, setLogoLoadError] = useState(false)
 
   // Preset templates
   const presets = {
@@ -185,14 +186,31 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
     }
   }, [notification])
 
+  // Reset logo error when logo URL changes
+  useEffect(() => {
+    setLogoLoadError(false)
+    if (settings.logo_url) {
+      console.log('🖼️ Logo URL impostato:', settings.logo_url)
+    }
+  }, [settings.logo_url])
+
   const loadSettings = async () => {
     try {
+      console.log('🔍 Caricamento impostazioni per organizzazione:', organizationId)
+
       // Load organization light logo (white logo for receipts)
-      const { data: orgData } = await supabase
+      const { data: orgData, error: orgError } = await supabase
         .from('organizations')
-        .select('logo_light')
+        .select('logo_light_url')
         .eq('id', organizationId)
         .single()
+
+      console.log('📊 Dati organizzazione caricati:', orgData)
+      console.log('🎨 Logo light trovato:', orgData?.logo_light_url || 'NESSUNO')
+
+      if (orgError) {
+        console.error('❌ Errore caricamento organizzazione:', orgError)
+      }
 
       // Load receipt layout settings
       const { data, error } = await supabase
@@ -201,21 +219,32 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
         .eq('organization_id', organizationId)
         .single()
 
+      console.log('⚙️ Settings esistenti:', data)
+
       if (data && !error) {
-        // If no logo_url in settings, use organization light logo
-        if (!data.logo_url && orgData?.logo_light) {
-          setSettings({ ...data, logo_url: orgData.logo_light })
+        console.log('📝 Logo URL nei settings:', data.logo_url || 'VUOTO')
+
+        // ALWAYS use organization light logo if available, override any existing logo_url
+        if (orgData?.logo_light_url) {
+          console.log('✅ Applicazione logo_light_url da organizzazione:', orgData.logo_light_url)
+          setSettings({ ...data, logo_url: orgData.logo_light_url })
         } else {
+          console.log('⚠️ Nessun logo_light_url disponibile, uso settings esistenti')
           setSettings(data)
         }
       } else {
+        console.log('ℹ️ Nessun setting esistente, uso valori di default')
         // No settings exist, use organization light logo in defaults
-        if (orgData?.logo_light) {
-          setSettings(prev => ({ ...prev, logo_url: orgData.logo_light }))
+        if (orgData?.logo_light_url) {
+          console.log('✅ Impostazione logo_light_url nei default:', orgData.logo_light_url)
+          setSettings(prev => ({ ...prev, logo_url: orgData.logo_light_url }))
+        } else {
+          console.log('⚠️ Nessun logo_light_url disponibile per i default')
         }
       }
     } catch (error) {
-      console.log('Nessuna configurazione esistente, uso valori di default')
+      console.error('❌ Errore generale caricamento settings:', error)
+      console.log('Uso valori di default senza logo')
     } finally {
       setLoading(false)
     }
@@ -224,27 +253,79 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
   const saveSettings = async () => {
     setSaving(true)
     try {
-      const { data: existing } = await supabase
+      console.log('💾 Salvataggio impostazioni...')
+      console.log('📝 Settings da salvare:', settings)
+      console.log('🏢 Organization ID:', organizationId)
+
+      // Whitelist of fields that actually exist in the database
+      // Only save these fields to avoid schema errors
+      const validSettings = {
+        organization_id: settings.organization_id,
+        line_spacing: settings.line_spacing,
+        section_spacing: settings.section_spacing,
+        header_alignment: settings.header_alignment,
+        items_alignment: settings.items_alignment,
+        footer_alignment: settings.footer_alignment,
+        font_size_small: settings.font_size_small,
+        font_size_normal: settings.font_size_normal,
+        font_size_large: settings.font_size_large,
+        show_logo: settings.show_logo,
+        logo_url: settings.logo_url,
+        logo_size: settings.logo_size,
+        logo_alignment: settings.logo_alignment,
+        show_qr_code: settings.show_qr_code,
+        qr_alignment: settings.qr_alignment,
+        show_separator_lines: settings.show_separator_lines,
+        show_thank_you_message: settings.show_thank_you_message,
+        thank_you_message: settings.thank_you_message,
+        paper_width: settings.paper_width
+      }
+      console.log('🔧 Settings filtrati (solo campi DB validi):', validSettings)
+
+      const { data: existing, error: checkError } = await supabase
         .from('receipt_layout_settings')
         .select('id')
         .eq('organization_id', organizationId)
         .single()
 
-      if (existing) {
-        // Update
-        await supabase
-          .from('receipt_layout_settings')
-          .update(settings)
-          .eq('id', existing.id)
-      } else {
-        // Insert
-        await supabase
-          .from('receipt_layout_settings')
-          .insert([settings])
+      console.log('🔍 Record esistente:', existing)
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ Errore controllo esistenza:', checkError)
       }
 
+      if (existing) {
+        // Update
+        console.log('♻️ Aggiornamento record esistente ID:', existing.id)
+        const { data: updated, error: updateError } = await supabase
+          .from('receipt_layout_settings')
+          .update(validSettings)
+          .eq('id', existing.id)
+          .select()
+
+        if (updateError) {
+          console.error('❌ Errore update:', updateError)
+          throw updateError
+        }
+        console.log('✅ Record aggiornato:', updated)
+      } else {
+        // Insert
+        console.log('➕ Inserimento nuovo record')
+        const { data: inserted, error: insertError } = await supabase
+          .from('receipt_layout_settings')
+          .insert([validSettings])
+          .select()
+
+        if (insertError) {
+          console.error('❌ Errore insert:', insertError)
+          throw insertError
+        }
+        console.log('✅ Record inserito:', inserted)
+      }
+
+      console.log('✅ Salvataggio completato con successo!')
       setNotification({ type: 'success', message: 'Configurazione salvata con successo!' })
     } catch (error) {
+      console.error('❌ Errore generale salvataggio:', error)
       setNotification({ type: 'error', message: 'Errore nel salvataggio' })
       console.error(error)
     } finally {
@@ -285,10 +366,35 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
     setNotification({ type: 'success', message: 'Impostazioni ripristinate ai valori predefiniti' })
   }
 
+  // Helper function to convert image URL to base64
+  const urlToBase64 = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+    } catch (error) {
+      console.error('Error converting URL to base64:', error)
+      return ''
+    }
+  }
+
   const printTestReceipt = async () => {
     setPrintingTest(true)
     try {
       console.log('🖨️ Stampa scontrino di prova...')
+
+      // Convert logo URL to base64 if needed
+      let logoBase64: string | undefined
+      if (settings.show_logo && settings.logo_url) {
+        console.log('📸 Caricamento logo da:', settings.logo_url)
+        logoBase64 = await urlToBase64(settings.logo_url)
+        console.log('✅ Logo convertito in base64:', logoBase64 ? 'OK' : 'ERRORE')
+      }
 
       // Config stampante
       const printConfig = {
@@ -296,6 +402,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
         storeAddress: '',
         storePhone: '',
         storeTax: '',
+        logoBase64: logoBase64,
         paperWidth: 384,
         fontSizeNormal: 24,
         fontSizeLarge: 32,
@@ -365,11 +472,32 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
   return (
     <div className="receipt-editor-container">
       <div className="receipt-editor-header">
-        <h2>
-          <Printer />
-          Editor Layout Scontrini
-        </h2>
-        <p>Personalizza l'aspetto dei tuoi scontrini stampati</p>
+        <div>
+          <h2>
+            <Printer />
+            Editor Layout Scontrini
+          </h2>
+          <p>Personalizza l'aspetto dei tuoi scontrini stampati</p>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="receipt-editor-btn"
+            style={{
+              position: 'absolute',
+              top: '24px',
+              right: '24px',
+              background: '#f3f4f6',
+              color: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <X size={18} />
+            Chiudi
+          </button>
+        )}
         <div className="receipt-editor-actions">
           <button
             onClick={printTestReceipt}
@@ -774,15 +902,54 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
                 {/* Logo */}
                 {settings.show_logo && settings.logo_url && (
                   <div style={{ ...getAlignmentStyle(settings.logo_alignment), marginBottom: `${settings.section_spacing * 0.5}rem` }}>
-                    <img
-                      src={settings.logo_url}
-                      alt="Logo"
-                      className="receipt-preview-logo"
-                      style={{ maxHeight: getLogoSize() }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none'
-                      }}
-                    />
+                    {!logoLoadError ? (
+                      <img
+                        src={settings.logo_url}
+                        alt="Logo"
+                        className="receipt-preview-logo"
+                        style={{ maxHeight: getLogoSize(), maxWidth: '100%' }}
+                        onLoad={() => {
+                          console.log('✅ Logo caricato con successo')
+                        }}
+                        onError={(e) => {
+                          console.error('❌ Errore caricamento logo:', settings.logo_url)
+                          console.error('Possibili cause: URL non valido, CORS, formato non supportato')
+                          setLogoLoadError(true)
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        display: 'inline-block',
+                        padding: '16px',
+                        background: '#f3f4f6',
+                        border: '2px dashed #d1d5db',
+                        borderRadius: '8px',
+                        color: '#6b7280',
+                        fontSize: '12px',
+                        textAlign: 'center'
+                      }}>
+                        <ImageIcon size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                        <div>Logo non caricato</div>
+                        <div style={{ fontSize: '10px', marginTop: '4px' }}>Controlla l'URL nella console</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {settings.show_logo && !settings.logo_url && (
+                  <div style={{ ...getAlignmentStyle(settings.logo_alignment), marginBottom: `${settings.section_spacing * 0.5}rem` }}>
+                    <div style={{
+                      display: 'inline-block',
+                      padding: '16px',
+                      background: '#fef3c7',
+                      border: '2px dashed #fbbf24',
+                      borderRadius: '8px',
+                      color: '#92400e',
+                      fontSize: '12px',
+                      textAlign: 'center'
+                    }}>
+                      <ImageIcon size={32} style={{ marginBottom: '8px', opacity: 0.7 }} />
+                      <div>Carica un logo nella sezione Branding</div>
+                    </div>
                   </div>
                 )}
 

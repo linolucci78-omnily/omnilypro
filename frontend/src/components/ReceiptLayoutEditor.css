@@ -1,7 +1,13 @@
 .receipt-editor-container {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   padding: 2rem;
+  overflow-y: auto;
 }
 
 .receipt-editor-header {

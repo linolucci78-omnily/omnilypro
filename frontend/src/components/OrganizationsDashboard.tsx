@@ -3683,19 +3683,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       {/* Receipt Layout Editor */}
       {showReceiptLayoutEditor && currentOrganization && (
-        <div className="fixed inset-0 bg-white z-50 overflow-auto">
-          <ReceiptLayoutEditor
-            organizationId={currentOrganization.id}
-            organizationName={currentOrganization.name}
-            onClose={() => setShowReceiptLayoutEditor(false)}
-          />
-          <button
-            onClick={() => setShowReceiptLayoutEditor(false)}
-            className="fixed top-4 right-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            ✕ Chiudi
-          </button>
-        </div>
+        <ReceiptLayoutEditor
+          organizationId={currentOrganization.id}
+          organizationName={currentOrganization.name}
+          onClose={() => setShowReceiptLayoutEditor(false)}
+        />
       )}
 
       {/* Gift Certificates Panel */}
