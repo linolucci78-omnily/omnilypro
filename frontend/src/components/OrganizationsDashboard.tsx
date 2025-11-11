@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { supabase, organizationsApi, customersApi, nfcCardsApi, customerActivitiesApi } from '../lib/supabase'
 import type { Organization, Customer, Reward } from '../lib/supabase'
 import { rewardsService } from '../services/rewardsService'
-import { ZCSPrintService } from '../services/printService'
+import { ZCSPrintService, createPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye } from 'lucide-react'
@@ -68,19 +68,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   onOrganizationChange,
   onPreviewColorsChange
 }) => {
-  // Detect POS mode (check URL, localStorage, or OmnilyPOS bridge existence)
+  // Detect POS mode (check URL or localStorage)
   const isPOSMode = typeof window !== 'undefined' &&
-    (window.location.search.includes('posomnily=true') ||
-     localStorage.getItem('pos-mode') === 'true' ||
-     !!(window as any).OmnilyPOS)
-
-  // Debug log for POS detection
-  console.log('🔍 POS MODE DETECTION:', {
-    isPOSMode,
-    urlHasParam: typeof window !== 'undefined' && window.location.search.includes('posomnily=true'),
-    localStorageValue: typeof window !== 'undefined' && localStorage.getItem('pos-mode'),
-    hasOmnilyPOSBridge: typeof window !== 'undefined' && !!(window as any).OmnilyPOS
-  })
+    (window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true')
 
   const { user } = useAuth()
   const [organizations, setOrganizations] = useState<Organization[]>([])
@@ -475,14 +465,26 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
     setPrintingReferral(true)
     try {
-      // Debug log
-      console.log('🖨️ handlePrintReferralCode - printService:', printService)
-      console.log('🖨️ isPOSMode:', isPOSMode)
-      console.log('🖨️ currentOrganization:', currentOrganization?.name)
+      console.log('🖨️ handlePrintReferralCode - Creando printService locale...')
 
-      // Initialize printer if not already done
-      if (!printService) {
-        console.error('❌ printService is NULL!')
+      // Configurazione stampante con dati organizzazione (come in CustomerSlidePanel)
+      const printConfig = {
+        storeName: currentOrganization?.name || 'OMNILY PRO',
+        storeAddress: currentOrganization?.address || '',
+        storePhone: currentOrganization?.phone || '',
+        storeTax: currentOrganization?.vat_number || '',
+        paperWidth: 384, // 58mm
+        fontSizeNormal: 24,
+        fontSizeLarge: 30,
+        printDensity: 0
+      }
+
+      // Crea servizio stampa locale e inizializza
+      const localPrintService = createPrintService(printConfig)
+      const initialized = await localPrintService.initialize()
+
+      if (!initialized) {
+        console.error('❌ Impossibile inizializzare la stampante')
         showModal({
           title: 'Stampante non inizializzata',
           message: 'Impossibile stampare. Verifica la configurazione della stampante.',
@@ -490,6 +492,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         })
         return
       }
+
+      console.log('✅ PrintService locale inizializzato!')
 
       // Get referral program stats from database
       const { data: referralProgram } = await supabase
@@ -500,7 +504,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       const referralUrl = `${window.location.origin}/register?ref=${referralCustomer.referral_code}`
 
-      const success = await printService.printReferralCode({
+      const success = await localPrintService.printReferralCode({
         referral_code: referralCustomer.referral_code,
         customer_name: referralCustomer.name,
         customer_email: referralCustomer.email || undefined,
@@ -521,6 +525,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         throw new Error('Stampa fallita')
       }
     } catch (error) {
+      console.error('❌ Errore stampa referral:', error)
       showModal({
         title: 'Errore stampa',
         message: error instanceof Error ? error.message : 'Impossibile stampare il voucher',
