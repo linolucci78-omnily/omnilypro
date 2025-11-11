@@ -14,7 +14,8 @@ import {
   Zap,
   Save,
   AlertCircle,
-  Smartphone
+  Smartphone,
+  Printer
 } from 'lucide-react'
 import './SettingsHub.css'
 
@@ -24,6 +25,7 @@ interface SettingsHubProps {
   onOpenAccountSettings: () => void
   onOpenLoyaltySystem: () => void
   onOpenGiftCertificatesSettings: () => void
+  onOpenReceiptLayout: () => void
   onNavigateToSection: (sectionId: string) => void
 }
 
@@ -33,6 +35,7 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
   onOpenAccountSettings,
   onOpenLoyaltySystem,
   onOpenGiftCertificatesSettings,
+  onOpenReceiptLayout,
   onNavigateToSection
 }) => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
@@ -97,6 +100,21 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Automazioni e notifiche'
       ],
       onClick: () => onNavigateToSection('referral-system')
+    },
+    {
+      id: 'receipt-layout',
+      icon: Printer,
+      title: 'Layout Scontrini',
+      description: 'Personalizza l\'aspetto degli scontrini stampati',
+      color: '#6366f1',
+      gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+      features: [
+        'Spaziature personalizzate',
+        'Allineamento testo',
+        'Logo e dimensioni font',
+        'Mostra/nascondi elementi'
+      ],
+      onClick: onOpenReceiptLayout
     },
     {
       id: 'operator-nfc',

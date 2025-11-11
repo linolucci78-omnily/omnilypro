@@ -38,6 +38,7 @@ import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
 import CustomersCardView from './CustomersCardView'
 import RewardsHub from './RewardsHub'
 import CategoriesHub from './CategoriesHub'
+import ReceiptLayoutEditor from './ReceiptLayoutEditor'
 import POSIntegrationHub from './POSIntegrationHub'
 import AnalyticsReportsHub from './AnalyticsReportsHub'
 import BrandingSocialHub from './BrandingSocialHub'
@@ -929,6 +930,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showLoyaltySystemHub, setShowLoyaltySystemHub] = useState(false)
   const [showBusinessDetailsHub, setShowBusinessDetailsHub] = useState(false)
   const [showGiftCertificatesSettingsHub, setShowGiftCertificatesSettingsHub] = useState(false)
+  const [showReceiptLayoutEditor, setShowReceiptLayoutEditor] = useState(false)
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showGiftCertificatesStatsModal, setShowGiftCertificatesStatsModal] = useState(false)
   const [showSubscriptionsPanel, setShowSubscriptionsPanel] = useState(false)
@@ -2998,6 +3000,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               onOpenAccountSettings={() => setShowBusinessDetailsHub(true)}
               onOpenLoyaltySystem={() => setShowLoyaltySystemHub(true)}
               onOpenGiftCertificatesSettings={() => setShowGiftCertificatesSettingsHub(true)}
+              onOpenReceiptLayout={() => setShowReceiptLayoutEditor(true)}
               onNavigateToSection={(sectionId) => handleSectionChange(sectionId)}
             />
           </div>
@@ -3666,6 +3669,23 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           secondaryColor={currentOrganization.secondary_color || '#ef4444'}
           onBack={() => setShowGiftCertificatesSettingsHub(false)}
         />
+      )}
+
+      {/* Receipt Layout Editor */}
+      {showReceiptLayoutEditor && currentOrganization && (
+        <div className="fixed inset-0 bg-white z-50 overflow-auto">
+          <ReceiptLayoutEditor
+            organizationId={currentOrganization.id}
+            organizationName={currentOrganization.name}
+            onClose={() => setShowReceiptLayoutEditor(false)}
+          />
+          <button
+            onClick={() => setShowReceiptLayoutEditor(false)}
+            className="fixed top-4 right-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          >
+            ✕ Chiudi
+          </button>
+        </div>
       )}
 
       {/* Gift Certificates Panel */}
