@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { createPrintService } from '../services/printService'
 import {
   Printer,
   Save,
@@ -17,7 +18,8 @@ import {
   CheckCircle,
   XCircle,
   X,
-  Upload
+  Upload,
+  Play
 } from 'lucide-react'
 import './ReceiptLayoutEditor.css'
 
@@ -91,6 +93,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
 
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [printingTest, setPrintingTest] = useState(false)
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
@@ -282,6 +285,67 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
     setNotification({ type: 'success', message: 'Impostazioni ripristinate ai valori predefiniti' })
   }
 
+  const printTestReceipt = async () => {
+    setPrintingTest(true)
+    try {
+      console.log('🖨️ Stampa scontrino di prova...')
+
+      // Config stampante
+      const printConfig = {
+        storeName: organizationName,
+        storeAddress: '',
+        storePhone: '',
+        storeTax: '',
+        paperWidth: 384,
+        fontSizeNormal: 24,
+        fontSizeLarge: 32,
+        printDensity: 3,
+        layoutSettings: settings
+      }
+
+      // Dati scontrino di prova
+      const testReceiptData = {
+        receiptNumber: 'TEST001',
+        timestamp: new Date(),
+        items: [
+          { name: 'Caffè Espresso', quantity: 2, price: 1.50, total: 3.00 },
+          { name: 'Cornetto', quantity: 1, price: 2.50, total: 2.50 },
+          { name: 'Acqua Naturale', quantity: 1, price: 1.00, total: 1.00 }
+        ],
+        subtotal: 6.50,
+        tax: 1.43,
+        total: 7.93,
+        paymentMethod: 'Contanti',
+        cashierName: 'Test Operatore',
+        customerPoints: 8,
+        loyaltyCard: 'test-customer-id'
+      }
+
+      // Crea servizio stampa e stampa
+      const printService = createPrintService(printConfig)
+      const initialized = await printService.initialize()
+
+      if (initialized) {
+        const printed = await printService.printReceiptOptimized(testReceiptData)
+        if (printed) {
+          console.log('✅ Scontrino di prova stampato con successo!')
+          setNotification({ type: 'success', message: 'Scontrino di prova stampato con successo!' })
+        } else {
+          console.error('❌ Errore durante la stampa dello scontrino di prova')
+          setNotification({ type: 'error', message: 'Errore durante la stampa dello scontrino' })
+        }
+      } else {
+        console.error('❌ Impossibile inizializzare la stampante')
+        setNotification({ type: 'error', message: 'Impossibile inizializzare la stampante' })
+      }
+    } catch (error) {
+      console.error('❌ Errore stampa scontrino di prova:', error)
+      setNotification({ type: 'error', message: 'Errore durante la stampa' })
+    } finally {
+      setPrintingTest(false)
+    }
+  }
+
   const getAlignmentStyle = (alignment: string) => {
     return { textAlign: alignment as 'left' | 'center' | 'right' }
   }
@@ -307,6 +371,15 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
         </h2>
         <p>Personalizza l'aspetto dei tuoi scontrini stampati</p>
         <div className="receipt-editor-actions">
+          <button
+            onClick={printTestReceipt}
+            disabled={printingTest}
+            className="receipt-editor-btn"
+            style={{ backgroundColor: '#10b981', color: 'white' }}
+          >
+            <Play size={18} />
+            {printingTest ? 'Stampa...' : 'Test Stampa'}
+          </button>
           <button
             onClick={handleResetClick}
             className="receipt-editor-btn receipt-editor-btn-reset"
