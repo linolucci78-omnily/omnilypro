@@ -13,8 +13,11 @@ const ReceiptLayoutEditorPage: React.FC = () => {
 
   useEffect(() => {
     const loadOrganization = async () => {
+      const isPOSMode = window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true'
+      const fallbackRoute = isPOSMode ? '/pos?posomnily=true' : '/dashboard'
+
       if (!organizationId) {
-        navigate('/dashboard')
+        navigate(fallbackRoute)
         return
       }
 
@@ -27,14 +30,14 @@ const ReceiptLayoutEditorPage: React.FC = () => {
 
         if (error || !data) {
           console.error('Errore caricamento organizzazione:', error)
-          navigate('/dashboard')
+          navigate(fallbackRoute)
           return
         }
 
         setOrganizationName(data.name)
       } catch (error) {
         console.error('Errore:', error)
-        navigate('/dashboard')
+        navigate(fallbackRoute)
       } finally {
         setLoading(false)
       }
@@ -44,7 +47,13 @@ const ReceiptLayoutEditorPage: React.FC = () => {
   }, [organizationId, navigate])
 
   const handleClose = () => {
-    navigate('/dashboard')
+    // Check if we're in POS mode and navigate back accordingly
+    const isPOSMode = window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true'
+    if (isPOSMode) {
+      navigate(`/pos?posomnily=true`)
+    } else {
+      navigate('/dashboard')
+    }
   }
 
   if (loading) {
