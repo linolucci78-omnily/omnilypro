@@ -42,6 +42,9 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
   const navigate = useNavigate()
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
+  // Check if we're in POS mode
+  const isPOSMode = window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true'
+
   const settingsCategories = [
     {
       id: 'account',
@@ -116,7 +119,10 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Logo e dimensioni font',
         'Mostra/nascondi elementi'
       ],
-      onClick: () => navigate(`/receipt-layout-editor?org=${organizationId}`)
+      onClick: () => {
+        const posParam = isPOSMode ? '&posomnily=true' : ''
+        navigate(`/receipt-layout-editor?org=${organizationId}${posParam}`)
+      }
     },
     {
       id: 'operator-nfc',
