@@ -53,6 +53,7 @@ import Z108POSInterface from './components/POS/Z108POSInterface'
 import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
 import CustomerDisplay from './components/POS/CustomerDisplay'
 import WebsiteContentEditor from './components/POS/WebsiteContentEditor'
+import ReceiptLayoutEditorPage from './pages/ReceiptLayoutEditorPage'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -191,6 +192,7 @@ function App() {
             <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
+            <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
               <Route index element={<AdminDashboard />} />
               <Route path="organizations" element={<Admin />} />

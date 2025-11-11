@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Printer, Save, RefreshCw, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon } from 'lucide-react'
+import {
+  Printer,
+  Save,
+  RefreshCw,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Image as ImageIcon,
+  Ruler,
+  Move,
+  Type,
+  Sparkles,
+  Palette,
+  Info,
+  CheckCircle,
+  XCircle,
+  X
+} from 'lucide-react'
+import './ReceiptLayoutEditor.css'
 
 interface ReceiptLayoutSettings {
   id?: string
@@ -16,11 +34,18 @@ interface ReceiptLayoutSettings {
   show_logo: boolean
   logo_url: string | null
   logo_size: 'small' | 'medium' | 'large'
+  logo_alignment: 'left' | 'center' | 'right'
   show_qr_code: boolean
+  qr_alignment: 'left' | 'center' | 'right'
   show_separator_lines: boolean
   show_thank_you_message: boolean
   thank_you_message: string
   paper_width: number
+  font_family: 'courier' | 'monospace' | 'sans-serif'
+  header_text: string
+  show_store_info: boolean
+  qr_size: 'small' | 'medium' | 'large'
+  bold_totals: boolean
 }
 
 interface ReceiptLayoutEditorProps {
@@ -47,20 +72,112 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
     show_logo: false,
     logo_url: null,
     logo_size: 'medium',
+    logo_alignment: 'center',
     show_qr_code: true,
+    qr_alignment: 'center',
     show_separator_lines: true,
     show_thank_you_message: true,
     thank_you_message: 'Grazie per la visita!',
-    paper_width: 384
+    paper_width: 384,
+    font_family: 'courier',
+    header_text: 'SCONTRINO FISCALE',
+    show_store_info: true,
+    qr_size: 'medium',
+    bold_totals: true
   })
 
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  // Preset templates
+  const presets = {
+    minimal: {
+      name: 'Minimal',
+      settings: {
+        line_spacing: 0,
+        section_spacing: 1,
+        header_alignment: 'center' as const,
+        items_alignment: 'left' as const,
+        footer_alignment: 'center' as const,
+        font_size_small: 18,
+        font_size_normal: 22,
+        font_size_large: 28,
+        show_separator_lines: false,
+        font_family: 'sans-serif' as const,
+        bold_totals: true
+      }
+    },
+    classic: {
+      name: 'Classic',
+      settings: {
+        line_spacing: 1,
+        section_spacing: 1,
+        header_alignment: 'center' as const,
+        items_alignment: 'left' as const,
+        footer_alignment: 'center' as const,
+        font_size_small: 20,
+        font_size_normal: 24,
+        font_size_large: 30,
+        show_separator_lines: true,
+        font_family: 'courier' as const,
+        bold_totals: true
+      }
+    },
+    compact: {
+      name: 'Compact',
+      settings: {
+        line_spacing: 0,
+        section_spacing: 0,
+        header_alignment: 'left' as const,
+        items_alignment: 'left' as const,
+        footer_alignment: 'left' as const,
+        font_size_small: 16,
+        font_size_normal: 20,
+        font_size_large: 24,
+        show_separator_lines: true,
+        font_family: 'monospace' as const,
+        bold_totals: false
+      }
+    },
+    elegant: {
+      name: 'Elegant',
+      settings: {
+        line_spacing: 2,
+        section_spacing: 2,
+        header_alignment: 'center' as const,
+        items_alignment: 'center' as const,
+        footer_alignment: 'center' as const,
+        font_size_small: 22,
+        font_size_normal: 26,
+        font_size_large: 32,
+        show_separator_lines: true,
+        font_family: 'sans-serif' as const,
+        bold_totals: true
+      }
+    }
+  }
+
+  const applyPreset = (presetKey: keyof typeof presets) => {
+    const preset = presets[presetKey]
+    setSettings({ ...settings, ...preset.settings })
+  }
 
   // Carica impostazioni esistenti
   useEffect(() => {
     loadSettings()
   }, [organizationId])
+
+  // Auto-hide notification after 3 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
 
   const loadSettings = async () => {
     try {
@@ -102,370 +219,468 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
           .insert([settings])
       }
 
-      alert('✅ Configurazione salvata con successo!')
+      setNotification({ type: 'success', message: 'Configurazione salvata con successo!' })
     } catch (error) {
-      alert('❌ Errore nel salvataggio')
+      setNotification({ type: 'error', message: 'Errore nel salvataggio' })
       console.error(error)
     } finally {
       setSaving(false)
     }
   }
 
-  const resetToDefaults = () => {
-    if (confirm('Ripristinare le impostazioni predefinite?')) {
-      setSettings({
-        ...settings,
-        line_spacing: 1,
-        section_spacing: 1,
-        header_alignment: 'center',
-        items_alignment: 'left',
-        footer_alignment: 'center',
-        font_size_small: 20,
-        font_size_normal: 24,
-        font_size_large: 30,
-        show_logo: false,
-        logo_size: 'medium',
-        show_qr_code: true,
-        show_separator_lines: true,
-        show_thank_you_message: true,
-        thank_you_message: 'Grazie per la visita!'
-      })
-    }
+  const handleResetClick = () => {
+    setShowResetConfirm(true)
+  }
+
+  const confirmReset = () => {
+    setSettings({
+      ...settings,
+      line_spacing: 1,
+      section_spacing: 1,
+      header_alignment: 'center',
+      items_alignment: 'left',
+      footer_alignment: 'center',
+      font_size_small: 20,
+      font_size_normal: 24,
+      font_size_large: 30,
+      show_logo: false,
+      logo_size: 'medium',
+      logo_alignment: 'center',
+      show_qr_code: true,
+      qr_alignment: 'center',
+      show_separator_lines: true,
+      show_thank_you_message: true,
+      thank_you_message: 'Grazie per la visita!',
+      font_family: 'courier',
+      header_text: 'SCONTRINO FISCALE',
+      show_store_info: true,
+      qr_size: 'medium',
+      bold_totals: true
+    })
+    setShowResetConfirm(false)
+    setNotification({ type: 'success', message: 'Impostazioni ripristinate ai valori predefiniti' })
   }
 
   const getAlignmentStyle = (alignment: string) => {
-    switch (alignment) {
-      case 'center': return 'text-center'
-      case 'right': return 'text-right'
-      default: return 'text-left'
-    }
+    return { textAlign: alignment as 'left' | 'center' | 'right' }
   }
 
   const getLogoSize = () => {
     switch (settings.logo_size) {
-      case 'small': return 'h-12'
-      case 'large': return 'h-24'
-      default: return 'h-16'
+      case 'small': return '48px'
+      case 'large': return '96px'
+      default: return '64px'
     }
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">Caricamento...</div>
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>Caricamento...</div>
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Printer className="w-6 h-6" />
-            Editor Layout Scontrini
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Personalizza l'aspetto dei tuoi scontrini stampati
-          </p>
-        </div>
-        <div className="flex gap-2">
+    <div className="receipt-editor-container">
+      <div className="receipt-editor-header">
+        <h2>
+          <Printer />
+          Editor Layout Scontrini
+        </h2>
+        <p>Personalizza l'aspetto dei tuoi scontrini stampati</p>
+        <div className="receipt-editor-actions">
           <button
-            onClick={resetToDefaults}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center gap-2"
+            onClick={handleResetClick}
+            className="receipt-editor-btn receipt-editor-btn-reset"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw size={18} />
             Reset
           </button>
           <button
             onClick={saveSettings}
             disabled={saving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            className="receipt-editor-btn receipt-editor-btn-save"
           >
-            <Save className="w-4 h-4" />
+            <Save size={18} />
             {saving ? 'Salvataggio...' : 'Salva'}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Preset Templates */}
+      <div className="receipt-editor-card">
+        <h3><Palette size={20} /> Template Pronti - Inizia da qui!</h3>
+        <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1rem' }}>
+          Scegli un template e personalizzalo, oppure crea il tuo da zero
+        </p>
+        <div className="receipt-editor-presets">
+          {Object.entries(presets).map(([key, preset]) => (
+            <button
+              key={key}
+              className="receipt-editor-preset-btn"
+              onClick={() => applyPreset(key as keyof typeof presets)}
+            >
+              {preset.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="receipt-editor-grid">
         {/* CONTROLLI */}
-        <div className="space-y-6">
+        <div className="receipt-editor-controls">
           {/* Spaziature */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">📏 Spaziature</h3>
+          <div className="receipt-editor-card">
+            <h3><Ruler size={20} /> Spaziature</h3>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Spazio tra righe: {settings.line_spacing}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  value={settings.line_spacing}
-                  onChange={(e) => setSettings({ ...settings, line_spacing: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-              </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Spazio tra righe: {settings.line_spacing}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                value={settings.line_spacing}
+                onChange={(e) => setSettings({ ...settings, line_spacing: parseInt(e.target.value) })}
+                className="receipt-editor-slider"
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Spazio tra sezioni: {settings.section_spacing}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  value={settings.section_spacing}
-                  onChange={(e) => setSettings({ ...settings, section_spacing: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-              </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Spazio tra sezioni: {settings.section_spacing}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                value={settings.section_spacing}
+                onChange={(e) => setSettings({ ...settings, section_spacing: parseInt(e.target.value) })}
+                className="receipt-editor-slider"
+              />
             </div>
           </div>
 
           {/* Allineamento */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">📐 Allineamento</h3>
+          <div className="receipt-editor-card">
+            <h3><Move size={20} /> Allineamento</h3>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Intestazione
-                </label>
-                <div className="flex gap-2">
-                  {['left', 'center', 'right'].map(align => (
-                    <button
-                      key={align}
-                      onClick={() => setSettings({ ...settings, header_alignment: align as any })}
-                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-                        settings.header_alignment === align
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-300'
-                      }`}
-                    >
-                      {align === 'left' && <AlignLeft className="w-4 h-4 mx-auto" />}
-                      {align === 'center' && <AlignCenter className="w-4 h-4 mx-auto" />}
-                      {align === 'right' && <AlignRight className="w-4 h-4 mx-auto" />}
-                    </button>
-                  ))}
-                </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Intestazione
+              </label>
+              <div className="receipt-editor-button-group">
+                {['left', 'center', 'right'].map(align => (
+                  <button
+                    key={align}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setSettings({ ...settings, header_alignment: align as any })
+                    }}
+                    className={`receipt-editor-align-btn ${settings.header_alignment === align ? 'active' : ''}`}
+                  >
+                    {align === 'left' && <AlignLeft size={20} />}
+                    {align === 'center' && <AlignCenter size={20} />}
+                    {align === 'right' && <AlignRight size={20} />}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Articoli
-                </label>
-                <div className="flex gap-2">
-                  {['left', 'center', 'right'].map(align => (
-                    <button
-                      key={align}
-                      onClick={() => setSettings({ ...settings, items_alignment: align as any })}
-                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-                        settings.items_alignment === align
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-300'
-                      }`}
-                    >
-                      {align === 'left' && <AlignLeft className="w-4 h-4 mx-auto" />}
-                      {align === 'center' && <AlignCenter className="w-4 h-4 mx-auto" />}
-                      {align === 'right' && <AlignRight className="w-4 h-4 mx-auto" />}
-                    </button>
-                  ))}
-                </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Articoli
+              </label>
+              <div className="receipt-editor-button-group">
+                {['left', 'center', 'right'].map(align => (
+                  <button
+                    key={align}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setSettings({ ...settings, items_alignment: align as any })
+                    }}
+                    className={`receipt-editor-align-btn ${settings.items_alignment === align ? 'active' : ''}`}
+                  >
+                    {align === 'left' && <AlignLeft size={20} />}
+                    {align === 'center' && <AlignCenter size={20} />}
+                    {align === 'right' && <AlignRight size={20} />}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Piè di pagina
-                </label>
-                <div className="flex gap-2">
-                  {['left', 'center', 'right'].map(align => (
-                    <button
-                      key={align}
-                      onClick={() => setSettings({ ...settings, footer_alignment: align as any })}
-                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-                        settings.footer_alignment === align
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-300'
-                      }`}
-                    >
-                      {align === 'left' && <AlignLeft className="w-4 h-4 mx-auto" />}
-                      {align === 'center' && <AlignCenter className="w-4 h-4 mx-auto" />}
-                      {align === 'right' && <AlignRight className="w-4 h-4 mx-auto" />}
-                    </button>
-                  ))}
-                </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Piè di pagina
+              </label>
+              <div className="receipt-editor-button-group">
+                {['left', 'center', 'right'].map(align => (
+                  <button
+                    key={align}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setSettings({ ...settings, footer_alignment: align as any })
+                    }}
+                    className={`receipt-editor-align-btn ${settings.footer_alignment === align ? 'active' : ''}`}
+                  >
+                    {align === 'left' && <AlignLeft size={20} />}
+                    {align === 'center' && <AlignCenter size={20} />}
+                    {align === 'right' && <AlignRight size={20} />}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Dimensioni Font */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">🔤 Dimensioni Testo</h3>
+          <div className="receipt-editor-card">
+            <h3><Type size={20} /> Dimensioni Testo</h3>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Testo piccolo: {settings.font_size_small}px
-                </label>
-                <input
-                  type="range"
-                  min="16"
-                  max="28"
-                  value={settings.font_size_small}
-                  onChange={(e) => setSettings({ ...settings, font_size_small: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-              </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Testo piccolo: {settings.font_size_small}px
+              </label>
+              <input
+                type="range"
+                min="16"
+                max="28"
+                value={settings.font_size_small}
+                onChange={(e) => setSettings({ ...settings, font_size_small: parseInt(e.target.value) })}
+                className="receipt-editor-slider"
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Testo normale: {settings.font_size_normal}px
-                </label>
-                <input
-                  type="range"
-                  min="20"
-                  max="32"
-                  value={settings.font_size_normal}
-                  onChange={(e) => setSettings({ ...settings, font_size_normal: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-              </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Testo normale: {settings.font_size_normal}px
+              </label>
+              <input
+                type="range"
+                min="20"
+                max="32"
+                value={settings.font_size_normal}
+                onChange={(e) => setSettings({ ...settings, font_size_normal: parseInt(e.target.value) })}
+                className="receipt-editor-slider"
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Testo grande: {settings.font_size_large}px
-                </label>
-                <input
-                  type="range"
-                  min="24"
-                  max="40"
-                  value={settings.font_size_large}
-                  onChange={(e) => setSettings({ ...settings, font_size_large: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-              </div>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-label">
+                Testo grande: {settings.font_size_large}px
+              </label>
+              <input
+                type="range"
+                min="24"
+                max="40"
+                value={settings.font_size_large}
+                onChange={(e) => setSettings({ ...settings, font_size_large: parseInt(e.target.value) })}
+                className="receipt-editor-slider"
+              />
             </div>
           </div>
 
           {/* Logo */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">🖼️ Logo</h3>
+          <div className="receipt-editor-card">
+            <h3><ImageIcon size={20} /> Logo</h3>
 
-            <div className="space-y-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={settings.show_logo}
-                  onChange={(e) => setSettings({ ...settings, show_logo: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm font-medium">Mostra logo</span>
+            <div className="receipt-editor-field">
+              <label className="receipt-editor-checkbox-label">
+                <span className="receipt-editor-checkbox-text">Mostra logo</span>
+                <label className="receipt-editor-toggle">
+                  <input
+                    type="checkbox"
+                    checked={settings.show_logo}
+                    onChange={(e) => setSettings({ ...settings, show_logo: e.target.checked })}
+                  />
+                  <span className="receipt-editor-toggle-slider"></span>
+                </label>
               </label>
-
-              {settings.show_logo && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      URL Logo
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.logo_url || ''}
-                      onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                      placeholder="https://example.com/logo.png"
-                      className="w-full px-3 py-2 border rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Dimensione logo
-                    </label>
-                    <select
-                      value={settings.logo_size}
-                      onChange={(e) => setSettings({ ...settings, logo_size: e.target.value as any })}
-                      className="w-full px-3 py-2 border rounded-lg"
-                    >
-                      <option value="small">Piccolo</option>
-                      <option value="medium">Medio</option>
-                      <option value="large">Grande</option>
-                    </select>
-                  </div>
-                </>
-              )}
             </div>
+
+            {settings.show_logo && (
+              <>
+                <div className="receipt-editor-field">
+                  <label className="receipt-editor-label">
+                    URL Logo
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.logo_url || ''}
+                    onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                    placeholder="https://example.com/logo.png"
+                    className="receipt-editor-input"
+                  />
+                </div>
+
+                <div className="receipt-editor-field">
+                  <label className="receipt-editor-label">
+                    Dimensione logo
+                  </label>
+                  <select
+                    value={settings.logo_size}
+                    onChange={(e) => setSettings({ ...settings, logo_size: e.target.value as any })}
+                    className="receipt-editor-select"
+                  >
+                    <option value="small">Piccolo</option>
+                    <option value="medium">Medio</option>
+                    <option value="large">Grande</option>
+                  </select>
+                </div>
+
+                <div className="receipt-editor-field">
+                  <label className="receipt-editor-label">
+                    Allineamento logo
+                  </label>
+                  <div className="receipt-editor-button-group">
+                    {['left', 'center', 'right'].map(align => (
+                      <button
+                        key={align}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setSettings({ ...settings, logo_alignment: align as any })
+                        }}
+                        className={`receipt-editor-align-btn ${settings.logo_alignment === align ? 'active' : ''}`}
+                      >
+                        {align === 'left' && <AlignLeft size={20} />}
+                        {align === 'center' && <AlignCenter size={20} />}
+                        {align === 'right' && <AlignRight size={20} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Elementi */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">✨ Elementi</h3>
+          <div className="receipt-editor-card">
+            <h3><Sparkles size={20} /> Elementi</h3>
 
-            <div className="space-y-3">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={settings.show_qr_code}
-                  onChange={(e) => setSettings({ ...settings, show_qr_code: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm font-medium">Mostra QR code</span>
+            <div className="receipt-editor-checkbox-group">
+              <label className="receipt-editor-checkbox-label">
+                <span className="receipt-editor-checkbox-text">Mostra QR code</span>
+                <label className="receipt-editor-toggle">
+                  <input
+                    type="checkbox"
+                    checked={settings.show_qr_code}
+                    onChange={(e) => setSettings({ ...settings, show_qr_code: e.target.checked })}
+                  />
+                  <span className="receipt-editor-toggle-slider"></span>
+                </label>
               </label>
 
-              <label className="flex items-center gap-2">
+              {settings.show_qr_code && (
+                <div className="receipt-editor-field">
+                  <label className="receipt-editor-label">
+                    Allineamento QR code
+                  </label>
+                  <div className="receipt-editor-button-group">
+                    {['left', 'center', 'right'].map(align => (
+                      <button
+                        key={align}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setSettings({ ...settings, qr_alignment: align as any })
+                        }}
+                        className={`receipt-editor-align-btn ${settings.qr_alignment === align ? 'active' : ''}`}
+                      >
+                        {align === 'left' && <AlignLeft size={20} />}
+                        {align === 'center' && <AlignCenter size={20} />}
+                        {align === 'right' && <AlignRight size={20} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="receipt-editor-field">
+                <label className="receipt-editor-label">
+                  Testo intestazione
+                </label>
                 <input
-                  type="checkbox"
-                  checked={settings.show_separator_lines}
-                  onChange={(e) => setSettings({ ...settings, show_separator_lines: e.target.checked })}
-                  className="w-4 h-4"
+                  type="text"
+                  value={settings.header_text}
+                  onChange={(e) => setSettings({ ...settings, header_text: e.target.value })}
+                  placeholder="SCONTRINO FISCALE"
+                  className="receipt-editor-input"
                 />
-                <span className="text-sm font-medium">Mostra linee separatrici</span>
+              </div>
+
+              <label className="receipt-editor-checkbox-label">
+                <span className="receipt-editor-checkbox-text">Mostra linee separatrici</span>
+                <label className="receipt-editor-toggle">
+                  <input
+                    type="checkbox"
+                    checked={settings.show_separator_lines}
+                    onChange={(e) => setSettings({ ...settings, show_separator_lines: e.target.checked })}
+                  />
+                  <span className="receipt-editor-toggle-slider"></span>
+                </label>
               </label>
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={settings.show_thank_you_message}
-                  onChange={(e) => setSettings({ ...settings, show_thank_you_message: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm font-medium">Mostra messaggio di ringraziamento</span>
+              <label className="receipt-editor-checkbox-label">
+                <span className="receipt-editor-checkbox-text">Mostra messaggio di ringraziamento</span>
+                <label className="receipt-editor-toggle">
+                  <input
+                    type="checkbox"
+                    checked={settings.show_thank_you_message}
+                    onChange={(e) => setSettings({ ...settings, show_thank_you_message: e.target.checked })}
+                  />
+                  <span className="receipt-editor-toggle-slider"></span>
+                </label>
               </label>
 
               {settings.show_thank_you_message && (
-                <div className="mt-2">
+                <div className="receipt-editor-field">
                   <input
                     type="text"
                     value={settings.thank_you_message}
                     onChange={(e) => setSettings({ ...settings, thank_you_message: e.target.value })}
                     placeholder="Grazie per la visita!"
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                    className="receipt-editor-input"
                   />
                 </div>
               )}
+            </div>
+
+            <div className="receipt-editor-info">
+              <Info size={16} style={{ marginRight: '0.5rem', flexShrink: 0 }} />
+              <span>Le modifiche verranno applicate a tutti i tipi di stampa: scontrini, voucher, tessere fedeltà, ecc.</span>
             </div>
           </div>
         </div>
 
         {/* ANTEPRIMA */}
-        <div className="lg:sticky lg:top-6 h-fit">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">👁️ Anteprima</h3>
+        <div className="receipt-editor-preview-container">
+          <div className="receipt-editor-preview-card">
+            <h3>
+              <Printer size={20} />
+              Anteprima
+            </h3>
 
-            <div className="bg-gray-100 p-4 rounded-lg overflow-auto max-h-[800px]">
+            <div className="receipt-editor-preview-wrapper">
               <div
-                className="bg-white mx-auto font-mono text-xs leading-tight"
+                className="receipt-preview-paper"
                 style={{
-                  width: `${settings.paper_width}px`,
-                  padding: '20px'
+                  width: `${settings.paper_width}px`
                 }}
               >
                 {/* Logo */}
                 {settings.show_logo && settings.logo_url && (
-                  <div className={`mb-${settings.section_spacing} ${getAlignmentStyle(settings.header_alignment)}`}>
+                  <div style={{ ...getAlignmentStyle(settings.logo_alignment), marginBottom: `${settings.section_spacing * 0.5}rem` }}>
                     <img
                       src={settings.logo_url}
                       alt="Logo"
-                      className={`${getLogoSize()} object-contain inline-block`}
+                      className="receipt-preview-logo"
+                      style={{ maxHeight: getLogoSize() }}
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none'
                       }}
@@ -474,55 +689,55 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
                 )}
 
                 {/* Header */}
-                <div className={`mb-${settings.section_spacing} space-y-${settings.line_spacing}`}>
-                  <div className={getAlignmentStyle(settings.header_alignment)} style={{ fontSize: `${settings.font_size_large}px` }}>
+                <div style={{ marginBottom: `${settings.section_spacing * 0.5}rem` }}>
+                  <div style={{ ...getAlignmentStyle(settings.header_alignment), fontSize: `${settings.font_size_large}px`, fontWeight: 'bold', marginBottom: `${settings.line_spacing * 0.25}rem` }}>
                     {organizationName}
                   </div>
-                  <div className={getAlignmentStyle(settings.header_alignment)} style={{ fontSize: `${settings.font_size_normal}px` }}>
-                    SCONTRINO FISCALE
+                  <div style={{ ...getAlignmentStyle(settings.header_alignment), fontSize: `${settings.font_size_normal}px` }}>
+                    {settings.header_text}
                   </div>
                 </div>
 
-                {settings.show_separator_lines && <div className="border-t border-gray-400 my-2"></div>}
+                {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
 
                 {/* Info */}
-                <div className={`mb-${settings.section_spacing} space-y-${settings.line_spacing}`} style={{ fontSize: `${settings.font_size_small}px` }}>
-                  <div>N. 0001</div>
-                  <div>Data: {new Date().toLocaleString('it-IT')}</div>
+                <div style={{ marginBottom: `${settings.section_spacing * 0.5}rem`, fontSize: `${settings.font_size_small}px` }}>
+                  <div style={{ marginBottom: `${settings.line_spacing * 0.25}rem` }}>N. 0001</div>
+                  <div style={{ marginBottom: `${settings.line_spacing * 0.25}rem` }}>Data: {new Date().toLocaleString('it-IT')}</div>
                   <div>Operatore: Demo</div>
                 </div>
 
-                {settings.show_separator_lines && <div className="border-t border-gray-400 my-2"></div>}
+                {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
 
                 {/* Items */}
-                <div className={`mb-${settings.section_spacing}`}>
-                  <div className={`${getAlignmentStyle(settings.items_alignment)} font-bold mb-2`} style={{ fontSize: `${settings.font_size_normal}px` }}>
+                <div style={{ marginBottom: `${settings.section_spacing * 0.5}rem` }}>
+                  <div style={{ ...getAlignmentStyle(settings.items_alignment), fontSize: `${settings.font_size_normal}px`, fontWeight: 'bold', marginBottom: '0.5rem' }}>
                     ARTICOLI
                   </div>
-                  {settings.show_separator_lines && <div className="border-t border-gray-400 my-1"></div>}
-                  <div className={`space-y-${settings.line_spacing} mt-2`} style={{ fontSize: `${settings.font_size_small}px` }}>
-                    <div className={getAlignmentStyle(settings.items_alignment)}>2x Caffè Espresso €3.00</div>
-                    <div className={getAlignmentStyle(settings.items_alignment)}>1x Cornetto €2.50</div>
+                  {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
+                  <div style={{ fontSize: `${settings.font_size_small}px`, marginTop: '0.5rem' }}>
+                    <div style={{ ...getAlignmentStyle(settings.items_alignment), marginBottom: `${settings.line_spacing * 0.25}rem` }}>2x Caffè Espresso €3.00</div>
+                    <div style={{ ...getAlignmentStyle(settings.items_alignment) }}>1x Cornetto €2.50</div>
                   </div>
                 </div>
 
-                {settings.show_separator_lines && <div className="border-t border-gray-400 my-2"></div>}
+                {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
 
                 {/* Totals */}
-                <div className={`mb-${settings.section_spacing} space-y-${settings.line_spacing}`} style={{ fontSize: `${settings.font_size_small}px` }}>
-                  <div>Subtotale: €5.50</div>
-                  <div>IVA (22%): €1.21</div>
-                  {settings.show_separator_lines && <div className="border-t border-gray-400 my-1"></div>}
-                  <div className="font-bold" style={{ fontSize: `${settings.font_size_normal}px` }}>TOTALE: €6.71</div>
-                  {settings.show_separator_lines && <div className="border-t border-gray-400 my-1"></div>}
+                <div style={{ marginBottom: `${settings.section_spacing * 0.5}rem`, fontSize: `${settings.font_size_small}px` }}>
+                  <div style={{ marginBottom: `${settings.line_spacing * 0.25}rem` }}>Subtotale: €5.50</div>
+                  <div style={{ marginBottom: `${settings.line_spacing * 0.25}rem` }}>IVA (22%): €1.21</div>
+                  {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
+                  <div style={{ fontWeight: 'bold', fontSize: `${settings.font_size_normal}px`, marginBottom: `${settings.line_spacing * 0.25}rem` }}>TOTALE: €6.71</div>
+                  {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
                   <div>Pagamento: Contanti</div>
                 </div>
 
                 {/* Footer */}
                 {settings.show_thank_you_message && (
                   <>
-                    {settings.show_separator_lines && <div className="border-t border-gray-400 my-2"></div>}
-                    <div className={`mb-${settings.section_spacing} ${getAlignmentStyle(settings.footer_alignment)}`} style={{ fontSize: `${settings.font_size_normal}px` }}>
+                    {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}
+                    <div style={{ ...getAlignmentStyle(settings.footer_alignment), marginBottom: `${settings.section_spacing * 0.5}rem`, fontSize: `${settings.font_size_normal}px` }}>
                       {settings.thank_you_message}
                     </div>
                   </>
@@ -530,19 +745,140 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
 
                 {/* QR Code */}
                 {settings.show_qr_code && (
-                  <div className={`mb-${settings.section_spacing} ${getAlignmentStyle(settings.footer_alignment)}`}>
-                    <div className="w-24 h-24 bg-gray-200 inline-block"></div>
+                  <div style={{ ...getAlignmentStyle(settings.qr_alignment), marginBottom: `${settings.section_spacing * 0.5}rem` }}>
+                    <div className="receipt-preview-qr-placeholder"></div>
                   </div>
                 )}
               </div>
             </div>
 
-            <p className="text-xs text-gray-500 mt-4">
-              ℹ️ Questa è un'anteprima approssimativa. L'aspetto finale sulla stampante termica potrebbe variare leggermente.
-            </p>
+            <div className="receipt-editor-info" style={{ marginTop: '1rem' }}>
+              <Info size={16} style={{ marginRight: '0.5rem', flexShrink: 0 }} />
+              <span>Questa è un'anteprima approssimativa. L'aspetto finale sulla stampante termica potrebbe variare leggermente.</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Notification Toast */}
+      {notification && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '2rem',
+            right: '2rem',
+            background: notification.type === 'success' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            color: 'white',
+            padding: '1rem 1.5rem',
+            borderRadius: '12px',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            zIndex: 1000,
+            animation: 'slideInRight 0.3s ease-out',
+            minWidth: '300px',
+            maxWidth: '500px'
+          }}
+        >
+          {notification.type === 'success' ? <CheckCircle size={24} /> : <XCircle size={24} />}
+          <span style={{ flex: 1, fontWeight: 600, fontSize: '0.95rem' }}>{notification.message}</span>
+          <button
+            onClick={() => setNotification(null)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '0.25rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Reset Confirmation Dialog */}
+      {showResetConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999,
+            backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setShowResetConfirm(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '400px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              animation: 'scaleIn 0.2s ease-out'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#1f2937' }}>
+              Ripristinare impostazioni?
+            </h3>
+            <p style={{ margin: '0 0 1.5rem 0', color: '#6b7280', lineHeight: 1.6 }}>
+              Tutte le impostazioni personalizzate verranno perse e ripristinate ai valori predefiniti. Questa azione non può essere annullata.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}
+              >
+                Annulla
+              </button>
+              <button
+                onClick={confirmReset}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                Ripristina
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

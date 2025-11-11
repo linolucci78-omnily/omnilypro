@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Settings,
   Building2,
@@ -38,6 +39,7 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
   onOpenReceiptLayout,
   onNavigateToSection
 }) => {
+  const navigate = useNavigate()
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const settingsCategories = [
@@ -114,7 +116,7 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Logo e dimensioni font',
         'Mostra/nascondi elementi'
       ],
-      onClick: onOpenReceiptLayout
+      onClick: () => navigate(`/receipt-layout-editor?org=${organizationId}`)
     },
     {
       id: 'operator-nfc',

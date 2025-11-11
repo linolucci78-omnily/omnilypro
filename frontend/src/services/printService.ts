@@ -1,3 +1,29 @@
+interface ReceiptLayoutSettings {
+  line_spacing: number
+  section_spacing: number
+  header_alignment: 'left' | 'center' | 'right'
+  items_alignment: 'left' | 'center' | 'right'
+  footer_alignment: 'left' | 'center' | 'right'
+  font_size_small: number
+  font_size_normal: number
+  font_size_large: number
+  show_logo: boolean
+  logo_url: string | null
+  logo_size: 'small' | 'medium' | 'large'
+  logo_alignment: 'left' | 'center' | 'right'
+  show_qr_code: boolean
+  qr_alignment: 'left' | 'center' | 'right'
+  show_separator_lines: boolean
+  show_thank_you_message: boolean
+  thank_you_message: string
+  paper_width: number
+  font_family: 'courier' | 'monospace' | 'sans-serif'
+  header_text: string
+  show_store_info: boolean
+  qr_size: 'small' | 'medium' | 'large'
+  bold_totals: boolean
+}
+
 interface PrintConfig {
   storeName: string
   storeAddress: string
@@ -8,6 +34,7 @@ interface PrintConfig {
   fontSizeNormal: number
   fontSizeLarge: number
   printDensity: number
+  layoutSettings?: ReceiptLayoutSettings
 }
 
 interface PrintItem {
@@ -36,6 +63,52 @@ export class ZCSPrintService {
 
   constructor(config: PrintConfig) {
     this.printConfig = config
+  }
+
+  // Load receipt layout settings from database
+  static async loadLayoutSettings(organizationId: string): Promise<ReceiptLayoutSettings | null> {
+    try {
+      const { supabase } = await import('../lib/supabase')
+      const { data, error } = await supabase
+        .from('receipt_layout_settings')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .single()
+
+      if (error || !data) {
+        console.log('No custom layout settings found, using defaults')
+        return null
+      }
+
+      return {
+        line_spacing: data.line_spacing || 1,
+        section_spacing: data.section_spacing || 1,
+        header_alignment: data.header_alignment || 'center',
+        items_alignment: data.items_alignment || 'left',
+        footer_alignment: data.footer_alignment || 'center',
+        font_size_small: data.font_size_small || 20,
+        font_size_normal: data.font_size_normal || 24,
+        font_size_large: data.font_size_large || 30,
+        show_logo: data.show_logo || false,
+        logo_url: data.logo_url,
+        logo_size: data.logo_size || 'medium',
+        logo_alignment: data.logo_alignment || 'center',
+        show_qr_code: data.show_qr_code !== false,
+        qr_alignment: data.qr_alignment || 'center',
+        show_separator_lines: data.show_separator_lines !== false,
+        show_thank_you_message: data.show_thank_you_message !== false,
+        thank_you_message: data.thank_you_message || 'Grazie per la visita!',
+        paper_width: data.paper_width || 384,
+        font_family: data.font_family || 'courier',
+        header_text: data.header_text || 'SCONTRINO FISCALE',
+        show_store_info: data.show_store_info !== false,
+        qr_size: data.qr_size || 'medium',
+        bold_totals: data.bold_totals !== false
+      }
+    } catch (error) {
+      console.error('Error loading layout settings:', error)
+      return null
+    }
   }
 
   async initialize(): Promise<boolean> {
@@ -686,54 +759,114 @@ export class ZCSPrintService {
     }
 
     try {
-      const lines: string[] = [
-        '',
-        this.centerText(this.printConfig.storeName),
-        this.centerText('SCONTRINO FISCALE'),
-        this.createSeparatorLine(),
-        '',
-        `N. ${receipt.receiptNumber}`,
-        `Data: ${this.formatDateTime(receipt.timestamp)}`,
-        `Operatore: ${receipt.cashierName}`,
-        '',
-        this.createSeparatorLine(),
-        this.centerText('ARTICOLI'),
-        this.createSeparatorLine(),
-        ''
-      ]
+      const layout = this.printConfig.layoutSettings
+      const lines: string[] = []
 
-      // Add items in compact format
-      receipt.items.forEach(item => {
-        const itemName = item.name.substring(0, 22) // Truncate if too long
-        const qty = `${item.quantity}x`
-        const price = `€${item.total.toFixed(2)}`
-
-        // Format: "2x Caffè Espresso      €3.00"
-        const padding = 32 - qty.length - itemName.length - price.length
-        lines.push(`${qty} ${itemName}${' '.repeat(Math.max(1, padding))}${price}`)
-      })
-
-      lines.push('')
-      lines.push(this.createSeparatorLine())
-      lines.push(`Subtotale:${' '.repeat(21)}€${receipt.subtotal.toFixed(2)}`)
-      lines.push(`IVA (22%):${' '.repeat(21)}€${receipt.tax.toFixed(2)}`)
-      lines.push(this.createSeparatorLine())
-      lines.push(`TOTALE:${' '.repeat(24)}€${receipt.total.toFixed(2)}`)
-      lines.push(this.createSeparatorLine())
-      lines.push('')
-      lines.push(`Pagamento: ${receipt.paymentMethod}`)
-
-      if (receipt.customerPoints) {
-        lines.push('')
-        lines.push(this.createSeparatorLine())
-        lines.push(this.centerText('💎 PUNTI FEDELTÀ 💎'))
-        lines.push(this.centerText(`Punti guadagnati: ${receipt.customerPoints}`))
+      // Helper functions for alignment
+      const alignText = (text: string, alignment: 'left' | 'center' | 'right' = 'center') => {
+        switch (alignment) {
+          case 'left': return text
+          case 'right': return text.padStart(40, ' ')
+          case 'center': return this.centerText(text)
+        }
       }
 
+      const addLineSpacing = () => {
+        const spacing = layout?.line_spacing || 0
+        for (let i = 0; i < spacing; i++) {
+          lines.push('')
+        }
+      }
+
+      const addSectionSpacing = () => {
+        const spacing = layout?.section_spacing || 0
+        for (let i = 0; i < spacing; i++) {
+          lines.push('')
+        }
+      }
+
+      const addSeparator = () => {
+        if (layout?.show_separator_lines !== false) {
+          lines.push(this.createSeparatorLine())
+        }
+      }
+
+      // Header
       lines.push('')
-      lines.push(this.createSeparatorLine())
-      lines.push(this.centerText('Grazie per la visita!'))
-      lines.push(this.centerText('Arrivederci'))
+      addSectionSpacing()
+      lines.push(alignText(this.printConfig.storeName, layout?.header_alignment || 'center'))
+      addLineSpacing()
+      lines.push(alignText(layout?.header_text || 'SCONTRINO FISCALE', layout?.header_alignment || 'center'))
+      addSectionSpacing()
+      addSeparator()
+      addSectionSpacing()
+
+      // Receipt Info
+      lines.push(alignText(`N. ${receipt.receiptNumber}`, 'left'))
+      addLineSpacing()
+      lines.push(alignText(`Data: ${this.formatDateTime(receipt.timestamp)}`, 'left'))
+      addLineSpacing()
+      lines.push(alignText(`Operatore: ${receipt.cashierName}`, 'left'))
+      addSectionSpacing()
+
+      addSeparator()
+      addSectionSpacing()
+      lines.push(alignText('ARTICOLI', layout?.items_alignment || 'center'))
+      addSeparator()
+      addSectionSpacing()
+
+      // Items
+      receipt.items.forEach((item, index) => {
+        const itemName = item.name.substring(0, 22)
+        const qty = `${item.quantity}x`
+        const price = `€${item.total.toFixed(2)}`
+        const padding = 32 - qty.length - itemName.length - price.length
+        const itemLine = `${qty} ${itemName}${' '.repeat(Math.max(1, padding))}${price}`
+
+        lines.push(alignText(itemLine, layout?.items_alignment || 'left'))
+        if (index < receipt.items.length - 1) {
+          addLineSpacing()
+        }
+      })
+
+      addSectionSpacing()
+      addSeparator()
+      addSectionSpacing()
+
+      // Totals
+      lines.push(alignText(`Subtotale:${' '.repeat(21)}€${receipt.subtotal.toFixed(2)}`, 'left'))
+      addLineSpacing()
+      lines.push(alignText(`IVA (22%):${' '.repeat(21)}€${receipt.tax.toFixed(2)}`, 'left'))
+      addLineSpacing()
+      addSeparator()
+      const totalLine = `TOTALE:${' '.repeat(24)}€${receipt.total.toFixed(2)}`
+      lines.push(alignText(totalLine, 'left'))
+      addSeparator()
+      addSectionSpacing()
+      lines.push(alignText(`Pagamento: ${receipt.paymentMethod}`, 'left'))
+
+      // Loyalty points
+      if (receipt.customerPoints) {
+        addSectionSpacing()
+        addSeparator()
+        addSectionSpacing()
+        lines.push(alignText('PUNTI FEDELTÀ', layout?.footer_alignment || 'center'))
+        addLineSpacing()
+        lines.push(alignText(`Punti guadagnati: ${receipt.customerPoints}`, layout?.footer_alignment || 'center'))
+      }
+
+      // Thank you message
+      if (layout?.show_thank_you_message !== false) {
+        addSectionSpacing()
+        addSeparator()
+        addSectionSpacing()
+        const thankYouMsg = layout?.thank_you_message || 'Grazie per la visita!'
+        lines.push(alignText(thankYouMsg, layout?.footer_alignment || 'center'))
+        addLineSpacing()
+        lines.push(alignText('Arrivederci', layout?.footer_alignment || 'center'))
+      }
+
+      addSectionSpacing()
       lines.push('')
 
       const receiptText = lines.join('\n')
@@ -741,20 +874,25 @@ export class ZCSPrintService {
       return new Promise((resolve) => {
         (window as any).omnilyReceiptOptimizedHandler = (result: any) => {
           if (result.success) {
-            // Print QR code with receipt data
-            const qrData = `RECEIPT:${receipt.receiptNumber}:${receipt.total}`;
+            // Print QR code if enabled
+            if (layout?.show_qr_code !== false) {
+              const qrData = `RECEIPT:${receipt.receiptNumber}:${receipt.total}`;
 
-            (window as any).omnilyReceiptQRHandler = (qrResult: any) => {
-              if (qrResult.success) {
-                console.log('✅ Receipt printed successfully (optimized)')
-                resolve(true)
-              } else {
-                console.error('❌ Receipt QR code print failed:', qrResult.error)
-                resolve(false)
+              (window as any).omnilyReceiptQRHandler = (qrResult: any) => {
+                if (qrResult.success) {
+                  console.log('✅ Receipt printed successfully (optimized)')
+                  resolve(true)
+                } else {
+                  console.error('❌ Receipt QR code print failed:', qrResult.error)
+                  resolve(false)
+                }
               }
-            }
 
-            (window as any).OmnilyPOS.printQRCode(qrData, 'omnilyReceiptQRHandler')
+              (window as any).OmnilyPOS.printQRCode(qrData, 'omnilyReceiptQRHandler')
+            } else {
+              console.log('✅ Receipt printed successfully (no QR)')
+              resolve(true)
+            }
           } else {
             console.error('❌ Receipt print failed:', result.error)
             resolve(false)
