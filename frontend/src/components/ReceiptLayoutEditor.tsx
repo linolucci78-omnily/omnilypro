@@ -524,17 +524,9 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
 
             {settings.show_logo && (
               <>
-                <div className="receipt-editor-field">
-                  <label className="receipt-editor-label">
-                    URL Logo
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.logo_url || ''}
-                    onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                    placeholder="https://example.com/logo.png"
-                    className="receipt-editor-input"
-                  />
+                <div className="receipt-editor-info">
+                  <Info size={16} />
+                  <span>Il logo bianco viene caricato automaticamente dalla sezione Branding dell'organizzazione</span>
                 </div>
 
                 <div className="receipt-editor-field">

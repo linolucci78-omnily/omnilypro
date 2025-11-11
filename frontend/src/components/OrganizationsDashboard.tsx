@@ -3522,6 +3522,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationPhone={currentOrganization?.phone || ''}
         organizationTax={currentOrganization?.partita_iva || ''}
         primaryColor={currentOrganization?.primary_color || '#dc2626'}
+        operatorName={user?.email || 'Operatore'}
       />
 
       {/* Edit Customer Modal from Table */}

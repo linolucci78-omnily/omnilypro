@@ -36,6 +36,7 @@ interface CustomerSlidePanelProps {
   organizationPhone?: string; // Telefono organizzazione per stampe
   organizationTax?: string; // Partita IVA organizzazione per stampe
   primaryColor?: string; // Colore primario organizzazione
+  operatorName?: string; // Nome operatore per scontrini
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -53,7 +54,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   organizationAddress = '', // Default vuoto
   organizationPhone = '', // Default vuoto
   organizationTax = '', // Default vuoto
-  primaryColor = '#dc2626' // Default red se non specificato
+  primaryColor = '#dc2626', // Default red se non specificato
+  operatorName = 'Operatore' // Default "Operatore" se non specificato
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showRewardsSection, setShowRewardsSection] = useState(false);
@@ -638,7 +640,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               tax: amount * 0.22,
               total: amount,
               paymentMethod: 'Contanti',
-              cashierName: 'POS Operatore',
+              cashierName: operatorName,
               customerPoints: pointsEarned,
               loyaltyCard: customer.id
             };
