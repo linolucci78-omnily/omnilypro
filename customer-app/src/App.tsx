@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { OrganizationProvider } from './contexts/OrganizationContext'
 import { AuthProvider } from './contexts/AuthContext'
 import Login from './pages/Login'
@@ -8,13 +9,12 @@ import Home from './pages/Home'
 import Card from './pages/Card'
 import Rewards from './pages/Rewards'
 import Profile from './pages/Profile'
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import './styles/global.css'
 
-// Root redirect component - redirects to saved org slug or default
+// Root redirect component - redirects to saved org slug
 function RootRedirect() {
   const navigate = useNavigate()
+  const [showMessage, setShowMessage] = useState(false)
 
   useEffect(() => {
     // Check if we have a saved organization slug
@@ -24,32 +24,66 @@ function RootRedirect() {
       console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
       navigate(`/${savedSlug}/home`, { replace: true })
     } else {
-      // Default to 'omnilypro' organization if no saved slug
-      console.log('🔄 PWA: Redirecting to default organization: omnilypro')
-      navigate('/omnilypro/home', { replace: true })
+      // Show message after 1 second if no saved slug
+      setTimeout(() => setShowMessage(true), 1000)
     }
   }, [navigate])
 
-  // Show loading while redirecting
+  if (!showMessage) {
+    // Show loading while checking
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #f3f4f6',
+            borderTopColor: '#dc2626',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }}></div>
+          <p style={{ color: '#6b7280' }}>Caricamento...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // No saved slug - show instructions
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      padding: '2rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      textAlign: 'center'
     }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '4px solid #f3f4f6',
-          borderTopColor: '#dc2626',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 1rem'
-        }}></div>
-        <p style={{ color: '#6b7280' }}>Caricamento...</p>
+      <div>
+        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>📱 Omnily Loyalty</h1>
+        <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+          Per iniziare, visita il link della tua organizzazione:
+        </p>
+        <code style={{
+          display: 'block',
+          padding: '1rem',
+          background: '#f3f4f6',
+          borderRadius: '0.5rem',
+          marginBottom: '1rem',
+          fontSize: '0.875rem'
+        }}>
+          card.omnilypro.com/il-tuo-negozio
+        </code>
+        <p style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+          Dopo il login, potrai installare l'app sulla tua home screen
+        </p>
       </div>
     </div>
   )
