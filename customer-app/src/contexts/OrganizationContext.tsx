@@ -62,7 +62,9 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
       setOrganization(orgData)
 
       // Save slug to localStorage for PWA
-      localStorage.setItem('omnily_org_slug', slug)
+      if (slug) {
+        localStorage.setItem('omnily_org_slug', slug)
+      }
 
       // Load loyalty tiers for this organization
       const tiers = orgData.loyalty_tiers as LoyaltyTier[] || []
