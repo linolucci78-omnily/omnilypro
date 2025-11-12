@@ -14,28 +14,20 @@ import './styles/global.css'
 // Root redirect component - redirects to saved org slug
 function RootRedirect() {
   const navigate = useNavigate()
-  const [showMessage, setShowMessage] = useState(false)
+
+  // Check localStorage immediately, synchronously
+  const savedSlug = localStorage.getItem('omnily_org_slug')
 
   useEffect(() => {
-    const checkAndRedirect = async () => {
-      // Check if we have a saved organization slug
-      const savedSlug = localStorage.getItem('omnily_org_slug')
-
-      if (savedSlug) {
-        console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
-        // Redirect to organization - the route will handle login/home
-        navigate(`/${savedSlug}`, { replace: true })
-      } else {
-        // Show message after 1 second if no saved slug
-        setTimeout(() => setShowMessage(true), 1000)
-      }
+    if (savedSlug) {
+      console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
+      // Redirect immediately to organization
+      navigate(`/${savedSlug}/home`, { replace: true })
     }
+  }, [navigate, savedSlug])
 
-    checkAndRedirect()
-  }, [navigate])
-
-  if (!showMessage) {
-    // Show loading while checking
+  // If we have a saved slug, show loading while redirecting
+  if (savedSlug) {
     return (
       <div style={{
         display: 'flex',
