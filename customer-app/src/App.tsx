@@ -12,7 +12,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './styles/global.css'
 
-// Root redirect component - redirects to saved org slug
+// Root redirect component - redirects to saved org slug or default
 function RootRedirect() {
   const navigate = useNavigate()
 
@@ -23,36 +23,33 @@ function RootRedirect() {
     if (savedSlug) {
       console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
       navigate(`/${savedSlug}/home`, { replace: true })
+    } else {
+      // Default to 'omnilypro' organization if no saved slug
+      console.log('🔄 PWA: Redirecting to default organization: omnilypro')
+      navigate('/omnilypro/home', { replace: true })
     }
   }, [navigate])
 
+  // Show loading while redirecting
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      padding: '2rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      textAlign: 'center'
+      fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      <div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>👋 Welcome!</h1>
-        <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-          Please access your organization's app using:
-        </p>
-        <code style={{
-          display: 'block',
-          padding: '1rem',
-          background: '#f3f4f6',
-          borderRadius: '0.5rem',
-          marginBottom: '1.5rem'
-        }}>
-          /your-organization-slug
-        </code>
-        <p style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-          Example: /pizzeria-rossi
-        </p>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid #f3f4f6',
+          borderTopColor: '#dc2626',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto 1rem'
+        }}></div>
+        <p style={{ color: '#6b7280' }}>Caricamento...</p>
       </div>
     </div>
   )
