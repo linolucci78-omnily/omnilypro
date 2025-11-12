@@ -40,6 +40,7 @@ interface BrandingData {
 
   // Business Info
   business_name: string
+  slug: string
   slogan: string | null
   bio: string | null
   business_category: string | null
@@ -100,6 +101,7 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
 
     // Business Info
     business_name: organizationName,
+    slug: '',
     slogan: null,
     bio: null,
     business_category: null,
@@ -178,6 +180,7 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
 
           // Business Info
           business_name: data.name || organizationName,
+          slug: data.slug || '',
           slogan: data.slogan,
           bio: data.bio,
           business_category: data.business_category,
@@ -676,6 +679,23 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
                 className="branding-input"
                 placeholder="Nome della tua azienda"
               />
+            </div>
+
+            <div className="branding-form-group">
+              <label>
+                <Hash size={16} />
+                Slug (URL App Clienti)
+              </label>
+              <input
+                type="text"
+                value={branding.slug}
+                readOnly
+                className="branding-input"
+                style={{ background: '#f3f4f6', cursor: 'not-allowed' }}
+              />
+              <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                I clienti accederanno tramite: <strong>fidelity.omnilypro.com/{branding.slug}</strong>
+              </small>
             </div>
 
             <div className="branding-form-group">

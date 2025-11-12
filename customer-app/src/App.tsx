@@ -17,17 +17,21 @@ function RootRedirect() {
   const [showMessage, setShowMessage] = useState(false)
 
   useEffect(() => {
-    // Check if we have a saved organization slug
-    const savedSlug = localStorage.getItem('omnily_org_slug')
+    const checkAndRedirect = async () => {
+      // Check if we have a saved organization slug
+      const savedSlug = localStorage.getItem('omnily_org_slug')
 
-    if (savedSlug) {
-      console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
-      // Redirect to organization index - it will handle login/home routing
-      navigate(`/${savedSlug}`, { replace: true })
-    } else {
-      // Show message after 1 second if no saved slug
-      setTimeout(() => setShowMessage(true), 1000)
+      if (savedSlug) {
+        console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
+        // Redirect to organization - the route will handle login/home
+        navigate(`/${savedSlug}`, { replace: true })
+      } else {
+        // Show message after 1 second if no saved slug
+        setTimeout(() => setShowMessage(true), 1000)
+      }
     }
+
+    checkAndRedirect()
   }, [navigate])
 
   if (!showMessage) {
