@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { OrganizationProvider } from './contexts/OrganizationContext'
 import { AuthProvider } from './contexts/AuthContext'
