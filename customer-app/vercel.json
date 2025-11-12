@@ -4,6 +4,14 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/app-shell.html",
+      "destination": "/app-shell.html"
+    },
+    {
+      "source": "/app-shell",
+      "destination": "/app-shell.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

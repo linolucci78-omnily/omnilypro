@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caricamento Omnily...</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .loader-container {
+      text-align: center;
+    }
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f4f6;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .text {
+      color: #6b7280;
+      font-size: 14px;
+    }
+  </style>
+  <script>
+    // Redirect immediato - eseguito PRIMA di tutto il resto
+    (function() {
+      const savedSlug = localStorage.getItem('omnily_org_slug');
+
+      if (savedSlug) {
+        console.log('🚀 App Shell: Redirecting to saved organization:', savedSlug);
+        // Usa replace per evitare che l'utente possa tornare indietro a questa pagina
+        window.location.replace('/' + savedSlug + '/home');
+      } else {
+        console.log('⚠️ App Shell: No saved slug, redirecting to root');
+        // Nessuno slug salvato - vai alla root che mostrerà il messaggio
+        window.location.replace('/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="loader-container">
+    <div class="loader"></div>
+    <p class="text">Caricamento...</p>
+  </div>
+</body>
+</html>
