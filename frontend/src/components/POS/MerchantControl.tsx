@@ -22,6 +22,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { rewardsService, type Reward } from '../../services/rewardsService'
+import { supabase, customersApi, type Customer } from '../../lib/supabase'
 import './MerchantControl.css'
 
 type DisplayState = 'idle' | 'welcome' | 'reading-card' | 'customer-found' | 'transaction' | 'rewards' | 'completed'
@@ -45,6 +46,7 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
   const [transactionAmount, setTransactionAmount] = useState('')
   const [connectionStatus] = useState('connected')
   const [isReading, setIsReading] = useState(false)
+  const [isScanningQR, setIsScanningQR] = useState(false)
   const [showCustomerDetails, setShowCustomerDetails] = useState(true)
   const [rewards, setRewards] = useState<Reward[]>([])
   const [loadingRewards, setLoadingRewards] = useState(true)
@@ -136,17 +138,17 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
   const handleReadCard = async () => {
     setIsReading(true)
     onDisplayStateChange('reading-card')
-    
+
     try {
       // Simulate card reading
       setTimeout(() => {
         const customer = mockCustomers[Math.floor(Math.random() * mockCustomers.length)]
         setCurrentCustomer(customer)
-        
+
         // Calculate points to earn (1 point per euro)
         const amount = parseFloat(transactionAmount) || 25.50
         const pointsToEarn = Math.floor(amount)
-        
+
         const transaction = {
           amount,
           pointsToEarn,
@@ -158,7 +160,7 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
             available: customer.currentPoints >= r.points_required
           }))
         }
-        
+
         onTransactionUpdate(transaction)
         onDisplayStateChange('customer-found')
         setIsReading(false)
@@ -166,6 +168,98 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
     } catch (error) {
       console.error('Card reading failed:', error)
       setIsReading(false)
+    }
+  }
+
+  const handleScanQR = async () => {
+    if (!zcsSDK) {
+      console.error('ZCS SDK not available')
+      return
+    }
+
+    setIsScanningQR(true)
+    onDisplayStateChange('reading-card')
+
+    try {
+      console.log('📱 Scanning QR code from customer app...')
+
+      // Call native scanner
+      const result = await zcsSDK.scanQR()
+      console.log('📱 QR Scan raw result:', result)
+
+      const data = JSON.parse(result)
+
+      if (!data.success || !data.qrData) {
+        throw new Error('QR scan failed or no data')
+      }
+
+      console.log('📱 QR Data:', data.qrData)
+
+      // Parse QR code content (JSON string from customer app)
+      const qrContent = JSON.parse(data.qrData)
+      console.log('📱 QR Content parsed:', qrContent)
+
+      if (qrContent.type !== 'customer_card') {
+        throw new Error('QR code is not a customer card')
+      }
+
+      // Verify organization matches
+      if (qrContent.organization_id !== organizationId) {
+        throw new Error('QR code is from a different organization')
+      }
+
+      console.log('🔍 Loading customer from database:', qrContent.customer_id)
+
+      // Load customer from database
+      const customer = await customersApi.getById(qrContent.customer_id)
+
+      if (!customer) {
+        throw new Error('Customer not found in database')
+      }
+
+      console.log('✅ Customer loaded:', customer.name)
+
+      // Transform to match expected format
+      const transformedCustomer = {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone || 'N/A',
+        email: customer.email || 'N/A',
+        currentPoints: customer.points || 0,
+        memberSince: customer.created_at,
+        tier: customer.tier || 'Standard',
+        visits: customer.visits || 0,
+        totalSpent: customer.total_spent || 0,
+        cardUID: qrContent.customer_id
+      }
+
+      setCurrentCustomer(transformedCustomer)
+
+      // Calculate points to earn
+      const amount = parseFloat(transactionAmount) || 25.50
+      const pointsToEarn = Math.floor(amount)
+
+      const transaction = {
+        amount,
+        pointsToEarn,
+        customer: transformedCustomer,
+        rewards: rewards.map(r => ({
+          id: r.id,
+          name: r.name,
+          pointsRequired: r.points_required,
+          available: transformedCustomer.currentPoints >= r.points_required
+        }))
+      }
+
+      onTransactionUpdate(transaction)
+      onDisplayStateChange('customer-found')
+      setIsScanningQR(false)
+
+    } catch (error) {
+      console.error('❌ QR scan error:', error)
+      setIsScanningQR(false)
+      onDisplayStateChange('idle')
+      alert(`Errore scansione QR: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`)
     }
   }
 
@@ -326,10 +420,10 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
             </div>
             
             <div className="action-buttons">
-              <button 
+              <button
                 className="btn-primary"
                 onClick={handleReadCard}
-                disabled={isReading || !transactionAmount}
+                disabled={isReading || isScanningQR || !transactionAmount}
               >
                 {isReading ? (
                   <>
@@ -339,13 +433,37 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
                 ) : (
                   <>
                     <CreditCard size={18} />
-                    Leggi Tessera
+                    Leggi Tessera NFC
                   </>
                 )}
               </button>
-              
+
+              <button
+                className="btn-primary"
+                onClick={handleScanQR}
+                disabled={isReading || isScanningQR || !transactionAmount}
+                style={{ background: '#8b5cf6' }}
+              >
+                {isScanningQR ? (
+                  <>
+                    <RefreshCw size={18} className="spinning" />
+                    Scansione...
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                      <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth="2"/>
+                      <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth="2"/>
+                      <rect x="14" y="14" width="7" height="7" rx="1" strokeWidth="2"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1" strokeWidth="2"/>
+                    </svg>
+                    Scansiona QR Cliente
+                  </>
+                )}
+              </button>
+
               {currentCustomer && displayState === 'customer-found' && (
-                <button 
+                <button
                   className="btn-success"
                   onClick={handleStartTransaction}
                 >
@@ -353,8 +471,8 @@ const MerchantControl: React.FC<MerchantControlProps> = ({
                   Avvia Transazione
                 </button>
               )}
-              
-              <button 
+
+              <button
                 className="btn-secondary"
                 onClick={handleReset}
                 disabled={displayState === 'transaction'}

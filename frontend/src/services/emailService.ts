@@ -432,6 +432,119 @@ export class EmailService {
       organizationId
     })
   }
+
+  /**
+   * Invia email di attivazione account
+   */
+  async sendActivationEmail(
+    customerEmail: string,
+    customerName: string,
+    organizationId: string,
+    organizationName: string,
+    activationToken: string,
+    organizationSlug: string
+  ): Promise<{ success: boolean; error?: string }> {
+    // Determina l'URL base (usa quello della customer app)
+    const baseUrl = window.location.origin.includes('localhost')
+      ? 'http://localhost:5174'
+      : window.location.origin.replace('dashboard', 'app') // Sostituisci dashboard con app per produzione
+
+    const activationLink = `${baseUrl}/${organizationSlug}/activate?token=${activationToken}`
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: 0.5px;">🎉 Benvenuto!</h1>
+                    <p style="margin: 15px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">Attiva il tuo account ${organizationName}</p>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px 30px;">
+                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333; line-height: 1.6;">Ciao <strong>${customerName}</strong>,</p>
+
+                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333; line-height: 1.6;">
+                      Sei stato registrato nel programma fedeltà di <strong>${organizationName}</strong>! 🎊
+                    </p>
+
+                    <p style="margin: 0 0 30px 0; font-size: 16px; color: #333; line-height: 1.6;">
+                      Per completare la registrazione e accedere al tuo account, clicca sul pulsante qui sotto per impostare la tua password:
+                    </p>
+
+                    <!-- CTA Button -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="padding: 20px 0;">
+                          <a href="${activationLink}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                            Attiva il tuo Account
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <p style="margin: 30px 0 20px 0; font-size: 14px; color: #666; line-height: 1.6;">
+                      Oppure copia e incolla questo link nel tuo browser:
+                    </p>
+
+                    <p style="margin: 0 0 30px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #667eea; word-break: break-all; font-family: monospace;">
+                      ${activationLink}
+                    </p>
+
+                    <div style="margin: 30px 0 0 0; padding: 20px; background: #f0f9ff; border-left: 4px solid #667eea; border-radius: 6px;">
+                      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e40af;">✨ Cosa puoi fare dopo l'attivazione:</h3>
+                      <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #333; font-size: 14px; line-height: 1.8;">
+                        <li>Accumula punti ad ogni acquisto</li>
+                        <li>Sblocca premi esclusivi</li>
+                        <li>Raggiungi livelli superiori per vantaggi speciali</li>
+                        <li>Ricevi offerte personalizzate</li>
+                      </ul>
+                    </div>
+
+                    <p style="margin: 30px 0 0 0; font-size: 13px; color: #999; line-height: 1.6;">
+                      <em>Questo link è valido per 48 ore. Se non hai richiesto questa registrazione, ignora questa email.</em>
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer Placeholder -->
+                <!-- FOOTER PLACEHOLDER -->
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `
+
+    const footer = await this.getEmailFooter(organizationId, organizationName)
+    const htmlWithBrandedFooter = html.replace('<!-- FOOTER PLACEHOLDER -->', `
+      <tr>
+        <td style="padding: 0;">
+          ${footer}
+        </td>
+      </tr>
+    `)
+
+    return this.sendEmail({
+      to: customerEmail,
+      subject: `🎉 Attiva il tuo account ${organizationName}`,
+      html: htmlWithBrandedFooter,
+      organizationId
+    })
+  }
 }
 
 export const emailService = new EmailService()

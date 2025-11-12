@@ -3,6 +3,7 @@ import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X, QrCode, 
 import { Html5Qrcode } from 'html5-qrcode';
 import { customersApi, supabase } from '../lib/supabase';
 import { sendWelcomeEmail } from '../services/emailAutomationService';
+import { emailService } from '../services/emailService';
 import GDPRConsent from './GDPRConsent';
 import './RegistrationWizard.css';
 
@@ -1049,6 +1050,12 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
     try {
       console.log('📦 Preparazione dati cliente...');
+
+      // Genera token di attivazione unico
+      const activationToken = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      console.log('🔑 Token di attivazione generato:', activationToken);
+      addDebugInfo(`🔑 Token generato: ${activationToken.substring(0, 20)}...`);
+
       const customerData = {
         organization_id: organizationId,
         name: `${formData.firstName} ${formData.lastName}`,
@@ -1067,7 +1074,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         privacy_consent: true, // Required to reach this point
         signature_data: formData.signature,
         privacy_signed_at: new Date().toISOString(),
-        last_visit: undefined
+        last_visit: undefined,
+        // Campi per attivazione
+        is_activated: false,
+        activation_token: activationToken,
+        activated_at: null
       };
 
       console.log('📊 Dati da inviare:', customerData);
@@ -1082,37 +1093,133 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
       console.log('✅ Cliente creato con successo:', createdCustomer);
 
-      // 📧 Invia email di benvenuto automatica (non-blocking)
-      if (createdCustomer.email && organization) {
+      // 🎁 Gestisci referral se presente
+      if (formData.referralCode && formData.referralCode.trim()) {
         try {
-          console.log('📧 Invio email di benvenuto a:', createdCustomer.email);
-          await sendWelcomeEmail(
-            organizationId,
-            {
-              email: createdCustomer.email,
-              name: createdCustomer.name,
-              points: createdCustomer.points,
-              tier: createdCustomer.tier
-            },
-            {
-              name: organization.name,
-              pointsPerEuro: organization.points_per_euro || 1,
-              website: organization.website
+          console.log('🎁 Processamento referral code:', formData.referralCode);
+          addDebugInfo(`🎁 Referral code: ${formData.referralCode}`);
+
+          // 1. Trova il referrer dal codice
+          const { data: referralProgram, error: referralError } = await supabase
+            .from('referral_programs')
+            .select('id, customer_id, organization_id')
+            .eq('referral_code', formData.referralCode.trim())
+            .eq('organization_id', organizationId)
+            .eq('is_active', true)
+            .single();
+
+          if (referralError || !referralProgram) {
+            console.warn('⚠️ Codice referral non trovato o non valido');
+            addDebugInfo('⚠️ Codice referral non valido');
+          } else if (referralProgram.customer_id === createdCustomer.id) {
+            console.warn('⚠️ Non puoi usare il tuo stesso codice referral');
+            addDebugInfo('⚠️ Codice referral non valido (stesso utente)');
+          } else {
+            console.log('✅ Referrer trovato:', referralProgram);
+            addDebugInfo(`✅ Referrer trovato: ${referralProgram.customer_id}`);
+
+            // 2. Crea record in referral_conversions
+            const { data: conversion, error: conversionError } = await supabase
+              .from('referral_conversions')
+              .insert({
+                organization_id: organizationId,
+                referrer_id: referralProgram.customer_id,
+                referee_id: createdCustomer.id,
+                referral_program_id: referralProgram.id,
+                referral_code: formData.referralCode.trim(),
+                status: 'completed', // Immediately completed
+                points_awarded_referrer: 50, // Punti bonus per chi ha invitato
+                points_awarded_referee: 50, // Punti bonus per il nuovo cliente
+                reward_type: 'points',
+                source: 'registration_wizard',
+                converted_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (conversionError) {
+              console.error('❌ Errore creazione referral conversion:', conversionError);
+              addDebugInfo('❌ Errore salvataggio referral');
+            } else {
+              console.log('✅ Referral conversion creata:', conversion);
+              addDebugInfo('✅ Referral registrato con successo!');
+
+              // 3. Assegna punti bonus al referrer
+              const { error: referrerPointsError } = await supabase
+                .from('customers')
+                .update({
+                  points: supabase.raw('points + 50')
+                })
+                .eq('id', referralProgram.customer_id);
+
+              if (referrerPointsError) {
+                console.error('❌ Errore assegnazione punti al referrer:', referrerPointsError);
+              } else {
+                console.log('✅ Punti bonus assegnati al referrer');
+                addDebugInfo('✅ Punti bonus assegnati');
+              }
+
+              // 4. Assegna punti bonus anche al nuovo cliente
+              const { error: refereePointsError } = await supabase
+                .from('customers')
+                .update({
+                  points: supabase.raw('points + 50')
+                })
+                .eq('id', createdCustomer.id);
+
+              if (refereePointsError) {
+                console.error('❌ Errore assegnazione punti al nuovo cliente:', refereePointsError);
+              } else {
+                console.log('✅ Punti bonus assegnati al nuovo cliente');
+              }
             }
+          }
+        } catch (referralErr) {
+          // Non-blocking error - don't fail registration if referral fails
+          console.error('❌ Errore processamento referral:', referralErr);
+          addDebugInfo('⚠️ Errore processamento referral (ignorato)');
+        }
+      }
+
+      // 📧 Invia email di attivazione (non-blocking)
+      if (createdCustomer.email && organization && organization.slug) {
+        try {
+          console.log('📧 Invio email di attivazione a:', createdCustomer.email);
+          addDebugInfo('📧 Invio email di attivazione...');
+
+          const emailResult = await emailService.sendActivationEmail(
+            createdCustomer.email,
+            createdCustomer.name,
+            organizationId,
+            organization.name,
+            activationToken,
+            organization.slug
           );
-          console.log('✅ Email di benvenuto inviata con successo');
-          addDebugInfo('📧 Email di benvenuto inviata!');
+
+          if (emailResult.success) {
+            console.log('✅ Email di attivazione inviata con successo');
+            addDebugInfo('✅ Email di attivazione inviata!');
+          } else {
+            console.error('⚠️ Errore invio email di attivazione:', emailResult.error);
+            addDebugInfo('⚠️ Email non inviata (errore)');
+          }
         } catch (emailError) {
           // Non-blocking error - don't fail registration if email fails
-          console.error('⚠️ Errore invio email di benvenuto:', emailError);
+          console.error('⚠️ Errore invio email di attivazione:', emailError);
           addDebugInfo('⚠️ Email non inviata (errore ignorato)');
         }
       } else {
         if (!createdCustomer.email) {
-          console.log('⏭️  Email non fornita, skip welcome email');
+          console.log('⏭️  Email non fornita, skip activation email');
+          addDebugInfo('⏭️  Email non fornita');
         }
         if (!organization) {
-          console.log('⏭️  Dati organizzazione non disponibili, skip welcome email');
+          console.log('⏭️  Dati organizzazione non disponibili, skip activation email');
+          addDebugInfo('⏭️  Org non disponibile');
+        }
+        if (!organization?.slug) {
+          console.log('⏭️  Slug organizzazione non disponibile, skip activation email');
+          addDebugInfo('⏭️  Slug non disponibile');
         }
       }
 

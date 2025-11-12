@@ -24,7 +24,8 @@ import {
   MdFlashOn,
   MdPublic,
   MdPalette,
-  MdLanguage
+  MdLanguage,
+  MdShare
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -89,6 +90,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'members', icon: MdPeople, label: 'Clienti', feature: null },
     { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
     { id: 'rewards', icon: MdCardGiftcard, label: 'Premi', feature: 'rewards' },
+    { id: 'referral', icon: MdShare, label: 'Sistema Referral', feature: null },
     { id: 'gift-certificates', icon: MdCardGiftcard, label: 'Gift Certificates', feature: null },
     { id: 'subscriptions', icon: MdCardGiftcard, label: 'Membership', feature: null },
     { id: 'categories', icon: MdCategory, label: 'Categorie', feature: 'categories' },
@@ -120,6 +122,9 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       'members': '#3b82f6',
       'loyalty-tiers': '#f59e0b',
       'rewards': '#10b981',
+      'referral': '#8b5cf6',
+      'gift-certificates': '#ec4899',
+      'subscriptions': '#06b6d4',
       'categories': '#8b5cf6',
       'marketing-campaigns': '#f59e0b',
       'team-management': '#3b82f6',

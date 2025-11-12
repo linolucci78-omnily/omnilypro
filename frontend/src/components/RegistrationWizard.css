@@ -238,7 +238,19 @@
 
 .input-with-icon input,
 .input-with-icon select {
-  padding-left: 48px !important;
+  padding-left: 52px !important;
+}
+
+/* Mobile - aumenta lo spazio tra icona e testo */
+@media (max-width: 1024px) {
+  .input-icon {
+    left: 12px;
+  }
+
+  .input-with-icon input,
+  .input-with-icon select {
+    padding-left: 300px !important;
+  }
 }
 
 .form-group input,
