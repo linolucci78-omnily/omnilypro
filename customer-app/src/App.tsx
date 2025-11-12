@@ -22,7 +22,8 @@ function RootRedirect() {
 
     if (savedSlug) {
       console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
-      navigate(`/${savedSlug}/home`, { replace: true })
+      // Redirect to organization index - it will handle login/home routing
+      navigate(`/${savedSlug}`, { replace: true })
     } else {
       // Show message after 1 second if no saved slug
       setTimeout(() => setShowMessage(true), 1000)
