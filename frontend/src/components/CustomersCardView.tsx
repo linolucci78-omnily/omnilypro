@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, Award, Euro, TrendingUp, Mail, Phone, MapPin, Star, Crown, Sparkles, Medal, Zap, Trophy, Shield, Gem } from 'lucide-react'
+import { User, Award, Euro, TrendingUp, Mail, Phone, MapPin, Star, Crown, Sparkles, Medal, Zap, Trophy, Shield, Gem, Cake } from 'lucide-react'
 import './CustomersCardView.css'
 import type { Customer } from '../lib/supabase'
 
@@ -29,6 +29,18 @@ const CustomersCardView: React.FC<CustomersCardViewProps> = ({
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const calculateAge = (birthDate: string | undefined): number | null => {
+    if (!birthDate) return null
+    const today = new Date()
+    const birth = new Date(birthDate)
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age
   }
 
   const getTierInfo = (points: number) => {
@@ -132,6 +144,12 @@ const CustomersCardView: React.FC<CustomersCardViewProps> = ({
                     <div className="contact-item">
                       <MapPin size={14} />
                       <span>{customer.address}</span>
+                    </div>
+                  )}
+                  {customer.birth_date && calculateAge(customer.birth_date) !== null && (
+                    <div className="contact-item">
+                      <Cake size={14} />
+                      <span>{calculateAge(customer.birth_date)} anni</span>
                     </div>
                   )}
                 </div>

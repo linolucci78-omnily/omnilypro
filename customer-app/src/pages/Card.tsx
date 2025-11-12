@@ -15,13 +15,8 @@ export default function Card() {
     return null
   }
 
-  // QR Code data
-  const qrData = JSON.stringify({
-    customer_id: customer.id,
-    organization_id: customer.organization_id,
-    type: 'customer_card',
-    timestamp: new Date().toISOString()
-  })
+  // QR Code data - stesso formato del POS per compatibilità
+  const qrData = `OMNILY_CUSTOMER:${customer.id}`
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '80px', background: 'var(--gray-50)' }}>

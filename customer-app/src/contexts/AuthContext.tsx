@@ -96,6 +96,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error = result.error
       }
 
+      // Se ancora non trovato, prova con email dell'utente Auth
+      if (error && error.code === 'PGRST116') {
+        console.log('🔄 Customer not found by id, trying by email...')
+
+        // Ottieni l'email dell'utente Auth
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (user?.email) {
+          const result = await supabase
+            .from('customers')
+            .select('*')
+            .eq('email', user.email)
+            .eq('organization_id', organization.id)
+            .single()
+
+          data = result.data
+          error = result.error
+
+          // Se trovato per email, aggiorna auth_user_id per la prossima volta
+          if (data && !error) {
+            console.log('✅ Customer found by email, updating auth_user_id...')
+            await supabase
+              .from('customers')
+              .update({ auth_user_id: userId })
+              .eq('id', data.id)
+          }
+        }
+      }
+
       if (error) throw error
 
       console.log('✅ Customer loaded:', data.name)

@@ -5,6 +5,7 @@ import { customersApi, supabase } from '../lib/supabase';
 import { sendWelcomeEmail } from '../services/emailAutomationService';
 import { emailService } from '../services/emailService';
 import GDPRConsent from './GDPRConsent';
+import AddressAutocomplete from './AddressAutocomplete';
 import './RegistrationWizard.css';
 
 interface FormData {
@@ -1224,11 +1225,17 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       }
 
       console.log('🔄 Ricarico lista clienti...');
-      
+
       onCustomerCreated();
-      
+
+      // Mostra messaggio di conferma
+      showToast('✅ Cliente registrato con successo! Invio email per accedere all\'app', 'success');
+
       console.log('❌ Chiudo modal...');
-      onClose();
+      // Ritarda la chiusura per mostrare il messaggio
+      setTimeout(() => {
+        onClose();
+      }, 2000);
       
     } catch (error: any) {
       console.error('❌ Errore durante la registrazione:', error);
@@ -1428,15 +1435,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             <div className="form-row">
               <div className="form-group">
                 <label>Indirizzo</label>
-                <div className="input-with-icon">
-                  <MapPin size={18} className="input-icon" />
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="Via, numero civico"
-                  />
-                </div>
+                <AddressAutocomplete
+                  value={formData.address}
+                  onChange={(address) => handleInputChange('address', address)}
+                  placeholder="Via, numero civico"
+                />
               </div>
               <div className="form-group">
                 <label>Città</label>

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, Camera, Upload, User, Mail, Phone, MapPin, Save, Loader, Calendar, UserCheck, Bell, Users, FileText, Gift, CheckCircle, Download } from 'lucide-react'
+import { X, Camera, Upload, User, Mail, Phone, MapPin, Save, Loader, Calendar, UserCheck, Bell, Users, FileText, Gift, CheckCircle, Download, Lock, AlertCircle } from 'lucide-react'
 import './EditCustomerModal.css'
 import { supabase } from '../lib/supabase'
 import type { Customer } from '../lib/supabase'
+import AddressAutocomplete from './AddressAutocomplete'
 
 interface EditCustomerModalProps {
   isOpen: boolean
@@ -32,13 +33,22 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
     referred_by: customer.referred_by || '',
     notes: customer.notes || '',
     marketing_consent: customer.marketing_consent || false,
-    notifications_enabled: customer.notifications_enabled || false
+    notifications_enabled: customer.notifications_enabled || false,
+    password: '' // Password temporanea per accesso app
   })
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(customer.avatar_url || null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(customer.avatar_url || null)
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
+
+  const showToast = (message: string, type: 'error' | 'success' | 'info' = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
+  }
 
   // Rileva se è un dispositivo touch (mobile/tablet)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
@@ -59,10 +69,13 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       referred_by: customer.referred_by || '',
       notes: customer.notes || '',
       marketing_consent: customer.marketing_consent || false,
-      notifications_enabled: customer.notifications_enabled || false
+      notifications_enabled: customer.notifications_enabled || false,
+      password: '' // Reset password
     })
     setAvatarUrl(customer.avatar_url || null)
     setAvatarPreview(customer.avatar_url || null)
+    setPasswordSuccess(false)
+    setPasswordError(null)
   }, [customer])
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -139,8 +152,47 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 
   const handleSave = async () => {
     setIsSaving(true)
+    setPasswordError(null)
 
     try {
+      // Se è stata fornita una password, imposta la password tramite Edge Function
+      if (formData.password && formData.password.length > 0) {
+        console.log('🔑 Impostazione password per cliente:', customer.id)
+
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/set-customer-password`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.access_token}`
+              },
+              body: JSON.stringify({
+                customer_id: customer.id,
+                password: formData.password
+              })
+            }
+          )
+
+          const result = await response.json()
+
+          if (!response.ok) {
+            throw new Error(result.error || 'Errore impostazione password')
+          }
+
+          console.log('✅ Password impostata con successo')
+          setPasswordSuccess(true)
+        } catch (passwordError: any) {
+          console.error('❌ Errore impostazione password:', passwordError)
+          setPasswordError(passwordError.message || 'Errore durante l\'impostazione della password')
+          // Non blocchiamo il salvataggio degli altri dati
+        }
+      }
+
+      // Salva le altre modifiche al cliente
       const updates: Partial<Customer> = {
         name: formData.name,
         email: formData.email,
@@ -161,9 +213,19 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       await onUpdate(customer.id, updates)
 
       console.log('✅ Cliente aggiornato con successo')
-      onClose()
+
+      // Mostra messaggio di successo
+      showToast('✅ Dati cliente aggiornati con successo!', 'success')
+
+      // Chiudi modal dopo 2 secondi (solo se non ci sono errori di password)
+      if (!passwordError) {
+        setTimeout(() => {
+          onClose()
+        }, 2000)
+      }
     } catch (error) {
       console.error('❌ Errore salvataggio cliente:', error)
+      showToast('❌ Errore durante il salvataggio dei dati', 'error')
     } finally {
       setIsSaving(false)
     }
@@ -741,6 +803,61 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
               />
             </div>
 
+            {/* Password per Accesso App */}
+            <div className="form-group">
+              <label>
+                <Lock size={18} />
+                Password App Cliente
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => {
+                  handleInputChange('password', e.target.value)
+                  setPasswordSuccess(false)
+                  setPasswordError(null)
+                }}
+                placeholder="Minimo 6 caratteri"
+              />
+              <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                Imposta una password per permettere al cliente di accedere all'app. Lascia vuoto per non modificare.
+              </small>
+              {passwordSuccess && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginTop: '0.5rem',
+                  padding: '0.5rem',
+                  background: '#d1fae5',
+                  border: '1px solid #10b981',
+                  borderRadius: '0.375rem',
+                  color: '#065f46',
+                  fontSize: '0.875rem'
+                }}>
+                  <CheckCircle size={16} />
+                  <span>Password impostata con successo! Il cliente può ora accedere all'app.</span>
+                </div>
+              )}
+              {passwordError && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginTop: '0.5rem',
+                  padding: '0.5rem',
+                  background: '#fee2e2',
+                  border: '1px solid #ef4444',
+                  borderRadius: '0.375rem',
+                  color: '#991b1b',
+                  fontSize: '0.875rem'
+                }}>
+                  <AlertCircle size={16} />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+            </div>
+
             {/* Telefono */}
             <div className="form-group">
               <label>
@@ -755,16 +872,15 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
               />
             </div>
 
-            {/* Indirizzo */}
+            {/* Indirizzo con Autocomplete Google */}
             <div className="form-group">
               <label>
                 <MapPin size={18} />
                 Indirizzo
               </label>
-              <input
-                type="text"
+              <AddressAutocomplete
                 value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
+                onChange={(address) => handleInputChange('address', address)}
                 placeholder="Via Roma 123, Milano"
               />
             </div>
@@ -959,6 +1075,31 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 10000,
+            background: toast.type === 'success' ? '#10b981' : toast.type === 'error' ? '#ef4444' : '#3b82f6',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            minWidth: '300px',
+            maxWidth: '500px',
+            animation: 'slideInRight 0.3s ease-out'
+          }}
+        >
+          <span style={{ fontSize: '1.125rem', fontWeight: '500' }}>{toast.message}</span>
+        </div>
+      )}
     </>
   )
 }

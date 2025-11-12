@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  Plus, 
-  Download, 
-  Upload, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Users,
+  Search,
+  Filter,
+  Plus,
+  Download,
+  Upload,
+  Eye,
+  Edit,
+  Trash2,
   Star,
   Gift,
   Calendar,
@@ -22,7 +22,8 @@ import {
   Award,
   Clock,
   Euro,
-  Zap
+  Zap,
+  Cake
 } from 'lucide-react'
 import PageLoader from '../components/UI/PageLoader'
 import './BusinessCustomers.css'
@@ -235,6 +236,18 @@ const BusinessCustomers: React.FC = () => {
     return new Date(dateString).toLocaleDateString('it-IT')
   }
 
+  const calculateAge = (birthDate: string | undefined): number | null => {
+    if (!birthDate) return null
+    const today = new Date()
+    const birth = new Date(birthDate)
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age
+  }
+
   const getCustomerStats = () => {
     return {
       total: customers.length,
@@ -426,6 +439,12 @@ const BusinessCustomers: React.FC = () => {
                         <div className="customer-name">{customer.name}</div>
                         <div className="customer-joined">
                           Cliente dal {formatDate(customer.joinDate)}
+                          {customer.birthDate && calculateAge(customer.birthDate) !== null && (
+                            <span style={{ marginLeft: '8px', color: '#6b7280' }}>
+                              • <Cake size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '2px' }} />
+                              {calculateAge(customer.birthDate)} anni
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
