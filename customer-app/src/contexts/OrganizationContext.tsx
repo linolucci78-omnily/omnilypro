@@ -99,64 +99,10 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
     // Update title
     document.title = `${org.name} - Loyalty App`
 
-    // Update PWA manifest link with organization slug
-    updateManifestLink()
-
     console.log('🎨 Branding applied:', {
       primary: org.primary_color,
       secondary: org.secondary_color
     })
-  }
-
-  const updateManifestLink = () => {
-    // Remove existing manifest link
-    const existingManifest = document.querySelector('link[rel="manifest"]')
-    if (existingManifest) {
-      existingManifest.remove()
-    }
-
-    // Create dynamic manifest as data URL
-    const manifest = {
-      name: `${organization?.name || 'Omnily'} - Loyalty`,
-      short_name: organization?.name || 'Omnily',
-      description: 'Your loyalty card, always with you',
-      theme_color: organization?.primary_color || '#dc2626',
-      background_color: '#ffffff',
-      display: 'standalone',
-      orientation: 'portrait',
-      scope: '/',
-      start_url: `/${slug}`,
-      icons: [
-        {
-          src: '/pwa-192x192.png',
-          sizes: '192x192',
-          type: 'image/png'
-        },
-        {
-          src: '/pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png'
-        },
-        {
-          src: '/pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable'
-        }
-      ]
-    }
-
-    // Create data URL for manifest
-    const manifestJson = JSON.stringify(manifest)
-    const manifestDataUrl = `data:application/json;charset=utf-8,${encodeURIComponent(manifestJson)}`
-
-    // Add new manifest link
-    const manifestLink = document.createElement('link')
-    manifestLink.rel = 'manifest'
-    manifestLink.href = manifestDataUrl
-    document.head.appendChild(manifestLink)
-
-    console.log('📱 PWA Manifest updated with start_url:', `/${slug}`)
   }
 
   if (loading) {
