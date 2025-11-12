@@ -99,8 +99,8 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
     // Update title
     document.title = `${org.name} - Loyalty App`
 
-    // Update PWA manifest with organization slug
-    updateManifest(org)
+    // Update PWA manifest link with organization slug
+    updateManifestLink()
 
     console.log('🎨 Branding applied:', {
       primary: org.primary_color,
@@ -108,55 +108,20 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
     })
   }
 
-  const updateManifest = (org: Organization) => {
+  const updateManifestLink = () => {
     // Remove existing manifest link
     const existingManifest = document.querySelector('link[rel="manifest"]')
     if (existingManifest) {
       existingManifest.remove()
     }
 
-    // Create dynamic manifest
-    const manifest = {
-      name: `${org.name} - Loyalty`,
-      short_name: org.name,
-      description: 'Your loyalty card, always with you',
-      theme_color: org.primary_color,
-      background_color: '#ffffff',
-      display: 'standalone',
-      orientation: 'portrait',
-      scope: '/',
-      start_url: `/${slug}`,
-      icons: [
-        {
-          src: org.logo_url || '/pwa-192x192.png',
-          sizes: '192x192',
-          type: 'image/png'
-        },
-        {
-          src: org.logo_url || '/pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png'
-        },
-        {
-          src: org.logo_url || '/pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable'
-        }
-      ]
-    }
-
-    // Create blob URL for manifest
-    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' })
-    const manifestURL = URL.createObjectURL(manifestBlob)
-
-    // Add new manifest link
+    // Add new manifest link pointing to dynamic API endpoint
     const manifestLink = document.createElement('link')
     manifestLink.rel = 'manifest'
-    manifestLink.href = manifestURL
+    manifestLink.href = `/api/manifest.json?org=${slug}`
     document.head.appendChild(manifestLink)
 
-    console.log('📱 PWA Manifest updated with start_url:', `/${slug}`)
+    console.log('📱 PWA Manifest link updated:', `/api/manifest.json?org=${slug}`)
   }
 
   if (loading) {
