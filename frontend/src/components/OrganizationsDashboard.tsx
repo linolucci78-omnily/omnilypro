@@ -2764,7 +2764,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             organization={currentOrganization}
             primaryColor={getActiveColors().primary}
             secondaryColor={getActiveColors().secondary}
-            onUpdate={() => loadOrganizations()}
+            onUpdate={() => fetchOrganizations()}
           />
         ) : null
 

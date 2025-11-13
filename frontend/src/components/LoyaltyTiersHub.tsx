@@ -58,6 +58,8 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
   }, [organization, organizationId])
 
   const loadTierStats = async () => {
+    if (!organization) return
+
     setLoadingStats(true)
     try {
       // Get all customers for this organization with their points
