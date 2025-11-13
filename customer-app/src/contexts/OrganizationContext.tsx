@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../services/supabase'
 import type { Organization, LoyaltyTier } from '../types'
 import { setCookie } from '../utils/cookies'
+import { injectDynamicManifest } from '../utils/dynamicManifest'
 
 interface OrganizationContextType {
   organization: Organization | null
@@ -78,6 +79,11 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
       // Load loyalty tiers for this organization
       const tiers = orgData.loyalty_tiers as LoyaltyTier[] || []
       setLoyaltyTiers(tiers)
+
+      // Inject dynamic manifest for PWA installation
+      if (slug) {
+        injectDynamicManifest(slug, orgData.name, orgData.primary_color)
+      }
 
       // Apply branding CSS variables
       applyBranding(orgData)
