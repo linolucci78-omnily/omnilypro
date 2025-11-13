@@ -392,7 +392,7 @@ const EmailAutomationsPanel: React.FC<EmailAutomationsPanelProps> = ({
           📧 Le email utilizzano i template globali del sistema. Personalizzabili per la tua organizzazione.
         </p>
       </div>
-            </div>
+    </div>
           )}
     </>
   )
