@@ -13,7 +13,6 @@ import {
   Plus
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import LoyaltyTierFullPage from './LoyaltyTierFullPage'
 import './LoyaltyTiersHub.css'
@@ -35,7 +34,7 @@ interface LoyaltyTiersHubProps {
   onUpdate: () => void
 }
 
-type ViewMode = 'hub' | 'display' | 'manage' | 'stats' | 'tier-edit'
+type ViewMode = 'hub' | 'manage' | 'stats' | 'tier-edit'
 
 const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
   organizationId,
@@ -112,29 +111,7 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
         </div>
 
         <div className="loyalty-tiers-hub-cards">
-          {/* Card 1: Visualizza Livelli */}
-          <div
-            className="loyalty-hub-card loyalty-hub-card-primary"
-            onClick={() => setViewMode('display')}
-            style={{ borderColor: primaryColor }}
-          >
-            <div className="loyalty-hub-card-icon" style={{ background: primaryColor }}>
-              <Star size={32} />
-            </div>
-            <div className="loyalty-hub-card-content">
-              <h3>Visualizza Livelli</h3>
-              <p>Esplora tutti i livelli di fedeltà configurati con dettagli completi</p>
-              <ul className="loyalty-hub-card-features">
-                <li><Star size={16} /> {tierCount} livell{tierCount === 1 ? 'o' : 'i'} configurati</li>
-                <li><Award size={16} /> Range punti e moltiplicatori</li>
-                <li><Gift size={16} /> Vantaggi per ogni livello</li>
-                <li><Users size={16} /> Visualizzazione clienti</li>
-              </ul>
-            </div>
-            <div className="loyalty-hub-card-arrow">→</div>
-          </div>
-
-          {/* Card 2: Gestisci Livelli */}
+          {/* Card 1: Gestisci Livelli */}
           <div
             className="loyalty-hub-card loyalty-hub-card-primary"
             onClick={() => setViewMode('manage')}
@@ -156,7 +133,7 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
             <div className="loyalty-hub-card-arrow">→</div>
           </div>
 
-          {/* Card 3: Statistiche */}
+          {/* Card 2: Statistiche */}
           <div
             className="loyalty-hub-card loyalty-hub-card-primary"
             onClick={() => setViewMode('stats')}
@@ -177,41 +154,6 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
             </div>
             <div className="loyalty-hub-card-arrow">→</div>
           </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Render Display View
-  const renderDisplayView = () => {
-    return (
-      <div className="loyalty-tiers-section-view">
-        <div className="loyalty-tiers-section-header">
-          <h2>Livelli Configurati</h2>
-          <p>Visualizza tutti i livelli di fedeltà con i dettagli completi</p>
-        </div>
-        <div className="loyalty-tiers-section-content">
-          {organization?.loyalty_tiers && organization.loyalty_tiers.length > 0 ? (
-            <LoyaltyTiersDisplay
-              tiers={organization.loyalty_tiers}
-              primaryColor={primaryColor}
-              onEdit={() => setShowTiersConfig(true)}
-            />
-          ) : (
-            <div className="empty-state-section">
-              <Star size={64} style={{ color: '#cbd5e1' }} />
-              <h3>Nessun livello configurato</h3>
-              <p>Crea i tuoi livelli di fedeltà per premiare i clienti più fedeli</p>
-              <button
-                className="btn-create-tiers"
-                onClick={() => setShowTiersConfig(true)}
-                style={{ background: primaryColor }}
-              >
-                <Edit3 size={20} />
-                Crea Primo Livello
-              </button>
-            </div>
-          )}
         </div>
       </div>
     )
@@ -462,14 +404,6 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
       {/* Navigation Tabs */}
       <div className="loyalty-tiers-nav" style={{ ['--primary-color' as any]: primaryColor }}>
         <button
-          className={`nav-tab ${viewMode === 'display' ? 'active' : ''}`}
-          onClick={() => setViewMode('display')}
-          style={viewMode === 'display' ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
-        >
-          <Star size={20} />
-          Visualizza
-        </button>
-        <button
           className={`nav-tab ${viewMode === 'manage' ? 'active' : ''}`}
           onClick={() => setViewMode('manage')}
           style={viewMode === 'manage' ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
@@ -489,7 +423,6 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
 
       {/* Content */}
       <div className="loyalty-tiers-content">
-        {viewMode === 'display' && renderDisplayView()}
         {viewMode === 'manage' && renderManageView()}
         {viewMode === 'stats' && renderStatsView()}
       </div>
