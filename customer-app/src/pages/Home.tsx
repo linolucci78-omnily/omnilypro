@@ -1,17 +1,24 @@
+import { useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrganization } from '../contexts/OrganizationContext'
 import { useNavigate, useParams } from 'react-router-dom'
 import BottomNav from '../components/Layout/BottomNav'
 
 export default function Home() {
-  const { customer } = useAuth()
+  const { customer, loading: authLoading } = useAuth()
   const { organization, loyaltyTiers } = useOrganization()
   const navigate = useNavigate()
   const { slug } = useParams()
 
   // Redirect to login if not authenticated
-  if (!customer) {
-    navigate(`/${slug}/login`)
+  useEffect(() => {
+    if (!authLoading && !customer) {
+      navigate(`/${slug}/login`, { replace: true })
+    }
+  }, [customer, authLoading, navigate, slug])
+
+  // Show loading while checking auth
+  if (authLoading || !customer) {
     return null
   }
 
