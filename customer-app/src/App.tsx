@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { OrganizationProvider } from './contexts/OrganizationContext'
 import { AuthProvider } from './contexts/AuthContext'
 import Login from './pages/Login'
@@ -13,18 +13,16 @@ import './styles/global.css'
 
 // Root redirect component - redirects to saved org slug
 function RootRedirect() {
-  const navigate = useNavigate()
-
   // Check localStorage immediately, synchronously
   const savedSlug = localStorage.getItem('omnily_org_slug')
 
   useEffect(() => {
     if (savedSlug) {
-      console.log('🔄 PWA: Redirecting to saved organization:', savedSlug)
-      // Redirect immediately to organization
-      navigate(`/${savedSlug}/home`, { replace: true })
+      console.log('🔄 PWA Root: Redirecting to saved organization:', savedSlug)
+      // Use window.location.replace for faster, more reliable redirect
+      window.location.replace(`/${savedSlug}/home`)
     }
-  }, [navigate, savedSlug])
+  }, [savedSlug])
 
   // If we have a saved slug, show loading while redirecting
   if (savedSlug) {

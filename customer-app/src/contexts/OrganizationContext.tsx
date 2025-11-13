@@ -37,6 +37,11 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
       return
     }
 
+    // Save slug IMMEDIATELY, even before loading organization
+    // This ensures it's saved before user installs PWA
+    localStorage.setItem('omnily_org_slug', slug)
+    console.log('💾 Slug saved immediately to localStorage:', slug)
+
     loadOrganization()
   }, [slug])
 
