@@ -9,12 +9,23 @@ import {
   ArrowLeft,
   TrendingUp,
   Gift,
-  Award
+  Award,
+  Plus
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
+import LoyaltyTierFullPage from './LoyaltyTierFullPage'
 import './LoyaltyTiersHub.css'
+
+interface LoyaltyTier {
+  name: string
+  threshold: string
+  maxThreshold?: string
+  multiplier: string
+  color: string
+  benefits: string[]
+}
 
 interface LoyaltyTiersHubProps {
   organizationId: string
@@ -24,7 +35,7 @@ interface LoyaltyTiersHubProps {
   onUpdate: () => void
 }
 
-type ViewMode = 'hub' | 'display' | 'manage' | 'stats'
+type ViewMode = 'hub' | 'display' | 'manage' | 'stats' | 'tier-edit'
 
 const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
   organizationId,
@@ -37,6 +48,8 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
   const [showTiersConfig, setShowTiersConfig] = useState(false)
   const [tierStats, setTierStats] = useState<any[]>([])
   const [loadingStats, setLoadingStats] = useState(false)
+  const [editingTier, setEditingTier] = useState<LoyaltyTier | null>(null)
+  const [editingTierIndex, setEditingTierIndex] = useState<number | null>(null)
 
   // Load tier statistics
   useEffect(() => {
@@ -204,8 +217,45 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
     )
   }
 
+  // Handle Save Tier
+  const handleSaveTier = async (tierData: LoyaltyTier) => {
+    try {
+      const currentTiers = organization?.loyalty_tiers || []
+      let updatedTiers: LoyaltyTier[]
+
+      if (editingTierIndex !== null) {
+        // Update existing tier
+        updatedTiers = [...currentTiers]
+        updatedTiers[editingTierIndex] = tierData
+      } else {
+        // Add new tier
+        updatedTiers = [...currentTiers, tierData]
+      }
+
+      // Save to database
+      const { error } = await supabase
+        .from('organizations')
+        .update({ loyalty_tiers: updatedTiers })
+        .eq('id', organizationId)
+
+      if (error) throw error
+
+      // Reload and navigate back
+      await onUpdate()
+      await loadTierStats()
+      setEditingTier(null)
+      setEditingTierIndex(null)
+      setViewMode('manage')
+    } catch (error) {
+      console.error('Error saving tier:', error)
+      alert('Errore nel salvataggio del livello')
+    }
+  }
+
   // Render Manage View
   const renderManageView = () => {
+    const tiers = organization?.loyalty_tiers || []
+
     return (
       <div className="loyalty-tiers-section-view">
         <div className="loyalty-tiers-section-header">
@@ -213,41 +263,64 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
           <p>Crea e modifica i livelli del tuo programma fedeltà</p>
         </div>
         <div className="loyalty-tiers-section-content">
-          <div className="manage-actions-card">
-            <div className="manage-action-item">
-              <div className="manage-action-icon" style={{ background: primaryColor }}>
-                <Edit3 size={32} />
-              </div>
-              <div className="manage-action-content">
-                <h3>{organization?.loyalty_tiers?.length > 0 ? 'Modifica Livelli' : 'Crea Livelli'}</h3>
-                <p>Apri il pannello di configurazione per gestire i livelli</p>
-                <button
-                  className="btn-manage-action"
-                  onClick={() => setShowTiersConfig(true)}
-                  style={{ background: primaryColor }}
-                >
-                  <Edit3 size={20} />
-                  {organization?.loyalty_tiers?.length > 0 ? 'Modifica Livelli' : 'Crea Livelli'}
-                </button>
-              </div>
-            </div>
-
-            <div className="manage-info-box">
-              <h4>Informazioni</h4>
-              <div className="manage-info-row">
-                <span>Livelli configurati:</span>
-                <strong>{organization?.loyalty_tiers?.length || 0}</strong>
-              </div>
-              <div className="manage-info-row">
-                <span>Ultimo aggiornamento:</span>
-                <strong>
-                  {organization?.updated_at
-                    ? new Date(organization.updated_at).toLocaleDateString('it-IT')
-                    : 'Mai'}
-                </strong>
-              </div>
-            </div>
+          {/* Add New Tier Button */}
+          <div style={{ marginBottom: '2rem' }}>
+            <button
+              className="btn-create-tier"
+              onClick={() => {
+                setEditingTier(null)
+                setEditingTierIndex(null)
+                setViewMode('tier-edit')
+              }}
+              style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+            >
+              <Plus size={20} />
+              Aggiungi Nuovo Livello
+            </button>
           </div>
+
+          {/* Tiers Grid */}
+          {tiers.length > 0 ? (
+            <div className="tiers-manage-grid">
+              {tiers.map((tier: LoyaltyTier, index: number) => (
+                <div key={index} className="tier-manage-card" style={{ borderLeftColor: tier.color }}>
+                  <div className="tier-manage-header">
+                    <div className="tier-manage-icon" style={{ background: tier.color }}>
+                      <Star size={24} />
+                    </div>
+                    <h3>{tier.name}</h3>
+                  </div>
+                  <div className="tier-manage-body">
+                    <div className="tier-manage-info">
+                      <span>Range: {tier.threshold} - {tier.maxThreshold || '∞'} punti</span>
+                      <span>Moltiplicatore: {tier.multiplier}x</span>
+                      {tier.benefits && tier.benefits.length > 0 && (
+                        <span>{tier.benefits.length} vantaggio/i</span>
+                      )}
+                    </div>
+                    <button
+                      className="btn-edit-tier"
+                      onClick={() => {
+                        setEditingTier(tier)
+                        setEditingTierIndex(index)
+                        setViewMode('tier-edit')
+                      }}
+                      style={{ color: primaryColor }}
+                    >
+                      <Edit3 size={18} />
+                      Modifica
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state-section">
+              <Star size={64} style={{ color: '#cbd5e1' }} />
+              <h3>Nessun livello configurato</h3>
+              <p>Crea il tuo primo livello di fedeltà!</p>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -314,6 +387,20 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
           )}
         </div>
       </div>
+    )
+  }
+
+  // Render Full-Page Tier Editor
+  if (viewMode === 'tier-edit') {
+    return (
+      <LoyaltyTierFullPage
+        tier={editingTier}
+        organizationId={organizationId}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        onBack={() => setViewMode('manage')}
+        onSave={handleSaveTier}
+      />
     )
   }
 
