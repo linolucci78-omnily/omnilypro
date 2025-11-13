@@ -18,7 +18,7 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
-        start_url: '/app-shell.html',
+        start_url: '/app-launcher.html',
         icons: [
           {
             src: 'pwa-192x192.png',
