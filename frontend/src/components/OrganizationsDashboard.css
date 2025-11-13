@@ -30,6 +30,8 @@
 }
 
 /* ========== POS HARDWARE PANEL ========== */
+/* COMMENTED OUT - Vecchio sistema POS rimosso, queste regole causavano spazio bianco */
+/*
 .pos-hardware-panel {
   width: 100%;
   background: linear-gradient(180deg, var(--secondary-color, #ef4444) 0%, var(--primary-color, #dc2626) 100%);
@@ -106,13 +108,16 @@
   color: var(--secondary-color, #ef4444);
   font-weight: 600;
 }
+*/
 
 /* Header principale in modalità POS */
+/* COMMENTED OUT - margin-top causava spazio bianco senza il pannello POS
 .main-header.pos-header {
   background: white;
   border-bottom: 2px solid var(--secondary-color, #ef4444);
-  margin-top: 140px; /* Spazio per il panel POS */
+  margin-top: 140px;
 }
+*/
 
 .current-status-badge {
   display: flex;
@@ -129,17 +134,15 @@
   border: 1px solid #fecaca;
 }
 
-/* Layout principale adattato per POS */
+/* Layout principale adattato per POS - RIMOSSO margin-top: 140px */
 .dashboard-layout.pos-mode .main-content {
   padding-top: 0 !important;
-  height: calc(100vh - 140px) !important;
-  margin-top: 140px !important;
+  margin-top: 0 !important; /* FIX: Era 140px e causava spazio bianco */
   overflow: hidden !important;
 }
 
 .dashboard-layout.pos-mode .dashboard-content,
 .dashboard-layout.pos-mode .dashboard-content.full-width {
-  height: calc(100vh - 140px) !important;
   overflow-y: auto !important;
   padding: 0 !important;
 }
@@ -157,6 +160,7 @@
 }
 
 /* Responsive per schermi POS più piccoli */
+/* COMMENTED OUT - Vecchie regole per pannello POS rimosso
 @media (max-width: 1024px) {
   .pos-panel-header {
     padding: 0.75rem 1rem;
@@ -184,6 +188,16 @@
     padding-top: 0 !important;
     height: calc(100vh - 120px) !important;
     margin-top: 120px !important;
+    overflow: hidden !important;
+  }
+}
+*/
+
+/* FIX: Regole responsive per POS senza margin-top */
+@media (max-width: 1024px) {
+  .dashboard-layout.pos-mode .main-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important; /* FIX: Era 120px */
     overflow: hidden !important;
   }
 
