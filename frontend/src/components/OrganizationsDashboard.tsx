@@ -3342,22 +3342,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       }
     >
       {/* DEBUG: POS Mode Indicator */}
-      {isPOSMode && (
-        <div style={{
-          position: 'fixed',
-          top: '10px',
-          left: '10px',
-          background: 'red',
-          color: 'white',
-          padding: '10px 20px',
-          borderRadius: '5px',
-          zIndex: 9999,
-          fontWeight: 'bold'
-        }}>
-          POS MODE ACTIVE
-        </div>
-      )}
-
       {/* Sidebar - Hidden in POS mode */}
       {!isPOSMode && (
         <div className="sidebar">
@@ -3422,57 +3406,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </button>
           <div className="version">Version 0.1.0 (48)</div>
         </div>
-        </div>
-      )}
-
-      {/* POS Mode - Hardware Test Panel */}
-      {isPOSMode && (
-        <div className="pos-hardware-panel">
-          <div className="pos-panel-header">
-            <div className="pos-logo">
-              <div className="logo-icon">🔧</div>
-              <span className="logo-text">OMNILY POS - TEST HARDWARE</span>
-            </div>
-            <div className="pos-org-name">{currentOrganization?.name || 'OMNILY PRO'}</div>
-          </div>
-          
-          <div className="pos-nav-tabs">
-            <button
-              className={`pos-nav-tab ${activeSection === 'pos-integration' ? 'active' : ''}`}
-              onClick={() => handleSectionChange('pos-integration')}
-            >
-              <Activity size={20} />
-              <span>Stato Hardware</span>
-            </button>
-            <button
-              className={`pos-nav-tab ${activeSection === 'stamps' ? 'active' : ''}`}
-              onClick={() => handleSectionChange('stamps')}
-            >
-              <Target size={20} />
-              <span>Test Tessere</span>
-            </button>
-            <button
-              className={`pos-nav-tab ${activeSection === 'gift-certificates' ? 'active' : ''}`}
-              onClick={() => handleSectionChange('gift-certificates')}
-            >
-              <CreditCard size={20} />
-              <span>Gift Certificates</span>
-            </button>
-            <button
-              className={`pos-nav-tab ${activeSection === 'email-automations' ? 'active' : ''}`}
-              onClick={() => handleSectionChange('email-automations')}
-            >
-              <Mail size={20} />
-              <span>Email Automations</span>
-            </button>
-            <button
-              className={`pos-nav-tab ${activeSection === 'subscriptions' ? 'active' : ''}`}
-              onClick={() => handleSectionChange('subscriptions')}
-            >
-              <Package size={20} />
-              <span>Membership</span>
-            </button>
-          </div>
         </div>
       )}
 
