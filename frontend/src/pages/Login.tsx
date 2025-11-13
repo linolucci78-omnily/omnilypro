@@ -30,10 +30,18 @@ const Login: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('pos') || urlParams.has('posomnily')) {
       setIsPosMode(true);
+      // Salva in localStorage per persistenza
+      localStorage.setItem('pos-mode', 'true');
+    }
+    // Controlla localStorage (per quando l'app si risveglia da standby)
+    else if (localStorage.getItem('pos-mode') === 'true') {
+      setIsPosMode(true);
+      console.log('📱 POS Mode ripristinato da localStorage');
     }
     // Fallback: controlla anche User-Agent per compatibilità
     else if (navigator.userAgent.includes('OMNILY-POS-APP')) {
       setIsPosMode(true);
+      localStorage.setItem('pos-mode', 'true');
     }
 
     // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect

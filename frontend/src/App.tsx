@@ -60,8 +60,19 @@ function App() {
   useMDMCommands()
 
   // Detect if running in POS mode (only posomnily=true)
-  const isPOSMode = typeof window !== 'undefined' &&
-    window.location.search.includes('posomnily=true')
+  // IMPORTANTE: Salva in localStorage per mantenere la modalità anche dopo standby
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('posomnily=true')) {
+      localStorage.setItem('pos-mode', 'true')
+      console.log('📱 POS Mode attivato e salvato in localStorage')
+    }
+  }, [])
+
+  // Controlla sia URL che localStorage
+  const isPOSMode = typeof window !== 'undefined' && (
+    window.location.search.includes('posomnily=true') ||
+    localStorage.getItem('pos-mode') === 'true'
+  )
 
   // Check if this should be customer display
   // IMPORTANTE: Solo se ESPLICITAMENTE customer=true nell'URL iniziale
