@@ -8,8 +8,10 @@ import TierLimitModal from './TierLimitModal';
 interface LoyaltyTier {
   name: string;
   threshold: string;
+  maxThreshold?: string; // Soglia massima (opzionale, per l'ultimo tier)
   multiplier: string;
   color: string;
+  benefits: string[]; // Array di benefici mostrati nell'app
 }
 
 interface LoyaltyTiersConfigPanelProps {
@@ -28,9 +30,29 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
   onSaved
 }) => {
   const [tiers, setTiers] = useState<LoyaltyTier[]>([
-    { name: 'Iniziale', threshold: '0', multiplier: '1', color: '#94a3b8' },
-    { name: 'Affezionato', threshold: '300', multiplier: '1.5', color: '#3b82f6' },
-    { name: 'VIP', threshold: '800', multiplier: '2', color: '#f59e0b' }
+    {
+      name: 'Iniziale',
+      threshold: '0',
+      maxThreshold: '299',
+      multiplier: '1',
+      color: '#94a3b8',
+      benefits: ['Accumulo punti base', 'Accesso alle offerte']
+    },
+    {
+      name: 'Affezionato',
+      threshold: '300',
+      maxThreshold: '799',
+      multiplier: '1.5',
+      color: '#3b82f6',
+      benefits: ['50% punti in più', 'Sconti esclusivi', 'Priority support']
+    },
+    {
+      name: 'VIP',
+      threshold: '800',
+      multiplier: '2',
+      color: '#f59e0b',
+      benefits: ['Punti doppi', 'Regali esclusivi', 'Eventi VIP', 'Consegna gratuita']
+    }
   ]);
 
   const [loading, setLoading] = useState(false);
@@ -83,8 +105,10 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
     setTiers([...tiers, {
       name: `Livello ${tiers.length + 1}`,
       threshold: '100',
+      maxThreshold: '200',
       multiplier: '1',
-      color: '#6b7280'
+      color: '#6b7280',
+      benefits: ['Inserisci benefici...']
     }]);
   };
 
@@ -110,6 +134,27 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
         return newErrors;
       });
     }
+  };
+
+  const addBenefit = (tierIndex: number) => {
+    const newTiers = [...tiers];
+    if (!newTiers[tierIndex].benefits) {
+      newTiers[tierIndex].benefits = [];
+    }
+    newTiers[tierIndex].benefits.push('Nuovo beneficio');
+    setTiers(newTiers);
+  };
+
+  const updateBenefit = (tierIndex: number, benefitIndex: number, value: string) => {
+    const newTiers = [...tiers];
+    newTiers[tierIndex].benefits[benefitIndex] = value;
+    setTiers(newTiers);
+  };
+
+  const removeBenefit = (tierIndex: number, benefitIndex: number) => {
+    const newTiers = [...tiers];
+    newTiers[tierIndex].benefits.splice(benefitIndex, 1);
+    setTiers(newTiers);
   };
 
   const validateTiers = () => {
@@ -260,12 +305,12 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
 
                     <div className="field-row">
                       <div className="field-group">
-                        <label>Soglia Punti</label>
+                        <label>📍 Soglia Minima</label>
                         <input
                           type="number"
                           value={tier.threshold}
                           onChange={(e) => updateTier(index, 'threshold', e.target.value)}
-                          placeholder="300"
+                          placeholder="0"
                           min="0"
                           className={errors[`${index}_threshold`] ? 'error' : ''}
                         />
@@ -275,7 +320,23 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
                       </div>
 
                       <div className="field-group">
-                        <label>Moltiplicatore</label>
+                        <label>🎯 Soglia Massima</label>
+                        <input
+                          type="number"
+                          value={tier.maxThreshold || ''}
+                          onChange={(e) => updateTier(index, 'maxThreshold', e.target.value)}
+                          placeholder="999 (opzionale)"
+                          min="0"
+                        />
+                        <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                          Lascia vuoto per l'ultimo livello
+                        </small>
+                      </div>
+                    </div>
+
+                    <div className="field-row">
+                      <div className="field-group">
+                        <label>⚡ Moltiplicatore</label>
                         <input
                           type="number"
                           step="0.1"
@@ -291,12 +352,83 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
                       </div>
 
                       <div className="field-group">
-                        <label>Colore</label>
+                        <label>🎨 Colore</label>
                         <input
                           type="color"
                           value={tier.color}
                           onChange={(e) => updateTier(index, 'color', e.target.value)}
                         />
+                      </div>
+                    </div>
+
+                    {/* Benefits Section */}
+                    <div className="benefits-section" style={{ marginTop: '1rem', padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          🎁 Benefici (visibili nell'app)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => addBenefit(index)}
+                          style={{
+                            padding: '0.25rem 0.75rem',
+                            background: 'var(--primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.875rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          <Plus size={14} />
+                          Aggiungi
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {tier.benefits && tier.benefits.map((benefit, benefitIndex) => (
+                          <div key={benefitIndex} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <span style={{ color: '#6b7280' }}>•</span>
+                            <input
+                              type="text"
+                              value={benefit}
+                              onChange={(e) => updateBenefit(index, benefitIndex, e.target.value)}
+                              placeholder="Es. 10% di sconto, Spedizione gratuita..."
+                              style={{
+                                flex: 1,
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.375rem',
+                                fontSize: '0.875rem'
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeBenefit(index, benefitIndex)}
+                              style={{
+                                padding: '0.5rem',
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                              title="Rimuovi beneficio"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        {(!tier.benefits || tier.benefits.length === 0) && (
+                          <p style={{ color: '#9ca3af', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                            Nessun beneficio aggiunto. Clicca "Aggiungi" per inserire i vantaggi di questo livello.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -315,16 +447,30 @@ const LoyaltyTiersConfigPanel: React.FC<LoyaltyTiersConfigPanelProps> = ({
 
           {/* Preview Section */}
           <div className="preview-section">
-            <h3>Anteprima Sistema</h3>
+            <h3>Anteprima Sistema (come appare nell'app)</h3>
             <div className="tiers-preview">
               {tiers
                 .sort((a, b) => parseInt(a.threshold) - parseInt(b.threshold))
                 .map((tier, index) => (
-                  <div key={index} className="preview-tier" style={{ borderLeftColor: tier.color }}>
-                    <div className="preview-tier-name">{tier.name}</div>
-                    <div className="preview-tier-details">
-                      Da {tier.threshold} punti • Bonus {tier.multiplier}x
+                  <div key={index} className="preview-tier" style={{ borderLeftColor: tier.color, padding: '1rem', marginBottom: '0.75rem' }}>
+                    <div className="preview-tier-name" style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                      {tier.name}
                     </div>
+                    <div className="preview-tier-details" style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
+                      📍 {tier.threshold} - {tier.maxThreshold || '∞'} punti • ⚡ Bonus {tier.multiplier}x
+                    </div>
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.25rem' }}>
+                          🎁 Benefici:
+                        </div>
+                        <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
+                          {tier.benefits.map((benefit, i) => (
+                            <li key={i} style={{ color: '#374151' }}>{benefit}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 ))}
             </div>
