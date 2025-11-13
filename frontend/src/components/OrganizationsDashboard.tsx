@@ -35,6 +35,7 @@ import UpgradePrompt from './UpgradePrompt'
 import WebsiteContentEditor from './POS/WebsiteContentEditor'
 import TeamManagementHub from './TeamManagementHub'
 import LoyaltyTiersDisplay from './LoyaltyTiersDisplay'
+import LoyaltyTiersHub from './LoyaltyTiersHub'
 import CustomersCardView from './CustomersCardView'
 import RewardsHub from './RewardsHub'
 import CategoriesHub from './CategoriesHub'
@@ -2758,13 +2759,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'loyalty-tiers':
         return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', padding: '2rem' }}>
-            <LoyaltyTiersDisplay
-              tiers={currentOrganization.loyalty_tiers || []}
-              primaryColor={getActiveColors().primary}
-              onEdit={() => setShowLoyaltyTiersPanel(true)}
-            />
-          </div>
+          <LoyaltyTiersHub
+            organizationId={currentOrganization.id}
+            organization={currentOrganization}
+            primaryColor={getActiveColors().primary}
+            secondaryColor={getActiveColors().secondary}
+            onUpdate={() => loadOrganizations()}
+          />
         ) : null
 
       case 'rewards':
