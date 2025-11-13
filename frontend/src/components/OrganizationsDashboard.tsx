@@ -3478,27 +3478,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       {/* Main Content */}
       <div className="main-content">
-        <header className={`main-header ${isPOSMode ? 'pos-header' : ''}`}>
+        <header className="main-header">
           <div className="header-title">
-            {isPOSMode ? (
-              <>
-                <Activity size={24} />
-                <span>OMNILY POS - Test & Diagnostica</span>
-                <div className="current-status-badge">
-                  <Zap size={14} />
-                  <span>MODALITÀ TEST</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <BarChart3 size={24} />
-                <span>OMNILY PRO - Dashboard</span>
-                <div className="current-plan-badge">
-                  <Crown size={14} />
-                  <span>{(currentOrganization?.plan_type || 'free').toUpperCase()}</span>
-                </div>
-              </>
-            )}
+            <BarChart3 size={24} />
+            <span>OMNILY PRO - Dashboard</span>
+            <div className="current-plan-badge">
+              <Crown size={14} />
+              <span>{(currentOrganization?.plan_type || 'free').toUpperCase()}</span>
+            </div>
           </div>
         </header>
 
