@@ -37,14 +37,28 @@
   <script>
     // Redirect immediato - eseguito PRIMA di tutto il resto
     (function() {
-      const savedSlug = localStorage.getItem('omnily_org_slug');
+      // Helper to get cookie value
+      function getCookie(name) {
+        const nameEQ = name + '=';
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+      // Check COOKIE first (shared between browser and PWA), then localStorage
+      const savedSlug = getCookie('omnily_org_slug') || localStorage.getItem('omnily_org_slug');
 
       if (savedSlug) {
-        console.log('🚀 App Shell: Redirecting to saved organization:', savedSlug);
+        console.log('🚀 App Launcher: Redirecting to saved organization:', savedSlug);
+        console.log('📍 Source:', getCookie('omnily_org_slug') ? 'Cookie' : 'LocalStorage');
         // Usa replace per evitare che l'utente possa tornare indietro a questa pagina
         window.location.replace('/' + savedSlug + '/home');
       } else {
-        console.log('⚠️ App Shell: No saved slug, redirecting to root');
+        console.log('⚠️ App Launcher: No saved slug, redirecting to root');
         // Nessuno slug salvato - vai alla root che mostrerà il messaggio
         window.location.replace('/');
       }

@@ -9,16 +9,18 @@ import Home from './pages/Home'
 import Card from './pages/Card'
 import Rewards from './pages/Rewards'
 import Profile from './pages/Profile'
+import { getCookie } from './utils/cookies'
 import './styles/global.css'
 
 // Root redirect component - redirects to saved org slug
 function RootRedirect() {
-  // Check localStorage immediately, synchronously
-  const savedSlug = localStorage.getItem('omnily_org_slug')
+  // Check COOKIE first (shared between browser and PWA), then localStorage as fallback
+  const savedSlug = getCookie('omnily_org_slug') || localStorage.getItem('omnily_org_slug')
 
   useEffect(() => {
     if (savedSlug) {
       console.log('🔄 PWA Root: Redirecting to saved organization:', savedSlug)
+      console.log('📍 Source:', getCookie('omnily_org_slug') ? 'Cookie' : 'LocalStorage')
       // Use window.location.replace for faster, more reliable redirect
       window.location.replace(`/${savedSlug}/home`)
     }

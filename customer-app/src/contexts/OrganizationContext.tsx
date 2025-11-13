@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../services/supabase'
 import type { Organization, LoyaltyTier } from '../types'
+import { setCookie } from '../utils/cookies'
 
 interface OrganizationContextType {
   organization: Organization | null
@@ -37,10 +38,11 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
       return
     }
 
-    // Save slug IMMEDIATELY, even before loading organization
+    // Save slug IMMEDIATELY using cookies (shared between browser and PWA)
     // This ensures it's saved before user installs PWA
+    setCookie('omnily_org_slug', slug, 365)
+    // Also keep localStorage for backwards compatibility
     localStorage.setItem('omnily_org_slug', slug)
-    console.log('💾 Slug saved immediately to localStorage:', slug)
 
     loadOrganization()
   }, [slug])
@@ -66,11 +68,11 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
 
       setOrganization(orgData)
 
-      // Save slug to localStorage for PWA
+      // Save slug to cookie AND localStorage for PWA
       if (slug) {
+        setCookie('omnily_org_slug', slug, 365)
         localStorage.setItem('omnily_org_slug', slug)
-        console.log('💾 Slug saved to localStorage:', slug)
-        console.log('✅ Verify localStorage:', localStorage.getItem('omnily_org_slug'))
+        console.log('✅ Verify storage - Cookie:', document.cookie.includes('omnily_org_slug'), 'LocalStorage:', localStorage.getItem('omnily_org_slug'))
       }
 
       // Load loyalty tiers for this organization
