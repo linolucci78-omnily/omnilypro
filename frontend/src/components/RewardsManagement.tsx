@@ -586,8 +586,8 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                     onChange={(e) => setFormData({ ...formData, required_tier: e.target.value })}
                   >
                     <option value="">Seleziona livello...</option>
-                    {loyaltyTiers.map(tier => (
-                      <option key={tier.name} value={tier.name}>
+                    {loyaltyTiers.map((tier, tierIndex) => (
+                      <option key={`tier-${tierIndex}-${tier.name}`} value={tier.name}>
                         {tier.name}
                       </option>
                     ))}

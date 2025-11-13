@@ -307,8 +307,8 @@ const MultiRewardCreator: React.FC<MultiRewardCreatorProps> = ({
                       onChange={(e) => updateRow(index, 'required_tier', e.target.value || undefined)}
                     >
                       <option value="">Nessuno</option>
-                      {loyaltyTiers.map((tier: any) => (
-                        <option key={tier.name} value={tier.name}>
+                      {loyaltyTiers.map((tier: any, tierIndex: number) => (
+                        <option key={`tier-${tierIndex}-${tier.name}`} value={tier.name}>
                           {tier.name} ({tier.threshold}+ {pointsName.toLowerCase()})
                         </option>
                       ))}
