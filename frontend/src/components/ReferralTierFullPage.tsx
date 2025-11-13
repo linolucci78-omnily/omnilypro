@@ -45,6 +45,7 @@ const ReferralTierFullPage: React.FC<ReferralTierFullPageProps> = ({
     name: '',
     description: '',
     threshold: 0,
+    maxThreshold: undefined as number | undefined,
     color: '#ef4444',
     icon: 'star',
     points_per_referral: 0,
@@ -61,6 +62,7 @@ const ReferralTierFullPage: React.FC<ReferralTierFullPageProps> = ({
         name: tier.name,
         description: tier.description || '',
         threshold: tier.threshold,
+        maxThreshold: tier.maxThreshold,
         color: tier.color,
         icon: tier.icon,
         points_per_referral: tier.points_per_referral,
@@ -73,6 +75,7 @@ const ReferralTierFullPage: React.FC<ReferralTierFullPageProps> = ({
         name: '',
         description: '',
         threshold: 0,
+        maxThreshold: undefined,
         color: '#ef4444',
         icon: 'star',
         points_per_referral: 0,
@@ -156,7 +159,7 @@ const ReferralTierFullPage: React.FC<ReferralTierFullPageProps> = ({
               </div>
               <div className="tier-preview-body">
                 <div className="tier-preview-threshold">
-                  Soglia: {formData.threshold} referral
+                  Range: {formData.threshold} - {formData.maxThreshold || '∞'} referral
                 </div>
                 <div className="tier-preview-rewards">
                   <div>{formData.points_per_referral} punti/referral</div>
@@ -195,9 +198,11 @@ const ReferralTierFullPage: React.FC<ReferralTierFullPageProps> = ({
                     required
                   />
                 </div>
+              </div>
 
+              <div className="form-row">
                 <div className="form-field">
-                  <label>Soglia Referral *</label>
+                  <label>Soglia Minima *</label>
                   <input
                     type="number"
                     value={formData.threshold}
@@ -208,6 +213,23 @@ const ReferralTierFullPage: React.FC<ReferralTierFullPageProps> = ({
                     required
                   />
                   <span className="field-hint">Numero minimo di referral completati</span>
+                </div>
+
+                <div className="form-field">
+                  <label>Soglia Massima (opzionale)</label>
+                  <input
+                    type="number"
+                    value={formData.maxThreshold || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        maxThreshold: e.target.value ? parseInt(e.target.value) : undefined
+                      })
+                    }
+                    min={formData.threshold}
+                    placeholder="Lascia vuoto per illimitato"
+                  />
+                  <span className="field-hint">Numero massimo di referral per questo livello</span>
                 </div>
               </div>
 

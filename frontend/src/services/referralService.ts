@@ -15,6 +15,7 @@ export interface ReferralTier {
   name: string;
   description?: string;
   threshold: number;
+  maxThreshold?: number;
   color: string;
   icon: string;
   badge_url?: string;

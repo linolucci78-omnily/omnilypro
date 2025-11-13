@@ -478,7 +478,7 @@ const ReferralHub: React.FC<ReferralHubProps> = ({ organizationId, primaryColor,
               <div className="tier-body">
                 <div className="tier-threshold">
                   <Target size={18} />
-                  <span>Soglia: {tier.threshold} referral</span>
+                  <span>Range: {tier.threshold} - {tier.maxThreshold || '∞'} referral</span>
                 </div>
 
                 {tier.description && (
