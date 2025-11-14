@@ -1,0 +1,844 @@
+/* ============================================
+   GAMING HUB - Main Dashboard
+   ============================================ */
+
+/* 🔥 CRITICAL FIX: Disable transitions only on feature cards to prevent visual glitches */
+/* Allow clicks on buttons and interactive elements */
+.gaming-hub .feature-card {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Ensure buttons and interactive elements work properly */
+.gaming-hub .feature-card button,
+.gaming-hub .feature-card a,
+.gaming-hub .feature-card [role="button"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.gaming-hub {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+  background: white;
+  /* Sfondo bianco per armonia con altri componenti */
+  min-height: 100vh;
+  /* Assicura che copra tutta l'altezza dello schermo */
+  position: relative;
+}
+
+/* Close button */
+.gaming-hub-close-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1000;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gaming-hub-close-button:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: rgba(185, 28, 28, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gaming-hub-close-button:active {
+  transform: scale(1.05) rotate(90deg);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.gaming-hub-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.gaming-hub-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.gaming-hub-title svg {
+  color: var(--primary-color, #dc2626);
+  filter: drop-shadow(0 2px 8px rgba(220, 38, 38, 0.3));
+}
+
+.gaming-hub-title h1 {
+  font-size: 42px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.gaming-hub-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   STATS GRID
+   ============================================ */
+
+.gaming-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--stat-color);
+  transition: width 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--stat-color);
+}
+
+.stat-card:hover::before {
+  width: 100%;
+  opacity: 0.05;
+}
+
+/* Stat color variants - eredita colore primario dall'organizzazione */
+.stat-card.badges {
+  --stat-color: var(--primary-color, #dc2626);
+}
+
+.stat-card.challenges {
+  --stat-color: color-mix(in srgb, var(--primary-color, #dc2626) 80%, #3b82f6 20%);
+}
+
+.stat-card.spins {
+  --stat-color: color-mix(in srgb, var(--primary-color, #dc2626) 85%, #a855f7 15%);
+}
+
+.stat-icon {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--stat-color), color-mix(in srgb, var(--stat-color) 70%, black));
+  color: white;
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--stat-color) 30%, transparent);
+  transition: transform 0.3s;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1f2937;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-subtext {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.stat-progress {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.stat-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--stat-color), color-mix(in srgb, var(--stat-color) 70%, white));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.stat-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  /* REMOVED - shimmer effect was causing frustration */
+  /* animation: shimmer 2s infinite; */
+}
+
+/* DELETED - shimmer animation completely removed */
+/*
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+*/
+
+/* ============================================
+   FEATURES GRID
+   ============================================ */
+
+.gaming-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 48px;
+  /* Touch-friendly: aumentato gap per evitare click accidentali */
+}
+
+/* ============================================
+   FEATURE CARD
+   ============================================ */
+
+.feature-card {
+  background: white;
+  border-radius: 20px;
+  padding: 48px;
+  /* Touch-friendly: aumentato padding per più spazio interno */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  /* REMOVED transition - was causing visual issues */
+  /* transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); */
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  /* Touch-friendly: aumentato gap interno */
+  position: relative;
+  overflow: hidden;
+  border: 3px solid transparent;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--feature-color), color-mix(in srgb, var(--feature-color) 50%, white));
+}
+
+/* HOVER DISABILITATO su dispositivi touch - causava problemi di click */
+@media (hover: hover) and (pointer: fine) {
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    border-color: var(--feature-color);
+  }
+
+  .feature-card:hover::before {
+    height: 100%;
+    opacity: 0.03;
+  }
+
+  .feature-card:hover .feature-icon {
+    transform: scale(1.05);
+  }
+}
+
+/* Feature color variants - eredita colore primario dall'organizzazione */
+.feature-card:nth-child(1) {
+  --feature-color: var(--primary-color, #dc2626);
+}
+
+.feature-card:nth-child(2) {
+  --feature-color: color-mix(in srgb, var(--primary-color, #dc2626) 85%, #3b82f6 15%);
+}
+
+.feature-card:nth-child(3) {
+  --feature-color: color-mix(in srgb, var(--primary-color, #dc2626) 90%, #a855f7 10%);
+}
+
+/* ============================================
+   FEATURE HEADER
+   ============================================ */
+
+.feature-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.feature-icon {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--icon-color), color-mix(in srgb, var(--icon-color) 70%, black));
+  color: white;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--icon-color) 35%, transparent);
+}
+
+.feature-icon.badges {
+  --icon-color: var(--primary-color, #dc2626);
+}
+
+.feature-icon.challenges {
+  --icon-color: color-mix(in srgb, var(--primary-color, #dc2626) 80%, #3b82f6 20%);
+}
+
+.feature-icon.spins {
+  --icon-color: color-mix(in srgb, var(--primary-color, #dc2626) 85%, #a855f7 15%);
+}
+
+.feature-title-group {
+  flex: 1;
+}
+
+.feature-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.feature-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ============================================
+   RECENT BADGES
+   ============================================ */
+
+.recent-badges {
+  flex: 1;
+}
+
+.recent-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.badge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mini-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: white;
+  /* Sfondo bianco invece di gradient */
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  /* Bordo neutro */
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mini-badge:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.mini-badge-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.mini-badge-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  /* Colore testo scuro per sfondo bianco */
+}
+
+/* ============================================
+   ACTIVE CHALLENGES PREVIEW
+   ============================================ */
+
+.active-challenges-preview {
+  flex: 1;
+}
+
+.mini-challenge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  /* Sfondo bianco invece di gradient */
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  /* Bordo neutro */
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mini-challenge:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+.mini-challenge:last-child {
+  margin-bottom: 0;
+}
+
+.mini-challenge-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.mini-challenge-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-challenge-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+  /* Colore testo scuro per sfondo bianco */
+  display: block;
+  margin-bottom: 4px;
+}
+
+.mini-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* ============================================
+   SPIN PREVIEW
+   ============================================ */
+
+.spin-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  /* Sfondo bianco invece di gradient */
+  border-radius: 14px;
+  border: 2px solid #e5e7eb;
+  /* Bordo neutro */
+  flex: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.spin-visual {
+  position: relative;
+}
+
+.spin-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4),
+              0 0 0 8px white,
+              0 0 0 12px #d8b4fe;
+  /* Removed infinite rotation animation - was too distracting */
+}
+
+/* DELETED - spin-pulse animation completely removed */
+/*
+@keyframes spin-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+*/
+
+.spin-info {
+  text-align: center;
+}
+
+.spin-available {
+  font-size: 16px;
+  color: #4b5563;
+  /* Colore neutro per sfondo bianco */
+  margin: 0 0 4px 0;
+}
+
+.spin-available strong {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--primary-color, #dc2626);
+  /* Usa colore primario dell'organizzazione */
+}
+
+.spin-hint {
+  font-size: 12px;
+  color: #6b7280;
+  /* Colore neutro per sfondo bianco */
+  margin: 0;
+  font-weight: 600;
+}
+
+.spin-unavailable {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ============================================
+   FEATURE EMPTY STATE
+   ============================================ */
+
+.feature-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  background: white;
+  /* Sfondo bianco invece di gradient */
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+  /* Bordo neutro */
+  flex: 1;
+}
+
+.feature-empty p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   FEATURE CTA BUTTON
+   ============================================ */
+
+.feature-cta {
+  width: 100%;
+  padding: 28px 32px;
+  /* Touch-friendly: padding aumentato a 28px per target più grandi */
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--feature-color), color-mix(in srgb, var(--feature-color) 80%, black));
+  color: white;
+  font-size: 20px;
+  /* Touch-friendly: font più grande per leggibilità su POS */
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--feature-color) 30%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 72px;
+  /* Touch-friendly: altezza minima 72px per POS touch screen */
+  position: relative;
+  z-index: 10;
+  /* Assicura che il pulsante sia sempre cliccabile */
+  pointer-events: auto !important;
+  transition: none !important;
+  /* Nessuna transizione per evitare interferenze con il touch */
+}
+
+/* Hover SOLO su mouse - non su touch */
+@media (hover: hover) and (pointer: fine) {
+  .feature-cta:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--feature-color) 40%, transparent);
+  }
+}
+
+.feature-cta:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--feature-color) 30%, transparent);
+}
+
+.feature-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  box-shadow: none;
+}
+
+.feature-cta.spin-cta:not(:disabled) {
+  /* REMOVED - animation was causing dizziness and frustration */
+  /* animation: cta-glow 2s ease-in-out infinite; */
+}
+
+@keyframes cta-glow {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.5);
+  }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.gaming-hub-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120px;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border: 6px solid #e5e7eb;
+  border-top-color: var(--primary-color, #dc2626);
+  border-radius: 50%;
+  /* REMOVED ANIMATION - too annoying */
+  /* animation: spin 1s linear infinite; */
+}
+
+/* DELETED - spin animation completely removed */
+/*
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+*/
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .gaming-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .gaming-hub {
+    padding: 20px;
+  }
+
+  .gaming-hub-title h1 {
+    font-size: 32px;
+  }
+
+  .gaming-hub-subtitle {
+    font-size: 14px;
+  }
+
+  .gaming-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    padding: 20px;
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .gaming-features-grid {
+    gap: 20px;
+  }
+
+  .feature-card {
+    padding: 24px;
+  }
+
+  .feature-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .feature-title {
+    font-size: 20px;
+  }
+
+  .feature-description {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .gaming-hub {
+    background: white;
+    /* Forza sfondo bianco anche in dark mode */
+  }
+
+  .gaming-hub-subtitle {
+    color: #6b7280;
+    /* Colore neutro su sfondo bianco */
+  }
+
+  .stat-card,
+  .feature-card {
+    background: white;
+    /* Forza sfondo bianco anche in dark mode */
+    border-color: transparent;
+  }
+
+  .stat-value,
+  .feature-title {
+    color: #1f2937;
+    /* Testo scuro su sfondo bianco */
+  }
+
+  .stat-label,
+  .feature-description {
+    color: #6b7280;
+    /* Testo grigio su sfondo bianco */
+  }
+
+  .stat-progress {
+    background: #e5e7eb;
+    /* Progress bar chiara su sfondo bianco */
+  }
+
+  .mini-badge {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    border-color: #e5e7eb;
+  }
+
+  .mini-badge-name {
+    color: #1f2937;
+    /* Testo scuro su sfondo bianco */
+  }
+
+  .mini-challenge {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    border-color: #e5e7eb;
+  }
+
+  .mini-challenge-name {
+    color: #1f2937;
+    /* Testo scuro su sfondo bianco */
+  }
+
+  .spin-preview {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    border-color: #e5e7eb;
+  }
+
+  .spin-available {
+    color: #4b5563;
+    /* Testo scuro su sfondo bianco */
+  }
+
+  .spin-hint {
+    color: #6b7280;
+    /* Testo grigio su sfondo bianco */
+  }
+
+  .feature-empty {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    border-color: #e5e7eb;
+  }
+
+  .feature-empty p {
+    color: #6b7280;
+    /* Testo grigio su sfondo bianco */
+  }
+}

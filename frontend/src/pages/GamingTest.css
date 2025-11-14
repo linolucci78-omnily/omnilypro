@@ -1,0 +1,421 @@
+/* ============================================
+   GAMING TEST PAGE
+   ============================================ */
+
+.gaming-test-page {
+  min-height: 100vh;
+  background: white;
+  /* Sfondo bianco per armonia con Gaming Hub */
+  padding: 24px;
+}
+
+/* ============================================
+   TEST HEADER
+   ============================================ */
+
+.gaming-test-header {
+  max-width: 1400px;
+  margin: 0 auto 24px;
+  background: white;
+  border-radius: 12px;
+  padding: 16px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.test-info-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.test-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.test-info-item strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.plan-badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.plan-badge.free {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.plan-badge.basic {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.plan-badge.pro {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.plan-badge.enterprise {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.change-btn {
+  margin-left: auto;
+  padding: 8px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.change-btn:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+/* ============================================
+   SELECTOR SCREEN
+   ============================================ */
+
+.gaming-test-selector {
+  max-width: 600px;
+  margin: 80px auto;
+  background: white;
+  border-radius: 20px;
+  padding: 48px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.gaming-test-selector h1 {
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #dc2626, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.gaming-test-selector > p {
+  text-align: center;
+  color: #6b7280;
+  margin: 0 0 32px 0;
+  font-size: 16px;
+}
+
+.selector-group {
+  margin-bottom: 24px;
+}
+
+.selector-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.selector-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #1f2937;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.selector-group select:hover {
+  border-color: #d1d5db;
+}
+
+.selector-group select:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.test-start-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 32px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.test-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
+.test-start-btn:active {
+  transform: translateY(0);
+}
+
+.test-info {
+  margin-top: 40px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 12px;
+  border: 2px solid #fbbf24;
+}
+
+.test-info h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 12px 0;
+}
+
+.test-info p {
+  font-size: 14px;
+  color: #92400e;
+  margin: 8px 0;
+}
+
+.test-info code {
+  display: block;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #78350f;
+  margin: 8px 0;
+  overflow-x: auto;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.gaming-test-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #dc2626;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gaming-test-loading p {
+  font-size: 16px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* ============================================
+   ERROR STATE
+   ============================================ */
+
+.gaming-test-error {
+  max-width: 500px;
+  margin: 80px auto;
+  padding: 48px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.gaming-test-error h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #dc2626;
+  margin: 0 0 16px 0;
+}
+
+.gaming-test-error p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 32px 0;
+}
+
+.gaming-test-error button {
+  padding: 12px 24px;
+  border: 2px solid #dc2626;
+  border-radius: 10px;
+  background: white;
+  color: #dc2626;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gaming-test-error button:hover {
+  background: #dc2626;
+  color: white;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .gaming-test-page {
+    padding: 16px;
+  }
+
+  .gaming-test-selector {
+    padding: 32px 24px;
+    margin: 40px auto;
+  }
+
+  .gaming-test-selector h1 {
+    font-size: 24px;
+  }
+
+  .test-info-bar {
+    gap: 12px;
+  }
+
+  .test-info-item {
+    font-size: 12px;
+  }
+
+  .change-btn {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 12px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .gaming-test-page {
+    background: white;
+    /* Forza sfondo bianco anche in dark mode */
+  }
+
+  .gaming-test-header,
+  .gaming-test-selector,
+  .gaming-test-error {
+    background: white;
+    /* Forza sfondo bianco anche in dark mode */
+    border: 1px solid #e5e7eb;
+  }
+
+  .gaming-test-selector h1 {
+    background: linear-gradient(135deg, #dc2626, #f59e0b);
+    /* Usa colori standard anche in dark mode */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gaming-test-selector > p,
+  .gaming-test-loading p,
+  .gaming-test-error p {
+    color: #6b7280;
+    /* Colore standard su sfondo bianco */
+  }
+
+  .selector-group label {
+    color: #1f2937;
+    /* Colore scuro su sfondo bianco */
+  }
+
+  .selector-group select {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    border-color: #e5e7eb;
+    color: #1f2937;
+  }
+
+  .selector-group select:hover {
+    border-color: #d1d5db;
+  }
+
+  .test-info-item {
+    color: #6b7280;
+    /* Colore standard su sfondo bianco */
+  }
+
+  .test-info-item strong {
+    color: #1f2937;
+    /* Colore scuro su sfondo bianco */
+  }
+
+  .change-btn {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    border-color: #e5e7eb;
+    color: #6b7280;
+  }
+
+  .change-btn:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fef2f2;
+  }
+
+  .test-info {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    /* Usa colori chiari anche in dark mode */
+    border-color: #fbbf24;
+  }
+
+  .test-info h3 {
+    color: #78350f;
+    /* Colore scuro su sfondo chiaro */
+  }
+
+  .test-info p {
+    color: #92400e;
+    /* Colore scuro su sfondo chiaro */
+  }
+
+  .test-info code {
+    background: rgba(0, 0, 0, 0.05);
+    color: #78350f;
+    /* Colore scuro su sfondo chiaro */
+  }
+}

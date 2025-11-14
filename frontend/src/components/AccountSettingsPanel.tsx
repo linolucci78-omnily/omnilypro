@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Gift, Award, Palette, AlertTriangle, Upload, CreditCard } from 'lucide-react';
+import { X, Building2, Gift, Award, Palette, AlertTriangle, Upload, CreditCard, Trophy } from 'lucide-react';
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel';
 import { organizationService } from '../services/organizationService';
 import { giftCertificatesService } from '../services/giftCertificatesService';
@@ -14,7 +14,7 @@ interface AccountSettingsPanelProps {
   defaultTab?: TabType;
 }
 
-type TabType = 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts';
+type TabType = 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts' | 'gaming';
 
 const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
   isOpen,
@@ -369,7 +369,8 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
     { id: 'tiers' as TabType, label: 'Livelli', icon: Award },
     { id: 'branding' as TabType, label: 'Branding', icon: Palette },
     { id: 'points' as TabType, label: 'Gestione Punti', icon: AlertTriangle },
-    { id: 'giftcerts' as TabType, label: 'Gift Certificates', icon: CreditCard }
+    { id: 'giftcerts' as TabType, label: 'Gift Certificates', icon: CreditCard },
+    { id: 'gaming' as TabType, label: 'Gaming Module', icon: Trophy }
   ];
 
   return (
@@ -997,6 +998,76 @@ const AccountSettingsPanel: React.FC<AccountSettingsPanelProps> = ({
               >
                 {saving ? 'Salvataggio...' : 'Salva Configurazione'}
               </button>
+            </div>
+          )}
+
+          {/* Gaming Module Configuration */}
+          {activeTab === 'gaming' && (
+            <div className="settings-section">
+              <h3>🎮 Gaming Module</h3>
+              <p className="section-description">
+                Gestisci challenge, badge, ruota della fortuna e gamification
+              </p>
+
+              {/* Info Box - Coming Soon */}
+              <div style={{
+                background: 'linear-gradient(135deg, #fae8ff 0%, #e9d5ff 100%)',
+                border: '2px solid #7c3aed',
+                borderRadius: '16px',
+                padding: '2rem',
+                marginTop: '1rem',
+                textAlign: 'center'
+              }}>
+                <Trophy size={64} style={{ color: '#7c3aed', marginBottom: '1rem' }} />
+                <h2 style={{ margin: '0 0 0.5rem 0', color: '#6b21a8', fontSize: '1.5rem' }}>
+                  Pannello Configurazione Gaming
+                </h2>
+                <p style={{ margin: '0 0 1.5rem 0', color: '#7c3aed', fontSize: '1rem' }}>
+                  Il pannello di configurazione completo per il Gaming Module è in fase di sviluppo
+                </p>
+                <div style={{
+                  background: 'white',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  textAlign: 'left',
+                  marginTop: '1.5rem'
+                }}>
+                  <h4 style={{ margin: '0 0 1rem 0', color: '#1f2937' }}>✨ Funzionalità Disponibili</h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#4b5563' }}>
+                    <li style={{ marginBottom: '0.75rem' }}>
+                      <strong>Gaming Hub</strong> - Pannello customer già attivo e funzionante
+                    </li>
+                    <li style={{ marginBottom: '0.75rem' }}>
+                      <strong>Challenge</strong> - 6 challenge predefinite (3 daily, 2 weekly) già create
+                    </li>
+                    <li style={{ marginBottom: '0.75rem' }}>
+                      <strong>Badge System</strong> - 15 badge predefiniti con unlock automatico
+                    </li>
+                    <li style={{ marginBottom: '0.75rem' }}>
+                      <strong>Spin Wheel</strong> - Ruota della fortuna con 8 settori già configurata
+                    </li>
+                    <li style={{ marginBottom: '0.75rem' }}>
+                      <strong>Notifiche</strong> - Sistema notifiche visive per challenge e badge
+                    </li>
+                    <li style={{ marginBottom: '0.75rem' }}>
+                      <strong>Integrazione POS</strong> - Challenge si aggiornano automaticamente durante le vendite
+                    </li>
+                  </ul>
+                </div>
+                <div style={{
+                  background: '#fffbeb',
+                  border: '1px solid #fbbf24',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginTop: '1.5rem',
+                  textAlign: 'left'
+                }}>
+                  <p style={{ margin: 0, color: '#92400e', fontSize: '0.95rem' }}>
+                    💡 <strong>Come accedere al Gaming Module:</strong><br />
+                    Seleziona un customer dal POS e clicca su "Gaming Hub" per vedere challenge, badge e ruota della fortuna.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>

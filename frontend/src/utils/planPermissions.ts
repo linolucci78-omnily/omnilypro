@@ -36,6 +36,9 @@ export interface PlanFeatures {
   customDomain: boolean
   prioritySupport: boolean
   sso: boolean
+
+  // Gaming Module (Pro+ exclusive)
+  gamingModule: boolean
 }
 
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
@@ -64,7 +67,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     whiteLabel: false,
     customDomain: false,
     prioritySupport: false,
-    sso: false
+    sso: false,
+
+    // Gaming Module
+    gamingModule: false        // ❌ Solo Pro+
   },
 
   [PlanType.BASIC]: {
@@ -92,7 +98,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     whiteLabel: false,
     customDomain: false,
     prioritySupport: false,
-    sso: false
+    sso: false,
+
+    // Gaming Module
+    gamingModule: false        // ❌ Solo Pro+
   },
 
   [PlanType.PRO]: {
@@ -120,7 +129,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     whiteLabel: false,
     customDomain: false,
     prioritySupport: false,
-    sso: false
+    sso: false,
+
+    // Gaming Module
+    gamingModule: true         // ✅ Pro+ exclusive feature
   },
 
   [PlanType.ENTERPRISE]: {
@@ -148,7 +160,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     whiteLabel: true,
     customDomain: true,
     prioritySupport: true,
-    sso: true
+    sso: true,
+
+    // Gaming Module
+    gamingModule: true         // ✅ Pro+ exclusive feature
   }
 }
 

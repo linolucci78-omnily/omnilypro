@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog, Trophy } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
@@ -37,6 +37,8 @@ interface CustomerSlidePanelProps {
   organizationTax?: string; // Partita IVA organizzazione per stampe
   primaryColor?: string; // Colore primario organizzazione
   operatorName?: string; // Nome operatore per scontrini
+  organizationId?: string; // ID organizzazione per Gaming Module
+  onOpenGamingHub?: () => void; // Callback per aprire Gaming Hub
 }
 
 const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
@@ -55,7 +57,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   organizationPhone = '', // Default vuoto
   organizationTax = '', // Default vuoto
   primaryColor = '#dc2626', // Default red se non specificato
-  operatorName = 'Operatore' // Default "Operatore" se non specificato
+  operatorName = 'Operatore', // Default "Operatore" se non specificato
+  organizationId = '', // Default vuoto
+  onOpenGamingHub
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showRewardsSection, setShowRewardsSection] = useState(false);
@@ -870,6 +874,22 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <Gift size={20} />
             Premi
           </button>
+          {organizationId && organizationId.trim() !== '' && onOpenGamingHub && (
+            <button
+              className="customer-slide-panel-action-btn customer-slide-panel-action-btn-gaming"
+              onClick={() => {
+                console.log('🎮 Gaming button clicked! organizationId:', organizationId)
+                onOpenGamingHub()
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                color: 'white'
+              }}
+            >
+              <Trophy size={20} />
+              Gaming
+            </button>
+          )}
         </div>
 
         {/* Rewards Section - Sezione Premi */}
@@ -1145,6 +1165,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           primaryColor={primaryColor}
         />
       )}
+
     </>
   );
 };

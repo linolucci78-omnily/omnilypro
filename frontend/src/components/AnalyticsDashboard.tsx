@@ -99,7 +99,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
   useEffect(() => {
     loadDashboardMetrics()
-  }, [organization, customers])
+  }, [organization?.id])
 
   const loadDashboardMetrics = async () => {
     if (!organization) return
@@ -144,6 +144,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         .eq('organization_id', organization.id)
         .gte('created_at', todayStart.toISOString())
 
+      console.log('📊 New customers query:', {
+        todayStart: todayStart.toISOString(),
+        found: todayCustomers?.length || 0,
+        customers: todayCustomers?.map(c => ({ name: c.name, created_at: c.created_at }))
+      })
+
       const todayNewCustomers = todayCustomers?.length || 0
 
       const { data: yesterdayNewCustomers } = await supabase
@@ -155,8 +161,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
       const yesterdayNewCustomersCount = yesterdayNewCustomers?.length || 0
 
-      const todayPoints = todayActivities?.filter(a => a.activity_type === 'points_added').reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0
-      const yesterdayPoints = yesterdayActivities?.filter(a => a.activity_type === 'points_added').reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0
+      // Somma punti da transazioni E aggiunte manuali
+      const todayPoints = todayActivities?.filter(a =>
+        a.activity_type === 'points_added' || a.activity_type === 'transaction'
+      ).reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0
+
+      const yesterdayPoints = yesterdayActivities?.filter(a =>
+        a.activity_type === 'points_added' || a.activity_type === 'transaction'
+      ).reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0
 
       // Calculate changes
       const visitsChange = yesterdayVisits > 0 ? ((todayVisits - yesterdayVisits) / yesterdayVisits) * 100 : 0
@@ -465,7 +477,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
           visits: todayVisits,
           revenue: Math.round(todayRevenue * 100) / 100,
           redemptions: todayRedemptions,
-          pointsDistributed: todayActivities?.filter(a => a.activity_type === 'points_added').reduce((sum, a) => sum + (a.points_earned || 0), 0) || 0,
+          pointsDistributed: todayPoints,
           newCustomers: todayNewCustomers,
           visitsChange,
           revenueChange,
@@ -605,7 +617,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
               <div className="metric-label">Punti Distribuiti</div>
               <div className="metric-description">Quanti punti hai dato ai clienti</div>
               <div className="metric-value">{metrics.today.pointsDistributed}</div>
-              <div className="metric-trend positive">↗ +8%</div>
+              <div className={`metric-trend ${metrics.today.pointsChange >= 0 ? 'positive' : 'negative'}`}>
+                {metrics.today.pointsChange >= 0 ? '↗' : '↘'} {Math.abs(metrics.today.pointsChange).toFixed(0)}% rispetto a ieri
+              </div>
             </div>
           </div>
 

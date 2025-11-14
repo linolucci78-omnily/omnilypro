@@ -575,6 +575,24 @@ export class RewardsService {
         return { success: false, error: 'Errore registrazione riscatto' };
       }
 
+      // 6. Registra l'attività in customer_activities per le statistiche
+      try {
+        await supabase
+          .from('customer_activities')
+          .insert({
+            organization_id: organizationId,
+            customer_id: customerId,
+            activity_type: 'reward_redeemed',
+            activity_description: `Riscattato premio: ${reward.name}`,
+            points_spent: reward.points_required,
+            created_at: new Date().toISOString()
+          });
+        console.log('✅ Attività reward_redeemed registrata in customer_activities');
+      } catch (activityError) {
+        console.error('⚠️ Errore registrazione attività (non bloccante):', activityError);
+        // Non blocca il flusso se fallisce
+      }
+
       console.log('✅ Premio riscattato con successo!');
       return { success: true, redemption };
 

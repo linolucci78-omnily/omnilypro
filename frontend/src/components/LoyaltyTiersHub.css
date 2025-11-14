@@ -13,8 +13,8 @@
 
 /* FIX POS MODE - Rimuove spazio sopra banner */
 .pos-layout .loyalty-tiers-hub {
-  margin-top: -35px; /* Compensa completamente il margin-top del pos-main-content */
-  padding-top: 35px; /* Mantiene lo spazio per l'header POS */
+  margin-top: -30px; /* Compensa completamente il margin-top del pos-main-content */
+  padding-top: 30px; /* Mantiene lo spazio per l'header POS */
 }
 
 /* ============================================

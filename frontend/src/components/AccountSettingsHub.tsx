@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Settings, Heart, Layers, Palette, Coins, Gift, ArrowLeft } from 'lucide-react'
+import { Settings, Heart, Layers, Palette, Coins, Gift, ArrowLeft, Trophy } from 'lucide-react'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import './AccountSettingsHub.css'
 
@@ -14,7 +14,7 @@ interface AccountSettingsHubProps {
   onUpdate: () => void
 }
 
-type ViewType = 'hub' | 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts'
+type ViewType = 'hub' | 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts' | 'gaming'
 
 const AccountSettingsHub: React.FC<AccountSettingsHubProps> = ({
   isOpen,
@@ -38,12 +38,12 @@ const AccountSettingsHub: React.FC<AccountSettingsHubProps> = ({
         onClose={() => setActiveView('hub')}
         organization={organization}
         onUpdate={onUpdate}
-        defaultTab={activeView as 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts'}
+        defaultTab={activeView as 'details' | 'loyalty' | 'tiers' | 'branding' | 'points' | 'giftcerts' | 'gaming'}
       />
     )
   }
 
-  // Vista principale con le 6 card
+  // Vista principale con le 7 card
   return (
     <div className="settings-hub-overlay" onClick={onClose}>
       <div
@@ -179,6 +179,26 @@ const AccountSettingsHub: React.FC<AccountSettingsHubProps> = ({
                 <li>Valori predefiniti</li>
                 <li>Scadenze e validità</li>
                 <li>Codici e sicurezza</li>
+              </ul>
+            </div>
+            <div className="settings-hub-card-arrow">
+              <span>Apri →</span>
+            </div>
+          </div>
+
+          {/* Card 7: Gaming Module */}
+          <div className="settings-hub-card" onClick={() => setActiveView('gaming')}>
+            <div className="settings-hub-card-icon gaming">
+              <Trophy size={48} />
+            </div>
+            <div className="settings-hub-card-content">
+              <h2>Gaming Module</h2>
+              <p>Configura challenge, badge, ruota della fortuna e gamification per i clienti.</p>
+              <ul className="settings-hub-features">
+                <li>Challenge e obiettivi</li>
+                <li>Badge e traguardi</li>
+                <li>Ruota della fortuna</li>
+                <li>Statistiche gaming</li>
               </ul>
             </div>
             <div className="settings-hub-card-arrow">

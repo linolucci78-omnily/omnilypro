@@ -5,6 +5,8 @@ import { rewardsService } from '../services/rewardsService'
 import { ZCSPrintService, createPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
+// REMOVED: useGamingNotifications - using console.log instead for stability
+// import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
@@ -53,6 +55,8 @@ import AdminTicketsPanel from './AdminTicketsPanel'
 import ConfirmModal from './UI/ConfirmModal'
 import { emailService } from '../services/emailService'
 import ReferralHub from './ReferralHub'
+import GamingSettings from './Gaming/GamingSettings'
+import GamingHubWrapper from './Gaming/GamingHubWrapper'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
@@ -75,6 +79,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     (window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true')
 
   const { user } = useAuth()
+  // REMOVED: Gaming notifications hook - using console.log instead
+  // const { showChallengeComplete, showBadgeUnlock } = useGamingNotifications()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -931,6 +937,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [showLoyaltySystemHub, setShowLoyaltySystemHub] = useState(false)
   const [showBusinessDetailsHub, setShowBusinessDetailsHub] = useState(false)
   const [showGiftCertificatesSettingsHub, setShowGiftCertificatesSettingsHub] = useState(false)
+  const [showGamingSettings, setShowGamingSettings] = useState(false)
+  const [showGamingHub, setShowGamingHub] = useState(false)
+  const [selectedCustomerForGaming, setSelectedCustomerForGaming] = useState<any>(null)
   const [showReceiptLayoutEditor, setShowReceiptLayoutEditor] = useState(false)
   const [showGiftCertificatesPanel, setShowGiftCertificatesPanel] = useState(false)
   const [showGiftCertificatesStatsModal, setShowGiftCertificatesStatsModal] = useState(false)
@@ -1207,6 +1216,71 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           console.log('✅ Attività transazione registrata nel database');
         } catch (error) {
           console.error('❌ Errore registrazione attività transazione:', error);
+        }
+
+        // 🎮 UPDATE GAMING MODULE (Challenges + Badges)
+        try {
+          const { challengeService } = await import('../services/gaming/challengeService');
+          const { badgeService } = await import('../services/gaming/badgeService');
+
+          // Update challenges for purchase activity
+          const purchaseResults = await challengeService.updateChallengesForActivity(
+            customerId,
+            currentOrganization.id,
+            'purchase',
+            { count: 1, amount: amount }
+          );
+
+          // Update challenges for spend activity
+          const spendResults = await challengeService.updateChallengesForActivity(
+            customerId,
+            currentOrganization.id,
+            'spend',
+            { amount: amount }
+          );
+
+          // Update challenges for points earned activity
+          const pointsResults = await challengeService.updateChallengesForActivity(
+            customerId,
+            currentOrganization.id,
+            'earn_points',
+            { points: pointsEarned }
+          );
+
+          const totalUpdated = purchaseResults.length + spendResults.length + pointsResults.length;
+          if (totalUpdated > 0) {
+            console.log(`🎮 Gaming: ${totalUpdated} challenge(s) aggiornate`);
+          }
+
+          // Check for completed challenges and show notifications
+          const completedChallenges = [...purchaseResults, ...spendResults, ...pointsResults].filter(r => r.completed);
+          if (completedChallenges.length > 0) {
+            console.log(`🎉 ${completedChallenges.length} challenge completata/e!`);
+            // Log notification for each completed challenge (UI notifications disabled for stability)
+            for (const result of completedChallenges) {
+              if (result.challenge) {
+                // REMOVED: showChallengeComplete(result.challenge);
+                console.log(`  🎉 Challenge "${result.challenge.title}" completata!`);
+              }
+            }
+          }
+
+          // 🏆 CHECK FOR BADGE UNLOCKS (automatic based on customer data)
+          const badgeUnlocks = await badgeService.checkAndUnlockBadges(customerId, currentOrganization.id);
+          const newlyUnlocked = badgeUnlocks.filter(b => b.unlocked);
+          if (newlyUnlocked.length > 0) {
+            console.log(`🏆 ${newlyUnlocked.length} nuovo/i badge sbloccato/i!`);
+            // Log notification for each unlocked badge (UI notifications disabled for stability)
+            for (const unlock of newlyUnlocked) {
+              if (unlock.badge) {
+                // REMOVED: showBadgeUnlock(unlock.badge);
+                console.log(`  🏆 Badge "${unlock.badge.name}" sbloccato!`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('❌ Errore aggiornamento gaming module:', error);
+          // Non-blocking error - transaction already completed
         }
       }
 
@@ -3010,6 +3084,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               onOpenAccountSettings={() => setShowBusinessDetailsHub(true)}
               onOpenLoyaltySystem={() => setShowLoyaltySystemHub(true)}
               onOpenGiftCertificatesSettings={() => setShowGiftCertificatesSettingsHub(true)}
+              onOpenGamingSettings={() => setShowGamingSettings(true)}
               onOpenReceiptLayout={() => setShowReceiptLayoutEditor(true)}
               onNavigateToSection={(sectionId) => handleSectionChange(sectionId)}
             />
@@ -3444,6 +3519,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationTax={currentOrganization?.partita_iva || ''}
         primaryColor={currentOrganization?.primary_color || '#dc2626'}
         operatorName={user?.email || 'Operatore'}
+        organizationId={currentOrganization?.id}
+        onOpenGamingHub={() => {
+          setSelectedCustomerForGaming(selectedCustomer)
+          setShowGamingHub(true)
+        }}
       />
 
       {/* Edit Customer Modal from Table */}
@@ -3600,6 +3680,52 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           secondaryColor={currentOrganization.secondary_color || '#ef4444'}
           onBack={() => setShowGiftCertificatesSettingsHub(false)}
         />
+      )}
+
+      {/* Gaming Settings Hub */}
+      {showGamingSettings && currentOrganization && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          background: 'white',
+          overflowY: 'auto'
+        }}>
+          <GamingSettings
+            organizationId={currentOrganization.id}
+            primaryColor={currentOrganization.primary_color || '#dc2626'}
+            onClose={() => setShowGamingSettings(false)}
+          />
+        </div>
+      )}
+
+      {/* Gaming Hub - Customer Panel */}
+      {showGamingHub && selectedCustomerForGaming && currentOrganization && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          background: 'white',
+          overflowY: 'auto'
+        }}>
+          <GamingHubWrapper
+            key={`gaming-${selectedCustomerForGaming.id}-${Date.now()}`}
+            customerId={selectedCustomerForGaming.id}
+            organizationId={currentOrganization.id}
+            organizationPlan={currentOrganization.plan_type}
+            primaryColor={currentOrganization.primary_color || '#dc2626'}
+            onClose={() => {
+              setShowGamingHub(false)
+              setSelectedCustomerForGaming(null)
+            }}
+          />
+        </div>
       )}
 
       {/* Receipt Layout Editor */}

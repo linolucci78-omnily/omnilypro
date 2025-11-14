@@ -779,7 +779,8 @@ body.admin-page {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #f1f5f9;
   text-align: left;
-  transition: all 0.3s ease;
+  /* REMOVED - transition was causing visual glitches during component re-renders */
+  /* transition: all 0.3s ease; */
 }
 
 .feature-card:hover {
