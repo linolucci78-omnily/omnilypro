@@ -207,6 +207,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1; /* Force square */
 }
 
 /* ============================================
@@ -232,6 +233,7 @@
 .wheel-wrapper {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1; /* Force square */
   position: relative;
   /* Static wrapper - doesn't rotate */
 }
@@ -280,6 +282,7 @@
 .wheel {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1; /* Force square */
   border-radius: 50%;
   position: relative;
   overflow: hidden;
