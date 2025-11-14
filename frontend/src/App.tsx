@@ -118,7 +118,10 @@ function App() {
   // 🧪 TESTING: Force SiteRendererPage mode when accessing /test-public-site
   const isTestingPublicSite = window.location.pathname === '/test-public-site';
 
-  const isPublicSite = parts.length > 1 && !['www', 'localhost', 'app', 'admin'].includes(parts[0]);
+  // Exclude Vercel preview domains from public site mode
+  const isVercelDomain = hostname.includes('.vercel.app');
+
+  const isPublicSite = !isVercelDomain && parts.length > 1 && !['www', 'localhost', 'app', 'admin'].includes(parts[0]);
 
   if (isPublicSite || isTestingPublicSite) {
     console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage', { isTestingPublicSite });
