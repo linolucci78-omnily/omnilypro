@@ -192,13 +192,9 @@
 
 .wheel-and-button-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 400px;
+  width: min(400px, 90vw); /* Responsive ma max 400px */
+  height: min(400px, 90vw); /* Stesso valore = quadrato */
   margin: 0 auto;
-  aspect-ratio: 1 / 1; /* Force square */
-  /* Fallback for browsers that don't support aspect-ratio */
-  height: 0;
-  padding-bottom: 100%; /* Makes height = width */
 }
 
 /* ============================================
