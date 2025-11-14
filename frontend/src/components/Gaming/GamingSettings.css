@@ -1,0 +1,840 @@
+/* ============================================
+   GAMING SETTINGS - MAIN CONTAINER
+   ============================================ */
+
+.gaming-settings-container {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  position: relative;
+}
+
+/* Close button */
+.gaming-settings-close-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10000;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gaming-settings-close-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: rgba(185, 28, 28, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gaming-settings-close-btn:active {
+  transform: scale(1.05) rotate(90deg);
+}
+
+/* ============================================
+   HUB VIEW - CARDS NAVIGATION
+   ============================================ */
+
+.gaming-settings-hub-view {
+  padding: 2rem 3rem;
+  max-width: 100%;
+}
+
+.gaming-settings-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.gaming-settings-hub-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.gaming-settings-hub-header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.gaming-settings-hub-header-content p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Hub Cards Grid */
+.gaming-settings-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.gaming-hub-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 2.5rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.gaming-hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.gaming-hub-card:hover::before {
+  opacity: 1;
+}
+
+.gaming-hub-card:hover {
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+}
+
+.gaming-hub-card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.gaming-hub-card:hover .gaming-hub-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.gaming-hub-card-content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.gaming-hub-card-content > p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.gaming-hub-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gaming-hub-card-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.gaming-hub-card-features li svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.gaming-hub-card-arrow {
+  position: absolute;
+  right: 2rem;
+  bottom: 2rem;
+  font-size: 2rem;
+  color: #cbd5e1;
+  transition: all 0.3s;
+}
+
+.gaming-hub-card:hover .gaming-hub-card-arrow {
+  color: #667eea;
+  transform: translateX(8px);
+}
+
+/* ============================================
+   DETAIL VIEW - INDIVIDUAL SETTINGS PAGES
+   ============================================ */
+
+.gaming-settings-detail-view {
+  padding: 2rem 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.gaming-settings-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: #6b7280;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 2rem;
+}
+
+.gaming-settings-back-btn:hover {
+  border-color: var(--primary-color, #dc2626);
+  color: var(--primary-color, #dc2626);
+  transform: translateX(-4px);
+}
+
+.gaming-settings-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.gaming-settings-detail-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.gaming-settings-detail-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.gaming-settings-detail-header p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   SETTINGS SECTION
+   ============================================ */
+
+.gaming-settings-section {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.gaming-settings-section h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.gaming-settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.gaming-settings-section-header h3 {
+  margin: 0;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 28px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary-color, #dc2626);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 56px;
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--primary-color, #dc2626) 90%, black);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
+}
+
+.btn-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 20px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 32px;
+  min-height: 64px;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.btn-icon:hover {
+  border-color: var(--primary-color, #dc2626);
+  color: var(--primary-color, #dc2626);
+  transform: scale(1.1);
+}
+
+.btn-icon-danger {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #fee2e2;
+  border-radius: 8px;
+  background: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #dc2626;
+}
+
+.btn-icon-danger:hover {
+  border-color: #dc2626;
+  background: #fee2e2;
+  transform: scale(1.1);
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.2s;
+  min-height: 52px;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+  min-height: 60px;
+}
+
+.toggle-label:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--primary-color, #dc2626);
+}
+
+.toggle-label span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.color-picker input[type="color"] {
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.color-picker span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ============================================
+   WHEEL SETTINGS - SECTORS
+   ============================================ */
+
+.sectors-list {
+  margin-top: 24px;
+}
+
+.sectors-list h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.sector-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.sector-item:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sector-color {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 2px solid #e5e7eb;
+}
+
+.sector-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.sector-info input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  min-height: 48px;
+}
+
+.sector-prize {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sector-prize select,
+.sector-prize input {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  min-height: 48px;
+}
+
+.sector-probability {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.sector-probability label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.sector-probability input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary-color, #dc2626);
+}
+
+/* ============================================
+   CHALLENGES LIST
+   ============================================ */
+
+.challenges-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+.challenge-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.challenge-item:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.challenge-item .challenge-icon {
+  width: 60px;
+  height: 60px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffffff, #f3f4f6);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.challenge-item .challenge-info {
+  flex: 1;
+}
+
+.challenge-item .challenge-info h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.challenge-item .challenge-info p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+}
+
+.challenge-type {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.challenge-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.challenge-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================
+   BADGES LIST
+   ============================================ */
+
+.badges-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.badge-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.badge-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.badge-item.rarity-common {
+  border-color: #9ca3af;
+}
+
+.badge-item.rarity-rare {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.badge-item.rarity-epic {
+  border-color: #a855f7;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.badge-item.rarity-legendary {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.badge-item .badge-icon {
+  width: 60px;
+  height: 60px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f9fafb, #e5e7eb);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.badge-item .badge-info {
+  flex: 1;
+}
+
+.badge-item .badge-info h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.badge-item .badge-info p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+}
+
+.badge-item .badge-rarity {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-item .badge-rarity.common {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.badge-item .badge-rarity.rare {
+  background: #3b82f6;
+  color: white;
+}
+
+.badge-item .badge-rarity.epic {
+  background: #a855f7;
+  color: white;
+}
+
+.badge-item .badge-rarity.legendary {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.badge-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .gaming-settings-hub-view,
+  .gaming-settings-detail-view {
+    padding: 1.5rem 2rem;
+  }
+
+  .gaming-settings-hub-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .challenges-list {
+    grid-template-columns: 1fr;
+  }
+
+  .badges-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .gaming-settings-hub-header-content h1 {
+    font-size: 2rem;
+  }
+
+  .gaming-settings-hub-icon,
+  .gaming-settings-detail-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .gaming-hub-card {
+    padding: 2rem;
+  }
+
+  .sector-item {
+    flex-wrap: wrap;
+  }
+
+  .sector-probability {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   TOUCH FRIENDLY (POS MODE)
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary,
+  .btn-save,
+  .btn-icon,
+  .btn-icon-danger {
+    min-height: 56px;
+  }
+
+  .form-group input,
+  .form-group select {
+    min-height: 56px;
+    font-size: 16px;
+  }
+
+  .gaming-hub-card {
+    padding: 2rem;
+  }
+}
+
+/* ============================================
+   SUCCESS MESSAGE ANIMATION
+   ============================================ */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

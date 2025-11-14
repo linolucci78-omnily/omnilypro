@@ -1,0 +1,381 @@
+/* ============================================
+   BADGE UNLOCK NOTIFICATION
+   ============================================ */
+
+.badge-unlock-notification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  z-index: 10000;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  overflow: hidden;
+  position: relative;
+}
+
+.badge-unlock-notification.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.badge-unlock-notification.exiting {
+  transform: translateX(120%) scale(0.8);
+  opacity: 0;
+}
+
+/* Rarity-specific styles */
+.badge-unlock-notification.rarity-rare {
+  border: 3px solid #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.badge-unlock-notification.rarity-epic {
+  border: 3px solid #a855f7;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.badge-unlock-notification.rarity-legendary {
+  border: 3px solid #f59e0b;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+  box-shadow: 0 20px 60px rgba(245, 158, 11, 0.4);
+  animation: legendary-shake 0.5s ease;
+}
+
+@keyframes legendary-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-5px) rotate(-2deg); }
+  75% { transform: translateX(5px) rotate(2deg); }
+}
+
+/* ============================================
+   CONFETTI EFFECT
+   ============================================ */
+
+.notification-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: -10px;
+  animation: confetti-fall 2s ease-out forwards;
+  border-radius: 2px;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(400px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+
+.notification-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(107, 114, 128, 0.1);
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.notification-close:hover {
+  background: rgba(107, 114, 128, 0.2);
+  transform: scale(1.1);
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+
+.notification-content {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: icon-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes icon-bounce {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.notification-emoji {
+  font-size: 64px;
+  animation: emoji-pulse 1.5s infinite;
+}
+
+@keyframes emoji-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.icon-glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
+  animation: glow-pulse 2s infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.notification-title svg {
+  color: #f59e0b;
+  animation: sparkle-twinkle 1s infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.notification-badge-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.notification-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* ============================================
+   REWARDS
+   ============================================ */
+
+.notification-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.reward-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  animation: reward-pop 0.4s ease;
+}
+
+@keyframes reward-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   RARITY INDICATOR
+   ============================================ */
+
+.notification-rarity {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+
+.notification-rarity.common {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.notification-rarity.rare {
+  background: #3b82f6;
+  color: white;
+}
+
+.notification-rarity.epic {
+  background: #a855f7;
+  color: white;
+}
+
+.notification-rarity.legendary {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  animation: legendary-glow 1.5s infinite;
+}
+
+@keyframes legendary-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .badge-unlock-notification {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+  }
+
+  .notification-content {
+    gap: 12px;
+  }
+
+  .notification-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .notification-emoji {
+    font-size: 48px;
+  }
+
+  .notification-badge-name {
+    font-size: 18px;
+  }
+
+  .notification-description {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .badge-unlock-notification {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+
+  .badge-unlock-notification.rarity-rare {
+    background: linear-gradient(135deg, #1f2937 0%, #1e3a8a 100%);
+  }
+
+  .badge-unlock-notification.rarity-epic {
+    background: linear-gradient(135deg, #1f2937 0%, #581c87 100%);
+  }
+
+  .badge-unlock-notification.rarity-legendary {
+    background: linear-gradient(135deg, #1f2937 0%, #78350f 100%);
+  }
+
+  .notification-badge-name {
+    color: #f9fafb;
+  }
+
+  .notification-description {
+    color: #d1d5db;
+  }
+
+  .notification-close {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .notification-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}

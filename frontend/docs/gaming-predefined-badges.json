@@ -1,0 +1,222 @@
+{
+  "predefined_badges": [
+    {
+      "name": "Benvenuto",
+      "description": "Hai completato la registrazione!",
+      "icon_emoji": "👋",
+      "category": "firstSteps",
+      "rarity": "common",
+      "auto_unlock_rule": {
+        "type": "registration",
+        "threshold": 1
+      },
+      "unlock_rewards": {
+        "points": 10
+      }
+    },
+    {
+      "name": "Primo Acquisto",
+      "description": "Hai fatto il tuo primo acquisto!",
+      "icon_emoji": "🛒",
+      "category": "firstSteps",
+      "rarity": "common",
+      "auto_unlock_rule": {
+        "type": "purchase_count",
+        "threshold": 1
+      },
+      "unlock_rewards": {
+        "points": 25
+      }
+    },
+    {
+      "name": "Primo Premio",
+      "description": "Hai riscattato il tuo primo premio!",
+      "icon_emoji": "🎁",
+      "category": "firstSteps",
+      "rarity": "common",
+      "auto_unlock_rule": {
+        "type": "reward_redeemed",
+        "threshold": 1
+      },
+      "unlock_rewards": {
+        "points": 20
+      }
+    },
+    {
+      "name": "Fedele 1 Mese",
+      "description": "Cliente da 30 giorni!",
+      "icon_emoji": "📅",
+      "category": "loyalty",
+      "rarity": "common",
+      "auto_unlock_rule": {
+        "type": "days_since_registration",
+        "threshold": 30
+      },
+      "unlock_rewards": {
+        "points": 50
+      }
+    },
+    {
+      "name": "Fedele 6 Mesi",
+      "description": "Cliente da 6 mesi!",
+      "icon_emoji": "⭐",
+      "category": "loyalty",
+      "rarity": "rare",
+      "auto_unlock_rule": {
+        "type": "days_since_registration",
+        "threshold": 180
+      },
+      "unlock_rewards": {
+        "points": 150
+      }
+    },
+    {
+      "name": "Veterano",
+      "description": "Cliente da 1 anno!",
+      "icon_emoji": "👑",
+      "category": "loyalty",
+      "rarity": "epic",
+      "auto_unlock_rule": {
+        "type": "days_since_registration",
+        "threshold": 365
+      },
+      "unlock_rewards": {
+        "points": 500,
+        "free_spins": 3
+      }
+    },
+    {
+      "name": "€100 Club",
+      "description": "Hai speso €100 in totale!",
+      "icon_emoji": "💰",
+      "category": "spending",
+      "rarity": "common",
+      "auto_unlock_rule": {
+        "type": "total_spent",
+        "threshold": 100
+      },
+      "unlock_rewards": {
+        "points": 50
+      }
+    },
+    {
+      "name": "€500 VIP",
+      "description": "Hai speso €500 in totale!",
+      "icon_emoji": "💎",
+      "category": "spending",
+      "rarity": "rare",
+      "auto_unlock_rule": {
+        "type": "total_spent",
+        "threshold": 500
+      },
+      "unlock_rewards": {
+        "points": 200,
+        "discount": 10
+      }
+    },
+    {
+      "name": "Big Spender",
+      "description": "Hai speso €1000 in totale!",
+      "icon_emoji": "💸",
+      "category": "spending",
+      "rarity": "epic",
+      "auto_unlock_rule": {
+        "type": "total_spent",
+        "threshold": 1000
+      },
+      "unlock_rewards": {
+        "points": 500,
+        "discount": 20,
+        "free_spins": 5
+      }
+    },
+    {
+      "name": "Habitué",
+      "description": "Hai fatto 10 visite!",
+      "icon_emoji": "🔄",
+      "category": "frequency",
+      "rarity": "common",
+      "auto_unlock_rule": {
+        "type": "visit_count",
+        "threshold": 10
+      },
+      "unlock_rewards": {
+        "points": 50
+      }
+    },
+    {
+      "name": "Assiduo",
+      "description": "Hai fatto 25 visite!",
+      "icon_emoji": "🎯",
+      "category": "frequency",
+      "rarity": "rare",
+      "auto_unlock_rule": {
+        "type": "visit_count",
+        "threshold": 25
+      },
+      "unlock_rewards": {
+        "points": 150
+      }
+    },
+    {
+      "name": "Super Frequentatore",
+      "description": "Hai fatto 50 visite!",
+      "icon_emoji": "🏆",
+      "category": "frequency",
+      "rarity": "epic",
+      "auto_unlock_rule": {
+        "type": "visit_count",
+        "threshold": 50
+      },
+      "unlock_rewards": {
+        "points": 300,
+        "free_spins": 2
+      }
+    },
+    {
+      "name": "Streak Master",
+      "description": "7 giorni consecutivi di acquisti!",
+      "icon_emoji": "🔥",
+      "category": "special",
+      "rarity": "rare",
+      "auto_unlock_rule": {
+        "type": "streak_days",
+        "threshold": 7
+      },
+      "unlock_rewards": {
+        "points": 100,
+        "free_spins": 1
+      }
+    },
+    {
+      "name": "Referral Champion",
+      "description": "Hai invitato 5 amici!",
+      "icon_emoji": "🤝",
+      "category": "social",
+      "rarity": "rare",
+      "auto_unlock_rule": {
+        "type": "referrals",
+        "threshold": 5
+      },
+      "unlock_rewards": {
+        "points": 250,
+        "discount": 15
+      }
+    },
+    {
+      "name": "Challenge Completista",
+      "description": "Hai completato 10 challenge!",
+      "icon_emoji": "✅",
+      "category": "special",
+      "rarity": "epic",
+      "auto_unlock_rule": {
+        "type": "challenges_completed",
+        "threshold": 10
+      },
+      "unlock_rewards": {
+        "points": 200,
+        "free_spins": 3
+      }
+    }
+  ]
+}

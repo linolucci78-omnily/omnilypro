@@ -9,7 +9,9 @@
     "build:check": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "migrate:tiers": "tsx src/scripts/migrateTiers.ts"
+    "migrate:tiers": "tsx src/scripts/migrateTiers.ts",
+    "setup-gaming": "tsx src/scripts/setupGamingModule.ts",
+    "setup-gaming-all": "tsx src/scripts/setupGamingMultiTenant.ts"
   },
   "dependencies": {
     "@craftjs/core": "^0.2.12",

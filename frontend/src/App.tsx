@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { GamingNotificationsProvider } from './contexts/GamingNotificationsContext'
 import { useMDMCommands } from './hooks/useMDMCommands'
 import Navbar from './components/Layout/Navbar'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
@@ -54,6 +55,7 @@ import POSDashboardWrapper from './components/POS/POSDashboardWrapper'
 import CustomerDisplay from './components/POS/CustomerDisplay'
 import WebsiteContentEditor from './components/POS/WebsiteContentEditor'
 import ReceiptLayoutEditorPage from './pages/ReceiptLayoutEditorPage'
+import GamingTest from './pages/GamingTest'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -141,8 +143,9 @@ function App() {
       <Router>
         <AuthProvider>
           <ToastProvider>
-            <div className="App" style={{ margin: 0, padding: 0 }}>
-              <Routes>
+            <GamingNotificationsProvider>
+              <div className="App" style={{ margin: 0, padding: 0 }}>
+                <Routes>
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -168,7 +171,8 @@ function App() {
               />
               <Route path="*" element={<Login />} />
             </Routes>
-          </div>
+              </div>
+            </GamingNotificationsProvider>
           </ToastProvider>
         </AuthProvider>
       </Router>
@@ -179,8 +183,9 @@ function App() {
     <Router>
       <AuthProvider>
         <ToastProvider>
-          <div className="App">
-          <Routes>
+          <GamingNotificationsProvider>
+            <div className="App">
+            <Routes>
             <Route path="/" element={<><Navbar /><Landing /></>} />
             {/* ...tutte le altre route originali... */}
             <Route path="/login" element={<Login />} />
@@ -194,6 +199,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
             <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
+            <Route path="/gaming-test" element={<GamingTest />} />
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
               <Route index element={<AdminDashboard />} />
               <Route path="organizations" element={<Admin />} />
@@ -232,7 +238,8 @@ function App() {
             <Route path="/customer-display" element={<CustomerDisplay />} />
             <Route path="/sites/:subdomain" element={<PublicSite />} />
           </Routes>
-        </div>
+            </div>
+          </GamingNotificationsProvider>
         </ToastProvider>
       </AuthProvider>
     </Router>

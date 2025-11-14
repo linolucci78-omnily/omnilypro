@@ -1,5 +1,5 @@
 /* ============================================
-   ACCOUNT SETTINGS HUB - MODAL CON 6 CARD
+   ACCOUNT SETTINGS HUB - MODAL CON 7 CARD
    ============================================ */
 
 .settings-hub-overlay {
@@ -175,7 +175,7 @@
 }
 
 /* ============================================
-   CARD ICONS - 6 COLORI DIVERSI
+   CARD ICONS - 7 COLORI DIVERSI
    ============================================ */
 
 .settings-hub-card-icon {
@@ -217,6 +217,11 @@
 .settings-hub-card-icon.giftcerts {
   background: linear-gradient(135deg, #fed7aa, #fdba74);
   color: #9a3412;
+}
+
+.settings-hub-card-icon.gaming {
+  background: linear-gradient(135deg, #fae8ff, #e9d5ff);
+  color: #7c3aed;
 }
 
 .settings-hub-card:hover .settings-hub-card-icon {

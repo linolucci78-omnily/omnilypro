@@ -54,7 +54,7 @@
   .pos-layout .pos-main-content {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 35px 0 0 0 !important;
+    margin: 30px 0 0 0 !important;
     padding: 0 40px !important; /* FIX: Margini laterali 40px */
     box-sizing: border-box !important;
     overflow-x: hidden !important;
@@ -85,6 +85,12 @@
   /* CUSTOMERS CARD VIEW - PADDING LATERALE PER CARD */
   .pos-layout .customers-card-view {
     padding: 0 40px !important;
+  }
+
+  /* FORZA ALTEZZA CARD PER BADGE */
+  .pos-layout .customer-card-animated {
+    min-height: 500px !important;
+    padding-bottom: 30px !important;
   }
 
   /* FORZA LE SEZIONI BIANCHE */

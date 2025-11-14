@@ -1,0 +1,442 @@
+/* ============================================
+   GAMING HUB WRAPPER - Modal Structure
+   ============================================ */
+
+.gaming-hub-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gaming-hub-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+.gaming-hub-modal-content {
+  position: relative;
+  z-index: 2;
+  width: 95%;
+  max-width: 1400px;
+  max-height: 95vh;
+  background: white;
+  border-radius: 20px;
+  overflow-y: auto;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+}
+
+.gaming-hub-close-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gaming-hub-close-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: rgba(185, 28, 28, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gaming-hub-close-btn:active {
+  transform: scale(1.05) rotate(90deg);
+}
+
+/* ============================================
+   GAMING HUB WRAPPER - Upgrade Prompt
+   ============================================ */
+
+.gaming-locked {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  position: relative;
+  min-height: 100vh;
+  background: white;
+}
+
+/* Close button - same as GamingHub */
+.gaming-hub-close-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1000;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gaming-hub-close-button:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: rgba(185, 28, 28, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gaming-hub-close-button:active {
+  transform: scale(1.05) rotate(90deg);
+}
+
+.gaming-locked-content {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border-radius: 24px;
+  padding: 64px 48px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 3px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.gaming-locked-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--primary-color, #dc2626), #f59e0b, #a855f7);
+}
+
+/* ============================================
+   LOCK ICON
+   ============================================ */
+
+.gaming-locked-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fee2e2, #fef3c7);
+  border: 4px solid #fbbf24;
+  margin-bottom: 32px;
+  box-shadow: 0 12px 32px rgba(251, 191, 36, 0.3);
+}
+
+.gaming-locked-icon svg {
+  color: #d97706;
+  filter: drop-shadow(0 4px 8px rgba(217, 119, 6, 0.3));
+}
+
+/* ============================================
+   TITLE
+   ============================================ */
+
+.gaming-locked-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 36px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 16px 0;
+}
+
+.gaming-locked-title svg {
+  color: var(--primary-color, #dc2626);
+  filter: drop-shadow(0 2px 8px rgba(220, 38, 38, 0.3));
+}
+
+/* ============================================
+   DESCRIPTION
+   ============================================ */
+
+.gaming-locked-description {
+  font-size: 18px;
+  color: #6b7280;
+  margin: 0 0 40px 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ============================================
+   FEATURES LIST
+   ============================================ */
+
+.gaming-locked-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 48px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.gaming-locked-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  text-align: left;
+  transition: all 0.3s;
+}
+
+.gaming-locked-features li:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateX(4px);
+}
+
+.gaming-locked-features li svg {
+  flex-shrink: 0;
+  color: #f59e0b;
+  margin-top: 2px;
+}
+
+.gaming-locked-features li div {
+  flex: 1;
+}
+
+.gaming-locked-features li strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.gaming-locked-features li span {
+  display: block;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* ============================================
+   PLAN BADGE
+   ============================================ */
+
+.gaming-locked-plan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.plan-badge.pro {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.plan-badge.enterprise {
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  color: white;
+}
+
+.plan-price {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* ============================================
+   CTA BUTTON
+   ============================================ */
+
+.gaming-locked-cta {
+  width: 100%;
+  max-width: 400px;
+  padding: 18px 32px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #b91c1c);
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+}
+
+.gaming-locked-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.4);
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+}
+
+.gaming-locked-cta:active {
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   NOTE
+   ============================================ */
+
+.gaming-locked-note {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .gaming-locked {
+    padding: 24px 16px;
+  }
+
+  .gaming-locked-content {
+    padding: 40px 24px;
+  }
+
+  .gaming-locked-icon {
+    width: 96px;
+    height: 96px;
+  }
+
+  .gaming-locked-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .gaming-locked-title {
+    font-size: 28px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gaming-locked-description {
+    font-size: 16px;
+  }
+
+  .gaming-locked-features {
+    gap: 12px;
+  }
+
+  .gaming-locked-features li {
+    padding: 16px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .gaming-locked-features li strong {
+    font-size: 15px;
+  }
+
+  .gaming-locked-features li span {
+    font-size: 13px;
+  }
+
+  .plan-price {
+    font-size: 24px;
+  }
+
+  .gaming-locked-cta {
+    font-size: 16px;
+    padding: 16px 24px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .gaming-locked-content {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border-color: #374151;
+  }
+
+  .gaming-locked-icon {
+    background: linear-gradient(135deg, #78350f, #92400e);
+    border-color: #d97706;
+  }
+
+  .gaming-locked-description {
+    color: #9ca3af;
+  }
+
+  .gaming-locked-features li {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .gaming-locked-features li:hover {
+    background: #374151;
+  }
+
+  .gaming-locked-features li strong {
+    color: #f9fafb;
+  }
+
+  .gaming-locked-features li span {
+    color: #9ca3af;
+  }
+
+  .plan-price {
+    color: #f9fafb;
+  }
+
+  .gaming-locked-note {
+    color: #6b7280;
+  }
+}

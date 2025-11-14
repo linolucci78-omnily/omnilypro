@@ -1,7 +1,28 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.SUPABASE_URL || 'https://sjvatdnvewohvswfrdiv.supabase.co'
-const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZzd2ZyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM0ODUsImV4cCI6MjA3MjMxOTQ4NX0.310-1eBrnWxaDYVJ2QeEhx9xmqVljTBqSDArLMjFiMk'
+// Support both browser (import.meta.env) and Node.js (process.env)
+const getEnvVar = (key: string, fallback: string): string => {
+  let value: string | undefined
+
+  // Browser environment (Vite)
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    value = import.meta.env[key]
+  }
+  // Node.js environment
+  else if (typeof process !== 'undefined' && process.env) {
+    value = process.env[key]
+  }
+
+  // Ignore placeholder values
+  if (value && !value.includes('your-project') && !value.includes('your-anon-key')) {
+    return value
+  }
+
+  return fallback
+}
+
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL', 'https://sjvatdnvewohvswfrdiv.supabase.co')
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdmF0ZG52ZXdvaHZzd2ZyZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM0ODUsImV4cCI6MjA3MjMxOTQ4NX0.310-1eBrnWxaDYVJ2QeEhx9xmqVljTBqSDArLMjFiMk')
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 

@@ -1,0 +1,762 @@
+/* ============================================
+   SPIN THE WHEEL - Gaming Module
+   ============================================ */
+
+/* ============================================
+   MODAL CONTAINER
+   ============================================ */
+
+.spin-wheel-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modal-fade-in 0.3s ease;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.spin-wheel-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  /* Backdrop più trasparente */
+  backdrop-filter: blur(8px);
+  /* Effetto vetro sfocato più pronunciato */
+  animation: backdrop-fade 0.3s ease;
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   MODAL CONTENT
+   ============================================ */
+
+.spin-wheel-content {
+  position: relative;
+  background: rgba(249, 250, 251, 0.5);
+  /* Più trasparente - ridotto da 0.7 a 0.5 */
+  backdrop-filter: blur(40px) saturate(180%);
+  /* Blur più forte per compensare la trasparenza */
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  /* Bordo più trasparente */
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+  /* Ombra più leggera */
+  animation: modal-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+}
+
+@keyframes modal-slide-up {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+
+.spin-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  /* Nessun cerchio - solo X */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #dc2626;
+  /* X rossa */
+  z-index: 10;
+  font-weight: 700;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.spin-close-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.spin-close-btn:hover {
+  transform: scale(1.15);
+  color: #b91c1c;
+  /* Rosso più scuro al hover */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+/* ============================================
+   TITLE
+   ============================================ */
+
+.spin-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.spin-title svg {
+  color: #f59e0b;
+  /* REMOVED - animation was too distracting */
+  /* animation: sparkle 2s ease-in-out infinite; */
+}
+
+.spin-title svg:first-child {
+  animation-delay: 0s;
+}
+
+.spin-title svg:last-child {
+  animation-delay: 1s;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+.spin-title h2 {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+/* ============================================
+   SPINS LEFT INDICATOR
+   ============================================ */
+
+.spins-left {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.spins-left strong {
+  color: var(--primary-color, #dc2626);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ============================================
+   WHEEL AND BUTTON WRAPPER - contains both independently
+   ============================================ */
+
+.wheel-and-button-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+/* ============================================
+   WHEEL CONTAINER
+   ============================================ */
+
+.wheel-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================
+   WHEEL POINTER
+   ============================================ */
+
+.wheel-pointer {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  /* Must be above wheel (auto/0) and spin button (200) */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  pointer-events: none;
+  /* Ensure it doesn't block interactions */
+}
+
+/* ============================================
+   WHEEL WRAPPER - isolates rotation
+   ============================================ */
+
+.wheel-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  /* Static wrapper - doesn't rotate */
+}
+
+.pointer-arrow {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 40px solid var(--primary-color, #dc2626);
+  position: relative;
+  /* REMOVED - animation was too distracting */
+  /* animation: pointer-bounce 2s ease-in-out infinite; */
+}
+
+/* REMOVED: Decorative circle on pointer - was confusing and looked like an extra button */
+/*
+.pointer-arrow::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color, #dc2626);
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+*/
+
+@keyframes pointer-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ============================================
+   WHEEL
+   ============================================ */
+
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2),
+              0 0 0 8px white,
+              0 0 0 12px var(--primary-color, #dc2626),
+              0 0 40px rgba(220, 38, 38, 0.3);
+  background: white;
+  z-index: 1;
+  /* Base layer - below pointer and button */
+  pointer-events: auto;
+  /* Restore pointer events for wheel */
+  /* CRITICO: Crea un layer di compositing separato per la ruota */
+  will-change: transform;
+  transform-style: preserve-3d;
+  /* Isola la rotazione solo a questo elemento */
+  isolation: isolate;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ============================================
+   WHEEL SECTORS
+   ============================================ */
+
+.wheel-sector {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transition: filter 0.3s;
+}
+
+.wheel-sector::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sector-color, #3b82f6);
+  opacity: 1;
+}
+
+.wheel-sector::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
+  pointer-events: none;
+}
+
+.wheel-sector:hover {
+  filter: brightness(1.1);
+}
+
+/* ============================================
+   SECTOR CONTENT
+   ============================================ */
+
+.sector-content {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+  width: 120%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.sector-label {
+  display: block;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3),
+               0 0 8px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* ============================================
+   CENTER SPIN BUTTON
+   ============================================ */
+
+.spin-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  margin-top: -50px;
+  /* Center using margin instead of transform! */
+  margin-left: -50px;
+  /* Center using margin instead of transform! */
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), #b91c1c);
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4),
+              0 0 0 6px white,
+              0 0 0 8px var(--primary-color, #dc2626);
+  z-index: 10001;
+  /* Above everything */
+  text-transform: uppercase;
+  pointer-events: auto;
+  /* BLOCCA COMPLETAMENTE qualsiasi trasformazione */
+  transform: none !important;
+  animation: none !important;
+}
+
+.spin-button:hover:not(.disabled):not(.spinning) {
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.5),
+              0 0 0 6px white,
+              0 0 0 8px var(--primary-color, #dc2626),
+              0 0 60px rgba(220, 38, 38, 0.3);
+  filter: brightness(1.1);
+}
+
+.spin-button:active:not(.disabled):not(.spinning) {
+  filter: brightness(0.95);
+}
+
+.spin-button.spinning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  /* REMOVED - animation was annoying and causing dizziness */
+  /* animation: pulse-spin 1s ease-in-out infinite; */
+  cursor: not-allowed;
+}
+
+/* DELETED - pulse-spin animation completely removed */
+/*
+@keyframes pulse-spin {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4),
+                0 0 0 6px white,
+                0 0 0 8px #f59e0b;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 12px 32px rgba(245, 158, 11, 0.6),
+                0 0 0 6px white,
+                0 0 0 8px #f59e0b,
+                0 0 60px rgba(245, 158, 11, 0.4);
+  }
+}
+*/
+
+.spin-button.disabled {
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+              0 0 0 6px white,
+              0 0 0 8px #9ca3af;
+}
+
+.spin-button.disabled:hover {
+  /* No transform needed - completely static */
+}
+
+/* ============================================
+   PRIZE REVEAL MODAL
+   ============================================ */
+
+.prize-reveal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  /* Backdrop più trasparente */
+  backdrop-filter: blur(12px);
+  /* Effetto vetro sfocato */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  animation: prize-fade-in 0.5s ease;
+}
+
+@keyframes prize-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.prize-reveal-content {
+  position: relative;
+  background: rgba(249, 250, 251, 0.5);
+  /* Più trasparente - ridotto da 0.7 a 0.5 */
+  backdrop-filter: blur(40px) saturate(180%);
+  /* Blur più forte per compensare la trasparenza */
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  /* Bordo più trasparente */
+  border-radius: 24px;
+  padding: 48px;
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+  /* Ombra più leggera */
+  animation: prize-pop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  overflow: hidden;
+}
+
+@keyframes prize-pop {
+  0% {
+    transform: scale(0.3) rotate(-10deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.prize-reveal-content > svg {
+  margin-bottom: 24px;
+  filter: drop-shadow(0 4px 12px rgba(245, 158, 11, 0.4));
+  /* REMOVED - animation was too distracting */
+  /* animation: trophy-shine 2s ease-in-out infinite; */
+}
+
+@keyframes trophy-shine {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+.prize-reveal-content h2 {
+  font-size: 36px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 16px 0;
+  /* REMOVED - animation was too distracting */
+  /* animation: text-glow 2s ease-in-out infinite; */
+}
+
+@keyframes text-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.8));
+  }
+}
+
+/* ============================================
+   CONFETTI ANIMATION
+   ============================================ */
+
+.prize-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-fall 3s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-100px) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(600px) rotate(720deg);
+  }
+}
+
+/* ============================================
+   PRIZE DETAILS
+   ============================================ */
+
+.prize-won-label {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 24px 0;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 3px solid #fbbf24;
+}
+
+.prize-code {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 32px 0;
+  padding: 12px 20px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  border: 2px dashed #3b82f6;
+}
+
+.prize-code strong {
+  color: #3b82f6;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+/* ============================================
+   PRIZE OK BUTTON
+   ============================================ */
+
+.prize-ok-btn {
+  width: 100%;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.prize-ok-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.prize-ok-btn:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border: 6px solid #e5e7eb;
+  border-top-color: var(--primary-color, #dc2626);
+  border-radius: 50%;
+  /* animation: spin 1s linear infinite; */
+  margin: 0 auto;
+}
+
+/* DELETED - spin animation completely removed */
+/*
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+*/
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .spin-wheel-content {
+    padding: 24px;
+    width: 95%;
+  }
+
+  .spin-title h2 {
+    font-size: 24px;
+  }
+
+  .wheel-container {
+    max-width: 320px;
+  }
+
+  .spin-button {
+    width: 80px;
+    height: 80px;
+    font-size: 16px;
+  }
+
+  .sector-label {
+    font-size: 11px;
+  }
+
+  .prize-reveal-content {
+    padding: 32px 24px;
+  }
+
+  .prize-reveal-content h2 {
+    font-size: 28px;
+  }
+
+  .prize-won-label {
+    font-size: 22px;
+    padding: 12px 16px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .spin-wheel-content {
+    background: rgba(249, 250, 251, 0.5);
+    /* Mantieni stesso livello di trasparenza del light mode */
+    backdrop-filter: blur(40px) saturate(180%);
+  }
+
+  .spin-close-btn {
+    background: transparent;
+    /* Nessun cerchio anche in dark mode */
+    color: #dc2626;
+    /* X rossa */
+  }
+
+  .spin-close-btn:hover {
+    transform: scale(1.2);
+    color: #991b1b;
+    /* Rosso più scuro al hover */
+  }
+
+  .spins-left {
+    color: #6b7280;
+    /* Testo grigio su sfondo chiaro */
+  }
+
+  .prize-reveal-content {
+    background: rgba(249, 250, 251, 0.5);
+    /* Mantieni stesso livello di trasparenza del light mode */
+    backdrop-filter: blur(40px) saturate(180%);
+  }
+
+  .prize-won-label {
+    background: white;
+    /* Sfondo bianco anche in dark mode */
+    color: #1f2937;
+  }
+
+  .prize-code {
+    background: rgba(59, 130, 246, 0.1);
+    /* Mantieni colore chiaro */
+  }
+}

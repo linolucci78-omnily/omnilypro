@@ -16,7 +16,8 @@ import {
   Save,
   AlertCircle,
   Smartphone,
-  Printer
+  Printer,
+  Sparkles
 } from 'lucide-react'
 import './SettingsHub.css'
 
@@ -27,6 +28,7 @@ interface SettingsHubProps {
   onOpenLoyaltySystem: () => void
   onOpenGiftCertificatesSettings: () => void
   onOpenReceiptLayout: () => void
+  onOpenGamingSettings?: () => void
   onNavigateToSection: (sectionId: string) => void
 }
 
@@ -37,6 +39,7 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
   onOpenLoyaltySystem,
   onOpenGiftCertificatesSettings,
   onOpenReceiptLayout,
+  onOpenGamingSettings,
   onNavigateToSection
 }) => {
   const navigate = useNavigate()
@@ -75,6 +78,21 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Sistema tier e livelli'
       ],
       onClick: onOpenLoyaltySystem
+    },
+    {
+      id: 'gaming',
+      icon: Sparkles,
+      title: 'Gaming & Gamification',
+      description: 'Ruota della fortuna, challenge, badge e achievement',
+      color: '#dc2626',
+      gradient: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+      features: [
+        'Ruota della fortuna e premi',
+        'Challenge giornaliere/settimanali',
+        'Badge e achievement',
+        'Configurazione gamification'
+      ],
+      onClick: onOpenGamingSettings || (() => setMessage({ type: 'error', text: 'Funzionalità in arrivo prossimamente' }))
     },
     {
       id: 'gift-certificates',
