@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
-import { GamingNotificationsProvider } from './contexts/GamingNotificationsContext'
+// REMOVED: GamingNotificationsProvider - using console.log instead for stability
+// import { GamingNotificationsProvider } from './contexts/GamingNotificationsContext'
 import { useMDMCommands } from './hooks/useMDMCommands'
 import Navbar from './components/Layout/Navbar'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
@@ -143,36 +144,34 @@ function App() {
       <Router>
         <AuthProvider>
           <ToastProvider>
-            <GamingNotificationsProvider>
-              <div className="App" style={{ margin: 0, padding: 0 }}>
-                <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <POSDashboardWrapper />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/pos"
-                element={
-                  <ProtectedRoute>
-                    <Z108POSInterface />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/customer-display"
-                element={<CustomerDisplay />}
-              />
-              <Route path="*" element={<Login />} />
-            </Routes>
-              </div>
-            </GamingNotificationsProvider>
+            <div className="App" style={{ margin: 0, padding: 0 }}>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <POSDashboardWrapper />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pos"
+                  element={
+                    <ProtectedRoute>
+                      <Z108POSInterface />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/customer-display"
+                  element={<CustomerDisplay />}
+                />
+                <Route path="*" element={<Login />} />
+              </Routes>
+            </div>
           </ToastProvider>
         </AuthProvider>
       </Router>
@@ -183,63 +182,61 @@ function App() {
     <Router>
       <AuthProvider>
         <ToastProvider>
-          <GamingNotificationsProvider>
-            <div className="App">
+          <div className="App">
             <Routes>
-            <Route path="/" element={<><Navbar /><Landing /></>} />
-            {/* ...tutte le altre route originali... */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
-            <Route path="/strapi-test" element={<StrapiTest />} />
-            <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
-            <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
-            <Route path="/device-setup" element={<DeviceSetup />} />
-            <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
-            <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
-            <Route path="/gaming-test" element={<GamingTest />} />
-            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
-              <Route index element={<AdminDashboard />} />
-              <Route path="organizations" element={<Admin />} />
-              <Route path="business-owners" element={<BusinessOwners />} />
-              <Route path="pending-customers" element={<PendingCustomers />} />
-              <Route path="users" element={<UsersManagement />} />
-              <Route path="crm" element={<CRMLeadsDashboard />} />
-              <Route path="contracts" element={<ContractsDashboard />} />
-              <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
-              <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
-              <Route path="mdm" element={<MDMDashboard />} />
-              <Route path="inventory" element={<InventoryDashboard />} />
-              <Route path="subscriptions" element={<BillingDashboard />} />
-              <Route path="security" element={<SecurityDashboard />} />
-              <Route path="settings" element={<SystemSettings />} />
-              <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
-              <Route path="analytics" element={<AnalyticsDashboard />} />
-              <Route path="activity" element={<ActivityLogDashboard />} />
-              <Route path="notifications" element={<NotificationsDashboard />} />
-              <Route path="emails" element={<EmailTemplatesDashboard />} />
-              <Route path="database" element={<DatabaseDashboard />} />
-              <Route path="support" element={<SupportDashboard />} />
-              <Route path="branding" element={<BrandingDashboard />} />
-              <Route path="websites" element={<WebsiteManager />} />
-              <Route path="websites-v2" element={<WebsiteManagerV2 />} />
-              <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
-              <Route path="memberships" element={<AdminMembershipsDashboard />} />
-              <Route path="docs" element={<DocumentationDashboard />} />
-              <Route path="downloads" element={<Downloads />} />
-            </Route>
-            <Route path="/sign/:signatureId" element={
-              <React.Suspense fallback={<div>Caricamento...</div>}>
-                <ContractSignature />
-              </React.Suspense>
-            } />
-            <Route path="/customer-display" element={<CustomerDisplay />} />
-            <Route path="/sites/:subdomain" element={<PublicSite />} />
-          </Routes>
-            </div>
-          </GamingNotificationsProvider>
+              <Route path="/" element={<><Navbar /><Landing /></>} />
+              {/* ...tutte le altre route originali... */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/strapi-test" element={<StrapiTest />} />
+              <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
+              <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
+              <Route path="/device-setup" element={<DeviceSetup />} />
+              <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
+              <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
+              <Route path="/gaming-test" element={<GamingTest />} />
+              <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
+                <Route index element={<AdminDashboard />} />
+                <Route path="organizations" element={<Admin />} />
+                <Route path="business-owners" element={<BusinessOwners />} />
+                <Route path="pending-customers" element={<PendingCustomers />} />
+                <Route path="users" element={<UsersManagement />} />
+                <Route path="crm" element={<CRMLeadsDashboard />} />
+                <Route path="contracts" element={<ContractsDashboard />} />
+                <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
+                <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
+                <Route path="mdm" element={<MDMDashboard />} />
+                <Route path="inventory" element={<InventoryDashboard />} />
+                <Route path="subscriptions" element={<BillingDashboard />} />
+                <Route path="security" element={<SecurityDashboard />} />
+                <Route path="settings" element={<SystemSettings />} />
+                <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
+                <Route path="analytics" element={<AnalyticsDashboard />} />
+                <Route path="activity" element={<ActivityLogDashboard />} />
+                <Route path="notifications" element={<NotificationsDashboard />} />
+                <Route path="emails" element={<EmailTemplatesDashboard />} />
+                <Route path="database" element={<DatabaseDashboard />} />
+                <Route path="support" element={<SupportDashboard />} />
+                <Route path="branding" element={<BrandingDashboard />} />
+                <Route path="websites" element={<WebsiteManager />} />
+                <Route path="websites-v2" element={<WebsiteManagerV2 />} />
+                <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
+                <Route path="memberships" element={<AdminMembershipsDashboard />} />
+                <Route path="docs" element={<DocumentationDashboard />} />
+                <Route path="downloads" element={<Downloads />} />
+              </Route>
+              <Route path="/sign/:signatureId" element={
+                <React.Suspense fallback={<div>Caricamento...</div>}>
+                  <ContractSignature />
+                </React.Suspense>
+              } />
+              <Route path="/customer-display" element={<CustomerDisplay />} />
+              <Route path="/sites/:subdomain" element={<PublicSite />} />
+            </Routes>
+          </div>
         </ToastProvider>
       </AuthProvider>
     </Router>

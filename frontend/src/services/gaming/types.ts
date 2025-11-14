@@ -3,6 +3,9 @@
  * Badge System, Challenges, Spin the Wheel
  */
 
+// Re-export types from supabase
+export type { Customer } from '../../lib/supabase'
+
 // ============================================
 // GAMING CONFIG
 // ============================================

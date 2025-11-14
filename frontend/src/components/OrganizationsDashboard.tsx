@@ -5,7 +5,8 @@ import { rewardsService } from '../services/rewardsService'
 import { ZCSPrintService, createPrintService } from '../services/printService'
 import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
-import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
+// REMOVED: useGamingNotifications - using console.log instead for stability
+// import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
 import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
@@ -78,7 +79,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     (window.location.search.includes('posomnily=true') || localStorage.getItem('pos-mode') === 'true')
 
   const { user } = useAuth()
-  const { showChallengeComplete, showBadgeUnlock } = useGamingNotifications()
+  // REMOVED: Gaming notifications hook - using console.log instead
+  // const { showChallengeComplete, showBadgeUnlock } = useGamingNotifications()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -1254,11 +1256,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           const completedChallenges = [...purchaseResults, ...spendResults, ...pointsResults].filter(r => r.completed);
           if (completedChallenges.length > 0) {
             console.log(`🎉 ${completedChallenges.length} challenge completata/e!`);
-            // Show notification for each completed challenge
+            // Log notification for each completed challenge (UI notifications disabled for stability)
             for (const result of completedChallenges) {
               if (result.challenge) {
-                showChallengeComplete(result.challenge);
-                console.log(`  🎉 Mostra notifica: Challenge "${result.challenge.title}" completata!`);
+                // REMOVED: showChallengeComplete(result.challenge);
+                console.log(`  🎉 Challenge "${result.challenge.title}" completata!`);
               }
             }
           }
@@ -1268,11 +1270,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           const newlyUnlocked = badgeUnlocks.filter(b => b.unlocked);
           if (newlyUnlocked.length > 0) {
             console.log(`🏆 ${newlyUnlocked.length} nuovo/i badge sbloccato/i!`);
-            // Show notification for each unlocked badge
+            // Log notification for each unlocked badge (UI notifications disabled for stability)
             for (const unlock of newlyUnlocked) {
               if (unlock.badge) {
-                showBadgeUnlock(unlock.badge);
-                console.log(`  🏆 Mostra notifica: Badge "${unlock.badge.name}" sbloccato!`);
+                // REMOVED: showBadgeUnlock(unlock.badge);
+                console.log(`  🏆 Badge "${unlock.badge.name}" sbloccato!`);
               }
             }
           }
