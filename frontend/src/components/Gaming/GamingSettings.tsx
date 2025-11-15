@@ -25,6 +25,7 @@ import {
 import { spinService } from '../../services/gaming/spinService'
 import { challengeService } from '../../services/gaming/challengeService'
 import { badgeService } from '../../services/gaming/badgeService'
+import { slotMachineService } from '../../services/gaming/slotMachineService'
 import type {
   WheelConfig,
   WheelSector,
@@ -32,7 +33,10 @@ import type {
   Badge,
   ChallengeType,
   BadgeCategory,
-  BadgeRarity
+  BadgeRarity,
+  SlotMachineConfig,
+  SlotSymbol,
+  WinningCombination
 } from '../../services/gaming/types'
 import './GamingSettings.css'
 
@@ -42,7 +46,7 @@ interface GamingSettingsProps {
   onClose?: () => void
 }
 
-type ViewMode = 'hub' | 'wheel' | 'challenges' | 'badges' | 'general'
+type ViewMode = 'hub' | 'wheel' | 'challenges' | 'badges' | 'slot' | 'scratch' | 'general'
 
 const GamingSettings: React.FC<GamingSettingsProps> = ({
   organizationId,
@@ -55,6 +59,24 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
 
   // Wheel settings
   const [wheelConfig, setWheelConfig] = useState<WheelConfig | null>(null)
+
+  // Slot Machine settings
+  const [slotConfig, setSlotConfig] = useState<SlotMachineConfig | null>(null)
+  const [editingCombination, setEditingCombination] = useState<WinningCombination | null>(null)
+  const [editingCombinationIndex, setEditingCombinationIndex] = useState<number | null>(null)
+
+  // Scratch Card settings
+  const [scratchConfig, setScratchConfig] = useState({
+    enabled: true,
+    maxPlaysPerDay: 3,
+    prizes: {
+      cherry: { symbol: '🍒', points: 50, probability: 30 },
+      diamond: { symbol: '💎', points: 100, probability: 20 },
+      star: { symbol: '⭐', points: 200, probability: 10 },
+      gift: { symbol: '🎁', points: 500, probability: 5 }
+    },
+    noPrizeProbability: 35
+  })
 
   // Challenge settings
   const [challenges, setChallenges] = useState<Challenge[]>([])
@@ -110,6 +132,10 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
       // Load wheel config
       const wheel = await spinService.getWheelConfig(organizationId)
       setWheelConfig(wheel)
+
+      // Load slot machine config
+      const slot = await slotMachineService.getSlotConfig(organizationId)
+      setSlotConfig(slot)
 
       // Load challenges
       const challengesList = await challengeService.getAllChallenges(organizationId)
@@ -300,6 +326,7 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
   // HUB VIEW - Main cards like LoyaltyTiersHub
   const renderHub = () => {
     const sectorCount = wheelConfig?.sectors?.length || 0
+    const combinationsCount = slotConfig?.winning_combinations?.length || 0
     const challengeCount = challenges.length
     const badgeCount = badges.length
 
@@ -311,7 +338,7 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
           </div>
           <div>
             <h1>Impostazioni Gaming</h1>
-            <p>Gestisci ruota della fortuna, challenge, badge e impostazioni del modulo gaming</p>
+            <p>Gestisci ruota della fortuna, slot machine, challenge, badge e impostazioni del modulo gaming</p>
           </div>
         </div>
 
@@ -338,7 +365,51 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
             <div className="gaming-hub-card-arrow">→</div>
           </div>
 
-          {/* Card 2: Challenge */}
+          {/* Card 2: Slot Machine */}
+          <div
+            className="gaming-hub-card gaming-hub-card-primary"
+            onClick={() => setViewMode('slot')}
+            style={{ borderColor: '#dc2626' }}
+          >
+            <div className="gaming-hub-card-icon" style={{ background: '#dc2626' }}>
+              <Trophy size={32} />
+            </div>
+            <div className="gaming-hub-card-content">
+              <h3>Slot Machine</h3>
+              <p>Configura simboli, combinazioni vincenti e premi</p>
+              <ul className="gaming-hub-card-features">
+                <li><Edit3 size={16} /> Gestisci combinazioni ({combinationsCount})</li>
+                <li><Gift size={16} /> Configura premi</li>
+                <li><BarChart3 size={16} /> Imposta probabilità</li>
+                <li><Clock size={16} /> Limiti giornalieri</li>
+              </ul>
+            </div>
+            <div className="gaming-hub-card-arrow">→</div>
+          </div>
+
+          {/* Card 3: Gratta e Vinci */}
+          <div
+            className="gaming-hub-card gaming-hub-card-primary"
+            onClick={() => setViewMode('scratch')}
+            style={{ borderColor: '#f59e0b' }}
+          >
+            <div className="gaming-hub-card-icon" style={{ background: '#f59e0b' }}>
+              <Gift size={32} />
+            </div>
+            <div className="gaming-hub-card-content">
+              <h3>Gratta e Vinci</h3>
+              <p>Configura premi, probabilità e limiti del gratta e vinci</p>
+              <ul className="gaming-hub-card-features">
+                <li><Edit3 size={16} /> Gestisci premi (4 livelli)</li>
+                <li><BarChart3 size={16} /> Imposta probabilità</li>
+                <li><Gift size={16} /> Configura punti</li>
+                <li><Clock size={16} /> Tentativi giornalieri ({scratchConfig.maxPlaysPerDay})</li>
+              </ul>
+            </div>
+            <div className="gaming-hub-card-arrow">→</div>
+          </div>
+
+          {/* Card 4: Challenge */}
           <div
             className="gaming-hub-card gaming-hub-card-primary"
             onClick={() => setViewMode('challenges')}
@@ -492,15 +563,15 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
               <input
                 type="number"
                 min="3"
-                max="10"
-                value={(wheelConfig as any).spin_rotations || 5}
+                max="100"
+                value={(wheelConfig as any).spin_rotations || 50}
                 onChange={(e) => setWheelConfig({
                   ...wheelConfig,
-                  spin_rotations: parseInt(e.target.value) || 5
+                  spin_rotations: parseInt(e.target.value) || 50
                 } as any)}
               />
               <small style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
-                Giri che fa la ruota prima di fermarsi
+                Giri che fa la ruota prima di fermarsi (3-100). Più giri = più suspense! 🎡 Default: 50 giri
               </small>
             </div>
           </div>
@@ -1053,6 +1124,758 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
     )
   }
 
+  // SLOT MACHINE MANAGEMENT VIEW
+  const renderSlotMachineManagement = () => {
+    if (!slotConfig) return null
+
+    const handleSaveSlotConfig = async () => {
+      try {
+        setSaving(true)
+        setSaveSuccess(false)
+        console.log('💾 Salvando configurazione slot machine...')
+        const success = await slotMachineService.updateSlotConfig(organizationId, slotConfig)
+
+        if (success) {
+          console.log('✅ Configurazione slot salvata!')
+          // Ricarica la configurazione aggiornata
+          const updatedConfig = await slotMachineService.getSlotConfig(organizationId)
+          if (updatedConfig) {
+            setSlotConfig(updatedConfig)
+          }
+          setSaveSuccess(true)
+          setTimeout(() => setSaveSuccess(false), 3000)
+        } else {
+          alert('Errore durante il salvataggio della configurazione')
+        }
+      } catch (error) {
+        console.error('❌ Error saving slot config:', error)
+        alert('Errore durante il salvataggio della configurazione')
+      } finally {
+        setSaving(false)
+      }
+    }
+
+    const handleAddCombination = () => {
+      const newCombination: WinningCombination = {
+        pattern: 'three_match',
+        prize: {
+          type: 'points',
+          value: 100,
+          label: 'Nuova Combinazione'
+        },
+        probability: 10
+      }
+
+      setSlotConfig({
+        ...slotConfig,
+        winning_combinations: [...slotConfig.winning_combinations, newCombination]
+      })
+    }
+
+    const handleDeleteCombination = (index: number) => {
+      setSlotConfig({
+        ...slotConfig,
+        winning_combinations: slotConfig.winning_combinations.filter((_, i) => i !== index)
+      })
+    }
+
+    const handleUpdateCombination = (index: number, updates: Partial<WinningCombination>) => {
+      setSlotConfig({
+        ...slotConfig,
+        winning_combinations: slotConfig.winning_combinations.map((c, i) =>
+          i === index ? { ...c, ...updates } : c
+        )
+      })
+    }
+
+    return (
+      <div className="gaming-settings-detail-view">
+        <button className="gaming-settings-back-btn" onClick={() => setViewMode('hub')}>
+          <ArrowLeft size={20} />
+          Torna alla Dashboard
+        </button>
+
+        <div className="gaming-settings-detail-header">
+          <div className="gaming-settings-detail-icon" style={{ background: '#dc2626' }}>
+            <Trophy size={32} />
+          </div>
+          <div>
+            <h2>Slot Machine</h2>
+            <p>Configura simboli, combinazioni vincenti e premi</p>
+          </div>
+        </div>
+
+        <div className="gaming-settings-section">
+          <div className="gaming-settings-section-header">
+            <h3>Configurazione Slot Machine</h3>
+          </div>
+
+          {/* Nome */}
+          <div className="form-group">
+            <label>Nome Slot Machine</label>
+            <input
+              type="text"
+              value={slotConfig.name}
+              onChange={(e) => setSlotConfig({ ...slotConfig, name: e.target.value })}
+              placeholder="Slot Machine Fortuna"
+            />
+          </div>
+
+          {/* Limiti */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '16px',
+            padding: '20px',
+            background: '#f9fafb',
+            borderRadius: '12px',
+            marginBottom: '24px'
+          }}>
+            <div className="form-group">
+              <label>Spin massimi al giorno</label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={slotConfig.max_spins_per_day}
+                onChange={(e) => setSlotConfig({
+                  ...slotConfig,
+                  max_spins_per_day: parseInt(e.target.value) || 1
+                })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Cooldown tra spin (ore)</label>
+              <input
+                type="number"
+                min="0"
+                max="168"
+                value={slotConfig.cooldown_hours}
+                onChange={(e) => setSlotConfig({
+                  ...slotConfig,
+                  cooldown_hours: parseInt(e.target.value) || 0
+                })}
+              />
+            </div>
+          </div>
+
+          {/* Combinazioni Vincenti */}
+          <div className="gaming-settings-section-header" style={{ marginTop: '32px' }}>
+            <h3>Combinazioni Vincenti ({slotConfig.winning_combinations.length})</h3>
+            <button className="btn-primary" onClick={handleAddCombination}>
+              <Plus size={18} />
+              Aggiungi Combinazione
+            </button>
+          </div>
+
+          <div className="combinations-list">
+            {slotConfig.winning_combinations.map((combo, index) => (
+              <div key={index} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '16px',
+                background: 'white',
+                border: '2px solid #e5e7eb',
+                borderRadius: '12px',
+                marginBottom: '12px'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '700', color: '#1f2937', marginBottom: '4px' }}>
+                    {combo.pattern === 'jackpot' && '🎰 7️⃣ 7️⃣ 7️⃣ - JACKPOT'}
+                    {combo.pattern === 'three_match' && combo.symbols && `${combo.symbols[0]} ${combo.symbols[0]} ${combo.symbols[0]} - Tre ${combo.symbols[0]}`}
+                    {combo.pattern === 'three_match' && !combo.symbols && '🍒 🍒 🍒 - Tre uguali'}
+                    {combo.pattern === 'two_match' && '🍋 🍋 - - Due uguali'}
+                    {combo.pattern === 'any_diamond' && '💎 - - - Qualsiasi Diamante'}
+                    {combo.pattern === 'any_star' && '⭐ - - - Qualsiasi Stella'}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                    Premio: {combo.prize.value} punti • Prob: {combo.probability}%
+                  </div>
+                </div>
+
+                <button
+                  className="btn-icon"
+                  onClick={() => {
+                    setEditingCombination(combo)
+                    setEditingCombinationIndex(index)
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <Edit3 size={16} />
+                  Modifica
+                </button>
+
+                <button
+                  className="btn-icon-danger"
+                  onClick={() => handleDeleteCombination(index)}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#dc2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <Trash2 size={16} />
+                  Elimina
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Save button */}
+          <button
+            className="btn-save"
+            onClick={handleSaveSlotConfig}
+            disabled={saving}
+          >
+            <Save size={20} />
+            {saving ? 'Salvataggio...' : 'Salva Configurazione Slot Machine'}
+          </button>
+
+          {/* Success message */}
+          {saveSuccess && (
+            <div style={{
+              marginTop: '16px',
+              padding: '16px 20px',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: 'white',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '15px',
+              fontWeight: '600',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+              animation: 'slideInUp 0.3s ease-out'
+            }}>
+              <span style={{ fontSize: '20px' }}>✅</span>
+              Configurazione salvata con successo!
+            </div>
+          )}
+        </div>
+
+        {/* COMBINATION EDIT MODAL */}
+        {editingCombination && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '500px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}>
+              <h3 style={{ margin: '0 0 24px 0', color: '#1f2937', fontSize: '24px', fontWeight: '700' }}>
+                ✏️ Modifica Combinazione Vincente
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Pattern */}
+                <div className="form-group">
+                  <label>Tipo Combinazione</label>
+                  <select
+                    value={editingCombination.pattern}
+                    onChange={(e) => setEditingCombination({
+                      ...editingCombination,
+                      pattern: e.target.value as any
+                    })}
+                  >
+                    <option value="jackpot">Jackpot (7️⃣ 7️⃣ 7️⃣)</option>
+                    <option value="three_match">Tre uguali</option>
+                    <option value="two_match">Due uguali</option>
+                    <option value="any_diamond">Qualsiasi Diamante</option>
+                    <option value="any_star">Qualsiasi Stella</option>
+                  </select>
+                </div>
+
+                {/* Simbolo (solo per three_match) */}
+                {editingCombination.pattern === 'three_match' && (
+                  <div className="form-group">
+                    <label>Simbolo (lascia vuoto per "qualsiasi")</label>
+                    <select
+                      value={editingCombination.symbols?.[0] || ''}
+                      onChange={(e) => setEditingCombination({
+                        ...editingCombination,
+                        symbols: e.target.value ? [e.target.value as SlotSymbol] : undefined
+                      })}
+                    >
+                      <option value="">Qualsiasi simbolo</option>
+                      <option value="🍒">🍒 Ciliegia</option>
+                      <option value="🍋">🍋 Limone</option>
+                      <option value="🍊">🍊 Arancia</option>
+                      <option value="🍉">🍉 Anguria</option>
+                      <option value="⭐">⭐ Stella</option>
+                      <option value="💎">💎 Diamante</option>
+                      <option value="7️⃣">7️⃣ Sette</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Valore Premio */}
+                <div className="form-group">
+                  <label>Punti Premio</label>
+                  <input
+                    type="number"
+                    value={editingCombination.prize.value}
+                    onChange={(e) => setEditingCombination({
+                      ...editingCombination,
+                      prize: {
+                        ...editingCombination.prize,
+                        value: parseInt(e.target.value) || 0
+                      }
+                    })}
+                    min="0"
+                  />
+                </div>
+
+                {/* Label Premio */}
+                <div className="form-group">
+                  <label>Etichetta Premio</label>
+                  <input
+                    type="text"
+                    value={editingCombination.prize.label}
+                    onChange={(e) => setEditingCombination({
+                      ...editingCombination,
+                      prize: {
+                        ...editingCombination.prize,
+                        label: e.target.value
+                      }
+                    })}
+                    placeholder="Es: 100 Punti!"
+                  />
+                </div>
+
+                {/* Probabilità */}
+                <div className="form-group">
+                  <label>Probabilità: {editingCombination.probability}%</label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={editingCombination.probability}
+                    onChange={(e) => setEditingCombination({
+                      ...editingCombination,
+                      probability: parseInt(e.target.value)
+                    })}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    if (editingCombinationIndex !== null) {
+                      handleUpdateCombination(editingCombinationIndex, editingCombination)
+                    }
+                    setEditingCombination(null)
+                    setEditingCombinationIndex(null)
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  <Save size={18} />
+                  Salva Modifiche
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingCombination(null)
+                    setEditingCombinationIndex(null)
+                  }}
+                  style={{ background: '#6b7280', flex: 1 }}
+                >
+                  Annulla
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // SCRATCH CARD MANAGEMENT VIEW
+  const renderScratchCardManagement = () => {
+    const handleSaveScratchConfig = async () => {
+      setSaving(true)
+      try {
+        console.log('💾 Saving scratch card config:', scratchConfig)
+        // TODO: Save to backend via scratchCardService
+        await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+
+        setSaveSuccess(true)
+        setTimeout(() => setSaveSuccess(false), 3000)
+      } catch (error) {
+        console.error('❌ Error saving scratch config:', error)
+        alert('Errore durante il salvataggio della configurazione')
+      } finally {
+        setSaving(false)
+      }
+    }
+
+    const totalProbability =
+      scratchConfig.prizes.cherry.probability +
+      scratchConfig.prizes.diamond.probability +
+      scratchConfig.prizes.star.probability +
+      scratchConfig.prizes.gift.probability +
+      scratchConfig.noPrizeProbability
+
+    return (
+      <div className="gaming-settings-detail-view">
+        <button className="gaming-settings-back-btn" onClick={() => setViewMode('hub')}>
+          <ArrowLeft size={20} />
+          Torna alla Dashboard
+        </button>
+
+        <div className="gaming-settings-detail-header">
+          <div className="gaming-settings-detail-icon" style={{ background: '#f59e0b' }}>
+            <Gift size={32} />
+          </div>
+          <div>
+            <h2>Gratta e Vinci</h2>
+            <p>Configura premi, probabilità e limiti del gratta e vinci</p>
+          </div>
+        </div>
+
+        <div className="gaming-settings-section">
+          <div className="gaming-settings-section-header">
+            <h3>Configurazione Generale</h3>
+          </div>
+
+          {/* Enabled/Disabled */}
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={scratchConfig.enabled}
+                onChange={(e) => setScratchConfig({ ...scratchConfig, enabled: e.target.checked })}
+                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+              />
+              <span style={{ fontWeight: '600' }}>Gratta e Vinci Attivo</span>
+            </label>
+          </div>
+
+          {/* Tentativi giornalieri */}
+          <div className="form-group">
+            <label>Tentativi Giornalieri</label>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={scratchConfig.maxPlaysPerDay}
+              onChange={(e) => setScratchConfig({ ...scratchConfig, maxPlaysPerDay: parseInt(e.target.value) })}
+              placeholder="3"
+            />
+            <small>Numero massimo di gratta e vinci al giorno per cliente</small>
+          </div>
+        </div>
+
+        {/* Configurazione Premi */}
+        <div className="gaming-settings-section">
+          <div className="gaming-settings-section-header">
+            <h3>Premi e Probabilità</h3>
+          </div>
+
+          {/* Cherry Prize */}
+          <div style={{
+            padding: '20px',
+            background: 'white',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            border: '2px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '32px' }}>{scratchConfig.prizes.cherry.symbol}</span>
+              <h4 style={{ margin: 0, flex: 1 }}>Premio Piccolo (Ciliegie)</h4>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Punti</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={scratchConfig.prizes.cherry.points}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      cherry: { ...scratchConfig.prizes.cherry, points: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Probabilità (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={scratchConfig.prizes.cherry.probability}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      cherry: { ...scratchConfig.prizes.cherry, probability: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Diamond Prize */}
+          <div style={{
+            padding: '20px',
+            background: 'white',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            border: '2px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '32px' }}>{scratchConfig.prizes.diamond.symbol}</span>
+              <h4 style={{ margin: 0, flex: 1 }}>Premio Medio (Diamante)</h4>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Punti</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={scratchConfig.prizes.diamond.points}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      diamond: { ...scratchConfig.prizes.diamond, points: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Probabilità (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={scratchConfig.prizes.diamond.probability}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      diamond: { ...scratchConfig.prizes.diamond, probability: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Star Prize */}
+          <div style={{
+            padding: '20px',
+            background: 'white',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            border: '2px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '32px' }}>{scratchConfig.prizes.star.symbol}</span>
+              <h4 style={{ margin: 0, flex: 1 }}>Premio Grande (Stella)</h4>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Punti</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={scratchConfig.prizes.star.points}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      star: { ...scratchConfig.prizes.star, points: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Probabilità (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={scratchConfig.prizes.star.probability}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      star: { ...scratchConfig.prizes.star, probability: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Gift Prize (JACKPOT) */}
+          <div style={{
+            padding: '20px',
+            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            border: '3px solid #f59e0b'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '32px' }}>{scratchConfig.prizes.gift.symbol}</span>
+              <h4 style={{ margin: 0, flex: 1 }}>JACKPOT (Regalo)</h4>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Punti</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={scratchConfig.prizes.gift.points}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      gift: { ...scratchConfig.prizes.gift, points: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Probabilità (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={scratchConfig.prizes.gift.probability}
+                  onChange={(e) => setScratchConfig({
+                    ...scratchConfig,
+                    prizes: {
+                      ...scratchConfig.prizes,
+                      gift: { ...scratchConfig.prizes.gift, probability: parseInt(e.target.value) }
+                    }
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* No Prize */}
+          <div style={{
+            padding: '20px',
+            background: '#f9fafb',
+            borderRadius: '12px',
+            border: '2px dashed #d1d5db'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '32px' }}>😔</span>
+              <h4 style={{ margin: 0, flex: 1 }}>Nessuna Vincita</h4>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Probabilità (%)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={scratchConfig.noPrizeProbability}
+                onChange={(e) => setScratchConfig({ ...scratchConfig, noPrizeProbability: parseInt(e.target.value) })}
+              />
+            </div>
+          </div>
+
+          {/* Probability Check */}
+          <div style={{
+            padding: '16px',
+            background: totalProbability === 100 ? '#d1fae5' : '#fee2e2',
+            borderRadius: '12px',
+            marginTop: '16px',
+            border: `2px solid ${totalProbability === 100 ? '#10b981' : '#ef4444'}`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '24px' }}>{totalProbability === 100 ? '✅' : '⚠️'}</span>
+              <div>
+                <strong>Totale Probabilità: {totalProbability}%</strong>
+                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+                  {totalProbability === 100
+                    ? 'Perfetto! La somma delle probabilità è 100%'
+                    : `La somma deve essere 100% (attualmente ${totalProbability}%)`
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Save button */}
+        <button
+          className="btn-save"
+          onClick={handleSaveScratchConfig}
+          disabled={saving || totalProbability !== 100}
+        >
+          <Save size={20} />
+          {saving ? 'Salvataggio...' : 'Salva Configurazione Gratta e Vinci'}
+        </button>
+
+        {/* Success message */}
+        {saveSuccess && (
+          <div style={{
+            marginTop: '16px',
+            padding: '16px 20px',
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            color: 'white',
+            borderRadius: '12px',
+            fontWeight: '600',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px'
+          }}>
+            <span style={{ fontSize: '20px' }}>✅</span>
+            Configurazione salvata con successo!
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // CHALLENGES MANAGEMENT VIEW
   const renderChallengesManagement = () => {
     return (
@@ -1597,6 +2420,8 @@ const GamingSettings: React.FC<GamingSettingsProps> = ({
 
       {viewMode === 'hub' && renderHub()}
       {viewMode === 'wheel' && renderWheelManagement()}
+      {viewMode === 'slot' && renderSlotMachineManagement()}
+      {viewMode === 'scratch' && renderScratchCardManagement()}
       {viewMode === 'challenges' && renderChallengesManagement()}
       {viewMode === 'badges' && renderBadgesManagement()}
       {viewMode === 'general' && renderGeneralSettings()}

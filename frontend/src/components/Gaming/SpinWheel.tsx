@@ -40,6 +40,11 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
     console.log('🎡 SpinWheel mounted! customerId:', customerId, 'organizationId:', organizationId)
     loadWheelConfig()
     checkSpinAvailability()
+
+    // Cleanup: stop sound when component unmounts
+    return () => {
+      stopSpinSound()
+    }
   }, [customerId, organizationId])
 
   // Calculate button position based on wheel position
@@ -93,12 +98,30 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
   }
 
   const playSpinSound = () => {
-    // Riproduci il file audio
-    const audio = new Audio('/sounds/mixkit-completion-of-a-level-2063.wav')
+    // Stop previous sound if still playing
+    if (spinSoundRef.current) {
+      spinSoundRef.current.pause()
+      spinSoundRef.current.currentTime = 0
+    }
+
+    // Create and play audio once at start (file più lungo per la ruota!)
+    const audio = new Audio('/sounds/mixkit-slot-machine-wheel-1932.wav')
     audio.volume = 0.5 // Volume al 50%
+    // File pensato apposta per le ruote - dovrebbe essere più lungo!
+
+    spinSoundRef.current = audio
+
     audio.play().catch(error => {
       console.log('🔇 Could not play audio:', error)
     })
+  }
+
+  const stopSpinSound = () => {
+    if (spinSoundRef.current) {
+      spinSoundRef.current.pause()
+      spinSoundRef.current.currentTime = 0
+      spinSoundRef.current = null
+    }
   }
 
   const handleSpin = async () => {
@@ -143,32 +166,67 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
       console.log('   - Label:', result.sector_landed?.label)
       console.log('   - Index nella ruota:', sectorIndex)
 
-      // Calculate rotation (use configured spin_rotations or default to 5)
+      // Calculate rotation (use configured spin_rotations or default to 50 for ABSOLUTE MADNESS)
       const degreesPerSector = 360 / config.sectors.length
-      const spinRotations = (config as any).spin_rotations || 5
+      const spinRotations = (config as any).spin_rotations || 50 // 50 GIRI!!!! PAZZIA ASSOLUTA!!! 🔥🔥🔥
 
-      // I settori partono da -90° (top), il settore 0 è in alto
-      // La freccia punta in alto (a -90° in coordinate SVG)
-      // Per portare il settore desiderato sotto la freccia:
-      const sectorStartAngle = (sectorIndex * degreesPerSector - 90)
+      // Sectors are rendered starting from -90° (top), going clockwise
+      // Sector 0 starts at -90°, sector 1 at -90° + degreesPerSector, etc.
+      // The pointer is at the top (-90° or equivalently 270°)
+      // We want to align the CENTER of the won sector with the pointer
+
+      const sectorStartAngle = sectorIndex * degreesPerSector - 90
       const sectorCenterAngle = sectorStartAngle + (degreesPerSector / 2)
 
-      // Rotazione = giri completi - 90° (freccia) - angolo settore
-      const targetDegrees = 360 * spinRotations - 90 - sectorCenterAngle
+      // Normalize sector angle to positive degrees [0, 360)
+      let normalizedSectorAngle = ((sectorCenterAngle % 360) + 360) % 360
+
+      // Pointer is at -90° which is equivalent to 270° in positive degrees
+      const pointerAngle = 270
+
+      // Calculate clockwise rotation needed to align sector with pointer
+      // We want to rotate FROM current position TO pointer position
+      let rotationNeeded = pointerAngle - normalizedSectorAngle
+
+      // If negative, we need to go the "long way" clockwise
+      if (rotationNeeded < 0) {
+        rotationNeeded += 360
+      }
+
+      // Add full spins to make it exciting
+      const baseRotation = 360 * spinRotations
+      const targetDegrees = baseRotation + rotationNeeded
 
       console.log('   - Gradi per settore:', degreesPerSector)
-      console.log('   - Angolo inizio settore:', sectorStartAngle)
-      console.log('   - Angolo centro settore:', sectorCenterAngle)
-      console.log('   - Rotazione totale:', targetDegrees)
+      console.log('   - Settore vinto (index):', sectorIndex)
+      console.log('   - Angolo settore normalizzato:', normalizedSectorAngle, '°')
+      console.log('   - Rotazione necessaria:', rotationNeeded, '°')
+      console.log('   - Rotazione totale:', targetDegrees, '° (SEMPRE orario)')
 
       // Animate wheel
       if (wheelRef.current) {
-        wheelRef.current.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
-        wheelRef.current.style.transform = `rotate(${targetDegrees}deg)`
+        // CRITICAL: Reset wheel to 0° first (without transition) to prevent "short path" optimization
+        wheelRef.current.style.transition = 'none'
+        wheelRef.current.style.transform = 'rotate(0deg)'
+
+        // Force browser to apply the reset before starting animation
+        // Use double requestAnimationFrame to ensure DOM update
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (wheelRef.current) {
+              // Now apply the full rotation with smooth animation (20 secondi per PAZZIA TOTALE!!!)
+              wheelRef.current.style.transition = 'transform 20s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+              wheelRef.current.style.transform = `rotate(${targetDegrees}deg)`
+            }
+          })
+        })
       }
 
-      // Show prize after animation
+      // Show prize after animation (20 secondi per sincronizzare con l'animazione)
       setTimeout(() => {
+        // STOP del suono quando la ruota si ferma! 🔇
+        stopSpinSound()
+
         setPrizeWon(result.prize_won!)
         setSpinning(false)
         setSpinsLeft(prev => Math.max(0, prev - 1))
@@ -179,12 +237,12 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
 
         // NON resettiamo la ruota - rimane ferma così puoi vedere dove si è fermata
         // Il reset avverrà quando chiudi il popup
-      }, 4000)
+      }, 20000)
 
       // Update spin availability
       setTimeout(() => {
         checkSpinAvailability()
-      }, 4500)
+      }, 20500)
 
     } catch (error) {
       console.error('❌ Error spinning wheel:', error)

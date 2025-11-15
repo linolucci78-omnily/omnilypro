@@ -212,6 +212,75 @@ export interface SpinPrize {
 }
 
 // ============================================
+// SLOT MACHINE
+// ============================================
+
+export type SlotSymbol = '🍒' | '🍋' | '🍊' | '🍉' | '⭐' | '💎' | '7️⃣' | '🎰'
+
+export interface SlotMachineConfig {
+  id: string
+  organization_id: string
+  name: string
+  symbols: SlotSymbolConfig[]
+  winning_combinations: WinningCombination[]
+  max_spins_per_day: number
+  cooldown_hours: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface SlotSymbolConfig {
+  symbol: SlotSymbol
+  weight: number // Probability weight (higher = more frequent)
+}
+
+export interface WinningCombination {
+  pattern: 'three_match' | 'two_match' | 'any_star' | 'any_diamond' | 'jackpot'
+  symbols?: SlotSymbol[] // Quali simboli devono matchare
+  prize: {
+    type: PrizeType
+    value: number | string
+    label: string
+  }
+  probability: number
+}
+
+export interface SlotResult {
+  reels: [SlotSymbol, SlotSymbol, SlotSymbol]
+  isWin: boolean
+  combination?: WinningCombination
+  prize?: SlotPrize
+}
+
+export interface CustomerSlotSpin {
+  id: string
+  customer_id: string
+  organization_id: string
+  slot_config_id: string
+  result: SlotResult
+  prize_won?: SlotPrize
+  rewards_claimed: boolean
+  rewards_claimed_at?: string
+  spun_at: string
+  created_at: string
+}
+
+export interface SlotPrize {
+  type: PrizeType
+  value: number | string
+  label: string
+  code?: string
+}
+
+export interface SlotSpinResult {
+  success: boolean
+  result?: SlotResult
+  prize?: SlotPrize
+  error?: string
+}
+
+// ============================================
 // GAMING STATS
 // ============================================
 

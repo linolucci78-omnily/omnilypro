@@ -8,12 +8,16 @@ import { Trophy, Target, Sparkles, Award, Zap, Gift, ChevronRight, X } from 'luc
 import { badgeService } from '../../services/gaming/badgeService'
 import { challengeService } from '../../services/gaming/challengeService'
 import { spinService } from '../../services/gaming/spinService'
+import { slotMachineService } from '../../services/gaming/slotMachineService'
 import { gamingSetupService } from '../../services/gaming/gamingSetupService'
 import BadgeGallery from './BadgeGallery'
 import ChallengesHub from './ChallengesHub'
 import SpinWheel from './SpinWheel'
+import SlotMachine from './SlotMachine'
+import ScratchCard from './ScratchCard'
 import BadgeUnlockNotification from './BadgeUnlockNotification'
-import type { CustomerBadge, CustomerChallenge, BadgeUnlockResult } from '../../services/gaming/types'
+import type { CustomerBadge, CustomerChallenge, BadgeUnlockResult, SlotPrize } from '../../services/gaming/types'
+import type { ScratchPrize } from './ScratchCard'
 import './GamingHub.css'
 
 interface GamingHubProps {
@@ -21,13 +25,15 @@ interface GamingHubProps {
   organizationId: string
   primaryColor?: string
   onClose?: () => void
+  onPointsUpdated?: () => void // Called when customer points change
 }
 
 const GamingHub: React.FC<GamingHubProps> = ({
   customerId,
   organizationId,
   primaryColor = '#dc2626',
-  onClose
+  onClose,
+  onPointsUpdated
 }) => {
   // 🔍 DEBUG: Render counter
   const renderCount = React.useRef(0)
@@ -44,7 +50,9 @@ const GamingHub: React.FC<GamingHubProps> = ({
     activeChallenges: 0,
     completedChallenges: 0,
     spinsAvailable: 0,
-    totalSpins: 0
+    totalSpins: 0,
+    slotPlaysAvailable: 0,
+    totalSlotPlays: 0
   })
 
   const [recentBadges, setRecentBadges] = useState<CustomerBadge[]>([])
@@ -54,6 +62,8 @@ const GamingHub: React.FC<GamingHubProps> = ({
   const [showBadgeGallery, setShowBadgeGallery] = useState(false)
   const [showChallengesHub, setShowChallengesHub] = useState(false)
   const [showSpinWheel, setShowSpinWheel] = useState(false)
+  const [showSlotMachine, setShowSlotMachine] = useState(false)
+  const [showScratchCard, setShowScratchCard] = useState(false)
 
   // Badge unlock notification
   const [badgeUnlock, setBadgeUnlock] = useState<BadgeUnlockResult | null>(null)
@@ -131,13 +141,25 @@ const GamingHub: React.FC<GamingHubProps> = ({
       console.log('  - spinsLeft:', spinsLeft)
       console.log('  - canSpin:', canSpin)
 
+      // Load slot machine stats
+      console.log('🎰 Loading slot machine stats...')
+      const { canPlay, spinsToday: slotPlaysToday, maxSpins: maxSlotPlays } = await slotMachineService.canPlay(customerId, organizationId)
+      const slotPlaysLeft = maxSlotPlays - slotPlaysToday
+      console.log('🎰 Slot Stats:')
+      console.log('  - playsToday:', slotPlaysToday)
+      console.log('  - maxPlays:', maxSlotPlays)
+      console.log('  - playsLeft:', slotPlaysLeft)
+      console.log('  - canPlay:', canPlay)
+
       setStats({
         totalBadges: badgeStats.total_badges,
         unlockedBadges: badgeStats.unlocked_count,
         activeChallenges: active.length,
         completedChallenges: completed.length,
         spinsAvailable: spinsLeft,
-        totalSpins: maxSpins
+        totalSpins: maxSpins,
+        slotPlaysAvailable: slotPlaysLeft,
+        totalSlotPlays: maxSlotPlays
       })
 
       console.log('✅ Gaming stats loaded successfully')
@@ -151,7 +173,9 @@ const GamingHub: React.FC<GamingHubProps> = ({
         activeChallenges: 0,
         completedChallenges: 0,
         spinsAvailable: 0,
-        totalSpins: 3
+        totalSpins: 3,
+        slotPlaysAvailable: 0,
+        totalSlotPlays: 3
       })
     } finally {
       console.log('🏁 Finally block - setting loading to false')
@@ -172,7 +196,7 @@ const GamingHub: React.FC<GamingHubProps> = ({
     return () => clearTimeout(timeout)
   }, [loadGamingStats])
 
-  const handleSpinComplete = useCallback(async () => {
+  const handleSpinComplete = useCallback(async (prize?: SpinPrize) => {
     console.log('🎡 Spin completed, updating stats...')
 
     // Update ONLY spin stats (lightweight update, no full reload)
@@ -185,25 +209,105 @@ const GamingHub: React.FC<GamingHubProps> = ({
         spinsAvailable: spinsLeft
       }))
 
-      console.log('✅ Stats updated - spins left:', spinsLeft)
+      console.log('✅ Spin stats updated - spins left:', spinsLeft)
+
+      // If points were won, notify parent to refresh customer data
+      if (prize && prize.type === 'points' && onPointsUpdated) {
+        console.log('💰 Points won from wheel! Notifying parent to refresh...')
+        onPointsUpdated()
+      }
     } catch (error) {
       console.error('❌ Error updating spin stats:', error)
     }
 
     // Check for new badge unlocks (lightweight)
-    try {
-      const results = await badgeService.checkAndUnlockBadges(customerId, organizationId)
-      if (results.length > 0 && results[0].unlocked) {
-        setBadgeUnlock(results[0])
+    if (prize) {
+      try {
+        const results = await badgeService.checkAndUnlockBadges(customerId, organizationId)
+        if (results.length > 0 && results[0].unlocked) {
+          setBadgeUnlock(results[0])
+        }
+      } catch (error) {
+        console.error('❌ Error checking badges:', error)
       }
-    } catch (error) {
-      console.error('❌ Error checking badges:', error)
     }
-  }, [customerId, organizationId])
+  }, [customerId, organizationId, onPointsUpdated])
 
   const handleCloseSpinWheel = useCallback(() => {
     console.log('🎡 handleCloseSpinWheel called')
     setShowSpinWheel(false)
+  }, [])
+
+  const handleSlotComplete = useCallback(async (prize?: SlotPrize) => {
+    console.log('🎰 Slot play completed, updating stats...')
+
+    // Update ONLY slot stats (lightweight update)
+    try {
+      const { canPlay, spinsToday: slotPlaysToday, maxSpins: maxSlotPlays } = await slotMachineService.canPlay(customerId, organizationId)
+      const slotPlaysLeft = maxSlotPlays - slotPlaysToday
+
+      setStats(prev => ({
+        ...prev,
+        slotPlaysAvailable: slotPlaysLeft
+      }))
+
+      console.log('✅ Slot stats updated - plays left:', slotPlaysLeft)
+
+      // If points were won, notify parent to refresh customer data
+      if (prize && prize.type === 'points' && onPointsUpdated) {
+        console.log('💰 Points won! Notifying parent to refresh...')
+        onPointsUpdated()
+      }
+    } catch (error) {
+      console.error('❌ Error updating slot stats:', error)
+    }
+
+    // Check for new badge unlocks if won
+    if (prize) {
+      try {
+        const results = await badgeService.checkAndUnlockBadges(customerId, organizationId)
+        if (results.length > 0 && results[0].unlocked) {
+          setBadgeUnlock(results[0])
+        }
+      } catch (error) {
+        console.error('❌ Error checking badges:', error)
+      }
+    }
+  }, [customerId, organizationId, onPointsUpdated])
+
+  const handleCloseSlotMachine = useCallback(() => {
+    console.log('🎰 handleCloseSlotMachine called')
+    setShowSlotMachine(false)
+  }, [])
+
+  const handleScratchComplete = useCallback(async (prize?: ScratchPrize) => {
+    console.log('🎫 Scratch card completed, prize:', prize)
+
+    // TODO: Update scratch card stats when service is available
+    // For now, just handle points and badge unlocks
+
+    // If points were won, notify parent to refresh customer data
+    if (prize && prize.type === 'points' && onPointsUpdated) {
+      console.log('💰 Points won from scratch card! Notifying parent to refresh...')
+      onPointsUpdated()
+    }
+
+    // Check for new badge unlocks
+    if (prize) {
+      try {
+        const results = await badgeService.checkAndUnlockBadges(customerId, organizationId)
+        if (results.length > 0 && results[0].unlocked) {
+          setBadgeUnlock(results[0])
+        }
+      } catch (error) {
+        console.error('❌ Error checking badges:', error)
+      }
+    }
+  }, [customerId, organizationId, onPointsUpdated])
+
+  const handleCloseScratchCard = useCallback(() => {
+    console.log('🎫 handleCloseScratchCard called')
+    setShowScratchCard(false)
   }, [])
 
   console.log('🎮 GamingHub render - loading state:', loading)
@@ -438,6 +542,100 @@ const GamingHub: React.FC<GamingHubProps> = ({
               )}
             </button>
           </div>
+
+          {/* Slot Machine Feature */}
+          <div className="feature-card slot">
+            <div className="feature-header">
+              <div className="feature-icon slots">
+                <Trophy size={28} />
+              </div>
+              <div className="feature-title-group">
+                <h3 className="feature-title">Slot Machine</h3>
+                <p className="feature-description">Fai girare i rulli e vinci!</p>
+              </div>
+            </div>
+
+            <div className="spin-preview">
+              <div className="spin-visual">
+                <div className="slot-symbols">
+                  <span className="slot-emoji">🍒</span>
+                  <span className="slot-emoji">💎</span>
+                  <span className="slot-emoji">7️⃣</span>
+                </div>
+              </div>
+              <div className="spin-info">
+                {stats.slotPlaysAvailable > 0 ? (
+                  <>
+                    <p className="spin-available">
+                      <strong>{stats.slotPlaysAvailable}</strong> {stats.slotPlaysAvailable === 1 ? 'tentativo disponibile' : 'tentativi disponibili'}
+                    </p>
+                    <p className="spin-hint">Clicca per giocare alla slot!</p>
+                  </>
+                ) : (
+                  <p className="spin-unavailable">Hai esaurito i tuoi tentativi giornalieri</p>
+                )}
+              </div>
+            </div>
+
+            <button
+              className="feature-cta slot-cta"
+              onClick={(e) => {
+                if (stats.slotPlaysAvailable === 0) return
+                console.log('🎰 Click on "Gioca Ora!" button')
+                setShowSlotMachine(true)
+              }}
+              disabled={stats.slotPlaysAvailable === 0}
+            >
+              {stats.slotPlaysAvailable > 0 ? (
+                <>
+                  Gioca Ora!
+                  <Trophy size={20} />
+                </>
+              ) : (
+                'Torna Domani'
+              )}
+            </button>
+          </div>
+
+          {/* Scratch Card Feature */}
+          <div className="feature-card scratch">
+            <div className="feature-header">
+              <div className="feature-icon scratch-icon">
+                <Gift size={28} />
+              </div>
+              <div className="feature-title-group">
+                <h3 className="feature-title">Gratta e Vinci</h3>
+                <p className="feature-description">Gratta la carta e scopri il premio!</p>
+              </div>
+            </div>
+
+            <div className="spin-preview">
+              <div className="spin-visual">
+                <div className="scratch-preview">
+                  <span className="scratch-emoji">🎫</span>
+                  <span className="scratch-emoji">✨</span>
+                  <span className="scratch-emoji">🎁</span>
+                </div>
+              </div>
+              <div className="spin-info">
+                <p className="spin-available">
+                  <strong>3</strong> tentativi disponibili
+                </p>
+                <p className="spin-hint">Gratta per scoprire cosa vinci!</p>
+              </div>
+            </div>
+
+            <button
+              className="feature-cta scratch-cta"
+              onClick={() => {
+                console.log('🎫 Click on "Gratta Ora!" button')
+                setShowScratchCard(true)
+              }}
+            >
+              Gratta Ora!
+              <Gift size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -470,6 +668,35 @@ const GamingHub: React.FC<GamingHubProps> = ({
             primaryColor={primaryColor}
             onClose={handleCloseSpinWheel}
             onSpinComplete={handleSpinComplete}
+          />
+        </>
+      )}
+
+      {console.log('🎰 Checking showSlotMachine for modal:', showSlotMachine)}
+      {showSlotMachine && (
+        <>
+          {console.log('🎰 Rendering SlotMachine modal!')}
+          <SlotMachine
+            customerId={customerId}
+            organizationId={organizationId}
+            primaryColor={primaryColor}
+            onClose={handleCloseSlotMachine}
+            onSpinComplete={handleSlotComplete}
+          />
+        </>
+      )}
+
+      {/* Scratch Card Modal */}
+      {console.log('🎫 Checking showScratchCard for modal:', showScratchCard)}
+      {showScratchCard && (
+        <>
+          {console.log('🎫 Rendering ScratchCard modal!')}
+          <ScratchCard
+            customerId={customerId}
+            organizationId={organizationId}
+            primaryColor={primaryColor}
+            onClose={handleCloseScratchCard}
+            onScratchComplete={handleScratchComplete}
           />
         </>
       )}

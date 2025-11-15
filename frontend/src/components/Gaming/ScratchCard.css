@@ -1,0 +1,588 @@
+/* ============================================
+   SCRATCH CARD (GRATTA E VINCI) - Lottery Style
+   Vertical layout for POS/Tablet
+   ============================================ */
+
+/* ============================================
+   MODAL CONTAINER
+   ============================================ */
+
+.scratch-card-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modal-fade-in 0.3s ease;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scratch-card-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  backdrop-filter: blur(8px);
+  animation: backdrop-fade 0.3s ease;
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   SCRATCH CARD CONTAINER - VERTICAL LAYOUT
+   ============================================ */
+
+.scratch-card-container.vertical {
+  position: relative;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  border: 4px solid var(--primary-color);
+  border-radius: 20px;
+  padding: 32px 24px;
+  max-width: 450px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 0 60px rgba(0, 0, 0, 0.3);
+  animation: container-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes container-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+
+.scratch-card-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10001;
+}
+
+.scratch-card-close-button:hover {
+  background: white;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.scratch-card-close-button svg {
+  color: #1f2937;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.scratch-card-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.scratch-card-header svg {
+  color: var(--primary-color);
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.scratch-card-header h2 {
+  font-size: 28px;
+  font-weight: 900;
+  color: white;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.scratch-serial {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* ============================================
+   INSTRUCTIONS
+   ============================================ */
+
+.scratch-instructions {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 2px dashed var(--primary-color);
+}
+
+.scratch-instructions p {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.scratch-instructions strong {
+  color: white;
+}
+
+/* ============================================
+   3x3 GRID
+   ============================================ */
+
+.scratch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 3px solid var(--primary-color);
+}
+
+.scratch-cell {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.scratch-cell.revealed {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.scratch-cell.matched {
+  animation: pulse-match 0.6s ease-in-out;
+  box-shadow: 0 0 0 3px var(--primary-color), 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes pulse-match {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Cell Symbol (underneath) */
+.cell-symbol {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  z-index: 1;
+  animation: symbol-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes symbol-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Scratchable Canvas */
+.cell-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.cell-canvas:active {
+  cursor: grabbing;
+}
+
+/* ============================================
+   PRIZE TABLE
+   ============================================ */
+
+.scratch-prize-table {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 2px solid var(--primary-color);
+}
+
+.scratch-prize-table h3 {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 900;
+  color: white;
+  margin: 0 0 12px 0;
+  letter-spacing: 1px;
+}
+
+.prize-table-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prize-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.prize-symbols {
+  font-size: 18px;
+  letter-spacing: 4px;
+}
+
+.prize-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* ============================================
+   MATCH MESSAGE
+   ============================================ */
+
+.scratch-match-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+  animation: match-appear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes match-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.scratch-match-message svg {
+  animation: sparkle-spin 1s linear infinite;
+}
+
+@keyframes sparkle-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   PRIZE AREA
+   ============================================ */
+
+.scratch-prize-area {
+  margin-bottom: 16px;
+}
+
+.prize-area-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.prize-box {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 3px dashed var(--primary-color);
+  border-radius: 12px;
+  text-align: center;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s;
+}
+
+.prize-box.revealed {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: 3px solid #16a34a;
+  animation: prize-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes prize-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.prize-hidden {
+  font-size: 20px;
+  font-weight: 900;
+  color: white;
+  animation: pulse-prize 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-prize {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.prize-amount {
+  font-size: 56px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 4px;
+  animation: number-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes number-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.prize-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.scratch-reveal-btn,
+.scratch-prize-btn,
+.scratch-ok-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scratch-reveal-btn {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  margin-bottom: 12px;
+}
+
+.scratch-reveal-btn:hover {
+  background: #fef3c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.scratch-prize-btn {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  margin-bottom: 12px;
+  animation: btn-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes btn-glow {
+  0%, 100% {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.scratch-prize-btn:hover {
+  filter: brightness(0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.scratch-ok-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+}
+
+.scratch-ok-btn:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(34, 197, 94, 0.4);
+}
+
+/* ============================================
+   NO WIN MESSAGE
+   ============================================ */
+
+.scratch-no-win {
+  text-align: center;
+}
+
+.scratch-no-win p {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 16px 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .scratch-card-container.vertical {
+    padding: 24px 16px;
+    max-width: 95%;
+  }
+
+  .scratch-card-header h2 {
+    font-size: 24px;
+  }
+
+  .scratch-grid {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .cell-symbol {
+    font-size: 36px;
+  }
+
+  .prize-amount {
+    font-size: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scratch-card-container.vertical {
+    padding: 20px 12px;
+  }
+
+  .scratch-card-header h2 {
+    font-size: 20px;
+  }
+
+  .scratch-grid {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .cell-symbol {
+    font-size: 32px;
+  }
+
+  .prize-symbols {
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+
+  .prize-value {
+    font-size: 12px;
+  }
+
+  .prize-amount {
+    font-size: 40px;
+  }
+
+  .prize-text {
+    font-size: 16px;
+  }
+}

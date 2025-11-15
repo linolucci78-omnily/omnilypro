@@ -640,15 +640,153 @@
 }
 
 .feature-cta:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
-  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  background: var(--primary-color);
+  filter: grayscale(0.5) brightness(0.8);
   box-shadow: none;
 }
 
 .feature-cta.spin-cta:not(:disabled) {
   /* REMOVED - animation was causing dizziness and frustration */
   /* animation: cta-glow 2s ease-in-out infinite; */
+}
+
+/* ============================================
+   SLOT MACHINE SPECIFIC STYLES
+   ============================================ */
+
+.feature-card.slot {
+  border: 2px solid var(--primary-color);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 5%, transparent), color-mix(in srgb, var(--primary-color) 5%, transparent));
+}
+
+.feature-icon.slots {
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, black));
+}
+
+.feature-icon.scratch-icon {
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, black));
+}
+
+.slot-symbols {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-emoji {
+  font-size: 40px;
+  animation: slot-bounce 2s ease-in-out infinite;
+}
+
+.slot-emoji:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.slot-emoji:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.slot-emoji:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes slot-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.feature-cta.slot-cta {
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, black));
+  color: white;
+}
+
+.feature-cta.slot-cta:hover:not(:disabled) {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 80%, black), color-mix(in srgb, var(--primary-color) 60%, black));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--primary-color) 40%, transparent);
+}
+
+/* Scratch Card CTA */
+.feature-cta.scratch-cta {
+  background: var(--primary-color);
+  color: white;
+}
+
+.feature-cta.scratch-cta:hover:not(:disabled) {
+  filter: brightness(0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Scratch Preview */
+.scratch-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 14px;
+  border: 3px dashed #f59e0b;
+  position: relative;
+  overflow: hidden;
+}
+
+.scratch-preview::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+  background-size: 200% 200%;
+  animation: scratch-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes scratch-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.scratch-emoji {
+  font-size: 48px;
+  animation: scratch-float 2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+.scratch-emoji:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.scratch-emoji:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.scratch-emoji:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes scratch-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.1);
+  }
 }
 
 @keyframes cta-glow {

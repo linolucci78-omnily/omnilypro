@@ -16,6 +16,9 @@ export { default as ChallengesHub } from './ChallengesHub'
 // Spin Wheel System
 export { default as SpinWheel } from './SpinWheel'
 
+// Slot Machine System
+export { default as SlotMachine } from './SlotMachine'
+
 // Re-export types
 export type {
   Badge,
@@ -34,4 +37,5 @@ export type {
 export { badgeService } from '../../services/gaming/badgeService'
 export { challengeService } from '../../services/gaming/challengeService'
 export { spinService } from '../../services/gaming/spinService'
+export { slotMachineService } from '../../services/gaming/slotMachineService'
 export { gamingSetupService } from '../../services/gaming/gamingSetupService'
