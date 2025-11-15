@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { badgeService } from './badgeService'
 import { challengeService } from './challengeService'
 import { spinService } from './spinService'
+import { slotMachineService } from './slotMachineService'
 
 export class GamingSetupService {
   /**
@@ -62,6 +63,10 @@ export class GamingSetupService {
       // Seed wheel config
       console.log('   🎡 Configuring wheel...')
       await spinService.seedDefaultWheelConfig(organizationId)
+
+      // Seed slot machine config
+      console.log('   🎰 Configuring slot machine...')
+      await slotMachineService.seedDefaultSlotConfig(organizationId)
 
       console.log('   ✅ Gaming Module configurato con successo!')
 

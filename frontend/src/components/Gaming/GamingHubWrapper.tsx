@@ -16,6 +16,7 @@ interface GamingHubWrapperProps {
   primaryColor?: string
   onUpgradeClick?: () => void
   onClose?: () => void
+  onPointsUpdated?: () => void
 }
 
 const GamingHubWrapper: React.FC<GamingHubWrapperProps> = ({
@@ -24,7 +25,8 @@ const GamingHubWrapper: React.FC<GamingHubWrapperProps> = ({
   organizationPlan,
   primaryColor = '#dc2626',
   onUpgradeClick,
-  onClose
+  onClose,
+  onPointsUpdated
 }) => {
   console.log('🎮 GamingHubWrapper organizationPlan:', organizationPlan)
   const hasGamingAccess = hasAccess(organizationPlan, 'gamingModule')
@@ -38,6 +40,7 @@ const GamingHubWrapper: React.FC<GamingHubWrapperProps> = ({
         organizationId={organizationId}
         primaryColor={primaryColor}
         onClose={onClose}
+        onPointsUpdated={onPointsUpdated}
       />
     )
   }

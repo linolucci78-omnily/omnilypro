@@ -19,6 +19,8 @@ class SlotMachineService {
    * Get slot machine configuration for organization
    */
   async getSlotConfig(organizationId: string): Promise<SlotMachineConfig | null> {
+    console.log('🔍 Fetching slot config for org:', organizationId)
+
     const { data, error } = await supabase
       .from('slot_machine_config')
       .select('*')
@@ -27,11 +29,75 @@ class SlotMachineService {
       .single()
 
     if (error) {
-      console.error('Error fetching slot config:', error)
+      console.error('❌ Error fetching slot config:', error)
       return null
     }
 
+    console.log('✅ Found slot config with ID:', data?.id)
     return data
+  }
+
+  /**
+   * Update slot machine configuration
+   */
+  async updateSlotConfig(organizationId: string, config: Partial<SlotMachineConfig>): Promise<boolean> {
+    try {
+      console.log('🔄 Updating slot config for org:', organizationId)
+      console.log('📝 Config ID:', config.id)
+      console.log('📝 Config data:', JSON.stringify(config, null, 2))
+
+      // Find the config for this org (without is_active filter to handle all cases)
+      const { data: existing, error: fetchError } = await supabase
+        .from('slot_machine_config')
+        .select('id')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (fetchError || !existing) {
+        console.error('❌ No existing config found for org:', organizationId, fetchError)
+        return false
+      }
+
+      console.log('✅ Found existing config with ID:', existing.id)
+
+      const updateData = {
+        name: config.name,
+        symbols: config.symbols,
+        winning_combinations: config.winning_combinations,
+        max_spins_per_day: config.max_spins_per_day,
+        cooldown_hours: config.cooldown_hours,
+        is_active: config.is_active
+      }
+
+      console.log('📤 Calling stored function to update config...')
+
+      // Use PostgreSQL function to bypass RLS
+      const { data: result, error } = await supabase.rpc('update_slot_machine_config', {
+        p_organization_id: organizationId,
+        p_name: updateData.name,
+        p_symbols: updateData.symbols,
+        p_winning_combinations: updateData.winning_combinations,
+        p_max_spins_per_day: updateData.max_spins_per_day,
+        p_cooldown_hours: updateData.cooldown_hours,
+        p_is_active: updateData.is_active
+      })
+
+      if (error) {
+        console.error('❌ Error calling update function:', error)
+        console.error('❌ Error details:', JSON.stringify(error, null, 2))
+        return false
+      }
+
+      console.log('✅ Slot machine config updated successfully!')
+      console.log('📊 Updated data:', result)
+
+      return true
+    } catch (error) {
+      console.error('❌ Exception updating slot config:', error)
+      return false
+    }
   }
 
   /**
@@ -204,6 +270,51 @@ class SlotMachineService {
       if (spinError) throw spinError
 
       console.log('🎰 Slot spin saved:', spin)
+
+      // If won points, add them to customer balance
+      if (result.isWin && result.prize && result.prize.type === 'points') {
+        console.log('💰 Adding', result.prize.value, 'points to customer', customerId)
+
+        try {
+          // Try PostgreSQL function first
+          const { error: rpcError } = await supabase.rpc('add_loyalty_points', {
+            p_customer_id: customerId,
+            p_points: result.prize.value
+          })
+
+          if (rpcError) {
+            console.warn('⚠️ RPC function not available, using fallback:', rpcError)
+
+            // Fallback: get current points and add manually
+            const { data: customer, error: fetchError } = await supabase
+              .from('customers')
+              .select('points')
+              .eq('id', customerId)
+              .single()
+
+            if (fetchError) throw fetchError
+
+            const currentPoints = customer?.points || 0
+            const newPoints = currentPoints + result.prize.value
+
+            console.log(`📊 Current: ${currentPoints}, Adding: ${result.prize.value}, New total: ${newPoints}`)
+
+            const { error: updateError } = await supabase
+              .from('customers')
+              .update({ points: newPoints })
+              .eq('id', customerId)
+
+            if (updateError) throw updateError
+
+            console.log('✅ Points added successfully via fallback!')
+          } else {
+            console.log('✅ Points added successfully via RPC!')
+          }
+        } catch (error) {
+          console.error('❌ Error updating customer points:', error)
+          // Don't fail the whole operation, just log the error
+        }
+      }
 
       return {
         success: true,

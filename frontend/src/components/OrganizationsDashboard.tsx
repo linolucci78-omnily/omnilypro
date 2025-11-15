@@ -3715,7 +3715,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           overflowY: 'auto'
         }}>
           <GamingHubWrapper
-            key={`gaming-${selectedCustomerForGaming.id}-${Date.now()}`}
+            key={`gaming-${selectedCustomerForGaming.id}`}
             customerId={selectedCustomerForGaming.id}
             organizationId={currentOrganization.id}
             organizationPlan={currentOrganization.plan_type}
@@ -3723,6 +3723,38 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             onClose={() => {
               setShowGamingHub(false)
               setSelectedCustomerForGaming(null)
+            }}
+            onPointsUpdated={async () => {
+              console.log('💰 Points updated! Reloading customer data...')
+
+              try {
+                // Reload only this specific customer to avoid full re-render
+                const { data: updatedCustomer, error } = await supabase
+                  .from('customers')
+                  .select('*')
+                  .eq('id', selectedCustomerForGaming.id)
+                  .single()
+
+                if (error) throw error
+
+                if (updatedCustomer) {
+                  // Update only this customer in the state
+                  setCustomers(prev => prev.map(c =>
+                    c.id === updatedCustomer.id ? updatedCustomer : c
+                  ))
+
+                  // CRITICAL: Also update selectedCustomer if it's the same customer
+                  // This ensures CustomerSlidePanel shows updated points in real-time
+                  if (selectedCustomer && selectedCustomer.id === updatedCustomer.id) {
+                    setSelectedCustomer(updatedCustomer)
+                    console.log('✅ Customer slide panel updated! New points:', updatedCustomer.points)
+                  }
+
+                  console.log('✅ Customer data updated! New points:', updatedCustomer.points)
+                }
+              } catch (error) {
+                console.error('❌ Error reloading customer:', error)
+              }
             }}
           />
         </div>

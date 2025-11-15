@@ -49,11 +49,14 @@ export class BadgeService {
         .eq('customer_id', customerId)
         .order('unlocked_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.warn('⚠️ customer_badges query failed (suppressed):', error.message)
+        return []
+      }
       return data || []
     } catch (error) {
-      console.error('❌ Error fetching customer badges:', error)
-      throw error
+      console.warn('⚠️ Error fetching customer badges (suppressed)')
+      return []
     }
   }
 
@@ -254,7 +257,10 @@ export class BadgeService {
             .eq('customer_id', customerId)
             .maybeSingle()
 
-          if (error) throw error
+          if (error) {
+            console.warn('⚠️ referral_program table not found (suppressed)')
+            return false
+          }
           return (data?.successful_referrals || 0) >= (rule.threshold || 0)
         }
 
@@ -266,7 +272,10 @@ export class BadgeService {
             .eq('customer_id', customerId)
             .eq('status', 'completed')
 
-          if (error) throw error
+          if (error) {
+            console.warn('⚠️ customer_challenges query failed (suppressed):', error.message)
+            return false
+          }
           return (count || 0) >= (rule.threshold || 0)
         }
 
@@ -279,7 +288,10 @@ export class BadgeService {
             .eq('type', 'daily_purchase')
             .maybeSingle()
 
-          if (error) throw error
+          if (error) {
+            console.warn('⚠️ customer_streaks table not found (suppressed)')
+            return false
+          }
           return (data?.current_count || 0) >= (rule.threshold || 0)
         }
 
@@ -460,30 +472,43 @@ export class BadgeService {
       // Total badges created (if organizationId provided)
       let totalBadges = 0
       if (organizationId) {
-        const { count } = await supabase
+        const { count, error: badgesError } = await supabase
           .from('gaming_badges')
           .select('*', { count: 'exact', head: true })
           .eq('organization_id', organizationId)
-        totalBadges = count || 0
+
+        if (badgesError) {
+          console.warn('⚠️ gaming_badges query failed (suppressed):', badgesError.message)
+        } else {
+          totalBadges = count || 0
+        }
       }
 
       // Total badges unlocked by this customer
-      const { count: totalUnlocked } = await supabase
+      const { count: totalUnlocked, error: unlockedError } = await supabase
         .from('customer_badges')
         .select('*', { count: 'exact', head: true })
         .eq('customer_id', customerId)
         .eq('unlocked', true)
+
+      if (unlockedError) {
+        console.warn('⚠️ customer_badges query failed (suppressed):', unlockedError.message)
+      }
 
       // Badges unlocked today
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
-      const { count: unlockedToday } = await supabase
+      const { count: unlockedToday, error: todayError } = await supabase
         .from('customer_badges')
         .select('*', { count: 'exact', head: true })
         .eq('customer_id', customerId)
         .eq('unlocked', true)
         .gte('unlocked_at', today.toISOString())
+
+      if (todayError) {
+        console.warn('⚠️ customer_badges today query failed (suppressed):', todayError.message)
+      }
 
       return {
         total_badges: totalBadges || 0,
@@ -491,7 +516,7 @@ export class BadgeService {
         unlocked_today: unlockedToday || 0
       }
     } catch (error) {
-      console.error('❌ Error fetching badge stats:', error)
+      console.warn('⚠️ Error fetching badge stats (suppressed)')
       return {
         total_badges: 0,
         total_unlocked: 0,

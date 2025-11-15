@@ -420,14 +420,14 @@ export class CRMService {
         .limit(limit)
 
       if (error) {
-        console.error('Failed to get customer activities:', error)
-        throw error
+        console.warn('⚠️ customer_activities query failed (suppressed):', error.message)
+        return []
       }
 
       return data || []
     } catch (error: any) {
-      console.error('Error in CRMService.getCustomerActivities:', error)
-      throw error
+      console.warn('⚠️ Error in CRMService.getCustomerActivities (suppressed)')
+      return []
     }
   }
 
@@ -446,7 +446,7 @@ export class CRMService {
       points_earned?: number
       points_spent?: number
     }
-  ): Promise<CustomerActivity> {
+  ): Promise<CustomerActivity | null> {
     try {
       const activity = {
         customer_id: customerId,
@@ -467,8 +467,8 @@ export class CRMService {
         .single()
 
       if (error) {
-        console.error('Failed to add customer activity:', error)
-        throw error
+        console.warn('⚠️ customer_activities insert failed (suppressed):', error.message)
+        return null
       }
 
       // Update customer stats after activity
@@ -476,8 +476,8 @@ export class CRMService {
 
       return data
     } catch (error: any) {
-      console.error('Error in CRMService.addCustomerActivity:', error)
-      throw error
+      console.warn('⚠️ Error in CRMService.addCustomerActivity (suppressed)')
+      return null
     }
   }
 
@@ -495,11 +495,16 @@ export class CRMService {
         .rpc('calculate_churn_risk', { customer_uuid: customerId })
 
       // Get total spent and order count from activities
-      const { data: statsData } = await supabase
+      const { data: statsData, error: statsError } = await supabase
         .from('customer_activities')
         .select('monetary_value')
         .eq('customer_id', customerId)
         .eq('activity_type', 'purchase')
+
+      if (statsError) {
+        console.warn('⚠️ customer_activities stats query failed (suppressed):', statsError.message)
+        return
+      }
 
       const totalSpent = statsData?.reduce((sum, activity) => sum + (activity.monetary_value || 0), 0) || 0
       const totalOrders = statsData?.length || 0

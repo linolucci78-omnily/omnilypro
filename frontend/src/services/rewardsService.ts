@@ -589,7 +589,7 @@ export class RewardsService {
           });
         console.log('✅ Attività reward_redeemed registrata in customer_activities');
       } catch (activityError) {
-        console.error('⚠️ Errore registrazione attività (non bloccante):', activityError);
+        console.warn('⚠️ customer_activities insert failed (suppressed)');
         // Non blocca il flusso se fallisce
       }
 
