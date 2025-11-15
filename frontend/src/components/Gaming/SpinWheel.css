@@ -192,8 +192,8 @@
 
 .wheel-and-button-wrapper {
   position: relative;
-  width: min(400px, 90vw); /* Responsive ma max 400px */
-  height: min(400px, 90vw); /* Stesso valore = quadrato */
+  width: min(400px, 80vmin); /* Use vmin to ensure square on all orientations */
+  height: min(400px, 80vmin); /* vmin = smaller of vw/vh */
   margin: 0 auto;
 }
 
