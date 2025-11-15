@@ -283,10 +283,20 @@
   border-radius: 50%;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2),
-              0 0 0 8px white,
-              0 0 0 12px var(--primary-color, #dc2626),
-              0 0 40px rgba(220, 38, 38, 0.3);
+  /* 3D Effect: Enhanced shadows for depth */
+  box-shadow:
+    /* Inner soft glow */
+    inset 0 2px 10px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 10px rgba(0, 0, 0, 0.2),
+    /* White ring */
+    0 0 0 8px white,
+    /* Colored border */
+    0 0 0 12px var(--primary-color, #dc2626),
+    /* Outer shadow for elevation */
+    0 15px 45px rgba(0, 0, 0, 0.3),
+    0 5px 15px rgba(0, 0, 0, 0.2),
+    /* Colored glow */
+    0 0 60px rgba(220, 38, 38, 0.4);
   background: white;
   z-index: 1;
   /* Base layer - below pointer and button */

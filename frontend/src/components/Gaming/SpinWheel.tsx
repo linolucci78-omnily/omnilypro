@@ -270,6 +270,27 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
                   <stop offset="0%" style={{ stopColor: primaryColor, stopOpacity: 1 }} />
                   <stop offset="100%" style={{ stopColor: primaryColor, stopOpacity: 0.7 }} />
                 </linearGradient>
+
+                {/* 3D Effect: Radial gradient for depth */}
+                <radialGradient id="wheel3DDepth">
+                  <stop offset="0%" style={{ stopColor: 'rgba(255,255,255,0.4)' }} />
+                  <stop offset="50%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
+                  <stop offset="100%" style={{ stopColor: 'rgba(0,0,0,0.3)' }} />
+                </radialGradient>
+
+                {/* 3D Effect: Inner shadow for depth */}
+                <filter id="innerShadow3D">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                  <feOffset dx="0" dy="2" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.5"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+
                 {/* Shadow for sectors */}
                 <filter id="sectorShadowGame">
                   <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.3"/>
@@ -351,6 +372,15 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
                   </g>
                 )
               })}
+
+              {/* 3D Overlay - adds depth and lighting effect */}
+              <circle
+                cx="250"
+                cy="250"
+                r="235"
+                fill="url(#wheel3DDepth)"
+                style={{ pointerEvents: 'none' }}
+              />
               </g>
               {/* End of rotating group */}
 
