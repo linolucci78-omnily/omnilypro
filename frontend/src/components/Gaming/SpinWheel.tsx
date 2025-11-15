@@ -374,14 +374,61 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
                 strokeWidth="2"
               />
 
-              {/* REMOVED: Center circles that were rotating with the wheel */}
-              {/* These were causing visual confusion - the actual button is separate HTML */}
+              {/* Center button as SVG - always perfectly centered at 250,250 */}
+              <g
+                style={{ cursor: spinning || !canSpin ? 'not-allowed' : 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (!spinning && canSpin) handleSpin()
+                }}
+              >
+                {/* Outer red border */}
+                <circle
+                  cx="250"
+                  cy="250"
+                  r="54"
+                  fill={primaryColor}
+                />
+                {/* White ring */}
+                <circle
+                  cx="250"
+                  cy="250"
+                  r="50"
+                  fill="white"
+                />
+                {/* Button background */}
+                <circle
+                  cx="250"
+                  cy="250"
+                  r="44"
+                  fill={spinning ? '#f59e0b' : !canSpin ? '#9ca3af' : primaryColor}
+                  style={{ transition: 'fill 0.3s' }}
+                />
+                {/* Button text */}
+                <text
+                  x="250"
+                  y="250"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill="white"
+                  fontSize="22"
+                  fontWeight="900"
+                  letterSpacing="1"
+                  style={{
+                    pointerEvents: 'none',
+                    textTransform: 'uppercase',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                  }}
+                >
+                  {spinning ? 'GIRA...' : !canSpin ? 'FINITI' : 'GIRA!'}
+                </text>
+              </g>
             </svg>
             </div>
           </div>
           </div>
 
-          {/* Center button - Using margin instead of transform */}
+          {/* Old HTML button - hidden, SVG button is used instead */}
           <button
             className={`spin-button ${spinning ? 'spinning' : ''} ${!canSpin ? 'disabled' : ''}`}
             onClick={(e) => {
@@ -389,6 +436,7 @@ const SpinWheel: React.FC<SpinWheelProps> = ({
               handleSpin()
             }}
             disabled={spinning || !canSpin}
+            style={{ display: 'none' }}
           >
             {spinning ? 'GIRA...' : !canSpin ? 'FINITI' : 'GIRA!'}
           </button>
