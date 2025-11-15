@@ -192,8 +192,8 @@
 
 .wheel-and-button-wrapper {
   position: relative;
-  width: min(400px, 80vmin); /* Use vmin to ensure square on all orientations */
-  height: min(400px, 80vmin); /* vmin = smaller of vw/vh */
+  width: min(400px, 70vmin); /* Use vmin for both width and height */
+  height: min(400px, 70vmin); /* Exact same value - guarantees square */
   margin: 0 auto;
 }
 
@@ -207,7 +207,6 @@
   left: 0;
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1; /* Force square */
 }
 
 /* ============================================
@@ -233,7 +232,6 @@
 .wheel-wrapper {
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1; /* Force square */
   position: relative;
   /* Static wrapper - doesn't rotate */
 }
@@ -281,8 +279,7 @@
 
 .wheel {
   width: 100%;
-  height: 100%;
-  aspect-ratio: 1 / 1; /* Force square */
+  aspect-ratio: 1 / 1; /* Force the wheel div to be square for perfect box-shadow */
   border-radius: 50%;
   position: relative;
   overflow: hidden;
