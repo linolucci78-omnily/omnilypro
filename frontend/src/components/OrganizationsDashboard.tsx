@@ -1405,12 +1405,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59)
 
           // Points added this month
-          const { data: monthActivities } = await supabase
+          const { data: monthActivities, error: monthError } = await supabase
             .from('customer_activities')
             .select('type')
             .eq('organization_id', currentOrganization.id)
             .gte('created_at', monthStart.toISOString())
             .lte('created_at', monthEnd.toISOString())
+
+          if (monthError) {
+            // Silently suppress - use 0 values for this month
+          }
 
           const stamps = monthActivities?.filter(a => a.type === 'points_added').length || 0
           const redemptions = monthActivities?.filter(a => a.type === 'reward_redeemed').length || 0

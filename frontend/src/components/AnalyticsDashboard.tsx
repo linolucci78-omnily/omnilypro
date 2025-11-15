@@ -112,18 +112,26 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       yesterdayStart.setDate(yesterdayStart.getDate() - 1)
 
       // 1. TODAY METRICS
-      const { data: todayActivities } = await supabase
+      const { data: todayActivities, error: todayError } = await supabase
         .from('customer_activities')
         .select('activity_type, monetary_value, points_earned')
         .eq('organization_id', organization.id)
         .gte('created_at', todayStart.toISOString())
 
-      const { data: yesterdayActivities } = await supabase
+      if (todayError) {
+        console.warn('⚠️ customer_activities today query failed (suppressed):', todayError.message)
+      }
+
+      const { data: yesterdayActivities, error: yesterdayError } = await supabase
         .from('customer_activities')
         .select('activity_type, monetary_value, points_earned')
         .eq('organization_id', organization.id)
         .gte('created_at', yesterdayStart.toISOString())
         .lt('created_at', todayStart.toISOString())
+
+      if (yesterdayError) {
+        console.warn('⚠️ customer_activities yesterday query failed (suppressed):', yesterdayError.message)
+      }
 
       const todayVisits = todayActivities?.filter(a => a.activity_type === 'visit').length || 0
       const yesterdayVisits = yesterdayActivities?.filter(a => a.activity_type === 'visit').length || 0
@@ -199,11 +207,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-      const { data: recentActivities } = await supabase
+      const { data: recentActivities, error: recentError } = await supabase
         .from('customer_activities')
         .select('customer_id, created_at, activity_type, monetary_value')
         .eq('organization_id', organization.id)
         .gte('created_at', thirtyDaysAgo.toISOString())
+
+      if (recentError) {
+        console.warn('⚠️ customer_activities recent query failed (suppressed):', recentError.message)
+      }
 
       const activeCustomerIds = new Set(recentActivities?.map(a => a.customer_id))
       const active = activeCustomerIds.size
@@ -228,12 +240,16 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
 
       // CALCOLI ECONOMICI REALI
       // Ottieni TUTTE le transazioni per calcolare metriche economiche
-      const { data: allTransactions } = await supabase
+      const { data: allTransactions, error: transactionsError } = await supabase
         .from('customer_activities')
         .select('customer_id, monetary_value, activity_type')
         .eq('organization_id', organization.id)
         .eq('activity_type', 'transaction')
         .not('monetary_value', 'is', null)
+
+      if (transactionsError) {
+        console.warn('⚠️ customer_activities transactions query failed (suppressed):', transactionsError.message)
+      }
 
       // AOV (Average Order Value) - spesa media per transazione
       const totalRevenue = allTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
@@ -350,7 +366,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       // 6.6. STATISTICHE ECONOMICHE AVANZATE
       // Revenue mensile corrente
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-      const { data: monthTransactions } = await supabase
+      const { data: monthTransactions, error: monthError } = await supabase
         .from('customer_activities')
         .select('monetary_value')
         .eq('organization_id', organization.id)
@@ -358,12 +374,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         .gte('created_at', monthStart.toISOString())
         .not('monetary_value', 'is', null)
 
+      if (monthError) console.warn('⚠️ customer_activities month query failed (suppressed)')
+
       const monthlyRevenue = monthTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
 
       // Revenue mese precedente
       const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1)
-      const { data: lastMonthTransactions } = await supabase
+      const { data: lastMonthTransactions, error: lastMonthError } = await supabase
         .from('customer_activities')
         .select('monetary_value')
         .eq('organization_id', organization.id)
@@ -372,18 +390,22 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         .lt('created_at', lastMonthEnd.toISOString())
         .not('monetary_value', 'is', null)
 
+      if (lastMonthError) console.warn('⚠️ customer_activities last month query failed (suppressed)')
+
       const lastMonthRevenue = lastMonthTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
       const monthlyGrowth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
 
       // Revenue annuale (ultimi 12 mesi)
       const yearStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
-      const { data: yearTransactions } = await supabase
+      const { data: yearTransactions, error: yearError } = await supabase
         .from('customer_activities')
         .select('monetary_value')
         .eq('organization_id', organization.id)
         .eq('activity_type', 'transaction')
         .gte('created_at', yearStart.toISOString())
         .not('monetary_value', 'is', null)
+
+      if (yearError) console.warn('⚠️ customer_activities year query failed (suppressed)')
 
       const yearlyRevenue = yearTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
 
@@ -397,7 +419,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
       const fourteenDaysAgoDate = new Date()
       fourteenDaysAgoDate.setDate(fourteenDaysAgoDate.getDate() - 14)
 
-      const { data: lastWeekTransactions } = await supabase
+      const { data: lastWeekTransactions, error: lastWeekError } = await supabase
         .from('customer_activities')
         .select('monetary_value')
         .eq('organization_id', organization.id)
@@ -405,7 +427,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         .gte('created_at', sevenDaysAgoDate.toISOString())
         .not('monetary_value', 'is', null)
 
-      const { data: previousWeekTransactions } = await supabase
+      if (lastWeekError) console.warn('⚠️ customer_activities last week query failed (suppressed)')
+
+      const { data: previousWeekTransactions, error: prevWeekError } = await supabase
         .from('customer_activities')
         .select('monetary_value')
         .eq('organization_id', organization.id)
@@ -414,18 +438,22 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         .lt('created_at', sevenDaysAgoDate.toISOString())
         .not('monetary_value', 'is', null)
 
+      if (prevWeekError) console.warn('⚠️ customer_activities previous week query failed (suppressed)')
+
       const lastWeekRevenue = lastWeekTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
       const previousWeekRevenue = previousWeekTransactions?.reduce((sum, t) => sum + (t.monetary_value || 0), 0) || 0
       const weeklyGrowth = previousWeekRevenue > 0 ? ((lastWeekRevenue - previousWeekRevenue) / previousWeekRevenue) * 100 : 0
 
       // Revenue per fascia oraria (ultimi 30 giorni)
-      const { data: timeSlotTransactions } = await supabase
+      const { data: timeSlotTransactions, error: timeSlotError } = await supabase
         .from('customer_activities')
         .select('monetary_value, created_at')
         .eq('organization_id', organization.id)
         .eq('activity_type', 'transaction')
         .gte('created_at', thirtyDaysAgo.toISOString())
         .not('monetary_value', 'is', null)
+
+      if (timeSlotError) console.warn('⚠️ customer_activities time slot query failed (suppressed)')
 
       let morning = 0, lunch = 0, afternoon = 0, dinner = 0, night = 0
 
@@ -451,12 +479,16 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         const dayEnd = new Date(dayStart)
         dayEnd.setDate(dayEnd.getDate() + 1)
 
-        const { data: dayActivities } = await supabase
+        const { data: dayActivities, error: dayError } = await supabase
           .from('customer_activities')
           .select('activity_type, monetary_value')
           .eq('organization_id', organization.id)
           .gte('created_at', dayStart.toISOString())
           .lt('created_at', dayEnd.toISOString())
+
+        if (dayError) {
+          // Silently suppress - just use 0 values for this day
+        }
 
         const visits = dayActivities?.filter(a => a.activity_type === 'visit').length || 0
         const revenue = dayActivities
