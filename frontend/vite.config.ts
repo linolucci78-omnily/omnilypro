@@ -36,7 +36,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // Disabilita sourcemap in produzione per sicurezza
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Rimuove TUTTI i console.log in produzione
+        drop_debugger: true, // Rimuove TUTTI i debugger in produzione
+      },
+    },
   },
   optimizeDeps: {
     exclude: ['@react-refresh'], // Escludi react-refresh da pre-bundling
