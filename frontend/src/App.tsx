@@ -154,13 +154,15 @@ function App() {
       subdomain: parts[0]
     });
     return (
-      <Router>
-        <AuthProvider>
-          <ToastProvider>
-            <PublicWebsiteSubdomain />
-          </ToastProvider>
-        </AuthProvider>
-      </Router>
+      <HelmetProvider>
+        <Router>
+          <AuthProvider>
+            <ToastProvider>
+              <PublicWebsiteSubdomain />
+            </ToastProvider>
+          </AuthProvider>
+        </Router>
+      </HelmetProvider>
     );
   }
 
