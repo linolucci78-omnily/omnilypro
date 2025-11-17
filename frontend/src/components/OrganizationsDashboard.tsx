@@ -7,7 +7,7 @@ import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 // REMOVED: useGamingNotifications - using console.log instead for stability
 // import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -57,6 +57,8 @@ import { emailService } from '../services/emailService'
 import ReferralHub from './ReferralHub'
 import GamingSettings from './Gaming/GamingSettings'
 import GamingHubWrapper from './Gaming/GamingHubWrapper'
+import WebsiteHub from './WebsiteHub'
+import { ContactMessagesPanel } from './ContactMessagesPanel'
 import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
@@ -2415,7 +2417,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: null },
       { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: null },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
-      { id: 'website-editor', icon: Globe, label: 'Il Mio Sito Web', feature: null },
+      { id: 'website', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
       { id: 'settings', icon: Settings, label: 'Impostazioni', feature: null },
       { id: 'support', icon: HelpCircle, label: 'Aiuto & Supporto', feature: null }
@@ -3115,6 +3117,29 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               organizationId={currentOrganization.id}
               primaryColor={getActiveColors().primary}
               secondaryColor={getActiveColors().secondary}
+            />
+          </div>
+        ) : null
+
+      case 'contact-messages':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <ContactMessagesPanel
+              organizationId={currentOrganization.id}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              onBack={() => setActiveSection('dashboard')}
+            />
+          </div>
+        ) : null
+
+      case 'website':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <WebsiteHub
+              organizationId={currentOrganization.id}
+              organizationSlug={currentOrganization.slug || ''}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
             />
           </div>
         ) : null
