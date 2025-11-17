@@ -50,10 +50,12 @@ import StrapiTest from './pages/StrapiTest'
 import PublicSite from './pages/PublicSite'
 import SiteRendererPage from './pages/SiteRendererPage'
 import { PublicWebsite } from './pages/PublicWebsite'
+import { PublicWebsiteSubdomain } from './pages/PublicWebsiteSubdomain'
 
 // Ensure PublicWebsite is included in bundle (prevent tree-shaking)
 if (typeof window !== 'undefined') {
   console.log('✅ PublicWebsite component loaded:', typeof PublicWebsite)
+  console.log('✅ PublicWebsiteSubdomain component loaded:', typeof PublicWebsiteSubdomain)
 }
 import DeviceSetup from './pages/DeviceSetup'
 
@@ -146,7 +148,7 @@ function App() {
   });
 
   if (isPublicSite || isTestingPublicSite) {
-    console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage', {
+    console.log('✅ PUBLIC SITE MODE - rendering PublicWebsiteSubdomain', {
       isTestingPublicSite,
       subdomain: parts[0]
     });
@@ -154,7 +156,7 @@ function App() {
       <Router>
         <AuthProvider>
           <ToastProvider>
-            <SiteRendererPage />
+            <PublicWebsiteSubdomain />
           </ToastProvider>
         </AuthProvider>
       </Router>
