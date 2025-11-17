@@ -671,27 +671,28 @@ class WebsiteService {
     try {
       console.log('📧 WebsiteService: submitContactForm called', { organizationId, formData })
 
-      // Store contact form submission in database
-      const { data: submission, error: submissionError } = await supabase
-        .from('contact_form_submissions')
-        .insert({
-          organization_id: organizationId,
+      // Use Edge Function to bypass RLS issues
+      const { data: result, error: functionError } = await supabase.functions.invoke('submit-contact-form', {
+        body: {
+          organizationId,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          message: formData.message,
-          submitted_at: new Date().toISOString(),
-          status: 'new'
-        })
-        .select()
-        .single()
+          message: formData.message
+        }
+      })
 
-      if (submissionError) {
-        console.error('❌ Error storing contact form submission:', submissionError)
-        throw submissionError
+      if (functionError) {
+        console.error('❌ Error calling submit-contact-form function:', functionError)
+        throw functionError
       }
 
-      console.log('✅ Contact form submission stored in database:', submission.id)
+      if (!result?.success) {
+        console.error('❌ Function returned error:', result)
+        throw new Error(result?.error || 'Failed to submit contact form')
+      }
+
+      console.log('✅ Contact form submission stored via Edge Function:', result.submissionId)
 
       // Send email notification to organization
       try {
