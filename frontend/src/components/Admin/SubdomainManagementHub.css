@@ -1,0 +1,349 @@
+.subdomain-hub-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+}
+
+/* Header */
+.subdomain-header {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.subdomain-header-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.subdomain-header-content h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.subdomain-header-content p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* Stats */
+.subdomain-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.subdomain-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.subdomain-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.subdomain-stat-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.subdomain-stat-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Search */
+.subdomain-search-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.subdomain-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.subdomain-search-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* Table */
+.subdomain-table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  overflow-x: auto;
+}
+
+.subdomain-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.subdomain-table thead {
+  background: #f9fafb;
+}
+
+.subdomain-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.subdomain-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.subdomain-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.subdomain-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Table Cells */
+.subdomain-org-name {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.subdomain-slug {
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: #667eea;
+}
+
+.subdomain-domain-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subdomain-domain-link {
+  color: #3b82f6;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.subdomain-domain-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.subdomain-no-domain {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.subdomain-copy-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.subdomain-copy-btn:hover {
+  color: #667eea;
+}
+
+/* Badges */
+.subdomain-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subdomain-badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.subdomain-badge-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Status */
+.subdomain-status-cell {
+  display: flex;
+  align-items: center;
+}
+
+.subdomain-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.subdomain-status-creating {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.subdomain-status-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.subdomain-status-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.subdomain-status-empty {
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+/* Actions */
+.subdomain-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.subdomain-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.subdomain-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.subdomain-btn-create {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.subdomain-btn-create:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.subdomain-btn-refresh {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 8px;
+}
+
+.subdomain-btn-refresh:hover:not(:disabled) {
+  background: #fde68a;
+}
+
+.subdomain-btn-delete {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 8px;
+}
+
+.subdomain-btn-delete:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+/* Loading */
+.subdomain-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: white;
+}
+
+.subdomain-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: subdomain-spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes subdomain-spin {
+  to { transform: rotate(360deg); }
+}
+
+.subdomain-spin {
+  animation: subdomain-spin 1s linear infinite;
+}
+
+/* Empty State */
+.subdomain-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+}
+
+.subdomain-empty-state p {
+  margin-top: 16px;
+  font-size: 16px;
+}
