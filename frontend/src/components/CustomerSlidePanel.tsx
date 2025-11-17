@@ -81,6 +81,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     newTierName: string;
     newTierColor: string;
   } | null>(null);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   // State locale per tenere traccia dei dati customer aggiornati in tempo reale
   const [localCustomer, setLocalCustomer] = useState<Customer | null>(customer);
@@ -758,8 +759,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               <div
                 className="customer-slide-panel-avatar"
                 style={{
-                  background: customer.avatar_url ? 'transparent' : (customer.gender === 'female' ? '#ec4899' : '#3b82f6')
+                  background: customer.avatar_url ? 'transparent' : (customer.gender === 'female' ? '#ec4899' : '#3b82f6'),
+                  cursor: customer.avatar_url ? 'pointer' : 'default'
                 }}
+                onClick={() => customer.avatar_url && setShowAvatarModal(true)}
+                title={customer.avatar_url ? 'Clicca per ingrandire' : ''}
               >
                 {customer.avatar_url ? (
                   <img
@@ -1164,6 +1168,78 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           }}
           primaryColor={primaryColor}
         />
+      )}
+
+      {/* Avatar Enlarged Modal */}
+      {showAvatarModal && customer?.avatar_url && (
+        <div
+          className="avatar-modal-overlay"
+          onClick={() => setShowAvatarModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            cursor: 'pointer',
+            padding: '20px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '20px'
+            }}
+          >
+            <img
+              src={customer.avatar_url}
+              alt={customer.name}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '80vh',
+                objectFit: 'contain',
+                borderRadius: '12px',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+              }}
+            />
+            <button
+              onClick={() => setShowAvatarModal(false)}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: primaryColor || '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <X size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+              Chiudi
+            </button>
+          </div>
+        </div>
       )}
 
     </>
