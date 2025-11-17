@@ -1,6 +1,6 @@
 .subdomain-hub-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   padding: 24px;
 }
 
@@ -19,7 +19,7 @@
 .subdomain-header-icon {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -66,7 +66,7 @@
 .subdomain-stat-number {
   font-size: 36px;
   font-weight: 700;
-  color: #667eea;
+  color: #3b82f6;
   margin-bottom: 8px;
 }
 
@@ -96,7 +96,7 @@
 
 .subdomain-search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #3b82f6;
 }
 
 /* Table */
@@ -154,7 +154,7 @@
   border-radius: 4px;
   font-size: 13px;
   font-family: 'Monaco', 'Courier New', monospace;
-  color: #667eea;
+  color: #3b82f6;
 }
 
 .subdomain-domain-cell {
@@ -196,7 +196,7 @@
 }
 
 .subdomain-copy-btn:hover {
-  color: #667eea;
+  color: #3b82f6;
 }
 
 /* Badges */
@@ -279,13 +279,13 @@
 }
 
 .subdomain-btn-create {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
 }
 
 .subdomain-btn-create:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .subdomain-btn-refresh {
