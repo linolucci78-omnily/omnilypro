@@ -1,31 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { X, CreditCard, Users, Search, UserPlus, AlertTriangle, Trash2, Power, Shield } from 'lucide-react'
 import { operatorNFCService, type OperatorNFCCard } from '../services/operatorNFCService'
-import type { Customer } from '../lib/supabase'
+import { staffApi, type StaffMember } from '../lib/supabase'
 import './OperatorNFCManagementPanel.css'
 
 interface OperatorNFCManagementPanelProps {
   isOpen: boolean
   onClose: () => void
   organizationId: string
-  organizationUsers: Customer[] // Lista degli utenti dell'organizzazione
+  organizationUsers?: StaffMember[] // Lista degli operatori (opzionale, viene caricata automaticamente)
 }
 
 const OperatorNFCManagementPanel: React.FC<OperatorNFCManagementPanelProps> = ({
   isOpen,
   onClose,
   organizationId,
-  organizationUsers
+  organizationUsers: organizationUsersProp
 }) => {
   const [mode, setMode] = useState<'list' | 'add'>('list')
   const [cards, setCards] = useState<OperatorNFCCard[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [organizationUsers, setOrganizationUsers] = useState<StaffMember[]>([])
 
   // Add card states
   const [isReadingNFC, setIsReadingNFC] = useState(false)
   const [scannedNFCUid, setScannedNFCUid] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<Customer | null>(null)
+  const [selectedUser, setSelectedUser] = useState<StaffMember | null>(null)
   const [operatorName, setOperatorName] = useState('')
 
   const nfcCallbackRef = useRef<any>(null)
@@ -33,8 +34,25 @@ const OperatorNFCManagementPanel: React.FC<OperatorNFCManagementPanelProps> = ({
   useEffect(() => {
     if (isOpen && organizationId) {
       loadCards()
+      loadOperators()
     }
   }, [isOpen, organizationId])
+
+  // Load operators from staffApi if not provided as prop
+  const loadOperators = async () => {
+    if (organizationUsersProp && organizationUsersProp.length > 0) {
+      setOrganizationUsers(organizationUsersProp)
+      return
+    }
+
+    try {
+      const staffMembers = await staffApi.getAll(organizationId)
+      setOrganizationUsers(staffMembers || [])
+    } catch (error) {
+      console.error('Error loading staff members:', error)
+      setOrganizationUsers([])
+    }
+  }
 
   // Setup NFC reading for add mode
   useEffect(() => {

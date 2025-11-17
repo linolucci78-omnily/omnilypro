@@ -170,12 +170,10 @@ export class OrganizationService {
      * Generate unique slug from organization name
      */
     async generateUniqueSlug(orgName: any) {
-        // Convert to slug format
+        // Convert to slug format (without hyphens)
         let baseSlug = orgName
             .toLowerCase()
-            .replace(/[^a-z0-9]/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '')
+            .replace(/[^a-z0-9]/g, '') // Remove everything except letters and numbers
         
         if (baseSlug.length < 3) {
             baseSlug = 'org-' + baseSlug

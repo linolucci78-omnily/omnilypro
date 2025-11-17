@@ -343,36 +343,64 @@ class AnalyticsService {
    */
   async getRevenueChart(organizationId: string, days: number = 30): Promise<RevenueDataPoint[]> {
     try {
-      const dataPoints: RevenueDataPoint[] = []
-      const today = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - days)
 
-      // Genera dati per gli ultimi N giorni
+      console.log(`📊 Loading revenue chart for org ${organizationId}, last ${days} days`)
+      console.log(`📅 Start date: ${startDate.toISOString()}`)
+
+      // QUERY SINGOLA: Ottieni tutte le transazioni degli ultimi N giorni
+      const { data: transactions, error } = await supabase
+        .from('customer_activities')
+        .select('created_at, monetary_value')
+        .eq('organization_id', organizationId)
+        .eq('activity_type', 'transaction')
+        .gte('created_at', startDate.toISOString())
+        .not('monetary_value', 'is', null)
+
+      if (error) {
+        console.error('❌ Error fetching transactions for revenue chart:', error)
+        return []
+      }
+
+      console.log(`✅ Found ${transactions?.length || 0} transactions`)
+
+      // Raggruppa per data
+      const dataMap = new Map<string, { revenue: number; count: number }>()
+
+      // Inizializza tutti i giorni con 0
       for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(today)
+        const date = new Date()
         date.setDate(date.getDate() - i)
         const dateStr = date.toISOString().split('T')[0]
-
-        // Conta transazioni e calcola revenue per questo giorno
-        const { count: transactions } = await supabase
-          .from('reward_redemptions')
-          .select('id', { count: 'exact', head: true })
-          .eq('organization_id', organizationId)
-          .gte('created_at', dateStr)
-          .lt('created_at', new Date(date.getTime() + 86400000).toISOString().split('T')[0])
-
-        // Simula revenue basato su transazioni
-        const revenue = (transactions || 0) * 50 // Media 50€ per transazione
-
-        dataPoints.push({
-          date: dateStr,
-          revenue,
-          transactions: transactions || 0
-        })
+        dataMap.set(dateStr, { revenue: 0, count: 0 })
       }
+
+      // Aggrega le transazioni per data
+      transactions?.forEach(t => {
+        const dateStr = t.created_at.split('T')[0]
+        const existing = dataMap.get(dateStr)
+        if (existing) {
+          existing.revenue += t.monetary_value || 0
+          existing.count += 1
+        }
+      })
+
+      // Converti in array ordinato
+      const dataPoints: RevenueDataPoint[] = Array.from(dataMap.entries())
+        .map(([date, data]) => ({
+          date,
+          revenue: Math.round(data.revenue * 100) / 100, // Arrotonda a 2 decimali
+          transactions: data.count
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+
+      console.log(`📈 Revenue chart data points:`, dataPoints.length)
+      console.log(`💰 Total revenue in period: €${dataPoints.reduce((sum, p) => sum + p.revenue, 0).toFixed(2)}`)
 
       return dataPoints
     } catch (error) {
-      console.error('Error fetching revenue chart:', error)
+      console.error('❌ Error fetching revenue chart:', error)
       return []
     }
   }

@@ -1,5 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -42,11 +43,18 @@ import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
 import DocumentationDashboard from './components/Admin/DocumentationDashboard'
 import Downloads from './pages/Downloads'
+import AdminDomains from './pages/AdminDomains'
 import UpdatePassword from './pages/UpdatePassword'
 import AuthCallback from './pages/AuthCallback'
 import StrapiTest from './pages/StrapiTest'
 import PublicSite from './pages/PublicSite'
 import SiteRendererPage from './pages/SiteRendererPage'
+import { PublicWebsite } from './pages/PublicWebsite'
+
+// Ensure PublicWebsite is included in bundle (prevent tree-shaking)
+if (typeof window !== 'undefined') {
+  console.log('✅ PublicWebsite component loaded:', typeof PublicWebsite)
+}
 import DeviceSetup from './pages/DeviceSetup'
 
 const ContractSignature = React.lazy(() => import('./pages/ContractSignature'))
@@ -115,6 +123,13 @@ function App() {
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
 
+  console.log('🌐 Hostname detection:', {
+    hostname,
+    parts,
+    firstPart: parts[0],
+    partsLength: parts.length
+  });
+
   // 🧪 TESTING: Force SiteRendererPage mode when accessing /test-public-site
   const isTestingPublicSite = window.location.pathname === '/test-public-site';
 
@@ -123,8 +138,18 @@ function App() {
 
   const isPublicSite = !isVercelDomain && parts.length > 1 && !['www', 'localhost', 'app', 'admin'].includes(parts[0]);
 
+  console.log('🔍 Site mode detection:', {
+    isVercelDomain,
+    isPublicSite,
+    isTestingPublicSite,
+    willRenderPublicSite: isPublicSite || isTestingPublicSite
+  });
+
   if (isPublicSite || isTestingPublicSite) {
-    console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage', { isTestingPublicSite });
+    console.log('✅ PUBLIC SITE MODE - rendering SiteRendererPage', {
+      isTestingPublicSite,
+      subdomain: parts[0]
+    });
     return (
       <Router>
         <AuthProvider>
@@ -182,10 +207,11 @@ function App() {
   }
 
   return (
-    <Router>
-      <AuthProvider>
-        <ToastProvider>
-          <div className="App">
+    <HelmetProvider>
+      <Router>
+        <AuthProvider>
+          <ToastProvider>
+            <div className="App">
             <Routes>
               <Route path="/" element={<><Navbar /><Landing /></>} />
               {/* ...tutte le altre route originali... */}
@@ -226,6 +252,7 @@ function App() {
                 <Route path="branding" element={<BrandingDashboard />} />
                 <Route path="websites" element={<WebsiteManager />} />
                 <Route path="websites-v2" element={<WebsiteManagerV2 />} />
+                <Route path="domains" element={<AdminDomains />} />
                 <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
                 <Route path="memberships" element={<AdminMembershipsDashboard />} />
                 <Route path="docs" element={<DocumentationDashboard />} />
@@ -238,13 +265,15 @@ function App() {
               } />
               <Route path="/customer-display" element={<CustomerDisplay />} />
               <Route path="/sites/:subdomain" element={<PublicSite />} />
-            </Routes>
-          </div>
-        </ToastProvider>
-      </AuthProvider>
-    </Router>
+              <Route path="/w/:slug" element={<PublicWebsite />} />
+              </Routes>
+            </div>
+          </ToastProvider>
+        </AuthProvider>
+      </Router>
+    </HelmetProvider>
   )
 }
 
 export default App
-// Force deploy 1759947521
+// Force rebuild with PublicWebsite component

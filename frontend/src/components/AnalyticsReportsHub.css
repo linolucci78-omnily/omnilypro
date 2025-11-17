@@ -352,8 +352,10 @@
 
 .analytics-chart-container {
   width: 100%;
-  min-height: 300px;
+  min-height: 350px;
   position: relative;
+  display: block;
+  padding: 10px;
 }
 
 .analytics-chart-container .recharts-wrapper {
@@ -361,7 +363,22 @@
 }
 
 .analytics-chart-container .recharts-surface {
-  overflow: visible;
+  overflow: visible !important;
+}
+
+.analytics-chart-container .recharts-area {
+  opacity: 1 !important;
+}
+
+.analytics-chart-container path {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.analytics-chart-container .recharts-curve {
+  opacity: 1 !important;
+  stroke-opacity: 1 !important;
+  fill-opacity: 0.3 !important;
 }
 
 .analytics-chart-placeholder {

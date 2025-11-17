@@ -323,11 +323,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         visits: weekdayMap.get(index) || 0
       }))
 
-      // 6.5. HOURLY STATS (last 30 days)
+      // 6.5. HOURLY STATS (last 30 days) - SOLO TRANSAZIONI DI VENDITA
       const hourlyMap = new Map<number, number>()
       recentActivities?.forEach(activity => {
-        const hour = new Date(activity.created_at).getHours()
-        hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1)
+        // Conta solo transazioni di vendita
+        if (activity.activity_type === 'transaction' || activity.type === 'transaction') {
+          const hour = new Date(activity.created_at).getHours()
+          hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1)
+        }
       })
 
       const hourlyStatsArray = []
@@ -467,41 +470,56 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
         else night += value
       })
 
-      // 7. CHART DATA (last 30 days) - SOLO DATI REALI
-      const chartDataArray = []
+      // 7. CHART DATA (last 30 days) - QUERY SINGOLA OTTIMIZZATA
+      console.log('📊 Loading chart data for last 30 days...')
 
+      // QUERY SINGOLA: Ottieni tutte le attività degli ultimi 30 giorni
+      const { data: allActivities, error: activitiesError } = await supabase
+        .from('customer_activities')
+        .select('activity_type, monetary_value, created_at')
+        .eq('organization_id', organization.id)
+        .gte('created_at', thirtyDaysAgo.toISOString())
+
+      if (activitiesError) {
+        console.warn('⚠️ Error loading chart activities (suppressed):', activitiesError)
+      }
+
+      console.log(`✅ Found ${allActivities?.length || 0} activities for chart`)
+
+      // Raggruppa per data
+      const chartDataMap = new Map<string, { visits: number; revenue: number }>()
+
+      // Inizializza tutti i 30 giorni con 0
       for (let i = 29; i >= 0; i--) {
         const date = new Date()
         date.setDate(date.getDate() - i)
         const dateStr = date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
-
-        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-        const dayEnd = new Date(dayStart)
-        dayEnd.setDate(dayEnd.getDate() + 1)
-
-        const { data: dayActivities, error: dayError } = await supabase
-          .from('customer_activities')
-          .select('activity_type, monetary_value')
-          .eq('organization_id', organization.id)
-          .gte('created_at', dayStart.toISOString())
-          .lt('created_at', dayEnd.toISOString())
-
-        if (dayError) {
-          // Silently suppress - just use 0 values for this day
-        }
-
-        const visits = dayActivities?.filter(a => a.activity_type === 'visit').length || 0
-        const revenue = dayActivities
-          ?.filter(a => a.activity_type === 'transaction')
-          .reduce((sum, a) => sum + (a.monetary_value || 0), 0) || 0
-
-        chartDataArray.push({
-          date: dateStr,
-          visits,
-          revenue: Math.round(revenue * 100) / 100
-        })
+        chartDataMap.set(dateStr, { visits: 0, revenue: 0 })
       }
 
+      // Aggrega le attività per data
+      allActivities?.forEach(activity => {
+        const date = new Date(activity.created_at)
+        const dateStr = date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
+        const existing = chartDataMap.get(dateStr)
+
+        if (existing) {
+          if (activity.activity_type === 'visit') {
+            existing.visits += 1
+          } else if (activity.activity_type === 'transaction') {
+            existing.revenue += activity.monetary_value || 0
+          }
+        }
+      })
+
+      // Converti in array
+      const chartDataArray = Array.from(chartDataMap.entries()).map(([date, data]) => ({
+        date,
+        visits: data.visits,
+        revenue: Math.round(data.revenue * 100) / 100
+      }))
+
+      console.log(`📈 Chart data ready: ${chartDataArray.length} days`)
       setChartData(chartDataArray)
 
       setMetrics({
@@ -1120,7 +1138,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organization, c
               </div>
               <div className="behavior-item">
                 <Users size={20} className="icon-regular" />
-                <span>Clienti in Fascia</span>
+                <span>Transazioni in Fascia</span>
                 <strong>{metrics.peakHours.visits}</strong>
               </div>
               <div className="behavior-item">

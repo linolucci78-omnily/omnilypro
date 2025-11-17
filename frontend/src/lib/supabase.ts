@@ -1049,32 +1049,35 @@ export const staffApi = {
     if (staffError) throw staffError
     console.log('👥 [STAFF API] Regular staff members:', staffMembers?.length || 0)
 
-    // Get super admin users from organization_users table (without join)
-    // Note: Super admins are global and have access to all organizations
+    // Get ALL organization users (admin, owner, manager, etc.) from organization_users table
+    // This includes:
+    // 1. Super admins (global, organization_id might be NULL)
+    // 2. Organization owner and administrators (organization_id matches)
     const { data: orgUsers, error: orgError } = await supabase
       .from('organization_users')
-      .select('user_id, role, created_at')
-      .eq('role', 'super_admin')
+      .select('user_id, role, created_at, organization_id')
+      .or(`organization_id.eq.${organizationId},role.eq.super_admin`) // Include org-specific users OR super admins
+      .in('role', ['super_admin', 'admin', 'owner', 'manager']) // Include all admin roles
 
     console.log('🔐 [STAFF API] Organization users query result:', { orgUsers, orgError })
 
     if (orgError) {
-      console.warn('⚠️ Could not fetch super admin organization users:', orgError)
+      console.warn('⚠️ Could not fetch organization users:', orgError)
       return staffMembers || []
     }
 
-    // If no super admins found, just return staff members
+    // If no organization users found, just return staff members
     if (!orgUsers || orgUsers.length === 0) {
-      console.log('ℹ️ No super admins found in organization_users')
+      console.log('ℹ️ No organization admins found in organization_users')
       return staffMembers || []
     }
 
-    // Get user details for each super admin (filter out null user_ids)
+    // Get user details for each organization user (filter out null user_ids)
     const userIds = orgUsers.map(ou => ou.user_id).filter(id => id !== null)
     console.log('👤 [STAFF API] Fetching user details for IDs:', userIds)
 
     if (userIds.length === 0) {
-      console.log('ℹ️ No valid user IDs found for super admins')
+      console.log('ℹ️ No valid user IDs found for organization users')
       return staffMembers || []
     }
 

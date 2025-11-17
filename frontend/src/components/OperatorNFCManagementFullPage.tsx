@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, CreditCard, Users, Search, UserPlus, Trash2, Power, Shield, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { operatorNFCService, type OperatorNFCCard } from '../services/operatorNFCService'
-import { organizationService } from '../services/organizationService'
-import type { Customer } from '../lib/supabase'
+import { staffApi, type StaffMember } from '../lib/supabase'
 import { useToast } from '../contexts/ToastContext'
 import './OperatorNFCManagementFullPage.css'
 
@@ -18,14 +17,14 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
   const { showSuccess, showError } = useToast()
   const [mode, setMode] = useState<'list' | 'add'>('list')
   const [cards, setCards] = useState<OperatorNFCCard[]>([])
-  const [organizationUsers, setOrganizationUsers] = useState<Customer[]>([])
+  const [organizationUsers, setOrganizationUsers] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
   // Add card states
   const [isReadingNFC, setIsReadingNFC] = useState(false)
   const [scannedNFCUid, setScannedNFCUid] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<Customer | null>(null)
+  const [selectedUser, setSelectedUser] = useState<StaffMember | null>(null)
   const [operatorName, setOperatorName] = useState('')
   const [operatorPassword, setOperatorPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -134,26 +133,26 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
   const loadOrganizationUsers = async () => {
     try {
-      console.log('🔍 Caricamento utenti per org:', organizationId)
-      const users = await organizationService.getOrganizationUsers(organizationId)
-      console.log('✅ Caricati', users?.length || 0, 'utenti:', users)
+      console.log('🔍 Caricamento operatori per org:', organizationId)
+      const staffMembers = await staffApi.getAll(organizationId)
+      console.log('✅ Caricati', staffMembers?.length || 0, 'operatori:', staffMembers)
 
-      setOrganizationUsers(users || [])
+      setOrganizationUsers(staffMembers || [])
 
       // DEBUG: Toast temporaneo per vedere sul POS
-      if (!users || users.length === 0) {
-        console.warn('⚠️ Nessun utente trovato')
-        showError('Debug', `Nessun utente trovato in organization_users per org: ${organizationId.substring(0, 8)}`)
+      if (!staffMembers || staffMembers.length === 0) {
+        console.warn('⚠️ Nessun operatore trovato')
+        showError('Nessun Operatore', `Non ci sono operatori configurati. Vai in Gestione Team per creare operatori.`)
       } else {
-        // Mostra i primi utenti trovati
-        const userNames = users.slice(0, 3).map((u: any) => u.name).join(', ')
-        showSuccess('Debug Utenti', `Trovati ${users.length} utenti: ${userNames}${users.length > 3 ? '...' : ''}`)
+        // Mostra i primi operatori trovati
+        const operatorNames = staffMembers.slice(0, 3).map((u: any) => u.name).join(', ')
+        showSuccess('Operatori Trovati', `Trovati ${staffMembers.length} operatori: ${operatorNames}${staffMembers.length > 3 ? '...' : ''}`)
       }
     } catch (error: any) {
-      console.error('Error loading organization users:', error)
+      console.error('Error loading staff members:', error)
       console.error('Error details:', error.message, error.code)
       const errorMsg = error?.message || error?.toString() || 'Errore sconosciuto'
-      showError('Errore Caricamento', `Impossibile caricare utenti: ${errorMsg.substring(0, 100)}`)
+      showError('Errore Caricamento', `Impossibile caricare operatori: ${errorMsg.substring(0, 100)}`)
     }
   }
 

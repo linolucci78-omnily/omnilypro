@@ -9,6 +9,7 @@ import { badgeService } from '../../services/gaming/badgeService'
 import { challengeService } from '../../services/gaming/challengeService'
 import { spinService } from '../../services/gaming/spinService'
 import { slotMachineService } from '../../services/gaming/slotMachineService'
+import { scratchCardService } from '../../services/gaming/scratchCardService'
 import { gamingSetupService } from '../../services/gaming/gamingSetupService'
 import BadgeGallery from './BadgeGallery'
 import ChallengesHub from './ChallengesHub'
@@ -52,7 +53,9 @@ const GamingHub: React.FC<GamingHubProps> = ({
     spinsAvailable: 0,
     totalSpins: 0,
     slotPlaysAvailable: 0,
-    totalSlotPlays: 0
+    totalSlotPlays: 0,
+    scratchPlaysAvailable: 0,
+    totalScratchPlays: 0
   })
 
   const [recentBadges, setRecentBadges] = useState<CustomerBadge[]>([])
@@ -151,6 +154,16 @@ const GamingHub: React.FC<GamingHubProps> = ({
       console.log('  - playsLeft:', slotPlaysLeft)
       console.log('  - canPlay:', canPlay)
 
+      // Load scratch card stats
+      console.log('🎫 Loading scratch card stats...')
+      const { canPlay: canScratch, playsToday: scratchPlaysToday, maxPlays: maxScratchPlays } = await scratchCardService.canPlay(customerId, organizationId)
+      const scratchPlaysLeft = maxScratchPlays - scratchPlaysToday
+      console.log('🎫 Scratch Card Stats:')
+      console.log('  - playsToday:', scratchPlaysToday)
+      console.log('  - maxPlays:', maxScratchPlays)
+      console.log('  - playsLeft:', scratchPlaysLeft)
+      console.log('  - canScratch:', canScratch)
+
       setStats({
         totalBadges: badgeStats.total_badges,
         unlockedBadges: badgeStats.unlocked_count,
@@ -159,7 +172,9 @@ const GamingHub: React.FC<GamingHubProps> = ({
         spinsAvailable: spinsLeft,
         totalSpins: maxSpins,
         slotPlaysAvailable: slotPlaysLeft,
-        totalSlotPlays: maxSlotPlays
+        totalSlotPlays: maxSlotPlays,
+        scratchPlaysAvailable: scratchPlaysLeft,
+        totalScratchPlays: maxScratchPlays
       })
 
       console.log('✅ Gaming stats loaded successfully')
@@ -175,7 +190,9 @@ const GamingHub: React.FC<GamingHubProps> = ({
         spinsAvailable: 0,
         totalSpins: 3,
         slotPlaysAvailable: 0,
-        totalSlotPlays: 3
+        totalSlotPlays: 3,
+        scratchPlaysAvailable: 0,
+        totalScratchPlays: 1
       })
     } finally {
       console.log('🏁 Finally block - setting loading to false')
@@ -281,15 +298,27 @@ const GamingHub: React.FC<GamingHubProps> = ({
   }, [])
 
   const handleScratchComplete = useCallback(async (prize?: ScratchPrize) => {
-    console.log('🎫 Scratch card completed, prize:', prize)
+    console.log('🎫 Scratch card completed, updating stats...')
 
-    // TODO: Update scratch card stats when service is available
-    // For now, just handle points and badge unlocks
+    // Update ONLY scratch card stats (lightweight update)
+    try {
+      const { canPlay: canScratch, playsToday: scratchPlaysToday, maxPlays: maxScratchPlays } = await scratchCardService.canPlay(customerId, organizationId)
+      const scratchPlaysLeft = maxScratchPlays - scratchPlaysToday
 
-    // If points were won, notify parent to refresh customer data
-    if (prize && prize.type === 'points' && onPointsUpdated) {
-      console.log('💰 Points won from scratch card! Notifying parent to refresh...')
-      onPointsUpdated()
+      setStats(prev => ({
+        ...prev,
+        scratchPlaysAvailable: scratchPlaysLeft
+      }))
+
+      console.log('✅ Scratch card stats updated - plays left:', scratchPlaysLeft)
+
+      // If points were won, notify parent to refresh customer data
+      if (prize && prize.type === 'points' && onPointsUpdated) {
+        console.log('💰 Points won from scratch card! Notifying parent to refresh...')
+        onPointsUpdated()
+      }
+    } catch (error) {
+      console.error('❌ Error updating scratch card stats:', error)
     }
 
     // Check for new badge unlocks
@@ -618,22 +647,36 @@ const GamingHub: React.FC<GamingHubProps> = ({
                 </div>
               </div>
               <div className="spin-info">
-                <p className="spin-available">
-                  <strong>3</strong> tentativi disponibili
-                </p>
-                <p className="spin-hint">Gratta per scoprire cosa vinci!</p>
+                {stats.scratchPlaysAvailable > 0 ? (
+                  <>
+                    <p className="spin-available">
+                      <strong>{stats.scratchPlaysAvailable}</strong> {stats.scratchPlaysAvailable === 1 ? 'tentativo disponibile' : 'tentativi disponibili'}
+                    </p>
+                    <p className="spin-hint">Gratta per scoprire cosa vinci!</p>
+                  </>
+                ) : (
+                  <p className="spin-unavailable">Hai esaurito i tuoi tentativi giornalieri</p>
+                )}
               </div>
             </div>
 
             <button
               className="feature-cta scratch-cta"
-              onClick={() => {
+              onClick={(e) => {
+                if (stats.scratchPlaysAvailable === 0) return
                 console.log('🎫 Click on "Gratta Ora!" button')
                 setShowScratchCard(true)
               }}
+              disabled={stats.scratchPlaysAvailable === 0}
             >
-              Gratta Ora!
-              <Gift size={20} />
+              {stats.scratchPlaysAvailable > 0 ? (
+                <>
+                  Gratta Ora!
+                  <Gift size={20} />
+                </>
+              ) : (
+                'Torna Domani'
+              )}
             </button>
           </div>
         </div>

@@ -113,7 +113,28 @@ export async function handleTierChange(params: {
     console.error(`⚠️ Error sending tier upgrade email (non-blocking):`, error);
   }
 
-  // 4. Salva notifica pending per mostrare modale celebrativo
+  // 4. AGGIORNA IL CAMPO TIER NEL DATABASE
+  try {
+    console.log(`💾 Updating tier in database: ${newTier.name}`);
+
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({
+        tier: newTier.name,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', customerId);
+
+    if (updateError) {
+      console.error('⚠️ Error updating customer tier in database:', updateError);
+    } else {
+      console.log(`✅ Customer tier updated in database: ${newTier.name}`);
+    }
+  } catch (error) {
+    console.error('⚠️ Error updating tier (non-blocking):', error);
+  }
+
+  // 5. Salva notifica pending per mostrare modale celebrativo
   saveTierUpgradeNotification({
     customerId,
     customerName,

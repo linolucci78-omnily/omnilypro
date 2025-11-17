@@ -297,61 +297,77 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
         primary: branding.primary_color,
         secondary: branding.secondary_color
       })
+      console.log('📝 Slogan da salvare:', {
+        slogan: branding.slogan,
+        tagline: branding.slogan // Questo verrà sincronizzato
+      })
 
       // Converti hashtags da stringa a array
       const hashtagsArray = branding.hashtags
         ? branding.hashtags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
         : null
 
+      const updateData = {
+        // Colors
+        primary_color: branding.primary_color,
+        secondary_color: branding.secondary_color,
+        tertiary_color: branding.tertiary_color,
+        error_color: branding.error_color,
+        success_color: branding.success_color,
+        warning_color: branding.warning_color,
+        background_color: branding.background_color,
+
+        // Images
+        logo_url: branding.logo_url,
+        favicon_url: branding.favicon_url,
+        banner_url: branding.banner_url,
+        logo_light_url: branding.logo_light_url,
+        watermark_url: branding.watermark_url,
+
+        // Typography
+        primary_font: branding.primary_font,
+        secondary_font: branding.secondary_font,
+
+        // Business Info
+        name: branding.business_name,
+        slogan: branding.slogan,
+        tagline: branding.slogan, // Sync slogan to tagline for website
+        bio: branding.bio,
+        business_category: branding.business_category,
+        hashtags: hashtagsArray,
+        business_hours: branding.business_hours,
+
+        // Contact
+        website_url: branding.website_url,
+        email: branding.email,
+        phone: branding.phone,
+        address: branding.address,
+        whatsapp_business: branding.whatsapp_business,
+
+        // Social Media
+        facebook_url: branding.facebook_url,
+        instagram_url: branding.instagram_url,
+        twitter_url: branding.twitter_url,
+        linkedin_url: branding.linkedin_url,
+        tiktok_url: branding.tiktok_url,
+        youtube_url: branding.youtube_url,
+        pinterest_url: branding.pinterest_url,
+        telegram_url: branding.telegram_url
+      }
+
+      console.log('🔄 Dati UPDATE che verranno inviati a Supabase:', {
+        slogan: updateData.slogan,
+        tagline: updateData.tagline,
+        organizationId
+      })
+
       const { data, error } = await supabase
         .from('organizations')
-        .update({
-          // Colors
-          primary_color: branding.primary_color,
-          secondary_color: branding.secondary_color,
-          tertiary_color: branding.tertiary_color,
-          error_color: branding.error_color,
-          success_color: branding.success_color,
-          warning_color: branding.warning_color,
-          background_color: branding.background_color,
-
-          // Images
-          logo_url: branding.logo_url,
-          favicon_url: branding.favicon_url,
-          banner_url: branding.banner_url,
-          logo_light_url: branding.logo_light_url,
-          watermark_url: branding.watermark_url,
-
-          // Typography
-          primary_font: branding.primary_font,
-          secondary_font: branding.secondary_font,
-
-          // Business Info
-          name: branding.business_name,
-          slogan: branding.slogan,
-          bio: branding.bio,
-          business_category: branding.business_category,
-          hashtags: hashtagsArray,
-          business_hours: branding.business_hours,
-
-          // Contact
-          website_url: branding.website_url,
-          email: branding.email,
-          phone: branding.phone,
-          address: branding.address,
-          whatsapp_business: branding.whatsapp_business,
-
-          // Social Media
-          facebook_url: branding.facebook_url,
-          instagram_url: branding.instagram_url,
-          twitter_url: branding.twitter_url,
-          linkedin_url: branding.linkedin_url,
-          tiktok_url: branding.tiktok_url,
-          youtube_url: branding.youtube_url,
-          pinterest_url: branding.pinterest_url,
-          telegram_url: branding.telegram_url
-        })
+        .update(updateData)
         .eq('id', organizationId)
+        .select('slogan, tagline, name')
+
+      console.log('📥 Risposta da Supabase:', { data, error })
 
       if (error) throw error
 

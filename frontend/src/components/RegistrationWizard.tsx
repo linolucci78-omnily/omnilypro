@@ -4,6 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { customersApi, supabase } from '../lib/supabase';
 import { sendWelcomeEmail } from '../services/emailAutomationService';
 import { emailService } from '../services/emailService';
+import referralService from '../services/referralService';
 import GDPRConsent from './GDPRConsent';
 import AddressAutocomplete from './AddressAutocomplete';
 import './RegistrationWizard.css';
@@ -1093,6 +1094,23 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       addDebugInfo('✅ CLIENTE CREATO CON SUCCESSO!');
 
       console.log('✅ Cliente creato con successo:', createdCustomer);
+
+      // 🎁 Crea programma referral per il nuovo cliente
+      try {
+        console.log('🎁 Creazione programma referral per il nuovo cliente...');
+        const customerName = `${formData.firstName} ${formData.lastName}`.trim();
+        const referralProgram = await referralService.programs.create(
+          organizationId,
+          createdCustomer.id,
+          customerName
+        );
+        console.log('✅ Programma referral creato:', referralProgram);
+        addDebugInfo(`✅ Codice referral: ${referralProgram.referral_code}`);
+      } catch (referralErr) {
+        console.error('❌ Errore creazione programma referral:', referralErr);
+        // Non blocca la registrazione se fallisce la creazione del programma referral
+        addDebugInfo('⚠️ Programma referral non creato');
+      }
 
       // 🎁 Gestisci referral se presente
       if (formData.referralCode && formData.referralCode.trim()) {

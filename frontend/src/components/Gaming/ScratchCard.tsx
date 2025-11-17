@@ -6,6 +6,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Trophy, Sparkles } from 'lucide-react'
+import { scratchCardService } from '../../services/gaming/scratchCardService'
 import './ScratchCard.css'
 
 export interface ScratchPrize {
@@ -308,8 +309,30 @@ const ScratchCard: React.FC<ScratchCardProps> = ({
     setTimeout(() => checkForMatches(allRevealed), 300)
   }
 
-  const handlePrizeReveal = () => {
+  const handlePrizeReveal = async () => {
     setPrizeRevealed(true)
+
+    // Register play in database
+    const won = !!matchFound
+    const prizeSymbol = matchFound?.symbol
+    const prizePoints = matchFound ? SYMBOLS[matchFound.symbol].points : 0
+
+    console.log('🎫 Registering scratch card play:', { won, prizeSymbol, prizePoints })
+
+    const result = await scratchCardService.play(
+      customerId,
+      organizationId,
+      symbols,
+      won,
+      prizeSymbol,
+      prizePoints
+    )
+
+    console.log('🎫 Play result:', result)
+
+    if (!result.success) {
+      console.error('Failed to register scratch card play:', result.error)
+    }
 
     if (matchFound && onScratchComplete) {
       const prize: ScratchPrize = {

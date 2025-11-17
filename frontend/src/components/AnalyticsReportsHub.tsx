@@ -64,6 +64,8 @@ const AnalyticsReportsHub: React.FC<AnalyticsReportsHubProps> = ({
       setLoading(true)
       setError(null)
       const dashboard = await analyticsService.getDashboard(organizationId, timeRange)
+      console.log('📊 Analytics Dashboard loaded:', dashboard)
+      console.log('📈 Revenue chart data:', dashboard.revenueChart)
       setData(dashboard)
     } catch (err) {
       console.error('Error loading analytics:', err)
@@ -388,40 +390,62 @@ const AnalyticsReportsHub: React.FC<AnalyticsReportsHubProps> = ({
             </button>
           </div>
           <div className="analytics-chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={data.revenueChart}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={primaryColor} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={primaryColor} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis
-                  dataKey="date"
-                  stroke="#6b7280"
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}
-                />
-                <YAxis
-                  stroke="#6b7280"
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => `€${value}`}
-                />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '8px' }}
-                  formatter={(value: any) => [formatCurrency(value), 'Revenue']}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString('it-IT')}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke={primaryColor}
-                  strokeWidth={3}
-                  fill="url(#colorRevenue)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {data?.revenueChart && data.revenueChart.length > 0 ? (
+              <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <AreaChart data={data.revenueChart} width={800} height={300} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={primaryColor || '#dc2626'} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={primaryColor || '#dc2626'} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#6b7280"
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    tickFormatter={(value) => {
+                      try {
+                        return new Date(value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
+                      } catch (e) {
+                        return value
+                      }
+                    }}
+                  />
+                  <YAxis
+                    stroke="#6b7280"
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    tickFormatter={(value) => `€${value}`}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '8px' }}
+                    formatter={(value: any) => [formatCurrency(value), 'Revenue']}
+                    labelFormatter={(label) => {
+                      try {
+                        return new Date(label).toLocaleDateString('it-IT')
+                      } catch (e) {
+                        return label
+                      }
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke={primaryColor || '#dc2626'}
+                    strokeWidth={3}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              </div>
+            ) : (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                <AlertCircle size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
+                <p>Nessun dato disponibile per il periodo selezionato</p>
+                <p style={{ fontSize: '14px', marginTop: '8px' }}>
+                  Aggiungi transazioni per vedere il grafico revenue
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

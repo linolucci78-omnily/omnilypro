@@ -65,7 +65,7 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
       // Get all customers for this organization with their points
       const { data: customers, error } = await supabase
         .from('customers')
-        .select('loyalty_points')
+        .select('points')
         .eq('organization_id', organizationId)
 
       if (error) throw error
@@ -77,7 +77,7 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
         const maxPoints = tier.maxThreshold ? parseInt(tier.maxThreshold) : Infinity
 
         const customersInTier = customers?.filter((c: any) => {
-          const points = c.loyalty_points || 0
+          const points = c.points || 0
           return points >= minPoints && points <= maxPoints
         }).length || 0
 

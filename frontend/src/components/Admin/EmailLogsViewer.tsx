@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Mail, CheckCircle, XCircle, Clock, Eye, RefreshCw, Filter } from 'lucide-react'
+import { Mail, CheckCircle, XCircle, Clock, Eye, RefreshCw, Filter, MousePointer } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 
@@ -16,6 +16,14 @@ interface EmailLog {
   error_message: string | null
   sent_at: string | null
   created_at: string
+  delivered_at: string | null
+  opened_at: string | null
+  clicked_at: string | null
+  bounced_at: string | null
+  complained_at: string | null
+  open_count: number
+  click_count: number
+  last_event: string | null
   organizations?: {
     name: string
   }
@@ -27,10 +35,19 @@ const EmailLogsViewer: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const { showError } = useToast()
 
   useEffect(() => {
     loadLogs()
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadLogs()
+    }, 30000)
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -42,13 +59,20 @@ const EmailLogsViewer: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('email_logs')
-        .select('*, organizations(name)')
+        .select(`
+          *,
+          organizations(name)
+        `)
         .order('created_at', { ascending: false })
         .limit(100)
 
       if (error) throw error
 
+      console.log('📧 Email logs loaded:', data?.length, 'emails')
+      console.log('📧 Sample log with tracking:', data?.[0])
+
       setLogs(data || [])
+      setLastRefresh(new Date())
     } catch (error) {
       console.error('Error loading logs:', error)
       showError('Errore nel caricamento dei log')
@@ -62,7 +86,13 @@ const EmailLogsViewer: React.FC = () => {
 
     // Filter by status
     if (filterStatus !== 'all') {
-      filtered = filtered.filter(log => log.status === filterStatus)
+      if (filterStatus === 'opened') {
+        filtered = filtered.filter(log => log.opened_at !== null)
+      } else if (filterStatus === 'clicked') {
+        filtered = filtered.filter(log => log.clicked_at !== null)
+      } else {
+        filtered = filtered.filter(log => log.status === filterStatus)
+      }
     }
 
     // Filter by search term
@@ -136,8 +166,13 @@ const EmailLogsViewer: React.FC = () => {
     total: logs.length,
     sent: logs.filter(l => l.status === 'sent' || l.status === 'delivered').length,
     failed: logs.filter(l => l.status === 'failed' || l.status === 'bounced').length,
-    pending: logs.filter(l => l.status === 'pending').length
+    pending: logs.filter(l => l.status === 'pending').length,
+    opened: logs.filter(l => l.opened_at).length,
+    clicked: logs.filter(l => l.clicked_at).length
   }
+
+  const openRate = stats.sent > 0 ? ((stats.opened / stats.sent) * 100).toFixed(1) : '0'
+  const clickRate = stats.sent > 0 ? ((stats.clicked / stats.sent) * 100).toFixed(1) : '0'
 
   if (isLoading) {
     return (
@@ -156,29 +191,37 @@ const EmailLogsViewer: React.FC = () => {
           <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
             Log Email Inviate
           </h3>
+          <span style={{ fontSize: '12px', color: '#6b7280' }}>
+            (Auto-refresh ogni 30s)
+          </span>
         </div>
-        <button
-          onClick={loadLogs}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            backgroundColor: '#f3f4f6',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            color: '#374151'
-          }}
-        >
-          <RefreshCw size={16} />
-          Aggiorna
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+            Ultimo aggiornamento: {lastRefresh.toLocaleTimeString('it-IT')}
+          </span>
+          <button
+            onClick={loadLogs}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              color: '#374151'
+            }}
+          >
+            <RefreshCw size={16} />
+            Aggiorna ora
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
           <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Totale</div>
           <div style={{ fontSize: '24px', fontWeight: '600', color: '#111827' }}>{stats.total}</div>
@@ -186,6 +229,16 @@ const EmailLogsViewer: React.FC = () => {
         <div style={{ padding: '16px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
           <div style={{ fontSize: '12px', color: '#065f46', marginBottom: '4px' }}>Inviate</div>
           <div style={{ fontSize: '24px', fontWeight: '600', color: '#065f46' }}>{stats.sent}</div>
+        </div>
+        <div style={{ padding: '16px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+          <div style={{ fontSize: '12px', color: '#1e40af', marginBottom: '4px' }}>Aperte</div>
+          <div style={{ fontSize: '24px', fontWeight: '600', color: '#1e40af' }}>{stats.opened}</div>
+          <div style={{ fontSize: '11px', color: '#3b82f6', marginTop: '4px' }}>Tasso: {openRate}%</div>
+        </div>
+        <div style={{ padding: '16px', backgroundColor: '#f5f3ff', borderRadius: '8px', border: '1px solid #ddd6fe' }}>
+          <div style={{ fontSize: '12px', color: '#5b21b6', marginBottom: '4px' }}>Cliccate</div>
+          <div style={{ fontSize: '24px', fontWeight: '600', color: '#5b21b6' }}>{stats.clicked}</div>
+          <div style={{ fontSize: '11px', color: '#7c3aed', marginTop: '4px' }}>Tasso: {clickRate}%</div>
         </div>
         <div style={{ padding: '16px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
           <div style={{ fontSize: '12px', color: '#991b1b', marginBottom: '4px' }}>Fallite</div>
@@ -229,6 +282,8 @@ const EmailLogsViewer: React.FC = () => {
           <option value="all">Tutti gli stati</option>
           <option value="sent">Inviate</option>
           <option value="delivered">Consegnate</option>
+          <option value="opened">Aperte</option>
+          <option value="clicked">Cliccate</option>
           <option value="failed">Fallite</option>
           <option value="bounced">Rimbalzate</option>
           <option value="pending">In Attesa</option>
@@ -254,6 +309,9 @@ const EmailLogsViewer: React.FC = () => {
                 </th>
                 <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
                   Oggetto
+                </th>
+                <th style={{ padding: '12px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
+                  Engagement
                 </th>
                 <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
                   Tipo
@@ -292,6 +350,26 @@ const EmailLogsViewer: React.FC = () => {
                         ❌ {log.error_message}
                       </div>
                     )}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                      {log.opened_at ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#eff6ff', borderRadius: '4px' }} title={`Aperta ${log.open_count || 1} volte`}>
+                          <Eye size={14} style={{ color: '#3b82f6' }} />
+                          <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: '500' }}>{log.open_count || 1}</span>
+                        </div>
+                      ) : (
+                        <Eye size={14} style={{ color: '#d1d5db' }} title="Non ancora aperta" />
+                      )}
+                      {log.clicked_at ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#f5f3ff', borderRadius: '4px' }} title={`Cliccata ${log.click_count || 1} volte`}>
+                          <MousePointer size={14} style={{ color: '#7c3aed' }} />
+                          <span style={{ fontSize: '12px', color: '#5b21b6', fontWeight: '500' }}>{log.click_count || 1}</span>
+                        </div>
+                      ) : (
+                        <MousePointer size={14} style={{ color: '#d1d5db' }} title="Nessun click" />
+                      )}
+                    </div>
                   </td>
                   <td style={{ padding: '12px' }}>
                     <span style={{
