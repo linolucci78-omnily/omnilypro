@@ -87,13 +87,27 @@ export const logger = {
   },
 
   /**
-   * Attiva debug mode in produzione
+   * Attiva debug mode in produzione (richiede password)
+   * Password: omnily2025debug
    */
-  enableDebug: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('OMNILY_DEBUG', 'true');
-      console.log('🔍 Debug mode ATTIVATO - Ricarica la pagina per vedere tutti i log');
+  enableDebug: (password?: string) => {
+    if (typeof window === 'undefined') return;
+
+    // Password segreta per attivare debug mode
+    const SECRET_PASSWORD = 'omnily2025debug';
+
+    if (!password) {
+      console.log('🔒 Debug mode protetto. Usa: enableDebug("password")');
+      return;
     }
+
+    if (password !== SECRET_PASSWORD) {
+      console.error('❌ Password errata!');
+      return;
+    }
+
+    localStorage.setItem('OMNILY_DEBUG', 'true');
+    console.log('🔍 Debug mode ATTIVATO - Ricarica la pagina per vedere tutti i log');
   },
 
   /**

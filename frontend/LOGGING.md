@@ -32,18 +32,20 @@ Solo warning ed errori sono visibili per mantenere la console pulita per i clien
 
 ## 🔍 Attivare Debug Mode in Produzione
 
+⚠️ **PROTETTO DA PASSWORD** - Solo team OmnilyPro può attivare debug mode!
+
 Se devi debuggare un problema in produzione:
 
-### Opzione 1: Da Console Browser
+### Opzione 1: Da Console Browser (PROTETTA)
 ```javascript
 // Apri la console del browser (F12)
-enableDebug()
+enableDebug("omnily2025debug")  // ⚠️ PASSWORD RICHIESTA!
 // Ricarica la pagina
 location.reload()
 // Ora vedi TUTTI i log!
 ```
 
-### Opzione 2: Da localStorage
+### Opzione 2: Da localStorage (bypass - solo per emergenze)
 ```javascript
 localStorage.setItem('OMNILY_DEBUG', 'true')
 location.reload()
@@ -54,6 +56,12 @@ location.reload()
 disableDebug()
 location.reload()
 ```
+
+### 🔐 Sicurezza
+- ✅ Password richiesta per `enableDebug()`
+- ✅ Impedisce ai clienti di vedere log interni
+- ✅ Solo team OmnilyPro conosce la password
+- ⚠️ **NON condividere la password con clienti!**
 
 ## 📦 Migrazione da console.log
 
