@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 // import { useAuth } from '../../contexts/AuthContext' // Temporary disabled
 import { organizationService } from '../../services/organizationService'
 import { getMockUser } from '../../services/mockAuth'
-import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer } from 'lucide-react'
+import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer, Moon, Sun, ArrowRight, ArrowLeft } from 'lucide-react'
+import { SparklesCore } from '@/components/UI/sparkles'
 import styles from './EnterpriseWizard.module.css'
 import './icon-styles.css'
 // import POSTestPanel from '../POS/POSTestPanel'
@@ -11,13 +13,29 @@ const EnterpriseWizard: React.FC = () => {
   // const { user } = useAuth() // TODO: Enable when auth is ready
   const user = getMockUser() // Temporary mock for development
   
+  // Dark mode state - sincronizzato con landing/login page
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('omnily_landing_theme')
+      return saved === 'dark'
+    }
+    return false
+  })
+
   // Carica step salvato da localStorage
   const [currentStep, setCurrentStep] = useState(() => {
     const saved = localStorage.getItem('omnily-wizard-step')
     return saved ? parseInt(saved) : 0
   })
-  
+
   const [loading, setLoading] = useState(false)
+
+  // Persist dark mode
+  useEffect(() => {
+    localStorage.setItem('omnily_landing_theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
+
+  const toggleDarkMode = () => setDarkMode(!darkMode)
   
   // Carica dati salvati da localStorage  
   const [formData, setFormData] = useState(() => {
@@ -1910,103 +1928,283 @@ Reindirizzamento alla dashboard in corso...
   }
 
   return (
-    <div className={styles.wizard}>
-      <div className={styles.container}>
-        {/* Sidebar with Steps */}
-        <div className={styles.wizardSidebar}>
-          <div className={styles.sidebarHeader}>
-            <div className={styles.sidebarLogo}>
-              <div className={styles.sidebarLogoIcon}>O</div>
-              <span className={styles.sidebarLogoText}>OMNILY PRO</span>
-            </div>
-            
-            {/* Indicatore salvataggio automatico */}
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#10b981', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '4px',
-              marginTop: '8px'
-            }}>
-              <CheckCircle2 size={12} />
-              Auto-salvataggio attivo
-            </div>
-          </div>
-          
-          <div className={styles.stepsNav}>
-            {steps.map((step, index) => {
-              const IconComponent = step.icon
-              const isActive = index === currentStep
-              const isCompleted = index < currentStep
-              
-              return (
-                <div 
-                  key={step.title}
-                  className={`${styles.stepItem} ${isActive ? styles.active : ''} ${isCompleted ? styles.completed : ''}`}
-                >
-                  <div className={styles.stepNumber}>
-                    {isCompleted ? <CheckCircle2 size={16} /> : index + 1}
-                  </div>
-                  <div className={styles.stepContent}>
-                    <div className={styles.stepTitle}>{step.title}</div>
-                    <div className={styles.stepDescription}>{step.subtitle}</div>
-                  </div>
-                  <div className={styles.stepIcon}>
-                    <IconComponent size={20} />
-                  </div>
-                </div>
-              )
-            })}
+    <div className={`min-h-screen transition-colors duration-500 ${
+      darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' : 'bg-gradient-to-br from-orange-50 via-white to-pink-50'
+    }`}>
+      {/* Animated Background */}
+      {darkMode ? (
+        <div className="fixed inset-0 pointer-events-none">
+          <SparklesCore
+            background="transparent"
+            minSize={1.2}
+            maxSize={3}
+            particleDensity={120}
+            className="w-full h-full"
+            particleColor="#ef4444"
+          />
+        </div>
+      ) : (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-red-200 to-pink-200 rounded-full mix-blend-normal filter blur-3xl animate-blob" />
+            <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-br from-pink-200 to-red-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-2000" />
+            <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-br from-red-100 to-pink-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-4000" />
           </div>
         </div>
+      )}
 
-        {/* Main Content */}
-        <div className={styles.wizardMain}>
-          <div className={styles.mainHeader}>
-            <div className={styles.mainHeaderTitle}>
-              {steps[currentStep]?.title}
-            </div>
-            <div className={styles.mainHeaderSubtitle}>
-              Passaggio {currentStep + 1} di {steps.length} • {steps[currentStep]?.subtitle}
-            </div>
-          </div>
+      {/* Dark Mode Toggle - Fixed Top Right */}
+      <div className="fixed top-6 right-6 z-50">
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={toggleDarkMode}
+          className={`p-3 rounded-xl transition-all duration-300 shadow-lg ${
+            darkMode
+              ? 'bg-gray-800/80 backdrop-blur-xl text-yellow-400 hover:bg-gray-700/80 border border-white/10'
+              : 'bg-white/80 backdrop-blur-xl text-gray-700 hover:bg-gray-100/80 border border-gray-200 shadow-xl'
+          }`}
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? <Sun size={24} /> : <Moon size={24} />}
+        </motion.button>
+      </div>
 
-          <div className={styles.mainContent}>
-            <div className={styles.contentInner}>
-              <div className={styles.stepContentMain}>
-                {renderStep()}
-              </div>
+      <div className="min-h-screen flex relative">
+        {/* Sidebar with Steps - Glassmorphism */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className={`w-[300px] min-h-screen border-r backdrop-blur-xl sticky top-0 ${
+            darkMode
+              ? 'bg-white/10 border-white/10'
+              : 'bg-white/80 border-gray-200 shadow-2xl'
+          }`}
+          style={{ height: '100vh', overflowY: 'auto' }}
+        >
+          <div className="p-6">
+            {/* Logo Header */}
+            <div className="mb-8">
+              <h1 className={`text-2xl font-black mb-1 ${
+                darkMode
+                  ? 'bg-gradient-to-r from-red-400 via-pink-400 to-red-500 bg-clip-text text-transparent'
+                  : 'bg-gradient-to-r from-red-600 via-pink-600 to-red-700 bg-clip-text text-transparent'
+              }`}>
+                OMNILY PRO
+              </h1>
+              <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Enterprise Wizard
+              </p>
             </div>
-          </div>
 
-          {/* Footer Actions */}
-          <div className={styles.wizardFooter}>
-            <div className={styles.footerActions}>
-              <div className={styles.footerLeft}>
-                {currentStep > 0 && (
-                  <button
-                    onClick={handlePrevious}
-                    className={styles.backButton}
+            {/* Auto-save Indicator */}
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-6 ${
+              darkMode ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
+            }`}>
+              <CheckCircle2 size={14} className="text-green-500" />
+              <span className={`text-xs font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>
+                Auto-salvataggio attivo
+              </span>
+            </div>
+
+            {/* Steps Navigation */}
+            <div className="space-y-2">
+              {steps.map((step, index) => {
+                const IconComponent = step.icon
+                const isActive = index === currentStep
+                const isCompleted = index < currentStep
+
+                return (
+                  <motion.div
+                    key={step.title}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`relative group cursor-pointer rounded-xl p-3 transition-all duration-300 ${
+                      isActive
+                        ? darkMode
+                          ? 'bg-gradient-to-r from-red-600/20 to-pink-600/20 border border-red-500/30 shadow-lg shadow-red-500/10'
+                          : 'bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-lg'
+                        : isCompleted
+                        ? darkMode
+                          ? 'bg-white/5 border border-white/10 hover:bg-white/10'
+                          : 'bg-white/60 border border-gray-200 hover:bg-white/80'
+                        : darkMode
+                        ? 'bg-white/5 border border-white/10 hover:bg-white/10 opacity-60'
+                        : 'bg-white/40 border border-gray-200 hover:bg-white/60 opacity-60'
+                    }`}
                   >
-                    Indietro
-                  </button>
-                )}
+                    {/* Progress line connector */}
+                    {index < steps.length - 1 && (
+                      <div className={`absolute left-[22px] top-full w-0.5 h-2 ${
+                        isCompleted
+                          ? 'bg-gradient-to-b from-green-500 to-green-400'
+                          : darkMode ? 'bg-white/10' : 'bg-gray-200'
+                      }`} />
+                    )}
+
+                    <div className="flex items-center gap-3">
+                      {/* Step Number/Check */}
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                        isCompleted
+                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                          : isActive
+                          ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/30'
+                          : darkMode
+                          ? 'bg-white/10 text-gray-400'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {isCompleted ? <CheckCircle2 size={16} /> : index + 1}
+                      </div>
+
+                      {/* Step Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-bold text-xs mb-0.5 truncate ${
+                          isActive
+                            ? darkMode ? 'text-red-400' : 'text-red-600'
+                            : darkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          {step.title}
+                        </div>
+                        <div className={`text-[10px] truncate ${
+                          darkMode ? 'text-gray-500' : 'text-gray-500'
+                        }`}>
+                          {step.subtitle}
+                        </div>
+                      </div>
+
+                      {/* Icon */}
+                      <div className={`flex-shrink-0 ${
+                        isActive
+                          ? darkMode ? 'text-red-400' : 'text-red-600'
+                          : darkMode ? 'text-gray-600' : 'text-gray-400'
+                      }`}>
+                        <IconComponent size={16} />
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* Header with Progress */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`border-b backdrop-blur-xl sticky top-0 z-40 ${
+              darkMode
+                ? 'bg-white/5 border-white/10'
+                : 'bg-white/80 border-gray-200 shadow-lg'
+            }`}
+          >
+            <div className="px-8 py-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className={`text-2xl font-black mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {steps[currentStep]?.title}
+                  </h2>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {steps[currentStep]?.subtitle}
+                  </p>
+                </div>
+                <div className={`px-4 py-2 rounded-xl font-bold text-sm ${
+                  darkMode
+                    ? 'bg-white/10 text-gray-300 border border-white/20'
+                    : 'bg-gray-100 text-gray-700 border border-gray-200'
+                }`}>
+                  Step {currentStep + 1} / {steps.length}
+                </div>
               </div>
-              
-              <div className={styles.footerRight}>
+
+              {/* Progress Bar */}
+              <div className={`w-full h-2 rounded-full overflow-hidden ${
+                darkMode ? 'bg-white/10' : 'bg-gray-200'
+              }`}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                  transition={{ duration: 0.5 }}
+                  className="h-full bg-gradient-to-r from-red-600 to-pink-600 rounded-full shadow-lg shadow-red-500/50"
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Content Area with AnimatePresence */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={`p-8 rounded-2xl border backdrop-blur-xl ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10'
+                      : 'bg-white/80 border-gray-200 shadow-xl'
+                  }`}
+                >
+                  {renderStep()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Footer Navigation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`border-t backdrop-blur-xl sticky bottom-0 ${
+              darkMode
+                ? 'bg-white/5 border-white/10'
+                : 'bg-white/80 border-gray-200 shadow-2xl'
+            }`}
+          >
+            <div className="px-8 py-6">
+              <div className="flex items-center justify-between gap-4">
+                {/* Back Button */}
+                {currentStep > 0 && (
+                  <motion.button
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    onClick={handlePrevious}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 transition-all duration-300 hover:scale-105 ${
+                      darkMode
+                        ? 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400 shadow-lg hover:shadow-xl'
+                    }`}
+                  >
+                    <ArrowLeft size={20} />
+                    Indietro
+                  </motion.button>
+                )}
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Next Button */}
                 {currentStep < steps.length - 1 && (
-                  <button
+                  <motion.button
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
                     onClick={handleNext}
                     disabled={isStepDisabled(currentStep)}
-                    className={styles.nextButton}
+                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {getNextButtonText()}
-                  </button>
+                    <ArrowRight size={20} />
+                  </motion.button>
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
