@@ -149,7 +149,7 @@ const Landing: React.FC = () => {
               </button>
 
               <Link
-                to="/login"
+                to="/request-demo"
                 className={`hidden md:block font-semibold transition-colors ${
                   darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-red-600'
                 }`}
@@ -158,10 +158,10 @@ const Landing: React.FC = () => {
               </Link>
 
               <Link
-                to="/login"
+                to="/request-demo"
                 className="hidden md:flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-lg shadow-red-500/50 hover:shadow-xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
               >
-                Inizia Gratis
+                Richiedi Demo
                 <ArrowRight size={16} />
               </Link>
 
@@ -197,15 +197,15 @@ const Landing: React.FC = () => {
                 <a href="#faq" onClick={() => setMobileMenuOpen(false)} className={`py-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   FAQ
                 </a>
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className={`py-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <Link to="/request-demo" onClick={() => setMobileMenuOpen(false)} className={`py-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   Accedi
                 </Link>
                 <Link
-                  to="/login"
+                  to="/request-demo"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-lg shadow-red-500/50"
                 >
-                  Inizia Gratis
+                  Richiedi Demo
                   <ArrowRight size={16} />
                 </Link>
               </div>
@@ -291,15 +291,15 @@ const Landing: React.FC = () => {
             className="flex flex-wrap gap-4 justify-center mb-12"
           >
             <Link
-              to="/login"
+              to="/request-demo"
               className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
             >
               <Rocket size={24} className="group-hover:rotate-12 transition-transform" />
-              Inizia Gratis 30 Giorni
+              Richiedi Demo 30 Giorni
               <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              to="/login"
+              to="/request-demo"
               className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg border-2 hover:scale-105 transition-all duration-300 shadow-lg ${
                 darkMode
                   ? 'bg-white/5 backdrop-blur-xl text-white border-white/10 hover:bg-white/10'
@@ -469,7 +469,7 @@ const Landing: React.FC = () => {
 
               {/* CTA */}
               <Link
-                to="/login"
+                to="/request-demo"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
               >
                 <Play size={20} />
@@ -650,7 +650,7 @@ const Landing: React.FC = () => {
           {/* CTA */}
           <div className="text-center mt-12">
             <Link
-              to="/login"
+              to="/request-demo"
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
             >
               <Rocket size={20} />
@@ -891,7 +891,7 @@ const Landing: React.FC = () => {
           {/* CTA */}
           <div className="text-center mt-12">
             <Link
-              to="/login"
+              to="/request-demo"
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
             >
               <Award size={20} />
@@ -1249,11 +1249,11 @@ const Landing: React.FC = () => {
                 </div>
 
                 <Link
-                  to="/login"
+                  to="/request-demo"
                   className="mt-6 w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
                 >
                   <Rocket size={20} />
-                  Inizia Gratis Oggi
+                  Richiedi Demo Oggi
                   <ArrowRight size={20} />
                 </Link>
               </div>
@@ -1324,7 +1324,7 @@ const Landing: React.FC = () => {
                   ))}
                 </ul>
                 <Link
-                  to="/login"
+                  to="/request-demo"
                   className={`block text-center px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
                     plan.popular
                       ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/50 hover:shadow-xl hover:scale-105'
@@ -1333,7 +1333,7 @@ const Landing: React.FC = () => {
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
-                  Inizia Gratis
+                  Richiedi Demo
                 </Link>
                 <p className={`text-xs text-center mt-4 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                   + €299 setup one-time
@@ -1658,11 +1658,11 @@ const Landing: React.FC = () => {
                 Unisciti a 200+ aziende che hanno scelto OMNILY PRO
               </p>
               <Link
-                to="/login"
+                to="/request-demo"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300"
               >
                 <Rocket size={24} />
-                Inizia Gratis 30 Giorni
+                Richiedi Demo 30 Giorni
                 <ArrowRight size={24} />
               </Link>
               <p className={`mt-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>

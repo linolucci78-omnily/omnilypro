@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { SparklesCore } from '@/components/UI/sparkles'
 import { demoRequestsApi } from '@/services/demoRequestService'
+import { sendDemoRequestNotification, sendDemoConfirmationEmail } from '@/services/emailNotificationService'
 
 interface DemoRequestData {
   // Step 1: Azienda
@@ -162,6 +163,29 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       })
 
       console.log('✅ Demo request submitted successfully!')
+
+      // Send email notifications (non-blocking)
+      Promise.all([
+        sendDemoRequestNotification({
+          companyName: formData.companyName,
+          contactName: formData.contactName,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone,
+          industry: formData.industry,
+          timeline: formData.timeline,
+          budgetRange: formData.budgetRange
+        }),
+        sendDemoConfirmationEmail({
+          companyName: formData.companyName,
+          contactName: formData.contactName,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone,
+          industry: formData.industry
+        })
+      ]).catch(err => {
+        console.error('Email notifications failed (non-critical):', err)
+      })
+
       setIsSubmitted(true)
     } catch (error) {
       console.error('❌ Error submitting demo request:', error)
@@ -702,7 +726,7 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   if (isSubmitted) {
     return (
-      <div className={`min-h-screen relative ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen h-screen relative overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         {/* Background */}
         {darkMode ? (
           <div className="absolute inset-0 w-full h-full">
@@ -751,7 +775,7 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   }
 
   return (
-    <div className={`min-h-screen relative ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen h-screen relative overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Background */}
       {darkMode ? (
         <div className="absolute inset-0 w-full h-full">
