@@ -1474,7 +1474,7 @@ export const staffApi = {
   },
 
   // Log an activity action
-  async logActivity(
+  async logActivityAction(
     organizationId: string,
     staffId: string,
     action: string,
