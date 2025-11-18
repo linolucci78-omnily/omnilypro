@@ -14,6 +14,7 @@ import Landing from './pages/Landing'
 import LandingTest from './pages/LandingTest'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
+import DemoRequestWizard from './components/DemoRequestWizard'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import Admin from './pages/Admin'
@@ -221,6 +222,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/landing-test" element={<LandingTest />} />
+              <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
               {/* ...tutte le altre route originali... */}
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />

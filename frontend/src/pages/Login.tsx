@@ -64,7 +64,6 @@ const Login: React.FC = () => {
     }
 
     // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect
-    // Per admin, aspetta anche che userRole sia stato caricato
     if (user && !authLoading) {
       console.log('🔐 Login useEffect triggered:', {
         user: !!user,
@@ -73,12 +72,6 @@ const Login: React.FC = () => {
         userRole,
         isPosMode
       });
-
-      // CRITICAL: Aspetta sempre che userRole sia caricato, tranne in modalità POS
-      if (!userRole && !isPosMode) {
-        console.log('🔐 ⏳ Waiting for userRole to be loaded before redirect...');
-        return;
-      }
 
       let redirectPath = '/dashboard'; // Default per utenti normali
 
@@ -93,17 +86,22 @@ const Login: React.FC = () => {
         redirectPath = permissions.defaultRoute;
         console.log('🔐 ✅ Admin login redirect:', { userRole, redirectPath, permissions });
       }
+      // Se userRole è null = utente senza organizzazione → vai all'onboarding
+      else if (userRole === null) {
+        redirectPath = '/onboarding';
+        console.log('🔐 👤 New user without organization, redirecting to onboarding');
+      }
 
       console.log('🔐 🚀 Final login redirect:', { userRole, isSuperAdmin, redirectPath, authLoading, currentPath: location.pathname });
 
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectPath;
-      
+
       // PREVENZIONE LOOP: Non fare redirect se sei già sulla pagina giusta!
       if (location.pathname === from) {
         console.log('🔐 ⚠️ Already on target page, skipping redirect to prevent loop');
         return;
       }
-      
+
       navigate(from, { replace: true });
     }
   }, [user, navigate, location.pathname, location.state, isPosMode, isSuperAdmin, userRole]); // RIMOSSO authLoading!

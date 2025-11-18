@@ -93,9 +93,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (orgError) {
         console.error('🔐 [V5] Error checking organization_users table:', orgError);
-        // Permetti l'accesso con ruolo di default invece di bloccare
-        console.warn('✅ [V5] Setting default org_admin role to allow access despite error');
-        setUserRole('org_admin');
+        // Se c'è un errore/timeout, tratta l'utente come nuovo utente senza organizzazione
+        console.warn('✅ [V5] Setting userRole to null (no organization) due to query error/timeout');
+        setUserRole(null);
         setIsSuperAdmin(false);
         return;
       }
