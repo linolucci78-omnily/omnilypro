@@ -16,7 +16,7 @@ export interface DemoRequestNotification {
 export const sendDemoRequestNotification = async (data: DemoRequestNotification): Promise<void> => {
   try {
     // Call Supabase Edge Function to send email via Resend
-    const { data: result, error } = await supabase.functions.invoke('send-demo-notification', {
+    const { data: result, error } = await supabase.functions.invoke('send-email', {
       body: {
         to: 'sales@omnilypro.com', // Your sales team email
         subject: `🚀 Nuova Richiesta Demo da ${data.companyName}`,
@@ -185,7 +185,7 @@ export const sendDemoRequestNotification = async (data: DemoRequestNotification)
  */
 export const sendDemoConfirmationEmail = async (data: DemoRequestNotification): Promise<void> => {
   try {
-    const { data: result, error } = await supabase.functions.invoke('send-demo-confirmation', {
+    const { data: result, error } = await supabase.functions.invoke('send-email', {
       body: {
         to: data.contactEmail,
         subject: `✅ Richiesta Demo Ricevuta - ${data.companyName}`,
