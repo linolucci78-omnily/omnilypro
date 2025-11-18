@@ -11,6 +11,7 @@ import Navbar from './components/Layout/Navbar'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
 import AdminLayout from './components/Admin/AdminLayout'
 import Landing from './pages/Landing'
+import LandingTest from './pages/LandingTest'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
@@ -218,7 +219,8 @@ function App() {
           <ToastProvider>
             <div className="App">
             <Routes>
-              <Route path="/" element={<><Navbar /><Landing /></>} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/landing-test" element={<LandingTest />} />
               {/* ...tutte le altre route originali... */}
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />

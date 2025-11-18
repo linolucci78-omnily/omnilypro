@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Shield, TrendingUp, Users, Moon, Sun, CreditCard, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { getAdminPermissions, type AdminRole } from '../utils/adminPermissions';
 import { operatorNFCService, type OperatorAuthResult } from '../services/operatorNFCService';
+import { SparklesCore } from '@/components/ui/sparkles';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
 const Login: React.FC = () => {
@@ -13,6 +16,15 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
+
+  // Dark mode state - sincronizzato con landing page
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('omnily_landing_theme')
+      return saved === 'dark'
+    }
+    return false
+  });
 
   // POS NFC Login states
   const [loginMethod, setLoginMethod] = useState<'nfc' | 'password'>('nfc');
@@ -24,6 +36,13 @@ const Login: React.FC = () => {
   const { showToast, showSuccess, showError, showWarning, showInfo } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Save theme preference
+  useEffect(() => {
+    localStorage.setItem('omnily_landing_theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
+
+  const toggleDarkMode = () => setDarkMode(!darkMode)
 
   useEffect(() => {
     // CORREZIONE: Rileva modalità POS dai parametri URL come in App.tsx
@@ -319,247 +338,595 @@ const Login: React.FC = () => {
   };
 
   // ====================================
-  // Layout specifico per il POS
+  // Layout specifico per il POS - NUOVO DESIGN MODERNO
   // ====================================
   if (isPosMode) {
     return (
-      <div className={styles.posWrapper}>
-        <div className={styles.posCard}>
-          {/* Logo */}
-          <div className={styles.logoContainer}>
-            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" />
+      <div className={`min-h-screen transition-colors duration-500 ${
+        darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' : 'bg-gradient-to-br from-orange-50 via-white to-pink-50'
+      }`}>
+        {/* Animated Background */}
+        {darkMode ? (
+          <div className="fixed inset-0 pointer-events-none">
+            <SparklesCore
+              background="transparent"
+              minSize={1.2}
+              maxSize={3}
+              particleDensity={120}
+              className="w-full h-full"
+              particleColor="#ef4444"
+            />
           </div>
-          <h2 className={styles.title}>Accesso POS</h2>
-
-          {/* Toggle Method */}
-          <div className={styles.loginMethodToggle}>
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${loginMethod === 'nfc' ? styles.active : ''}`}
-              onClick={() => {
-                setLoginMethod('nfc');
-                if (isReadingNFC) handleStopNFCReading();
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                <line x1="12" y1="18" x2="12.01" y2="18"/>
-              </svg>
-              Tessera NFC
-            </button>
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${loginMethod === 'password' ? styles.active : ''}`}
-              onClick={() => {
-                setLoginMethod('password');
-                if (isReadingNFC) handleStopNFCReading();
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              Password
-            </button>
-          </div>
-
-          {/* NFC Mode */}
-          {loginMethod === 'nfc' && (
-            <div className={styles.nfcMode}>
-              {!isReadingNFC && !recognizedOperator && (
-                <button
-                  type="button"
-                  className={styles.nfcStartButton}
-                  onClick={handleStartNFCReading}
-                >
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                    <line x1="12" y1="18" x2="12.01" y2="18"/>
-                  </svg>
-                  <span>Avvicina la Tessera</span>
-                </button>
-              )}
-
-              {isReadingNFC && !recognizedOperator && (
-                <div className={styles.nfcReading}>
-                  <div className={styles.nfcPulse}>
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                      <line x1="12" y1="18" x2="12.01" y2="18"/>
-                    </svg>
-                  </div>
-                  <p>In attesa della tessera...</p>
-                  <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={handleStopNFCReading}
-                  >
-                    Annulla
-                  </button>
-                </div>
-              )}
-
-              {recognizedOperator && (
-                <div className={styles.operatorRecognized}>
-                  <div className={styles.checkIcon}>
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  </div>
-                  <h3>Operatore Riconosciuto</h3>
-                  <p className={styles.operatorName}>{recognizedOperator.operator_name}</p>
-                  <p className={styles.accessingText}>Accesso in corso...</p>
-                </div>
-              )}
+        ) : (
+          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-red-200 to-pink-200 rounded-full mix-blend-normal filter blur-3xl animate-blob" />
+              <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-br from-pink-200 to-red-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-2000" />
+              <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-br from-red-100 to-pink-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-4000" />
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Password Mode */}
-          {loginMethod === 'password' && (
-            <form onSubmit={handleAuth} className={styles.form}>
-              <input
-                type="email"
-                placeholder="Email operatore"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+        {/* Dark Mode Toggle - Fixed Top Right */}
+        <div className="fixed top-6 right-6 z-50">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={toggleDarkMode}
+            className={`p-3 rounded-xl transition-all duration-300 shadow-lg ${
+              darkMode
+                ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? <Sun size={24} /> : <Moon size={24} />}
+          </motion.button>
+        </div>
+
+        <div className="min-h-screen flex items-center justify-center p-6 relative">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className={`w-full max-w-md p-8 md:p-12 rounded-3xl border backdrop-blur-xl ${
+              darkMode
+                ? 'bg-white/5 border-white/10'
+                : 'bg-white/80 border-gray-200 shadow-2xl'
+            }`}
+          >
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <img
+                src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+                alt="OMNILY PRO"
+                className="h-16 md:h-20 w-auto mx-auto mb-4"
               />
-              <div className={styles.passwordInputContainer}>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  className={styles.passwordToggle}
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="12" cy="12" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <button type="submit" disabled={loading}>
-                {loading ? 'Accesso...' : 'Entra'}
+              <h2 className={`text-2xl md:text-3xl font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Accesso POS
+              </h2>
+            </div>
+
+            {/* Toggle Method */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMethod('nfc');
+                  if (isReadingNFC) handleStopNFCReading();
+                }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl font-bold transition-all duration-300 ${
+                  loginMethod === 'nfc'
+                    ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/50 scale-105'
+                    : darkMode
+                    ? 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <CreditCard size={24} />
+                <span className="text-sm">Tessera NFC</span>
               </button>
-            </form>
-          )}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMethod('password');
+                  if (isReadingNFC) handleStopNFCReading();
+                }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl font-bold transition-all duration-300 ${
+                  loginMethod === 'password'
+                    ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/50 scale-105'
+                    : darkMode
+                    ? 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <Lock size={24} />
+                <span className="text-sm">Password</span>
+              </button>
+            </div>
+
+            {/* NFC Mode */}
+            {loginMethod === 'nfc' && (
+              <div className="space-y-6">
+                {!isReadingNFC && !recognizedOperator && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    type="button"
+                    onClick={handleStartNFCReading}
+                    className={`w-full flex flex-col items-center gap-4 p-12 rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                      darkMode
+                        ? 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-red-500/50'
+                        : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-red-500'
+                    }`}
+                  >
+                    <CreditCard size={64} className={darkMode ? 'text-red-400' : 'text-red-600'} />
+                    <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Avvicina la Tessera
+                    </span>
+                  </motion.button>
+                )}
+
+                {isReadingNFC && !recognizedOperator && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center space-y-6"
+                  >
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="inline-block"
+                    >
+                      <CreditCard size={80} className="text-red-500" />
+                    </motion.div>
+                    <p className={`text-lg font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      In attesa della tessera...
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleStopNFCReading}
+                      className={`px-6 py-3 rounded-xl font-bold transition-all ${
+                        darkMode
+                          ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                          : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+                      }`}
+                    >
+                      Annulla
+                    </button>
+                  </motion.div>
+                )}
+
+                {recognizedOperator && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center space-y-4"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200 }}
+                      className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500"
+                    >
+                      <CheckCircle size={48} className="text-white" />
+                    </motion.div>
+                    <h3 className={`text-2xl font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Operatore Riconosciuto
+                    </h3>
+                    <p className="text-xl font-bold text-green-500">
+                      {recognizedOperator.operator_name}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Accesso in corso...
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {/* Password Mode */}
+            {loginMethod === 'password' && (
+              <motion.form
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                onSubmit={handleAuth}
+                className="space-y-6"
+              >
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Email Operatore
+                  </label>
+                  <div className="relative">
+                    <Mail size={20} className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email operatore"
+                      required
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-all ${
+                        darkMode
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-red-500 focus:bg-white/10'
+                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      } outline-none`}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={20} className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                      required
+                      className={`w-full pl-12 pr-12 py-3 rounded-xl border transition-all ${
+                        darkMode
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-red-500 focus:bg-white/10'
+                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      } outline-none`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all duration-200 ${
+                        darkMode
+                          ? 'text-gray-500 hover:text-red-400 hover:bg-white/10'
+                          : 'text-gray-500 hover:text-red-600'
+                      }`}
+                      style={{ background: 'transparent' }}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Accesso...' : 'Entra'}
+                  <ArrowRight size={20} />
+                </button>
+              </motion.form>
+            )}
+          </motion.div>
         </div>
       </div>
     );
   }
 
-  // Layout standard per il Desktop
+  // Layout standard per il Desktop - NUOVO DESIGN MODERNO
   return (
-    <div className="login-page">
-      <div className="login-wrapper">
-        <div className="login-container">
-        <div className="login-header">
-          <Link to="/" className="login-logo">
-            <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OMNILY PRO" style={{ height: '50px', marginBottom: '0.5rem' }} />
-          </Link>
-          <h1>{getTitle()}</h1>
-          <p>Benvenuto nella piattaforma SaaS multi-tenant</p>
+    <div className={`min-h-screen transition-colors duration-500 ${
+      darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' : 'bg-gradient-to-br from-orange-50 via-white to-pink-50'
+    }`}>
+      {/* Animated Background */}
+      {darkMode ? (
+        <div className="fixed inset-0 pointer-events-none">
+          <SparklesCore
+            background="transparent"
+            minSize={1.2}
+            maxSize={3}
+            particleDensity={120}
+            className="w-full h-full"
+            particleColor="#ef4444"
+          />
         </div>
+      ) : (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-red-200 to-pink-200 rounded-full mix-blend-normal filter blur-3xl animate-blob" />
+            <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-br from-pink-200 to-red-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-2000" />
+            <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-br from-red-100 to-pink-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-4000" />
+          </div>
+        </div>
+      )}
 
-        {authMode === 'reset' ? (
-          <form onSubmit={handlePasswordReset} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email" className="sr-only">Email</label>
-              <div className="input-with-icon">
-                <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" required />
-              </div>
-            </div>
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>{loading ? 'Invio...' : 'Invia link per il reset'}</button>
-          </form>
-        ) : (
-          <form onSubmit={handleAuth} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email" className="sr-only">Email</label>
-              <div className="input-with-icon">
-                <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" required />
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="password" className="sr-only">Password</label>
-              <div className="input-with-icon password-input-container">
-                <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="La tua password" required minLength={6} />
-                <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} disabled={loading}>
-                  {showPassword ? <svg width="20" height="20" viewBox="0 0 24 24"><path d="M3 3L21 21M9.9 4.24C10.5 4.07 11.2 4 12 4C16.5 4 20.4 7.22 21.54 12C21.13 13.37 20.44 14.5 19.56 15.5M14.12 14.12C13.8 14.63 13.25 15 12.6 15C11.45 15 10.5 14.05 10.5 12.9C10.5 12.25 10.87 11.7 11.38 11.38M9.9 19.76C10.5 19.93 11.2 20 12 20C7.5 20 3.6 16.78 2.46 12C3.15 10.22 4.31 8.69 5.81 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <svg width="20" height="20" viewBox="0 0 24 24"><path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+      {/* Dark Mode Toggle - Fixed Top Right */}
+      <div className="fixed top-6 right-6 z-50">
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={toggleDarkMode}
+          className={`p-3 rounded-xl transition-all duration-300 shadow-lg ${
+            darkMode
+              ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+          }`}
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? <Sun size={24} /> : <Moon size={24} />}
+        </motion.button>
+      </div>
+
+      <div className="min-h-screen flex items-center justify-center p-6 relative">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+
+          {/* Left Side - Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className={`p-8 md:p-12 rounded-3xl border backdrop-blur-xl ${
+              darkMode
+                ? 'bg-white/5 border-white/10'
+                : 'bg-white/80 border-gray-200 shadow-2xl'
+            }`}
+          >
+            {/* Logo */}
+            <Link to="/" className="inline-block mb-8">
+              <img
+                src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+                alt="OMNILY PRO"
+                className="h-12 md:h-16 w-auto"
+              />
+            </Link>
+
+            {/* Title */}
+            <h1 className={`text-3xl md:text-4xl font-black mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {getTitle()}
+            </h1>
+            <p className={`text-lg mb-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Benvenuto nella piattaforma #1 in Italia
+            </p>
+
+            {/* Forms */}
+            {authMode === 'reset' ? (
+              <form onSubmit={handlePasswordReset} className="space-y-6">
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Email
+                  </label>
+                  <div className="relative">
+                    <Mail size={20} className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="La tua email"
+                      required
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-all ${
+                        darkMode
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-red-500 focus:bg-white/10'
+                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      } outline-none`}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Invio...' : 'Invia Link Reset'}
+                  <ArrowRight size={20} />
                 </button>
+              </form>
+            ) : (
+              <form onSubmit={handleAuth} className="space-y-6">
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Email
+                  </label>
+                  <div className="relative">
+                    <Mail size={20} className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="La tua email"
+                      required
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-all ${
+                        darkMode
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-red-500 focus:bg-white/10'
+                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      } outline-none`}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={20} className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="La tua password"
+                      required
+                      minLength={6}
+                      className={`w-full pl-12 pr-12 py-3 rounded-xl border transition-all ${
+                        darkMode
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-red-500 focus:bg-white/10'
+                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      } outline-none`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all duration-200 ${
+                        darkMode
+                          ? 'text-gray-500 hover:text-red-400 hover:bg-white/10'
+                          : 'text-gray-500 hover:text-red-600'
+                      }`}
+                      style={{ background: 'transparent' }}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                {authMode === 'login' && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode('reset')}
+                      className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                        darkMode
+                          ? 'text-red-400 hover:text-red-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/30'
+                          : 'text-red-600 hover:text-red-700 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300'
+                      }`}
+                    >
+                      <Lock size={14} className="group-hover:rotate-12 transition-transform" />
+                      Password dimenticata?
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Elaborazione...' : (authMode === 'signup' ? 'Registrati' : 'Accedi')}
+                  <ArrowRight size={20} />
+                </button>
+
+                <div className="relative my-6">
+                  <div className={`absolute inset-0 flex items-center ${darkMode ? 'opacity-20' : ''}`}>
+                    <div className={`w-full border-t ${darkMode ? 'border-white/10' : 'border-gray-200'}`}></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className={`px-4 ${darkMode ? 'bg-gray-900/50 text-gray-400' : 'bg-white text-gray-500'}`}>
+                      oppure
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold border-2 transition-all duration-300 ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                      : 'bg-white border-gray-200 text-gray-900 hover:border-gray-300 shadow-lg hover:shadow-xl'
+                  }`}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continua con Google
+                </button>
+              </form>
+            )}
+
+            {/* Auth Switch */}
+            <div className="mt-6 text-center">
+              {authMode === 'login' && (
+                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Non hai un account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('signup')}
+                    className={`group inline-flex items-center gap-1 font-bold px-3 py-1.5 rounded-xl transition-all ${
+                      darkMode
+                        ? 'text-red-400 hover:text-red-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/30'
+                        : 'text-red-600 hover:text-red-700 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300'
+                    }`}
+                  >
+                    Registrati qui
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              )}
+              {authMode === 'signup' && (
+                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Hai già un account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('login')}
+                    className={`group inline-flex items-center gap-1 font-bold px-3 py-1.5 rounded-xl transition-all ${
+                      darkMode
+                        ? 'text-red-400 hover:text-red-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/30'
+                        : 'text-red-600 hover:text-red-700 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300'
+                    }`}
+                  >
+                    Accedi qui
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              )}
+              {authMode === 'reset' && (
+                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Tornare al{' '}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('login')}
+                    className={`group inline-flex items-center gap-1 font-bold px-3 py-1.5 rounded-xl transition-all ${
+                      darkMode
+                        ? 'text-red-400 hover:text-red-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/30'
+                        : 'text-red-600 hover:text-red-700 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300'
+                    }`}
+                  >
+                    Login
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Right Side - Illustration */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="hidden lg:block"
+          >
+            <div className={`p-12 rounded-3xl ${darkMode ? 'bg-gradient-to-br from-red-600/20 to-pink-600/20 border border-red-500/30' : 'bg-gradient-to-br from-red-500 to-pink-500'}`}>
+              {/* Badge */}
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 ${
+                darkMode ? 'bg-white/10 border border-white/20' : 'bg-white/20 backdrop-blur-lg'
+              }`}>
+                <Sparkles size={16} className="text-white" />
+                <span className="text-white font-bold text-sm">#1 Loyalty Platform Italia</span>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-4xl font-black text-white mb-4">
+                Trasforma la Customer Loyalty della tua Azienda
+              </h2>
+              <p className="text-white/90 text-lg mb-8">
+                La piattaforma SaaS leader per creare, gestire e ottimizzare programmi di fidelizzazione enterprise con ROI garantito.
+              </p>
+
+              {/* Features */}
+              <div className="space-y-4">
+                {[
+                  { icon: TrendingUp, text: '+40% Ritorno Clienti' },
+                  { icon: Users, text: '+65% Customer Engagement' },
+                  { icon: Shield, text: '-30% Costi Acquisizione' }
+                ].map((feature, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + i * 0.1 }}
+                    className="flex items-center gap-4 p-4 rounded-xl bg-white/10 backdrop-blur-lg"
+                  >
+                    <div className="p-3 rounded-lg bg-white/20">
+                      <feature.icon size={24} className="text-white" />
+                    </div>
+                    <span className="text-white font-semibold text-lg">{feature.text}</span>
+                  </motion.div>
+                ))}
               </div>
             </div>
-            {authMode === 'login' && <div className="auth-extra-links"><button type="button" onClick={() => setAuthMode('reset')} className="link-button">Password dimenticata?</button></div>}
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>{loading ? 'Elaborazione...' : (authMode === 'signup' ? 'Registrati' : 'Accedi')}</button>
-            <div className="auth-divider"><span>oppure</span></div>
-            <button type="button" onClick={handleGoogleLogin} className="btn btn-google btn-full">Continua con Google</button>
-          </form>
-        )}
-        <div className="auth-switch">
-          {authMode === 'login' && <p>Non hai un account? <button type="button" onClick={() => setAuthMode('signup')} className="link-button">Registrati qui</button></p>}
-          {authMode === 'signup' && <p>Hai già un account? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Accedi qui</button></p>}
-          {authMode === 'reset' && <p>Tornare al? <button type="button" onClick={() => setAuthMode('login')} className="link-button">Login</button></p>}
-        </div>
-        </div>
-
-        {/* Right Side - Illustration Panel */}
-        <div className="login-illustration">
-        <div className="illustration-content">
-          <div className="illustration-badge">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            #1 Loyalty Platform Italia
-          </div>
-          <h2>Trasforma la Customer Loyalty della tua Azienda</h2>
-          <p>La piattaforma SaaS leader per creare, gestire e ottimizzare programmi di fidelizzazione enterprise con ROI garantito del +40%.</p>
-          <div className="illustration-features">
-            <div className="feature-item">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>+40% Ritorno Clienti</span>
-            </div>
-            <div className="feature-item">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>+65% Engagement</span>
-            </div>
-            <div className="feature-item">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>-30% Costi Acquisizione</span>
-            </div>
-          </div>
-        </div>
+          </motion.div>
         </div>
       </div>
     </div>
