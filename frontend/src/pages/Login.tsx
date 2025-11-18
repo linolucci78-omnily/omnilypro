@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { getAdminPermissions, type AdminRole } from '../utils/adminPermissions';
 import { operatorNFCService, type OperatorAuthResult } from '../services/operatorNFCService';
-import { SparklesCore } from '@/components/ui/sparkles';
+import { SparklesCore } from '@/components/UI/sparkles';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
 const Login: React.FC = () => {

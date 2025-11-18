@@ -8,7 +8,7 @@ import {
   TrendingDown, Percent, DollarSign, ShoppingCart, Mail, Phone, Menu, X, Moon, Sun,
   Video, Gauge, Calculator, Code, Database, Wallet
 } from 'lucide-react'
-import { SparklesCore } from '@/components/ui/sparkles'
+import { SparklesCore } from '@/components/UI/sparkles'
 
 const Landing: React.FC = () => {
   // Dark mode state - default light, saved in localStorage
