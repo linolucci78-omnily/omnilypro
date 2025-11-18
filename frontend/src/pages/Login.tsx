@@ -47,20 +47,24 @@ const Login: React.FC = () => {
   useEffect(() => {
     // CORREZIONE: Rileva modalità POS dai parametri URL come in App.tsx
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('pos') || urlParams.has('posomnily')) {
+    const hasPosParam = urlParams.has('pos') || urlParams.has('posomnily');
+    const hasUserAgentPOS = navigator.userAgent.includes('OMNILY-POS-APP');
+
+    if (hasPosParam || hasUserAgentPOS) {
       setIsPosMode(true);
       // Salva in localStorage per persistenza
       localStorage.setItem('pos-mode', 'true');
+      console.log('📱 POS Mode attivato:', { hasPosParam, hasUserAgentPOS });
     }
-    // Controlla localStorage (per quando l'app si risveglia da standby)
-    else if (localStorage.getItem('pos-mode') === 'true') {
-      setIsPosMode(true);
-      console.log('📱 POS Mode ripristinato da localStorage');
-    }
-    // Fallback: controlla anche User-Agent per compatibilità
-    else if (navigator.userAgent.includes('OMNILY-POS-APP')) {
-      setIsPosMode(true);
-      localStorage.setItem('pos-mode', 'true');
+    // IMPORTANTE: Se accedi da desktop (senza parametri POS e senza User-Agent POS)
+    // PULISCI il localStorage per evitare che resti in modalità POS
+    else {
+      const wasInPosMode = localStorage.getItem('pos-mode') === 'true';
+      if (wasInPosMode) {
+        console.log('🖥️ Desktop mode: pulizia localStorage POS');
+        localStorage.removeItem('pos-mode');
+      }
+      setIsPosMode(false);
     }
 
     // IMPORTANTE: Aspetta che l'auth sia completamente caricato prima del redirect
@@ -826,19 +830,18 @@ const Login: React.FC = () => {
             <div className="mt-6 text-center">
               {authMode === 'login' && (
                 <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Non hai un account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setAuthMode('signup')}
+                  Sei un nuovo cliente?{' '}
+                  <Link
+                    to="/request-demo"
                     className={`group inline-flex items-center gap-1 font-bold px-3 py-1.5 rounded-xl transition-all ${
                       darkMode
                         ? 'text-red-400 hover:text-red-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/30'
                         : 'text-red-600 hover:text-red-700 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300'
                     }`}
                   >
-                    Registrati qui
+                    Richiedi una Demo
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  </Link>
                 </div>
               )}
               {authMode === 'signup' && (

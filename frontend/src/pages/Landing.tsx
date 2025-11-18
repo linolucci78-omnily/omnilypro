@@ -149,7 +149,7 @@ const Landing: React.FC = () => {
               </button>
 
               <Link
-                to="/request-demo"
+                to="/login"
                 className={`hidden md:block font-semibold transition-colors ${
                   darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-red-600'
                 }`}
@@ -197,7 +197,7 @@ const Landing: React.FC = () => {
                 <a href="#faq" onClick={() => setMobileMenuOpen(false)} className={`py-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   FAQ
                 </a>
-                <Link to="/request-demo" onClick={() => setMobileMenuOpen(false)} className={`py-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className={`py-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   Accedi
                 </Link>
                 <Link

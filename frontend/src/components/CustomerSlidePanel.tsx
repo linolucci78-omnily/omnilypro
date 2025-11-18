@@ -470,7 +470,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     try {
       console.log('🔊 Riproduzione suono slot machine da file audio...');
       const audio = new Audio('/sounds/slot-machine-coin-payout-1-188227.mp3');
-      audio.volume = 0.7; // Volume al 70%
+      audio.volume = 1.0; // Volume al 100% - regolabile dal dispositivo
       audio.play()
         .then(() => console.log('✅ Suono slot machine riprodotto da file!'))
         .catch(err => console.error('❌ Errore riproduzione audio:', err));
@@ -511,9 +511,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
-  // Funzione per creare monete che cadono sullo schermo GRANDE (8")
+  // Funzione per creare monete che cadono sullo schermo GRANDE (8") - SPETTACOLARE! 🎉💰
   const createCoinsRainOnMainScreen = () => {
-    console.log('[CoinsRain MainScreen] Iniziando pioggia monete sullo schermo grande...');
+    console.log('[CoinsRain MainScreen] 🎊 Iniziando SUPER pioggia monete spettacolare!');
 
     let coinsContainer = document.getElementById('main-coins-container');
     if (!coinsContainer) {
@@ -525,69 +525,188 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       coinsContainer.style.width = '100vw';
       coinsContainer.style.height = '100vh';
       coinsContainer.style.pointerEvents = 'none';
-      coinsContainer.style.zIndex = '9998'; // Sotto i modali ma sopra il contenuto
+      coinsContainer.style.zIndex = '9998';
       document.body.appendChild(coinsContainer);
     } else {
       coinsContainer.innerHTML = '';
     }
 
-    // Crea 20 monete per lo schermo grande
-    for (let i = 0; i < 20; i++) {
+    // ✨ ESPLOSIONE INIZIALE dal centro! 12 monete grandi
+    for (let i = 0; i < 12; i++) {
+      const coin = document.createElement('div');
+      coin.style.position = 'fixed';
+      coin.style.left = '50%';
+      coin.style.top = '50%';
+      coin.style.width = '60px';
+      coin.style.height = '60px';
+      coin.style.backgroundImage = 'url(https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/moneyomily.png)';
+      coin.style.backgroundSize = 'contain';
+      coin.style.backgroundRepeat = 'no-repeat';
+      coin.style.backgroundPosition = 'center';
+      coin.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3)';
+      coin.style.pointerEvents = 'none';
+      coin.style.zIndex = '9999';
+
+      const angle = (Math.PI * 2 * i) / 12;
+      const velocityX = Math.cos(angle) * 200;
+      const velocityY = Math.sin(angle) * 200 - 100;
+
+      coin.animate([
+        {
+          transform: 'translate(-50%, -50%) scale(0) rotate(0deg)',
+          opacity: 1
+        },
+        {
+          transform: `translate(calc(-50% + ${velocityX}px), calc(-50% + ${velocityY}px)) scale(1.5) rotate(${360 + Math.random() * 360}deg)`,
+          opacity: 1,
+          offset: 0.3
+        },
+        {
+          transform: `translate(calc(-50% + ${velocityX}px), calc(-50% + ${velocityY + 800}px)) scale(1) rotate(${720 + Math.random() * 360}deg)`,
+          opacity: 0
+        }
+      ], {
+        duration: 2000,
+        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      });
+
+      coinsContainer!.appendChild(coin);
+      setTimeout(() => coin.remove(), 2100);
+    }
+
+    // 💰 CASCATA PRINCIPALE: 45 monete che cadono dall'alto con fisica realistica
+    for (let i = 0; i < 45; i++) {
       setTimeout(() => {
         const coin = document.createElement('div');
-        coin.className = 'coin';
-        coin.style.left = Math.random() * 100 + '%';
+        const size = 35 + Math.random() * 25; // Dimensioni variabili 35-60px
+        const startX = Math.random() * 100;
+        const rotation = Math.random() * 720 + 360;
+        const duration = 3000 + Math.random() * 1500; // Durata più lunga per sincronizzazione col suono
+        const delay = Math.random() * 100;
+
         coin.style.position = 'fixed';
-        coin.style.width = '40px';
-        coin.style.height = '40px';
+        coin.style.left = startX + '%';
+        coin.style.top = '-100px';
+        coin.style.width = size + 'px';
+        coin.style.height = size + 'px';
         coin.style.backgroundImage = 'url(https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/moneyomily.png)';
         coin.style.backgroundSize = 'contain';
         coin.style.backgroundRepeat = 'no-repeat';
         coin.style.backgroundPosition = 'center';
-        coin.style.animation = 'coinFall 3s ease-in forwards';
-        coin.style.filter = 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.8))';
+        coin.style.filter = `drop-shadow(0 8px 16px rgba(255, 215, 0, ${0.6 + Math.random() * 0.4})) brightness(${1.1 + Math.random() * 0.3})`;
         coin.style.pointerEvents = 'none';
-        coinsContainer!.appendChild(coin);
+        coin.style.zIndex = '9998';
 
-        setTimeout(() => coin.remove(), 3500);
-      }, i * 150);
+        // Animazione con rimbalzo e rotazione
+        coin.animate([
+          {
+            transform: 'translateY(-100px) rotate(0deg) scale(0.5)',
+            opacity: 0
+          },
+          {
+            transform: `translateY(0px) rotate(${rotation * 0.3}deg) scale(1)`,
+            opacity: 1,
+            offset: 0.1
+          },
+          {
+            transform: `translateY(calc(100vh - 50px)) rotate(${rotation}deg) scale(0.8)`,
+            opacity: 1,
+            offset: 0.85
+          },
+          {
+            transform: `translateY(calc(100vh + 20px)) rotate(${rotation + 180}deg) scale(0.5)`,
+            opacity: 0
+          }
+        ], {
+          duration,
+          delay,
+          easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+        });
+
+        coinsContainer!.appendChild(coin);
+        setTimeout(() => coin.remove(), duration + delay + 100);
+      }, i * 50); // Rilascio più distribuito nel tempo
     }
 
-    console.log('[CoinsRain MainScreen] Monete create!');
+    // ✨ PARTICELLE SCINTILLANTI: 25 particelle dorate
+    for (let i = 0; i < 25; i++) {
+      setTimeout(() => {
+        const particle = document.createElement('div');
+        const size = 4 + Math.random() * 8;
+        const startX = Math.random() * 100;
+        const drift = (Math.random() - 0.5) * 200;
+
+        particle.style.position = 'fixed';
+        particle.style.left = startX + '%';
+        particle.style.top = '0';
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.borderRadius = '50%';
+        particle.style.background = `radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 215, 0, ${0.8 + Math.random() * 0.2}) 50%, rgba(255, 165, 0, 0) 100%)`;
+        particle.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.8)';
+        particle.style.pointerEvents = 'none';
+        particle.style.zIndex = '9999';
+
+        particle.animate([
+          {
+            transform: `translate(0, -20px) scale(0)`,
+            opacity: 0
+          },
+          {
+            transform: `translate(${drift * 0.3}px, ${window.innerHeight * 0.3}px) scale(1)`,
+            opacity: 1,
+            offset: 0.2
+          },
+          {
+            transform: `translate(${drift}px, ${window.innerHeight + 50}px) scale(0.5)`,
+            opacity: 0
+          }
+        ], {
+          duration: 3500 + Math.random() * 1500, // Durata più lunga per accompagnare il suono
+          easing: 'ease-out'
+        });
+
+        coinsContainer!.appendChild(particle);
+        setTimeout(() => particle.remove(), 5100);
+      }, i * 80); // Distribuite nel tempo
+    }
+
+    console.log('[CoinsRain MainScreen] 🎉 82 elementi creati (12 esplosione + 45 monete + 25 particelle) - sincronizzati con il suono!');
   };
 
   const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number) => {
     if (!customer) return;
 
-    console.log(`Iniziando transazione: €${amount} per ${customer.name}, +${pointsEarned} punti`);
+    console.log(`⚡ Iniziando transazione IMMEDIATA: €${amount} per ${customer.name}, +${pointsEarned} punti`);
+
+    // ⚡ FEEDBACK IMMEDIATO - PRIMA di aspettare il database!
+    // 🔊 SUONO parte SUBITO al click
+    playCoinSound();
+    console.log('🔊 Suono cash register riprodotto IMMEDIATAMENTE!');
+
+    // 🪙 MONETE partono SUBITO al click (feedback visivo istantaneo)
+    createCoinsRainOnMainScreen();
+    console.log('🪙 Monete che cadono IMMEDIATAMENTE!');
 
     try {
-      // Processare la transazione e aspettare l'esito
+      // Processare la transazione in background (non blocca l'animazione)
       if (onNewTransaction) {
         const result = await onNewTransaction(customerId, amount, pointsEarned);
 
         if (result.success) {
           // Transazione COMPLETATA con successo!
-          console.log('Transazione completata con successo!');
+          console.log('✅ Transazione completata con successo!');
 
-          // 📝 LOG STAFF ACTIVITY
+          // 📝 LOG STAFF ACTIVITY (in background, non blocca)
           if (customer.organization_id) {
-            await logSale(
+            logSale(
               customer.organization_id,
               customer.id,
               customer.name,
               amount,
               pointsEarned
-            );
+            ).catch(err => console.error('Log sale error:', err)); // Non bloccare per errori di log
           }
-
-          // 🔊 SUONO CELEBRAZIONE - Riprodotto dal POS principale
-          playCoinSound();
-          console.log('🔊 Suono cash register riprodotto dal POS durante celebrazione');
-
-          // 🪙 MONETE CHE CADONO SULLO SCHERMO GRANDE!
-          createCoinsRainOnMainScreen();
-          console.log('🪙 Monete che cadono sullo schermo grande!');
 
           // Suono bridge Android opzionale - DISABILITATO TEMPORANEAMENTE
           // if (typeof window !== 'undefined' && (window as any).OmnilyPOS?.beep) {

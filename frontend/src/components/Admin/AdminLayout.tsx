@@ -34,7 +34,8 @@ import {
   Gift,
   Ticket,
   Download,
-  Crown
+  Crown,
+  Presentation
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -92,6 +93,7 @@ const AdminLayout = () => {
         { path: '/admin/business-owners', icon: Users, label: 'Clienti Aziendali' },
         { path: '/admin/pending-customers', icon: Clock, label: 'Clienti da Attivare' },
         { path: '/admin/crm', icon: Target, label: 'CRM & Marketing' },
+        { path: '/admin/demo-requests', icon: Presentation, label: 'Richieste Demo' },
         { path: '/admin/contracts', icon: FileSignature, label: 'Contratti e Firme' },
         { path: '/admin/supplier-orders', icon: Factory, label: 'Ordini Fornitori' },
         { path: '/admin/hardware-orders', icon: Truck, label: 'Ordini Hardware' },

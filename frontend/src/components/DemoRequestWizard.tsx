@@ -479,7 +479,7 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <label className={`block text-sm font-medium mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Cosa vuoi ottenere con OmnilyPro? (seleziona uno o più obiettivi) *
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {goalOptions.map(goal => {
                   const Icon = goal.icon
                   const isSelected = formData.goals.includes(goal.value)
@@ -811,11 +811,11 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
       </button>
 
-      {/* Close button (optional) */}
+      {/* Close button (optional) - moved to top right on mobile, top left on desktop after logo */}
       {onClose && (
         <button
           onClick={onClose}
-          className={`fixed top-6 left-6 z-50 p-3 rounded-xl backdrop-blur-xl transition-all duration-200 ${
+          className={`fixed top-6 right-20 z-50 p-3 rounded-xl backdrop-blur-xl transition-all duration-200 md:hidden ${
             darkMode
               ? 'bg-white/10 hover:bg-white/20 border border-white/10'
               : 'bg-white/80 hover:bg-white border border-gray-200 shadow-lg'
@@ -826,19 +826,34 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       )}
 
       {/* Main Content */}
-      <div className="relative z-10 flex min-h-screen">
+      <div className="relative z-10 flex flex-col md:flex-row min-h-screen">
         {/* Sidebar */}
-        <div className={`w-[300px] p-8 backdrop-blur-xl border-r ${
+        <div className={`w-full md:w-[300px] p-6 md:p-8 backdrop-blur-xl md:border-r ${
           darkMode ? 'bg-white/10 border-white/10' : 'bg-white/80 border-gray-200'
         }`}>
           {/* Logo */}
-          <div className="mb-8">
-            <img
-              src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
-              alt="OMNILY PRO"
-              className="h-12 w-auto object-contain mb-6"
-            />
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className="mb-6 md:mb-8">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <img
+                src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+                alt="OMNILY PRO"
+                className="h-10 md:h-12 w-auto object-contain"
+              />
+              {/* Close button for desktop - placed next to logo */}
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className={`hidden md:block p-2 rounded-lg backdrop-blur-xl transition-all duration-200 ${
+                    darkMode
+                      ? 'bg-white/10 hover:bg-white/20 border border-white/10'
+                      : 'bg-white/80 hover:bg-white border border-gray-200'
+                  }`}
+                >
+                  <X className={`w-4 h-4 ${darkMode ? 'text-white' : 'text-gray-700'}`} />
+                </button>
+              )}
+            </div>
+            <h1 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Richiedi Demo
             </h1>
             <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -846,7 +861,8 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </p>
           </div>
 
-          <div className="space-y-4">
+          {/* Steps - hidden on mobile, shown on desktop */}
+          <div className="hidden md:block space-y-4">
             {steps.map((step, index) => {
               const Icon = step.icon
               const isCompleted = currentStep > step.number
@@ -904,6 +920,13 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               )
             })}
           </div>
+
+          {/* Mobile step indicator */}
+          <div className="md:hidden">
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Passo {currentStep} di 7
+            </p>
+          </div>
         </div>
 
         {/* Main Content Area */}
@@ -919,7 +942,7 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 flex items-center justify-center p-8">
+          <div className="flex-1 flex items-start md:items-center justify-center p-4 md:p-8 overflow-y-auto">
             <div className="w-full max-w-2xl">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -929,10 +952,10 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className={`p-8 rounded-2xl backdrop-blur-xl ${
+                  <div className={`p-4 md:p-8 rounded-2xl backdrop-blur-xl ${
                     darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-200 shadow-xl'
                   }`}>
-                    <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {steps[currentStep - 1].title}
                     </h2>
 
