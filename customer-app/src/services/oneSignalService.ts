@@ -23,8 +23,11 @@ export async function initializeOneSignal() {
 
       // Prompt settings
       notifyButton: {
-        enable: false // We'll use custom UI
-      },
+        enable: false, // We'll use custom UI
+        prenotify: false,
+        showCredit: false,
+        text: {}
+      } as any,
 
       // Service Worker settings
       serviceWorkerParam: {
