@@ -7,7 +7,7 @@ import NotificationsPanel from '../components/NotificationsPanel'
 
 export default function Home() {
   const { customer, loading: authLoading } = useAuth()
-  const { organization, loyaltyTiers } = useOrganization()
+  const { loyaltyTiers } = useOrganization()
   const navigate = useNavigate()
   const { slug } = useParams()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -41,9 +41,9 @@ export default function Home() {
           <div className="flex items-center gap-3">
             {/* Avatar utente con bordo giallo */}
             <div className="w-16 h-16 rounded-full border-3 border-yellow-500 p-0.5">
-              {customer.avatar_url ? (
+              {false ? (
                 <img
-                  src={customer.avatar_url}
+                  src=""
                   alt={customer.name}
                   className="w-full h-full rounded-full object-cover"
                 />
