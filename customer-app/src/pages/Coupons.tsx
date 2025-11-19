@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate, useParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
-import { Ticket, MessageCircle, Clock, Copy } from 'lucide-react'
+import { Ticket, Clock, Copy, Sparkles } from 'lucide-react'
 import BottomNav from '../components/Layout/BottomNav'
+import ChatButton from '../components/ChatButton'
 
 interface Coupon {
   id: number
@@ -14,6 +15,8 @@ interface Coupon {
   code: string
   expiryDate: string
   status: 'active' | 'used'
+  isFlash?: boolean
+  expiresInHours?: number
 }
 
 export default function Coupons() {
@@ -22,14 +25,33 @@ export default function Coupons() {
   const { slug } = useParams()
   const [expandedCoupon, setExpandedCoupon] = useState<number | null>(null)
   const [copiedCode, setCopiedCode] = useState<number | null>(null)
+  const [flashCoupons, setFlashCoupons] = useState<Coupon[]>([])
+
+  // Load saved flash offers from localStorage
+  useEffect(() => {
+    const savedOffers = localStorage.getItem('savedFlashOffers')
+    if (savedOffers) {
+      try {
+        const offers = JSON.parse(savedOffers)
+        setFlashCoupons(offers)
+      } catch (e) {
+        console.error('Error loading flash offers:', e)
+      }
+    }
+  }, [])
 
   if (!customer) {
     navigate(`/${slug}/login`)
     return null
   }
 
+  const formatTimeLeft = (hours: number) => {
+    const h = Math.floor(hours)
+    return `${h}h`
+  }
+
   // Mock coupons data
-  const coupons: Coupon[] = [
+  const regularCoupons: Coupon[] = [
     {
       id: 1,
       title: 'Sconto Colazione',
@@ -72,6 +94,9 @@ export default function Coupons() {
     }
   ]
 
+  // Combine flash coupons with regular coupons
+  const allCoupons = [...flashCoupons, ...regularCoupons]
+
   const handleToggleCoupon = (couponId: number) => {
     setExpandedCoupon(expandedCoupon === couponId ? null : couponId)
   }
@@ -101,17 +126,45 @@ export default function Coupons() {
       </div>
 
       {/* Coupons List */}
-      <div className="px-6 space-y-4">
-        {coupons.map((coupon) => {
+      <div className="px-6 space-y-3">
+        {allCoupons.map((coupon) => {
           const isExpanded = expandedCoupon === coupon.id
 
           return (
             <div key={coupon.id} className="relative">
               {/* Main coupon card */}
-              <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+              <div className={`bg-white rounded-2xl shadow-md overflow-hidden ${
+                coupon.isFlash
+                  ? 'border-2 border-orange-400'
+                  : 'border border-gray-100'
+              }`}>
+                {/* Flash Badge - solo per flash offers */}
+                {coupon.isFlash && (
+                  <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 px-4 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-yellow-300" fill="currentColor" />
+                      <span className="text-white text-xs font-bold uppercase tracking-wider">
+                        Flash Offer
+                      </span>
+                    </div>
+                    {coupon.expiresInHours !== undefined && (
+                      <div className="flex items-center gap-1.5 text-white">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-sm font-bold">
+                          Scade tra {formatTimeLeft(coupon.expiresInHours)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-stretch">
                   {/* Left badge */}
-                  <div className="w-32 bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center relative flex-shrink-0">
+                  <div className={`w-32 flex items-center justify-center relative flex-shrink-0 ${
+                    coupon.isFlash
+                      ? 'bg-gradient-to-br from-orange-500 to-red-600'
+                      : 'bg-gradient-to-br from-red-600 to-red-700'
+                  }`}>
                     <p className="text-white font-black text-3xl">
                       {coupon.badgeText}
                     </p>
@@ -142,15 +195,24 @@ export default function Coupons() {
 
                     {/* Footer with expiry and button */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-gray-400">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm">Scade: {coupon.expiryDate}</span>
-                      </div>
+                      {!coupon.isFlash && (
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm">Scade: {coupon.expiryDate}</span>
+                        </div>
+                      )}
+                      {coupon.isFlash && (
+                        <div className="flex-1"></div>
+                      )}
 
                       {coupon.status === 'active' && (
                         <button
                           onClick={() => handleToggleCoupon(coupon.id)}
-                          className="px-5 py-2 bg-white border-2 border-red-600 text-red-600 rounded-xl font-bold text-sm hover:bg-red-50 transition-colors"
+                          className={`px-5 py-2 bg-white rounded-xl font-bold text-sm transition-colors ${
+                            coupon.isFlash
+                              ? 'border-2 border-orange-500 text-orange-600 hover:bg-orange-50'
+                              : 'border-2 border-red-600 text-red-600 hover:bg-red-50'
+                          }`}
                         >
                           {isExpanded ? 'Nascondi' : 'Usa Ora'}
                         </button>
@@ -195,19 +257,15 @@ export default function Coupons() {
                         />
                       </div>
                     </div>
-                  </div>
+                </div>
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Chat button floating */}
-      <button className="fixed bottom-24 right-6 w-16 h-16 bg-gray-800 rounded-full shadow-2xl flex items-center justify-center z-50">
-        <MessageCircle className="w-7 h-7 text-white" fill="white" />
-        {/* Green dot */}
-        <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-      </button>
+      {/* Chat button */}
+      <ChatButton />
 
       <BottomNav />
     </div>

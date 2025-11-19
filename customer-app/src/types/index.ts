@@ -6,7 +6,17 @@ export interface Organization {
   primary_color: string
   secondary_color: string
   points_name: string
+  wallet_enabled: boolean
+  loyalty_tiers: LoyaltyTier[]
+  referral_tiers: ReferralTier[]
   created_at: string
+}
+
+export interface ReferralTier {
+  name: string
+  friends_required: number
+  points_reward: number
+  description: string
 }
 
 export interface Customer {
@@ -17,6 +27,9 @@ export interface Customer {
   phone: string | null
   points: number
   tier: string | null
+  referral_code: string
+  friends_invited: number
+  referral_points_earned: number
   created_at: string
 }
 

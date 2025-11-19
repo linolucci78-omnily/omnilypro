@@ -88,6 +88,10 @@ h4 { font-size: 1.125rem; }
   to { transform: translateY(0); }
 }
 
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
 @keyframes slideDown {
   from {
     max-height: 0;
@@ -191,4 +195,58 @@ h4 { font-size: 1.125rem; }
     ) rotate(var(--rotation));
     opacity: 0;
   }
+}
+
+/* 3D Card Animations */
+@keyframes float-3d {
+  0%, 100% {
+    transform: translateY(0) rotateX(0) rotateY(0);
+  }
+  25% {
+    transform: translateY(-10px) rotateX(2deg) rotateY(2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotateX(-1deg) rotateY(-1deg);
+  }
+  75% {
+    transform: translateY(-10px) rotateX(1deg) rotateY(-2deg);
+  }
+}
+
+@keyframes shine {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.animate-float-3d {
+  animation: float-3d 6s ease-in-out infinite;
+}
+
+.animate-shine {
+  animation: shine 3s linear infinite;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }

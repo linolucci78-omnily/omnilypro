@@ -25,7 +25,8 @@ import {
   MdPublic,
   MdPalette,
   MdLanguage,
-  MdShare
+  MdShare,
+  MdNotificationsActive
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -98,6 +99,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'team-management', icon: MdPersonAdd, label: 'Gestione Team', feature: 'teamManagement' },
     { id: 'pos-integration', icon: MdFlashOn, label: 'Integrazione POS', feature: 'posIntegration' },
     { id: 'notifications', icon: MdNotifications, label: 'Notifiche', feature: 'notifications' },
+    { id: 'push-notifications', icon: MdNotificationsActive, label: 'Push Notifications', feature: 'pushNotifications' },
     { id: 'analytics-reports', icon: MdAnalytics, label: 'Analytics & Report', feature: 'analyticsReports' },
     { id: 'branding-social', icon: MdPalette, label: 'Branding & Social', feature: 'brandingSocial' },
     { id: 'website-editor', icon: MdLanguage, label: 'Il Mio Sito Web', feature: null },
@@ -130,6 +132,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       'team-management': '#3b82f6',
       'pos-integration': '#10b981',
       'notifications': '#f59e0b',
+      'push-notifications': '#ef4444',
       'analytics-reports': '#8b5cf6',
       'branding-social': '#ef4444',
       'website-editor': '#10b981',

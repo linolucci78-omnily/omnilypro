@@ -96,7 +96,8 @@ const Login: React.FC = () => {
         console.log('🔐 ✅ Admin login redirect:', { userRole, redirectPath, permissions });
       }
       // Se userRole è null = utente normale senza organizzazione → vai all'onboarding
-      else if (userRole === null && !isSuperAdmin) {
+      // (ma solo se NON sei in modalità POS, che ha la priorità assoluta)
+      else if (userRole === null && !isSuperAdmin && !isPosMode) {
         redirectPath = '/onboarding';
         console.log('🔐 👤 New user without organization, redirecting to onboarding');
       }

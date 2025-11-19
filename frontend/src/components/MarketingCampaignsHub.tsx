@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Mail, Send, Bell, ArrowLeft, TrendingUp, Users, Zap, Eye, BarChart3, Award, Cake, Gift, FileText, Settings, Database } from 'lucide-react'
 import EmailAutomationsHub from './EmailAutomationsHub'
 import EmailMarketingPanel from './EmailMarketingPanel'
+import PushNotificationsHub from './PushNotificationsHub'
 import './MarketingCampaignsHub.css'
 
 interface MarketingCampaignsHubProps {
@@ -101,7 +102,7 @@ const MarketingCampaignsHub: React.FC<MarketingCampaignsHubProps> = ({
     )
   }
 
-  // Push Notifications (da implementare)
+  // Push Notifications
   if (activeView === 'push-notifications') {
     return (
       <div>
@@ -113,15 +114,12 @@ const MarketingCampaignsHub: React.FC<MarketingCampaignsHubProps> = ({
           <ArrowLeft size={20} />
           <span>Torna a Campagne Marketing</span>
         </button>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <Bell size={64} style={{ margin: '0 auto 1rem', color: '#9ca3af' }} />
-          <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#1f2937', margin: '0 0 0.5rem 0' }}>
-            Notifiche Push
-          </h2>
-          <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-            Funzionalità in arrivo - Integrazione OneSignal
-          </p>
-        </div>
+        <PushNotificationsHub
+          organizationId={organizationId}
+          organizationName={organizationName}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+        />
       </div>
     )
   }
@@ -264,14 +262,13 @@ const MarketingCampaignsHub: React.FC<MarketingCampaignsHubProps> = ({
           </div>
           <div className="marketing-campaigns-hub-card-content">
             <h3>Notifiche Push</h3>
-            <p>Invia notifiche push ai tuoi clienti (OneSignal)</p>
+            <p>Invia notifiche push ai tuoi clienti con animazioni</p>
             <ul className="marketing-campaigns-hub-card-features">
-              <li><Bell size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Notifiche istantanee</li>
-              <li><Users size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Segmentazione utenti</li>
-              <li><TrendingUp size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Analytics engagement</li>
-              <li><Zap size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Automazioni push</li>
+              <li><Bell size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Notifiche con animazioni</li>
+              <li><Users size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Segmentazione per tier</li>
+              <li><TrendingUp size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Analytics & Report</li>
+              <li><Zap size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Editor visuale</li>
             </ul>
-            <div className="coming-soon-badge">In Arrivo</div>
           </div>
           <div className="marketing-campaigns-hub-card-arrow">→</div>
         </div>

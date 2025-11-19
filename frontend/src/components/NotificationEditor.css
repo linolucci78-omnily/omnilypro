@@ -1,0 +1,76 @@
+/* ============================================
+   NOTIFICATION EDITOR - CLEAN STYLES
+   ============================================ */
+
+/* Input fields - white background */
+.notification-editor input[type="text"],
+.notification-editor input[type="number"],
+.notification-editor textarea,
+.notification-editor select {
+  background-color: white !important;
+}
+
+/* Animation buttons - lighter style */
+.animation-button {
+  background-color: white;
+  border: 2px solid #e5e7eb;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  color: #6b7280;
+}
+
+.animation-button:focus {
+  outline: none;
+}
+
+.animation-button:hover {
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: #374151;
+}
+
+.animation-button.active {
+  border-color: var(--primary-color, #dc2626);
+  background-color: color-mix(in srgb, var(--primary-color, #dc2626) 5%, white);
+  color: var(--primary-color, #dc2626);
+}
+
+.animation-button p {
+  color: inherit;
+}
+
+/* Radio buttons - cleaner style */
+.audience-option {
+  background-color: white;
+  border: 2px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.audience-option:focus {
+  outline: none;
+}
+
+.audience-option:hover {
+  border-color: #d1d5db;
+  background-color: #f9fafb;
+}
+
+.audience-option input[type="radio"]:checked ~ * {
+  border-color: var(--primary-color, #dc2626);
+}
+
+/* Remove focus outline from all buttons and inputs in editor */
+.notification-editor button:focus,
+.notification-editor input:focus,
+.notification-editor select:focus,
+.notification-editor textarea:focus {
+  outline: none;
+}

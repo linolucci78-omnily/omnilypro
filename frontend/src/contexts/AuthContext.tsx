@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const CACHE_DURATION = 5 * 60 * 1000 // 5 minuti
 
   // Function to check user role
-  const checkUserRole = async (userId: string) => {
+  const checkUserRole = async (userId: string, userSession?: Session | null) => {
     // Check cache first
     const cached = roleCache.current[userId]
     if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
@@ -56,19 +56,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const urlParams = new URLSearchParams(window.location.search);
       const isPosMode = urlParams.has('pos') || urlParams.has('posomnily') || navigator.userAgent.includes('OMNILY-POS-APP');
 
-      // STEP 1: Check users table for is_super_admin flag (PRIORITÀ MASSIMA)
-      console.log('🔐 [V6] Checking users table for super admin status...');
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('is_super_admin, role')
-        .eq('id', userId)
-        .single();
+      // STEP 1: Check user metadata for is_super_admin flag (PRIORITÀ MASSIMA)
+      // Usiamo i metadati auth invece della tabella users per evitare problemi RLS
+      console.log('🔐 [V9] Checking auth metadata for super admin status...');
 
-      console.log('🔐 [V6] Users table result:', { userData, userError });
+      // Usa la sessione passata se disponibile, altrimenti prova getSession
+      const authUser = userSession?.user;
 
-      // Se è super admin, impostal subito e ritorna (non serve controllare organization_users)
-      if (userData && userData.is_super_admin === true) {
-        console.log('🔐 [V6] ✅ SUPER ADMIN DETECTED! Setting role and returning.');
+      console.log('🔐 [V9] Auth user from session:', authUser?.email);
+      console.log('🔐 [V9] Auth user metadata:', authUser?.user_metadata);
+
+      // Se è super admin nei metadati, impostal subito e ritorna
+      if (authUser?.user_metadata?.is_super_admin === true) {
+        console.log('🔐 [V9] ✅ SUPER ADMIN DETECTED from metadata! Setting role and returning.');
         roleCache.current[userId] = {
           role: 'super_admin',
           isSuperAdmin: true,
@@ -76,11 +76,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
         setUserRole('super_admin');
         setIsSuperAdmin(true);
+        setLoading(false); // IMPORTANTE: ferma il loading!
         return;
       }
 
       // STEP 2: Se non è super admin, controlla organization_users
-      console.log('🔐 [V6] Not super admin, checking organization_users table...');
+      console.log('🔐 [V9] Not super admin, checking organization_users table...');
 
       let orgRoles: any, orgError: any;
 
@@ -180,7 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(session?.user ?? null)
 
       if (session?.user) {
-        await checkUserRole(session.user.id)
+        await checkUserRole(session.user.id, session)
       } else {
         setLoading(false)
       }
@@ -203,7 +204,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (session?.user) {
         // checkUserRole già chiama setLoading(false) nel finally block
-        await checkUserRole(session.user.id)
+        await checkUserRole(session.user.id, session)
       } else {
         setUserRole(null)
         setIsSuperAdmin(false)

@@ -10,7 +10,13 @@ import Card from './pages/Card'
 import Rewards from './pages/Rewards'
 import Coupons from './pages/Coupons'
 import Profile from './pages/Profile'
+import Wallet from './pages/Wallet'
+import Settings from './pages/Settings'
+import AccountDetails from './pages/AccountDetails'
 import { getCookie } from './utils/cookies'
+import NotificationAnimations from './components/NotificationAnimations'
+import { useNotificationAnimations } from './hooks/useNotificationAnimations'
+import AnimationTester from './components/AnimationTester'
 import './styles/global.css'
 
 // Root redirect component - redirects to saved org slug
@@ -89,10 +95,31 @@ function RootRedirect() {
 
 // Shared wrapper component
 function OrgWrapper() {
+  const animations = useNotificationAnimations()
+
+  const handleTriggerAnimation = (type: 'points' | 'confetti' | 'trophy' | 'sparkles', data?: any) => {
+    switch (type) {
+      case 'points':
+        animations.coinFountain(data?.points || 50)
+        break
+      case 'confetti':
+        animations.confetti()
+        break
+      case 'trophy':
+        animations.trophy(data?.tier || 'Gold')
+        break
+      case 'sparkles':
+        animations.sparkles()
+        break
+    }
+  }
+
   return (
     <OrganizationProvider>
       <AuthProvider>
         <Outlet />
+        <NotificationAnimations ref={animations.animationsRef} />
+        <AnimationTester onTriggerAnimation={handleTriggerAnimation} />
       </AuthProvider>
     </OrganizationProvider>
   )
@@ -113,6 +140,9 @@ function App() {
           <Route path="rewards" element={<Rewards />} />
           <Route path="coupons" element={<Coupons />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="account" element={<AccountDetails />} />
           <Route path="*" element={<Navigate to="login" replace />} />
         </Route>
 

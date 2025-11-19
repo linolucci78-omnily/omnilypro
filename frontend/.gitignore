@@ -28,3 +28,4 @@ run-migration.js
 run-migration-simple.js
 check-schema.js
 verify-migration.js
+.vercel

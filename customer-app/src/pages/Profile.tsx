@@ -1,14 +1,17 @@
+import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrganization } from '../contexts/OrganizationContext'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Wallet } from 'lucide-react'
 import BottomNav from '../components/Layout/BottomNav'
+import InviteFriendsModal from '../components/InviteFriendsModal'
 
 export default function Profile() {
   const { customer, logout } = useAuth()
   const { organization, loyaltyTiers } = useOrganization()
   const navigate = useNavigate()
   const { slug } = useParams()
+  const [showInviteModal, setShowInviteModal] = useState(false)
 
   if (!customer) {
     navigate(`/${slug}/login`)
@@ -72,7 +75,10 @@ export default function Profile() {
       {/* Menu Cards */}
       <div className="px-6 space-y-3">
         {/* Dettagli Account */}
-        <button className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]">
+        <button
+          onClick={() => navigate(`/${slug}/account`)}
+          className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
@@ -89,7 +95,10 @@ export default function Profile() {
         </button>
 
         {/* Il mio Wallet */}
-        <button className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]">
+        <button
+          onClick={() => navigate(`/${slug}/wallet`)}
+          className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
@@ -107,7 +116,10 @@ export default function Profile() {
         </button>
 
         {/* Impostazioni App */}
-        <button className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]">
+        <button
+          onClick={() => navigate(`/${slug}/settings`)}
+          className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
@@ -125,7 +137,10 @@ export default function Profile() {
         </button>
 
         {/* Invita Amici */}
-        <button className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]">
+        <button
+          onClick={() => setShowInviteModal(true)}
+          className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
@@ -156,6 +171,11 @@ export default function Profile() {
           </div>
         </button>
       </div>
+
+      {/* Invite Friends Modal */}
+      {showInviteModal && (
+        <InviteFriendsModal onClose={() => setShowInviteModal(false)} />
+      )}
 
       <BottomNav />
     </div>

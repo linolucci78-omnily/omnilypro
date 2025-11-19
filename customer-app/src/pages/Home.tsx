@@ -4,19 +4,103 @@ import { useOrganization } from '../contexts/OrganizationContext'
 import { useNavigate, useParams } from 'react-router-dom'
 import BottomNav from '../components/Layout/BottomNav'
 import NotificationsPanel from '../components/NotificationsPanel'
+import InviteFriendsModal from '../components/InviteFriendsModal'
+import FlashOfferModal from '../components/FlashOfferModal'
+import ChatButton from '../components/ChatButton'
 
 export default function Home() {
   const { customer, loading: authLoading } = useAuth()
-  const { loyaltyTiers } = useOrganization()
+  const { loyaltyTiers, organization } = useOrganization()
   const navigate = useNavigate()
   const { slug } = useParams()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [selectedFlashOffer, setSelectedFlashOffer] = useState<any>(null)
+  const [savedOffers, setSavedOffers] = useState<number[]>([])
 
   useEffect(() => {
     if (!authLoading && !customer) {
       navigate(`/${slug}/login`, { replace: true })
     }
   }, [customer, authLoading, navigate, slug])
+
+  const handleShare = () => {
+    if (!customer || !organization) return
+
+    const referralCode = customer.referral_code || 'LOADING'
+    const shareUrl = `${window.location.origin}/${slug}/register?ref=${referralCode}`
+    const shareText = `Unisciti a ${organization.name} con il mio codice ${referralCode} e guadagna punti!`
+
+    if (navigator.share) {
+      navigator.share({
+        title: `Invito a ${organization.name}`,
+        text: shareText,
+        url: shareUrl
+      }).catch(() => {})
+    } else {
+      // Fallback: copia il link negli appunti
+      navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
+      alert('Link copiato negli appunti!')
+    }
+  }
+
+  const handleSaveOffer = (offerId: number) => {
+    setSavedOffers(prev => [...prev, offerId])
+
+    // Find the offer that was saved
+    const offer = flashOffers.find(o => o.id === offerId)
+    if (!offer) return
+
+    // Load existing saved offers from localStorage
+    const existingSaved = localStorage.getItem('savedFlashOffers')
+    let savedOffers = []
+
+    if (existingSaved) {
+      try {
+        savedOffers = JSON.parse(existingSaved)
+      } catch (e) {
+        console.error('Error parsing saved offers:', e)
+      }
+    }
+
+    // Convert flash offer to coupon format
+    const couponFormat = {
+      id: Date.now(), // Unique ID based on timestamp
+      title: offer.title,
+      description: offer.description,
+      badgeText: offer.discount,
+      badgeType: 'percentage' as const,
+      code: offer.code,
+      expiryDate: '', // Not used for flash offers
+      status: 'active' as const,
+      isFlash: true,
+      expiresInHours: offer.expiresInHours
+    }
+
+    // Add to saved offers and save to localStorage
+    savedOffers.push(couponFormat)
+    localStorage.setItem('savedFlashOffers', JSON.stringify(savedOffers))
+  }
+
+  // Mock flash offers data
+  const flashOffers = [
+    {
+      id: 1,
+      title: 'La Tua Pausa Perfetta!',
+      description: 'Goditi uno sconto del 25% sul tuo prossimo caffè preferito. Un piccolo piacere, un grande risparmio!',
+      code: 'PAUSA25',
+      discount: '25%',
+      expiresInHours: 48
+    },
+    {
+      id: 2,
+      title: `${customer?.name?.split(' ')[0] || 'Cliente'}, la tua pausa perfetta!`,
+      description: 'Caffè e pasticcino: l\'accoppiata vincente ti aspetta con uno sconto speciale del 30%!',
+      code: 'COMBO30',
+      discount: '30%',
+      expiresInHours: 96
+    }
+  ]
 
   if (authLoading || !customer) {
     return null
@@ -36,7 +120,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-24">
       {/* Header con gradiente burgundy scuro */}
-      <div className="bg-gradient-to-br from-red-900 via-red-800 to-red-900 px-6 pt-8 pb-40 rounded-b-[2.5rem] shadow-2xl">
+      <div className="relative bg-gradient-to-br from-red-900 via-red-800 to-red-900 px-6 pt-8 pb-40 rounded-b-[2.5rem] shadow-2xl overflow-hidden group">
+        {/* Effetto "Shine" Olografico (Animato) */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-700 animate-shine pointer-events-none"></div>
+
+        {/* Luci Statiche */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+
+        {/* Contenuto Header (relative per stare sopra gli effetti) */}
+        <div className="relative z-10">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             {/* Avatar utente con bordo giallo */}
@@ -145,6 +238,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       {/* Contenuto sotto - spacing per il cerchio che esce */}
@@ -159,7 +253,10 @@ export default function Home() {
           </div>
 
           {/* Card offerta personalizzata */}
-          <div className="bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4">
+          <button
+            onClick={() => setSelectedFlashOffer(flashOffers[0])}
+            className="w-full bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4 hover:scale-[1.02] transition-transform text-left"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
                 <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
@@ -197,10 +294,13 @@ export default function Home() {
                 <span className="text-red-600 font-bold text-sm tracking-wider">CAFFEOFFERTASS25</span>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Seconda card offerta */}
-          <div className="bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4">
+          <button
+            onClick={() => setSelectedFlashOffer(flashOffers[1])}
+            className="w-full bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4 hover:scale-[1.02] transition-transform text-left"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
                 <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
@@ -238,16 +338,19 @@ export default function Home() {
                 <span className="text-red-600 font-bold text-sm tracking-wider">COMBOALEX30</span>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Card Invita un Amico */}
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl mb-4 relative overflow-hidden">
-            {/* Decorative circle */}
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-gray-700/30 flex items-center justify-center">
+            {/* Decorative circle - cliccabile per aprire modal */}
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-gray-700/30 flex items-center justify-center hover:bg-gray-700/50 transition-colors cursor-pointer"
+            >
               <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-            </div>
+            </button>
 
             <h4 className="text-yellow-400 text-2xl font-bold mb-2 relative z-10">
               Invita un Amico
@@ -255,7 +358,10 @@ export default function Home() {
             <p className="text-gray-300 text-sm mb-4 pr-24 relative z-10">
               Guadagna <span className="text-yellow-400 font-bold">500 punti</span> per ogni amico che si iscrive.
             </p>
-            <button className="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors relative z-10">
+            <button
+              onClick={handleShare}
+              className="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors relative z-10"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
@@ -299,6 +405,23 @@ export default function Home() {
         isOpen={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
       />
+
+      {/* Invite Friends Modal */}
+      {showInviteModal && (
+        <InviteFriendsModal onClose={() => setShowInviteModal(false)} />
+      )}
+
+      {/* Flash Offer Modal */}
+      {selectedFlashOffer && (
+        <FlashOfferModal
+          offer={selectedFlashOffer}
+          onClose={() => setSelectedFlashOffer(null)}
+          onSave={handleSaveOffer}
+        />
+      )}
+
+      {/* Chat Button */}
+      <ChatButton />
 
       <BottomNav />
     </div>
