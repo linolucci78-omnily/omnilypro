@@ -84,14 +84,19 @@ const Login: React.FC = () => {
         redirectPath = '/dashboard'; // Dashboard aziendale per POS
         console.log('🔐 📱 POS mode redirect (priority over admin roles):', { redirectPath, userRole });
       }
-      // Se NON è POS e sei un admin OMNILY PRO (super_admin, sales_agent, account_manager)
+      // Se sei SUPER ADMIN, vai SEMPRE al pannello admin (anche se userRole è null)
+      else if (isSuperAdmin) {
+        redirectPath = '/admin';
+        console.log('🔐 👑 Super admin redirect to admin panel:', { redirectPath, isSuperAdmin });
+      }
+      // Se NON è POS e sei un admin OMNILY PRO (sales_agent, account_manager, etc.)
       else if (userRole) {
         const permissions = getAdminPermissions(userRole as AdminRole);
         redirectPath = permissions.defaultRoute;
         console.log('🔐 ✅ Admin login redirect:', { userRole, redirectPath, permissions });
       }
-      // Se userRole è null = utente senza organizzazione → vai all'onboarding
-      else if (userRole === null) {
+      // Se userRole è null = utente normale senza organizzazione → vai all'onboarding
+      else if (userRole === null && !isSuperAdmin) {
         redirectPath = '/onboarding';
         console.log('🔐 👤 New user without organization, redirecting to onboarding');
       }

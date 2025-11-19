@@ -9,8 +9,6 @@
   justify-content: space-around;
   padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
   z-index: 100;
-  max-width: 480px;
-  margin: 0 auto;
 }
 
 .bottom-nav-item {

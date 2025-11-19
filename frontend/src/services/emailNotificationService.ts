@@ -18,7 +18,7 @@ export const sendDemoRequestNotification = async (data: DemoRequestNotification)
     // Call Supabase Edge Function to send email via Resend
     const { data: result, error } = await supabase.functions.invoke('send-email', {
       body: {
-        to: 'sales@omnilypro.com', // Your sales team email
+        to: 'sales@omnilypro.com', // Sales team notifications
         subject: `🚀 Nuova Richiesta Demo da ${data.companyName}`,
         html: `
           <!DOCTYPE html>
@@ -151,7 +151,7 @@ export const sendDemoRequestNotification = async (data: DemoRequestNotification)
               ` : ''}
 
               <div style="text-align: center; margin-top: 30px;">
-                <a href="${process.env.VITE_APP_URL || 'https://app.omnilypro.com'}/admin/demo-requests" class="cta-button">
+                <a href="https://app.omnilypro.com/admin/demo-requests" class="cta-button">
                   Vai al Pannello Admin
                 </a>
               </div>

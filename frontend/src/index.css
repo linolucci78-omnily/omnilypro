@@ -70,3 +70,14 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Fix textarea text color in dark mode */
+textarea.textarea-dark-fix {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+textarea.textarea-light-fix {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}

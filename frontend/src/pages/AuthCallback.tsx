@@ -21,6 +21,15 @@ const AuthCallback: React.FC = () => {
           setStatus('success')
           setMessage('Account confermato con successo!')
 
+          // Controlla se l'utente è super admin
+          const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', data.session.user.id)
+            .single()
+
+          const isSuperAdmin = userData?.role === 'super_admin'
+
           // Controlla se l'utente ha già un'organizzazione
           const { data: orgData } = await supabase
             .from('organization_users')
@@ -32,8 +41,12 @@ const AuthCallback: React.FC = () => {
           // Reindirizza dopo 2 secondi mantenendo i parametri POS
           setTimeout(() => {
             const searchParams = window.location.search
+            // Super admin va sempre al pannello admin
+            if (isSuperAdmin) {
+              navigate(`/admin${searchParams}`)
+            }
             // Se non ha organizzazioni, vai all'onboarding
-            if (!orgData) {
+            else if (!orgData) {
               navigate(`/onboarding${searchParams}`)
             } else {
               navigate(`/dashboard${searchParams}`)

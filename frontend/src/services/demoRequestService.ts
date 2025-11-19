@@ -42,6 +42,12 @@ export const demoRequestsApi = {
    * Submit a new demo request
    */
   async create(data: DemoRequest): Promise<DemoRequest> {
+    console.log('🔑 Supabase client info:', {
+      url: supabase.supabaseUrl,
+      hasKey: !!supabase.supabaseKey,
+      keyPrefix: supabase.supabaseKey?.substring(0, 20)
+    })
+
     const { data: result, error } = await supabase
       .from('demo_requests')
       .insert({

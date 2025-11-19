@@ -125,10 +125,14 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   }
 
   const handleNext = () => {
-    if (currentStep < 7) {
+    if (currentStep < 6) {
       setCurrentStep(currentStep + 1)
-    } else {
+    } else if (currentStep === 6) {
+      // Step 6 is the last step - submit the form
       handleSubmit()
+    } else {
+      // Step 7 is the confirmation screen, should not happen
+      setCurrentStep(currentStep + 1)
     }
   }
 
@@ -140,8 +144,13 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     try {
+      console.log('📋 Submitting demo request...', {
+        company_name: formData.companyName,
+        contact_email: formData.contactEmail
+      })
+
       // Invia dati al backend
-      await demoRequestsApi.create({
+      const result = await demoRequestsApi.create({
         company_name: formData.companyName,
         website: formData.website,
         industry: formData.industry,
@@ -162,34 +171,50 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         contact_role: formData.contactRole
       })
 
-      console.log('✅ Demo request submitted successfully!')
+      console.log('✅ Demo request submitted successfully!', result)
 
       // Send email notifications (non-blocking)
-      Promise.all([
-        sendDemoRequestNotification({
-          companyName: formData.companyName,
-          contactName: formData.contactName,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          industry: formData.industry,
-          timeline: formData.timeline,
-          budgetRange: formData.budgetRange
-        }),
-        sendDemoConfirmationEmail({
-          companyName: formData.companyName,
-          contactName: formData.contactName,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          industry: formData.industry
-        })
-      ]).catch(err => {
-        console.error('Email notifications failed (non-critical):', err)
+      console.log('📧 Sending email notifications...')
+
+      // Send notification to sales team
+      sendDemoRequestNotification({
+        companyName: formData.companyName,
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone,
+        industry: formData.industry,
+        timeline: formData.timeline,
+        budgetRange: formData.budgetRange
+      }).then(() => {
+        console.log('✅ Sales notification email sent')
+      }).catch(err => {
+        console.error('❌ Sales notification email failed:', err)
+      })
+
+      // Send confirmation to customer
+      sendDemoConfirmationEmail({
+        companyName: formData.companyName,
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone,
+        industry: formData.industry
+      }).then(() => {
+        console.log('✅ Customer confirmation email sent')
+      }).catch(err => {
+        console.error('❌ Customer confirmation email failed:', err)
       })
 
       setIsSubmitted(true)
-    } catch (error) {
+      setCurrentStep(7) // Go to step 7 to show the new success screen
+    } catch (error: any) {
       console.error('❌ Error submitting demo request:', error)
-      alert('Si è verificato un errore. Riprova più tardi.')
+      console.error('❌ Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      })
+      alert(`Si è verificato un errore: ${error?.message || 'Riprova più tardi.'}`)
     }
   }
 
@@ -228,34 +253,44 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Nome Azienda *
               </label>
-              <input
-                type="text"
-                value={formData.companyName}
-                onChange={(e) => handleInputChange('companyName', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="Es: Caffè Centrale"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Building2 className={`w-5 h-5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={formData.companyName}
+                  onChange={(e) => handleInputChange('companyName', e.target.value)}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 transition-all`}
+                  placeholder="Es: Caffè Centrale"
+                />
+              </div>
             </div>
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Sito Web Aziendale *
               </label>
-              <input
-                type="url"
-                value={formData.website}
-                onChange={(e) => handleInputChange('website', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="https://www.tuodominio.it"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Globe className={`w-5 h-5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="url"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 transition-all`}
+                  placeholder="https://www.tuodominio.it"
+                />
+              </div>
             </div>
 
             <div>
@@ -308,13 +343,13 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {/* Intro description */}
             <div className={`p-4 rounded-xl ${darkMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
               <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                🏪 Che tu abbia una sede o una catena, OmnilyPro si adatta perfettamente. Raccontaci come sei organizzato.
+                🏪 OmnilyPro funziona ovunque: negozi fisici, e-commerce, o entrambi. Raccontaci come vendi oggi.
               </p>
             </div>
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Quanti punti vendita hai? *
+                Dove vendi principalmente? *
               </label>
               <select
                 value={formData.locationsCount}
@@ -326,37 +361,41 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 } focus:outline-none focus:ring-2 focus:ring-red-500`}
               >
                 <option value="">Seleziona</option>
-                <option value="1">1 sede</option>
-                <option value="2-5">2-5 sedi</option>
-                <option value="6-10">6-10 sedi</option>
-                <option value="11-50">11-50 sedi</option>
-                <option value="50+">Oltre 50 sedi</option>
+                <option value="Solo e-commerce">Solo e-commerce</option>
+                <option value="1">1 negozio fisico</option>
+                <option value="2-5">2-5 negozi fisici</option>
+                <option value="6-10">6-10 negozi fisici</option>
+                <option value="11-50">11-50 negozi fisici</option>
+                <option value="50+">Oltre 50 negozi</option>
+                <option value="Negozi + E-commerce">Negozi fisici + E-commerce</option>
               </select>
             </div>
 
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Dove si trovano i tuoi punti vendita?
-              </label>
-              <input
-                type="text"
-                value={formData.locationsCities}
-                onChange={(e) => handleInputChange('locationsCities', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="Es: Milano, Roma, Torino"
-              />
-            </div>
+            {formData.locationsCount && formData.locationsCount !== 'Solo e-commerce' && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  In quali città/zone si trovano? (opzionale)
+                </label>
+                <input
+                  type="text"
+                  value={formData.locationsCities}
+                  onChange={(e) => handleInputChange('locationsCities', e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                  placeholder="Es: Milano, Roma, Torino"
+                />
+              </div>
+            )}
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Hai già un sistema POS? *
+                Come gestisci le vendite attualmente? *
               </label>
               <div className="space-y-2">
-                {['Sì', 'No', 'In valutazione'].map(option => (
+                {['Piattaforma e-commerce', 'Sistema cassa/gestionale', 'Registro manuale', 'Altro'].map(option => (
                   <label key={option} className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="radio"
@@ -372,10 +411,10 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               </div>
             </div>
 
-            {formData.existingPOS === 'Sì' && (
+            {(formData.existingPOS === 'Sistema cassa/gestionale' || formData.existingPOS === 'Piattaforma e-commerce') && (
               <div>
                 <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Quale sistema POS usi attualmente?
+                  Quale sistema/piattaforma usi? (opzionale)
                 </label>
                 <input
                   type="text"
@@ -386,7 +425,9 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
                       : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
                   } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                  placeholder="Es: Square, Toast, altro"
+                  placeholder={formData.existingPOS === 'Piattaforma e-commerce'
+                    ? "Es: Shopify, WooCommerce, PrestaShop, Magento..."
+                    : "Es: Zucchetti, TeamSystem, Vend, altro gestionale..."}
                 />
               </div>
             )}
@@ -432,11 +473,11 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 value={formData.currentCustomerManagement}
                 onChange={(e) => handleInputChange('currentCustomerManagement', e.target.value)}
                 rows={3}
-                className={`w-full px-4 py-3 rounded-xl border ${
+                className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${
                   darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                    ? 'bg-gray-800 border-white/10 placeholder-gray-500 textarea-dark-fix'
+                    : 'bg-white border-gray-200 placeholder-gray-500 textarea-light-fix'
+                }`}
                 placeholder="Es: Excel, CRM specifico, carta e penna..."
               />
             </div>
@@ -590,132 +631,295 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Nome e Cognome *
               </label>
-              <input
-                type="text"
-                value={formData.contactName}
-                onChange={(e) => handleInputChange('contactName', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="Mario Rossi"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <User className={`w-5 h-5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={formData.contactName}
+                  onChange={(e) => handleInputChange('contactName', e.target.value)}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 transition-all`}
+                  placeholder="Mario Rossi"
+                />
+              </div>
             </div>
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Email Aziendale *
               </label>
-              <input
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="mario@tuaazienda.it"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Mail className={`w-5 h-5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="email"
+                  value={formData.contactEmail}
+                  onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 transition-all`}
+                  placeholder="mario@tuaazienda.it"
+                />
+              </div>
             </div>
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Telefono *
               </label>
-              <input
-                type="tel"
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="+39 XXX XXX XXXX"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Phone className={`w-5 h-5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="tel"
+                  value={formData.contactPhone}
+                  onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 transition-all`}
+                  placeholder="+39 XXX XXX XXXX"
+                />
+              </div>
             </div>
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Ruolo in Azienda
               </label>
-              <input
-                type="text"
-                value={formData.contactRole}
-                onChange={(e) => handleInputChange('contactRole', e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border ${
-                  darkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                placeholder="Es: Proprietario, Manager, Responsabile Marketing"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Briefcase className={`w-5 h-5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={formData.contactRole}
+                  onChange={(e) => handleInputChange('contactRole', e.target.value)}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
+                    darkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 transition-all`}
+                  placeholder="Es: Proprietario, Manager, Responsabile Marketing"
+                />
+              </div>
             </div>
           </div>
         )
 
       case 7:
         return (
-          <div className="text-center py-8">
+          <div className="py-8 max-h-[70vh] overflow-y-auto scroll-smooth scrollbar-thin scrollbar-thumb-red-500 scrollbar-track-transparent">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, type: 'spring' }}
+              className="text-center mb-6"
             >
-              <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-6" />
+              <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
+              <h2 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                ✅ Richiesta Inviata con Successo! [v2.0]
+              </h2>
+              <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Grazie <strong>{formData.contactName}</strong>! Abbiamo ricevuto tutti i dati.
+              </p>
             </motion.div>
 
-            <h2 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Richiesta Inviata!
-            </h2>
-
-            <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Grazie <strong>{formData.contactName}</strong>!
-            </p>
-
-            <div className={`max-w-2xl mx-auto p-6 rounded-2xl ${
-              darkMode ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'
-            }`}>
-              <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Abbiamo ricevuto la tua richiesta per <strong>{formData.companyName}</strong>.
-              </p>
-
-              <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Il nostro team analizzerà le tue esigenze e ti contatterà entro <strong>24 ore</strong> per:
-              </p>
-
-              <div className={`space-y-3 text-left mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Attivare il tuo account OmnilyPro personalizzato</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Programmare una demo live su misura per te</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Discutere il piano più adatto alle tue esigenze</span>
+            {/* Summary of submitted data */}
+            <div className="space-y-4 mb-8">
+              {/* Company Info */}
+              <div className={`p-5 rounded-xl border ${
+                darkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-start gap-3 mb-3">
+                  <Building2 className={`w-5 h-5 mt-0.5 ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+                  <div>
+                    <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Informazioni Azienda
+                    </h3>
+                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <strong>{formData.companyName}</strong>
+                      {formData.industry && ` · ${formData.industry}`}
+                      {formData.employeesCount && ` · ${formData.employeesCount} dipendenti`}
+                    </p>
+                    {formData.website && (
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {formData.website}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Ti invieremo una email a <strong>{formData.contactEmail}</strong> con i prossimi passi.
-              </p>
+              {/* Contact Info */}
+              <div className={`p-5 rounded-xl border ${
+                darkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-start gap-3 mb-3">
+                  <Mail className={`w-5 h-5 mt-0.5 ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+                  <div>
+                    <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      I Tuoi Contatti
+                    </h3>
+                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <strong>{formData.contactName}</strong>
+                      {formData.contactRole && ` · ${formData.contactRole}`}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      📧 {formData.contactEmail}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      📞 {formData.contactPhone}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Goals & Timeline */}
+              <div className={`p-5 rounded-xl border ${
+                darkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-start gap-3 mb-3">
+                  <Target className={`w-5 h-5 mt-0.5 ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+                  <div className="flex-1">
+                    <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Obiettivi & Tempistiche
+                    </h3>
+                    {formData.goals.length > 0 && (
+                      <div className="mb-3">
+                        <p className={`text-sm mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Obiettivi selezionati:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.goals.map(goal => {
+                            const goalObj = goalOptions.find(g => g.value === goal)
+                            return (
+                              <span key={goal} className={`text-xs px-2 py-1 rounded-full ${
+                                darkMode ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {goalObj?.label || goal}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      {formData.timeline && (
+                        <div>
+                          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Timeline</p>
+                          <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {formData.timeline === 'immediately' && '⚡ Subito'}
+                            {formData.timeline === '1-month' && '📅 Entro 1 mese'}
+                            {formData.timeline === '1-3-months' && '📅 Entro 3 mesi'}
+                            {formData.timeline === 'exploring' && '🔍 Esplorando'}
+                          </p>
+                        </div>
+                      )}
+                      {formData.budgetRange && (
+                        <div>
+                          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Budget</p>
+                          <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            💰 {formData.budgetRange === 'flexible' ? 'Flessibile' : formData.budgetRange}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className={`mt-8 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                darkMode
-                  ? 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:shadow-red-500/50'
-                  : 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:shadow-red-500/30'
-              }`}
-            >
-              Torna alla Home
-            </button>
+            {/* What happens next */}
+            <div className={`p-6 rounded-2xl border-2 mb-8 ${
+              darkMode ? 'bg-red-500/10 border-red-500/30' : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-bold text-lg mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                🎯 Cosa Succede Adesso?
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold ${
+                    darkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white'
+                  }`}>1</div>
+                  <div>
+                    <p className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                      📧 Conferma Email (tra pochi minuti)
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Riceverai una email di conferma a <strong>{formData.contactEmail}</strong>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold ${
+                    darkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white'
+                  }`}>2</div>
+                  <div>
+                    <p className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                      🤝 Contatto dal Team (entro 24 ore)
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Il nostro team analizzerà le tue esigenze e ti chiamerà per programmare la demo
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold ${
+                    darkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white'
+                  }`}>3</div>
+                  <div>
+                    <p className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                      🚀 Demo Personalizzata
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Ti mostreremo OmnilyPro in azione, focalizzandoci sui tuoi obiettivi specifici
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={onClose}
+                className={`px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  darkMode
+                    ? 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:shadow-red-500/50'
+                    : 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:shadow-red-500/30'
+                }`}
+              >
+                🏠 Torna alla Home
+              </button>
+              <a
+                href="https://omnilypro.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`px-8 py-3 rounded-xl font-semibold transition-all duration-200 text-center ${
+                  darkMode
+                    ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                📚 Scopri di Più
+              </a>
+            </div>
+
+            {/* Emergency contact */}
+            <div className={`mt-8 text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p>Domande urgenti? Contattaci a <strong>sales@omnilypro.com</strong></p>
+            </div>
           </div>
         )
 
@@ -723,6 +927,14 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         return null
     }
   }
+
+  // Tech keywords for animated background
+  const techKeywords = [
+    'Loyalty', 'CRM', 'E-commerce', 'API', 'Analytics', 'Rewards',
+    'Shopify', 'WooCommerce', 'Integration', 'Customers', 'Marketing',
+    'Engagement', 'Points', 'Tiers', 'Cashback', 'Gamification',
+    'Mobile', 'Cloud', 'Real-time', 'Automation', 'AI'
+  ]
 
   if (isSubmitted) {
     return (
@@ -749,6 +961,44 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </div>
           </div>
         )}
+
+        {/* Floating Tech Keywords */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {techKeywords.map((keyword, index) => {
+            const randomTop = Math.random() * 100
+            const randomLeft = Math.random() * 100
+            const randomDuration = 15 + Math.random() * 20
+            const randomDelay = Math.random() * 5
+            const randomSize = 1 + Math.random() * 1.5
+
+            return (
+              <motion.div
+                key={keyword}
+                className={`absolute whitespace-nowrap font-bold ${
+                  darkMode ? 'text-white/5' : 'text-gray-900/5'
+                }`}
+                style={{
+                  top: `${randomTop}%`,
+                  left: `${randomLeft}%`,
+                  fontSize: `${randomSize}rem`,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  x: [0, Math.random() > 0.5 ? 20 : -20, 0],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: randomDuration,
+                  repeat: Infinity,
+                  delay: randomDelay,
+                  ease: "easeInOut"
+                }}
+              >
+                {keyword}
+              </motion.div>
+            )
+          })}
+        </div>
 
         {/* Dark mode toggle */}
         <button
@@ -798,6 +1048,44 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           </div>
         </div>
       )}
+
+      {/* Floating Tech Keywords */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {techKeywords.map((keyword, index) => {
+          const randomTop = Math.random() * 100
+          const randomLeft = Math.random() * 100
+          const randomDuration = 15 + Math.random() * 20
+          const randomDelay = Math.random() * 5
+          const randomSize = 1 + Math.random() * 1.5
+
+          return (
+            <motion.div
+              key={keyword}
+              className={`absolute whitespace-nowrap font-bold ${
+                darkMode ? 'text-white/5' : 'text-gray-900/5'
+              }`}
+              style={{
+                top: `${randomTop}%`,
+                left: `${randomLeft}%`,
+                fontSize: `${randomSize}rem`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                x: [0, Math.random() > 0.5 ? 20 : -20, 0],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: randomDuration,
+                repeat: Infinity,
+                delay: randomDelay,
+                ease: "easeInOut"
+              }}
+            >
+              {keyword}
+            </motion.div>
+          )
+        })}
+      </div>
 
       {/* Dark mode toggle */}
       <button
@@ -853,12 +1141,37 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 </button>
               )}
             </div>
-            <h1 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Richiedi Demo
-            </h1>
-            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Compila il form per ricevere una demo personalizzata
-            </p>
+            <div>
+              <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                🚀 Richiedi Demo
+              </h1>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Solo 2 minuti per una demo su misura
+              </p>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Progresso
+                </span>
+                <span className={`text-xs font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  {Math.round((currentStep / 7) * 100)}%
+                </span>
+              </div>
+              <div className={`h-2 rounded-full overflow-hidden ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>
+                <motion.div
+                  className="h-full bg-gradient-to-r from-red-600 to-red-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(currentStep / 7) * 100}%` }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                />
+              </div>
+              <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                {7 - currentStep === 0 ? '✅ Completato!' : `${7 - currentStep} step rimanenti`}
+              </p>
+            </div>
           </div>
 
           {/* Steps - hidden on mobile, shown on desktop */}
@@ -942,8 +1255,8 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 flex items-start md:items-center justify-center p-4 md:p-8 overflow-y-auto">
-            <div className="w-full max-w-2xl">
+          <div className="flex-1 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+            <div className="w-full max-w-3xl">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentStep}
@@ -951,11 +1264,12 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
+                  className="h-full"
                 >
-                  <div className={`p-4 md:p-8 rounded-2xl backdrop-blur-xl ${
+                  <div className={`p-6 md:p-10 rounded-2xl backdrop-blur-xl h-full ${
                     darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-200 shadow-xl'
                   }`}>
-                    <h2 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-2xl md:text-3xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {steps[currentStep - 1].title}
                     </h2>
 
@@ -971,6 +1285,19 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <div className={`p-6 backdrop-blur-xl border-t ${
               darkMode ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'
             }`}>
+              {/* Motivational message */}
+              {currentStep < 6 && (
+                <div className="max-w-2xl mx-auto mb-4">
+                  <p className={`text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {currentStep === 1 && "🎯 Ottimo inizio! Raccontaci di più sulla tua attività"}
+                    {currentStep === 2 && "📍 Perfetto! Aiutaci a capire dove operi"}
+                    {currentStep === 3 && "💝 Quasi a metà! Come gestisci i tuoi clienti oggi?"}
+                    {currentStep === 4 && "🎁 Fantastico! Quali sono i tuoi obiettivi?"}
+                    {currentStep === 5 && "⚡ Ci siamo quasi! Budget e tempistiche"}
+                  </p>
+                </div>
+              )}
+
               <div className="max-w-2xl mx-auto flex justify-between gap-4">
                 <button
                   onClick={handleBack}
@@ -992,16 +1319,25 @@ const DemoRequestWizard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 <button
                   onClick={handleNext}
                   disabled={!isStepValid()}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`group px-8 py-4 rounded-xl font-bold transition-all duration-200 flex items-center gap-2 ${
                     !isStepValid()
                       ? darkMode
                         ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:shadow-red-500/50'
+                      : 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-xl hover:shadow-red-500/50 hover:scale-105'
                   }`}
                 >
-                  {currentStep === 6 ? 'Invia Richiesta' : 'Avanti'}
-                  <ArrowRight className="w-5 h-5" />
+                  {currentStep === 6 ? (
+                    <>
+                      🚀 Invia Richiesta
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  ) : (
+                    <>
+                      Continua
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -8,6 +8,7 @@ import Activate from './pages/Activate'
 import Home from './pages/Home'
 import Card from './pages/Card'
 import Rewards from './pages/Rewards'
+import Coupons from './pages/Coupons'
 import Profile from './pages/Profile'
 import { getCookie } from './utils/cookies'
 import './styles/global.css'
@@ -110,6 +111,7 @@ function App() {
           <Route path="home" element={<Home />} />
           <Route path="card" element={<Card />} />
           <Route path="rewards" element={<Rewards />} />
+          <Route path="coupons" element={<Coupons />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="login" replace />} />
         </Route>

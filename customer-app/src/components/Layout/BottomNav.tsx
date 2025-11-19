@@ -1,4 +1,4 @@
-import { Home, CreditCard, Gift, User } from 'lucide-react'
+import { Home, CreditCard, Gift, Ticket, User } from 'lucide-react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import './BottomNav.css'
 
@@ -11,6 +11,7 @@ export default function BottomNav() {
     { id: 'home', label: 'Home', icon: Home, path: `/${slug}/home` },
     { id: 'card', label: 'Card', icon: CreditCard, path: `/${slug}/card` },
     { id: 'rewards', label: 'Premi', icon: Gift, path: `/${slug}/rewards` },
+    { id: 'coupons', label: 'Coupon', icon: Ticket, path: `/${slug}/coupons` },
     { id: 'profile', label: 'Profilo', icon: User, path: `/${slug}/profile` }
   ]
 
