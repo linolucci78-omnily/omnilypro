@@ -56,13 +56,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const urlParams = new URLSearchParams(window.location.search);
       const isPosMode = urlParams.has('pos') || urlParams.has('posomnily') || navigator.userAgent.includes('OMNILY-POS-APP');
 
-      // STEP 1: TEMPORANEAMENTE DISABILITATO
-      // Il controllo sulla tabella users causa problemi con le RLS policies (loop circolare)
-      // Tutti gli utenti useranno organization_users per ora
-      console.log('🔐 [V5] Skipping users table check (RLS issue), going to organization_users...');
+      // STEP 1: Check users table for is_super_admin flag (PRIORITÀ MASSIMA)
+      console.log('🔐 [V6] Checking users table for super admin status...');
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('is_super_admin, role')
+        .eq('id', userId)
+        .single();
 
-      // STEP 2: Check for organization roles (NO TIMEOUT - wait as long as needed)
-      console.log('🔐 [V5] Checking organization_users table...');
+      console.log('🔐 [V6] Users table result:', { userData, userError });
+
+      // Se è super admin, impostal subito e ritorna (non serve controllare organization_users)
+      if (userData && userData.is_super_admin === true) {
+        console.log('🔐 [V6] ✅ SUPER ADMIN DETECTED! Setting role and returning.');
+        roleCache.current[userId] = {
+          role: 'super_admin',
+          isSuperAdmin: true,
+          timestamp: Date.now()
+        };
+        setUserRole('super_admin');
+        setIsSuperAdmin(true);
+        return;
+      }
+
+      // STEP 2: Se non è super admin, controlla organization_users
+      console.log('🔐 [V6] Not super admin, checking organization_users table...');
 
       let orgRoles: any, orgError: any;
 
