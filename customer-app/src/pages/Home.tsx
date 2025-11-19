@@ -44,7 +44,7 @@ export default function Home() {
               {false ? (
                 <img
                   src=""
-                  alt={customer.name}
+                  alt={customer?.name || 'User'}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
