@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
+import React, { useEffect, useState } from 'react';
+import { X, Camera } from 'lucide-react';
 import './QRScannerModal.css';
 
 interface QRScannerModalProps {
@@ -14,114 +13,78 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
   onClose,
   onScanSuccess
 }) => {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string>('');
+  const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     if (!isOpen) {
-      // Stop scanner when modal closes
-      if (scannerRef.current && isScanning) {
-        scannerRef.current.stop().then(() => {
-          scannerRef.current?.clear();
-          setIsScanning(false);
-        }).catch(console.error);
+      // Cancel scanner when modal closes
+      if (isScanning && typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        const bridge = (window as any).OmnilyPOS;
+        if (bridge.cancelQRScanner) {
+          bridge.cancelQRScanner();
+        }
       }
+      setIsScanning(false);
+      setScanStatus('idle');
+      setError('');
       return;
     }
 
-    // Start scanner when modal opens
-    const startScanner = async () => {
+    // Setup global callback for QR scan result
+    (window as any).omnilyRewardQRResultHandler = (result: string) => {
+      console.log('✅ QR Code scansionato tramite bridge:', result);
+
       try {
-        // First, request camera permissions explicitly
-        console.log('🎥 Richiedendo permessi fotocamera...');
-
-        // Try to get camera stream first to trigger permission prompt
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-          });
-          // Stop the test stream immediately
-          stream.getTracks().forEach(track => track.stop());
-          console.log('✅ Permessi fotocamera ottenuti');
-        } catch (permErr) {
-          console.error('❌ Permessi fotocamera negati:', permErr);
-          setError('Permetti l\'accesso alla fotocamera per scansionare i QR code.');
-          return;
+        const data = JSON.parse(result);
+        if (data.redemptionId) {
+          onScanSuccess(data.redemptionId);
+        } else if (data.rewardId) {
+          onScanSuccess(data.rewardId);
+        } else if (data.type === 'use_reward' && data.redemptionId) {
+          onScanSuccess(data.redemptionId);
+        } else {
+          onScanSuccess(result);
         }
+      } catch {
+        // Se non è JSON, usa il testo come ID
+        onScanSuccess(result);
+      }
 
-        // Small delay to ensure DOM is ready and permissions are set
-        await new Promise(resolve => setTimeout(resolve, 300));
+      setScanStatus('success');
+      setIsScanning(false);
+      onClose();
+    };
 
-        console.log('🎥 Inizializzando scanner QR...');
-        const html5QrCode = new Html5Qrcode('qr-reader');
-        scannerRef.current = html5QrCode;
+    // Start scanner using Android bridge
+    const startScanner = () => {
+      if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+        const bridge = (window as any).OmnilyPOS;
 
-        await html5QrCode.start(
-          { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0
-          },
-          (decodedText) => {
-            // Successfully scanned QR code
-            console.log('✅ QR Code scansionato:', decodedText);
-
-            // Extract reward ID from QR code
-            try {
-              const data = JSON.parse(decodedText);
-              if (data.redemptionId) {
-                onScanSuccess(data.redemptionId);
-              } else if (data.rewardId) {
-                onScanSuccess(data.rewardId);
-              } else {
-                onScanSuccess(decodedText);
-              }
-            } catch {
-              // Se non è JSON, usa il testo come ID
-              onScanSuccess(decodedText);
-            }
-
-            // Stop scanner after successful scan
-            html5QrCode.stop().then(() => {
-              html5QrCode.clear();
-              setIsScanning(false);
-              onClose();
-            }).catch(console.error);
-          },
-          (errorMessage) => {
-            // Handle scan error (can be ignored for continuous scanning)
-          }
-        );
-
-        console.log('✅ Scanner QR avviato con successo');
-        setIsScanning(true);
-        setError('');
-      } catch (err: any) {
-        console.error('❌ Errore avvio scanner:', err);
-        let errorMsg = 'Impossibile avviare lo scanner.';
-
-        if (err.name === 'NotAllowedError') {
-          errorMsg = 'Permessi fotocamera negati. Abilita l\'accesso alla fotocamera nelle impostazioni.';
-        } else if (err.name === 'NotFoundError') {
-          errorMsg = 'Nessuna fotocamera trovata sul dispositivo.';
-        } else if (err.name === 'NotReadableError') {
-          errorMsg = 'Fotocamera in uso da un\'altra applicazione.';
-        } else if (err.message) {
-          errorMsg = `Errore: ${err.message}`;
+        if (bridge.readQRCode) {
+          console.log('📱 Avvio scanner QR tramite bridge Android...');
+          setScanStatus('scanning');
+          setIsScanning(true);
+          setError('');
+          bridge.readQRCode('omnilyRewardQRResultHandler');
+        } else {
+          console.error('❌ readQRCode non disponibile nel bridge');
+          setError('Scanner QR non disponibile su questo dispositivo.');
+          setScanStatus('error');
         }
-
-        setError(errorMsg);
+      } else {
+        console.error('❌ Bridge Android non disponibile');
+        setError('Funzionalità disponibile solo su dispositivo POS Android.');
+        setScanStatus('error');
       }
     };
 
     startScanner();
 
     return () => {
-      if (scannerRef.current && isScanning) {
-        scannerRef.current.stop().catch(console.error);
-      }
+      // Cleanup
+      delete (window as any).omnilyRewardQRResultHandler;
     };
   }, [isOpen, onClose, onScanSuccess]);
 
@@ -145,7 +108,21 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
         <h2 className="qr-scanner-title">Inquadra il QR Code del premio</h2>
 
         <div className="qr-scanner-container">
-          <div id="qr-reader" className="qr-reader"></div>
+          {scanStatus === 'scanning' && !error && (
+            <div className="qr-scanner-active">
+              <Camera size={80} strokeWidth={1.5} />
+              <p className="qr-scanner-status">Fotocamera attiva...</p>
+              <p className="qr-scanner-substatus">Inquadra il QR code del premio</p>
+            </div>
+          )}
+
+          {scanStatus === 'idle' && !error && (
+            <div className="qr-scanner-idle">
+              <Camera size={64} strokeWidth={1.5} />
+              <p>Inizializzazione scanner...</p>
+            </div>
+          )}
+
           {error && (
             <div className="qr-scanner-error">
               {error}
@@ -154,7 +131,9 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
         </div>
 
         <p className="qr-scanner-instructions">
-          Posiziona il codice all'interno del riquadro per riscattare automaticamente il premio.
+          {scanStatus === 'scanning'
+            ? 'Posiziona il QR code all\'interno del mirino della fotocamera del dispositivo.'
+            : 'Attendi che la fotocamera si attivi...'}
         </p>
 
         {/* Demo button - only in development */}
@@ -163,7 +142,7 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
             className="qr-scanner-demo-btn"
             onClick={handleSimulateScan}
           >
-            [DEMO] Simula Scansione "Caffè"
+            [DEMO] Simula Scansione
           </button>
         )}
       </div>

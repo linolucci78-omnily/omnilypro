@@ -99,6 +99,67 @@
   border-radius: 20px !important;
 }
 
+/* Scanner Active State */
+.qr-scanner-active,
+.qr-scanner-idle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+}
+
+.qr-scanner-active svg {
+  animation: pulse 2s ease-in-out infinite;
+  color: #22c55e;
+  filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.5));
+}
+
+.qr-scanner-idle svg {
+  animation: spin 3s linear infinite;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qr-scanner-status {
+  margin-top: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+}
+
+.qr-scanner-substatus {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.qr-scanner-idle p {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* Error Message */
 .qr-scanner-error {
   position: absolute;
