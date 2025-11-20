@@ -16,6 +16,7 @@ import AccountDetails from './pages/AccountDetails'
 import { getCookie } from './utils/cookies'
 import NotificationAnimations from './components/NotificationAnimations'
 import { useNotificationAnimations } from './hooks/useNotificationAnimations'
+import UpdatePrompt from './components/UpdatePrompt'
 import './styles/global.css'
 
 // Root redirect component - redirects to saved org slug
@@ -126,6 +127,7 @@ function OrgWrapper() {
 function App() {
   return (
     <BrowserRouter>
+      <UpdatePrompt />
       <Routes>
         {/* Organization routes */}
         <Route path="/:slug" element={<OrgWrapper />}>
