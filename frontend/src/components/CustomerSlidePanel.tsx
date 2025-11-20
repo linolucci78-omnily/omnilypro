@@ -36,6 +36,7 @@ interface CustomerSlidePanelProps {
   organizationPhone?: string; // Telefono organizzazione per stampe
   organizationTax?: string; // Partita IVA organizzazione per stampe
   primaryColor?: string; // Colore primario organizzazione
+  secondaryColor?: string; // Colore secondario organizzazione
   operatorName?: string; // Nome operatore per scontrini
   organizationId?: string; // ID organizzazione per Gaming Module
   onOpenGamingHub?: () => void; // Callback per aprire Gaming Hub
@@ -57,6 +58,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   organizationPhone = '', // Default vuoto
   organizationTax = '', // Default vuoto
   primaryColor = '#dc2626', // Default red se non specificato
+  secondaryColor = '#ef4444', // Default lighter red se non specificato
   operatorName = 'Operatore', // Default "Operatore" se non specificato
   organizationId = '', // Default vuoto
   onOpenGamingHub
@@ -870,76 +872,56 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
       {/* Slide Panel */}
       <div className={`customer-slide-panel ${isOpen ? 'open' : ''}`}>
-        {/* Header */}
-        <div className="customer-panel-header">
-          <div className="customer-slide-panel-header-info">
-            <div className="customer-slide-panel-header-with-avatar">
-              {/* Avatar */}
-              <div
-                className="customer-slide-panel-avatar"
-                style={{
-                  background: customer.avatar_url ? 'transparent' : (customer.gender === 'female' ? '#ec4899' : '#3b82f6'),
-                  cursor: customer.avatar_url ? 'pointer' : 'default'
-                }}
-                onClick={() => customer.avatar_url && setShowAvatarModal(true)}
-                title={customer.avatar_url ? 'Clicca per ingrandire' : ''}
-              >
-                {customer.avatar_url ? (
-                  <img
-                    src={customer.avatar_url}
-                    alt={customer.name}
-                    className="customer-slide-panel-avatar-img"
-                  />
-                ) : (
-                  <span className="customer-slide-panel-avatar-initials">
-                    {customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                  </span>
-                )}
-              </div>
-              {/* Nome e Tier */}
-              <div className="customer-slide-panel-name-tier">
-                <h2>{customer.name}</h2>
-                <div
-                  className="customer-slide-panel-tier"
-                  style={{
-                    background: `linear-gradient(135deg, ${getTierColor(currentTier.name)} 0%, ${getTierColor(currentTier.name)}dd 100%)`,
-                    color: 'white',
-                    padding: '0.4rem 1rem',
-                    borderRadius: '20px',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    boxShadow: `0 4px 12px ${getTierColor(currentTier.name)}40`,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    border: '2px solid rgba(255, 255, 255, 0.3)'
-                  }}
-                >
-                  {currentTier.name === 'Platinum' && '👑'}
-                  {currentTier.name === 'Gold' && '⭐'}
-                  {currentTier.name === 'Silver' && '✨'}
-                  {currentTier.name === 'Bronze' && '🥉'}
-                  <span>{currentTier.name}</span>
-                  {currentTier.multiplier && currentTier.multiplier > 1 && (
-                    <span style={{
-                      background: 'rgba(255, 255, 255, 0.3)',
-                      padding: '0.15rem 0.4rem',
-                      borderRadius: '10px',
-                      fontSize: '0.75rem',
-                      fontWeight: '700'
-                    }}>
-                      {currentTier.multiplier}x
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Header - Centered Style come customer-app */}
+        <div
+          className="customer-panel-header"
+          style={{
+            background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+            boxShadow: `0 8px 32px ${primaryColor}40, 0 4px 16px ${primaryColor}30`
+          }}
+        >
           <button className="customer-panel-close-btn" onClick={onClose}>
             <X size={16} />
           </button>
+
+          <div className="customer-slide-panel-header-centered">
+            <h3 className="customer-header-title">PROFILO FEDELTÀ</h3>
+
+            {/* Avatar Centrato */}
+            <div
+              className="customer-slide-panel-avatar-centered"
+              style={{
+                background: customer.avatar_url ? 'transparent' : (customer.gender === 'female' ? '#ec4899' : '#3b82f6'),
+                cursor: customer.avatar_url ? 'pointer' : 'default'
+              }}
+              onClick={() => customer.avatar_url && setShowAvatarModal(true)}
+              title={customer.avatar_url ? 'Clicca per ingrandire' : ''}
+            >
+              {customer.avatar_url ? (
+                <img
+                  src={customer.avatar_url}
+                  alt={customer.name}
+                  className="customer-slide-panel-avatar-img"
+                />
+              ) : (
+                <span className="customer-slide-panel-avatar-initials">
+                  {customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                </span>
+              )}
+            </div>
+
+            {/* Nome Centrato */}
+            <h2 className="customer-name-centered">{customer.name}</h2>
+
+            {/* Tier Name Centrato - Con icona */}
+            <div className="customer-tier-text-centered">
+              <Award size={16} />
+              <span>{currentTier.name}</span>
+              {currentTier.multiplier && currentTier.multiplier > 1 && (
+                <span> {currentTier.multiplier}x</span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Quick Stats */}
@@ -970,47 +952,82 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         {/* Quick Actions */}
         <div className="customer-panel-actions">
           <button
-            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-primary"
-            onClick={() => setShowEditModal(true)}
-          >
-            <UserCog size={20} />
-            Modifica Dati
-          </button>
-          <button
-            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-secondary"
+            className="customer-slide-panel-action-btn"
             onClick={() => setShowSaleModal(true)}
+            style={{
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+              boxShadow: `0 4px 16px ${primaryColor}40`
+            }}
           >
-            <ShoppingBag size={20} />
-            Nuova Vendita
+            <div className="action-btn-content">
+              <div className="action-btn-icon">
+                <ShoppingBag size={24} />
+              </div>
+              <div className="action-btn-text">
+                <div className="action-btn-title">Nuova Vendita</div>
+                <div className="action-btn-subtitle">Registra transazione</div>
+              </div>
+            </div>
+            <div className="action-btn-arrow">›</div>
           </button>
-          <button
-            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-tertiary"
-            onClick={() => setShowModifyPointsModal(true)}
-          >
-            <Edit3 size={20} />
-            Modifica {pointsName}
+
+          <button className="customer-slide-panel-action-btn" onClick={() => setShowEditModal(true)}>
+            <div className="action-btn-content">
+              <div className="action-btn-icon">
+                <UserCog size={24} />
+              </div>
+              <div className="action-btn-text">
+                <div className="action-btn-title">Dati Profilo</div>
+                <div className="action-btn-subtitle">Modifica informazioni</div>
+              </div>
+            </div>
+            <div className="action-btn-arrow">›</div>
           </button>
-          <button
-            className="customer-slide-panel-action-btn customer-slide-panel-action-btn-quaternary"
-            onClick={() => setShowRewardsSection(!showRewardsSection)}
-          >
-            <Gift size={20} />
-            Premi
+
+          <button className="customer-slide-panel-action-btn" onClick={() => setShowModifyPointsModal(true)}>
+            <div className="action-btn-content">
+              <div className="action-btn-icon">
+                <Target size={24} />
+              </div>
+              <div className="action-btn-text">
+                <div className="action-btn-title">Gestione {pointsName}</div>
+                <div className="action-btn-subtitle">Opzioni avanzate</div>
+              </div>
+            </div>
+            <div className="action-btn-arrow">›</div>
           </button>
+
+          <button className="customer-slide-panel-action-btn" onClick={() => setShowRewardsSection(!showRewardsSection)}>
+            <div className="action-btn-content">
+              <div className="action-btn-icon">
+                <Gift size={24} />
+              </div>
+              <div className="action-btn-text">
+                <div className="action-btn-title">Premi Disponibili</div>
+                <div className="action-btn-subtitle">Riscatta le {pointsName.toLowerCase()}</div>
+              </div>
+            </div>
+            <div className="action-btn-arrow">›</div>
+          </button>
+
           {organizationId && organizationId.trim() !== '' && onOpenGamingHub && (
             <button
-              className="customer-slide-panel-action-btn customer-slide-panel-action-btn-gaming"
+              className="customer-slide-panel-action-btn"
               onClick={() => {
                 console.log('🎮 Gaming button clicked! organizationId:', organizationId)
                 onOpenGamingHub()
               }}
-              style={{
-                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                color: 'white'
-              }}
             >
-              <Trophy size={20} />
-              Gaming
+              <div className="action-btn-content">
+                <div className="action-btn-icon">
+                  <Trophy size={24} />
+                </div>
+                <div className="action-btn-text">
+                  <div className="action-btn-title">Gaming Zone</div>
+                  <div className="action-btn-subtitle">Gioca e vinci</div>
+                </div>
+              </div>
+              <div className="action-btn-arrow">›</div>
             </button>
           )}
         </div>
