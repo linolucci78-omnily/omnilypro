@@ -21,6 +21,12 @@ export default function Rewards() {
   const [loading, setLoading] = useState(true)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [redeemedRewardName, setRedeemedRewardName] = useState('')
+  const [successAudio] = useState(() => {
+    const audio = new Audio('/sounds/mixkit-winning-notification-2018.wav')
+    audio.volume = 1.0
+    audio.load()
+    return audio
+  })
 
   if (!customer) {
     navigate(`/${slug}/login`)
@@ -152,6 +158,9 @@ export default function Rewards() {
             // Trigger confetti
             triggerConfetti()
 
+            // Riproduci suono di successo
+            playSuccessSound()
+
             // Mostra modal di successo
             setShowSuccessModal(true)
 
@@ -182,6 +191,44 @@ export default function Rewards() {
   const handleRedeemClick = (reward: any) => {
     setSelectedReward(reward)
     setShowConfirmModal(true)
+  }
+
+  const playSuccessSound = async () => {
+    try {
+      console.log('🔊 Riproduzione suono di successo...')
+
+      // Reset audio to beginning
+      successAudio.currentTime = 0
+      successAudio.volume = 1.0
+
+      await successAudio.play()
+      console.log('✅ Suono riprodotto con successo! Volume:', successAudio.volume)
+    } catch (error) {
+      console.error('❌ Errore riproduzione audio:', error)
+
+      // Fallback: prova con un beep sintetizzato FORTE
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+        const oscillator = audioContext.createOscillator()
+        const gainNode = audioContext.createGain()
+
+        oscillator.connect(gainNode)
+        gainNode.connect(audioContext.destination)
+
+        oscillator.frequency.value = 1000
+        oscillator.type = 'square'
+
+        gainNode.gain.setValueAtTime(1, audioContext.currentTime)
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6)
+
+        oscillator.start(audioContext.currentTime)
+        oscillator.stop(audioContext.currentTime + 0.6)
+
+        console.log('🔊 Fallback: beep sintetizzato riprodotto')
+      } catch (fallbackError) {
+        console.error('❌ Anche il fallback è fallito:', fallbackError)
+      }
+    }
   }
 
   const triggerConfetti = () => {
