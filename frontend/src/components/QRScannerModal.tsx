@@ -33,6 +33,27 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
     // Start scanner when modal opens
     const startScanner = async () => {
       try {
+        // First, request camera permissions explicitly
+        console.log('🎥 Richiedendo permessi fotocamera...');
+
+        // Try to get camera stream first to trigger permission prompt
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+          });
+          // Stop the test stream immediately
+          stream.getTracks().forEach(track => track.stop());
+          console.log('✅ Permessi fotocamera ottenuti');
+        } catch (permErr) {
+          console.error('❌ Permessi fotocamera negati:', permErr);
+          setError('Permetti l\'accesso alla fotocamera per scansionare i QR code.');
+          return;
+        }
+
+        // Small delay to ensure DOM is ready and permissions are set
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        console.log('🎥 Inizializzando scanner QR...');
         const html5QrCode = new Html5Qrcode('qr-reader');
         scannerRef.current = html5QrCode;
 
@@ -40,20 +61,22 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
           { facingMode: 'environment' },
           {
             fps: 10,
-            qrbox: { width: 250, height: 250 }
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
           },
           (decodedText) => {
             // Successfully scanned QR code
-            console.log('QR Code scansionato:', decodedText);
+            console.log('✅ QR Code scansionato:', decodedText);
 
             // Extract reward ID from QR code
-            // Assumiamo che il QR contenga solo l'ID del premio o un JSON
             try {
               const data = JSON.parse(decodedText);
-              if (data.rewardId) {
+              if (data.redemptionId) {
+                onScanSuccess(data.redemptionId);
+              } else if (data.rewardId) {
                 onScanSuccess(data.rewardId);
               } else {
-                onScanSuccess(decodedText); // Fallback to raw text
+                onScanSuccess(decodedText);
               }
             } catch {
               // Se non è JSON, usa il testo come ID
@@ -72,11 +95,24 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
           }
         );
 
+        console.log('✅ Scanner QR avviato con successo');
         setIsScanning(true);
         setError('');
       } catch (err: any) {
-        console.error('Errore avvio scanner:', err);
-        setError('Impossibile accedere alla fotocamera. Verifica i permessi.');
+        console.error('❌ Errore avvio scanner:', err);
+        let errorMsg = 'Impossibile avviare lo scanner.';
+
+        if (err.name === 'NotAllowedError') {
+          errorMsg = 'Permessi fotocamera negati. Abilita l\'accesso alla fotocamera nelle impostazioni.';
+        } else if (err.name === 'NotFoundError') {
+          errorMsg = 'Nessuna fotocamera trovata sul dispositivo.';
+        } else if (err.name === 'NotReadableError') {
+          errorMsg = 'Fotocamera in uso da un\'altra applicazione.';
+        } else if (err.message) {
+          errorMsg = `Errore: ${err.message}`;
+        }
+
+        setError(errorMsg);
       }
     };
 
