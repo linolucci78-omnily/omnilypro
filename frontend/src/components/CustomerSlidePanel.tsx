@@ -7,6 +7,7 @@ import ConfirmModal from './UI/ConfirmModal';
 import ModifyPointsModal from './ModifyPointsModal';
 import TierUpgradeModal from './TierUpgradeModal';
 import EditCustomerModal from './EditCustomerModal';
+import RewardsModal from './RewardsModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
@@ -64,17 +65,9 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   onOpenGamingHub
 }) => {
   const [showSaleModal, setShowSaleModal] = useState(false);
-  const [showRewardsSection, setShowRewardsSection] = useState(false);
-  const [rewardsView, setRewardsView] = useState<'redeem' | 'redeemed'>('redeem'); // 'redeem' = Riscatta Premio, 'redeemed' = Premi Riscattati
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
   const [customerActivities, setCustomerActivities] = useState<CustomerActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
-  const [availableRewards, setAvailableRewards] = useState<Reward[]>([]);
-  const [allRewards, setAllRewards] = useState<Reward[]>([]);
-  const [loadingRewards, setLoadingRewards] = useState(false);
-  const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [showModifyPointsModal, setShowModifyPointsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showTierUpgradeModal, setShowTierUpgradeModal] = useState(false);
@@ -165,81 +158,6 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     loadCustomerActivities();
   }, [customer, isOpen]);
 
-  // Carica premi quando la sezione premi viene aperta
-  useEffect(() => {
-    const loadRewards = async () => {
-      if (!customer || !showRewardsSection) return;
-
-      setLoadingRewards(true);
-      try {
-        console.log(`🔍 Caricamento premi per org: ${customer.organization_id}`);
-
-        // Calcola tier corrente del cliente
-        const currentTier = calculateCustomerTier(customer.points);
-        console.log(`🎯 Tier corrente cliente: ${currentTier.name}, Punti: ${customer.points}`);
-
-        // Carica tutti i premi attivi per mostrare anche quelli non disponibili
-        const active = await rewardsService.getActive(customer.organization_id);
-        console.log(`📦 Premi attivi trovati:`, active);
-        setAllRewards(active);
-
-        // Carica premi disponibili in base a punti e tier
-        const available = await rewardsService.getAvailableForCustomer(
-          customer.organization_id,
-          customer.points,
-          currentTier.name,
-          loyaltyTiers
-        );
-        console.log(`✅ Premi disponibili trovati:`, available);
-        setAvailableRewards(available);
-
-        console.log(`✅ Caricati ${active.length} premi totali, ${available.length} disponibili per ${customer.name}`);
-      } catch (error) {
-        console.error('❌ Errore caricamento premi:', error);
-        setAllRewards([]);
-        setAvailableRewards([]);
-      } finally {
-        setLoadingRewards(false);
-      }
-    };
-
-    loadRewards();
-  }, [customer, showRewardsSection, loyaltyTiers]);
-
-  // Carica storico premi riscattati quando si seleziona la vista "redeemed"
-  useEffect(() => {
-    const loadRedemptionHistory = async () => {
-      if (!customer || !showRewardsSection || rewardsView !== 'redeemed') return;
-
-      setLoadingHistory(true);
-      try {
-        const history = await rewardsService.getRedemptionsByCustomer(
-          customer.id,
-          customer.organization_id,
-          20 // Ultime 20 redemptions
-        );
-        setRedemptionHistory(history);
-        console.log(`✅ Caricato storico di ${history.length} premi riscattati per ${customer.name}`);
-      } catch (error) {
-        console.error('❌ Errore caricamento storico:', error);
-        setRedemptionHistory([]);
-      } finally {
-        setLoadingHistory(false);
-      }
-    };
-
-    loadRedemptionHistory();
-  }, [customer, showRewardsSection, rewardsView]);
-
-  // Calcola messaggio conferma riscatto dinamicamente per mostrare sempre punti aggiornati
-  // IMPORTANTE: useMemo DEVE essere prima del return condizionale per rispettare le Rules of Hooks
-  const confirmRedeemMessage = useMemo(() => {
-    if (!selectedReward || !localCustomer) return '';
-
-    const pointsAfterRedemption = localCustomer.points - selectedReward.points_required;
-
-    return `Vuoi riscattare "${selectedReward.name}" per ${selectedReward.points_required} ${pointsName.toLowerCase()}?\n\n${pointsName} attuali: ${localCustomer.points}\n${pointsName} dopo riscatto: ${pointsAfterRedemption}`;
-  }, [selectedReward, localCustomer, pointsName]);
 
   if (!customer || !localCustomer) return null;
 
@@ -312,13 +230,6 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         }
       });
     }
-  };
-
-  // Funzione per riscattare un premio
-  const handleRedeemReward = async (reward: Reward) => {
-    if (!customer) return;
-    setSelectedReward(reward);
-    setShowConfirmModal(true);
   };
 
   const handleModifyPoints = async (pointsChange: number, reason: string) => {
@@ -407,63 +318,6 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       }, 500);
     } catch (error) {
       console.error('❌ Errore aggiornamento attività:', error);
-    }
-  };
-
-  const confirmRedeemReward = async () => {
-    if (!customer || !selectedReward || !localCustomer) return;
-
-    setShowConfirmModal(false);
-
-    try {
-      console.log(`🎁 Riscatto premio "${selectedReward.name}" per ${customer.name}...`);
-
-      // Calcola tier corrente
-      const currentTier = calculateCustomerTier(localCustomer.points);
-
-      // Chiama API per riscattare il premio
-      const result = await rewardsService.redeemForCustomer(
-        customer.organization_id,
-        customer.id,
-        selectedReward.id,
-        localCustomer.points,
-        currentTier.name
-      );
-
-      if (!result.success) {
-        console.error(`❌ Errore riscatto: ${result.error}`);
-        return;
-      }
-
-      console.log(`✅ Premio "${selectedReward.name}" riscattato! Punti scalati: -${selectedReward.points_required}`);
-
-      // 📝 LOG STAFF ACTIVITY
-      await logRewardRedeemed(
-        customer.organization_id,
-        customer.id,
-        customer.name,
-        selectedReward.id,
-        selectedReward.name,
-        selectedReward.points_required
-      );
-
-      // Aggiorna localCustomer immediatamente con i nuovi punti
-      const newPoints = localCustomer.points - selectedReward.points_required;
-      setLocalCustomer({ ...localCustomer, points: newPoints });
-      console.log(`🔄 LocalCustomer aggiornato: ${localCustomer.points} -> ${newPoints} punti dopo riscatto premio`);
-
-      // Chiudi e riapri la sezione per ricaricare i dati
-      setShowRewardsSection(false);
-      setTimeout(() => setShowRewardsSection(true), 100);
-
-      // Aggiorna il customer display se disponibile
-      updateCustomerDisplay();
-
-      setSelectedReward(null);
-
-    } catch (error) {
-      console.error('❌ Errore riscatto premio:', error);
-      setSelectedReward(null);
     }
   };
 
@@ -997,7 +851,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             <div className="action-btn-arrow">›</div>
           </button>
 
-          <button className="customer-slide-panel-action-btn" onClick={() => setShowRewardsSection(!showRewardsSection)}>
+          <button className="customer-slide-panel-action-btn" onClick={() => setShowRewardsModal(true)}>
             <div className="action-btn-content">
               <div className="action-btn-icon">
                 <Gift size={24} />
@@ -1032,129 +886,6 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           )}
         </div>
 
-        {/* Rewards Section - Sezione Premi */}
-        {showRewardsSection && (
-          <div className="customer-slide-panel-rewards-section">
-            <h3>
-              <Gift size={18} />
-              Gestione Premi
-            </h3>
-
-            {/* Two buttons: Riscatta Premio | Premi Riscattati */}
-            <div className="rewards-section-actions">
-              <button
-                className={`rewards-section-btn ${rewardsView === 'redeem' ? 'active' : ''}`}
-                onClick={() => setRewardsView('redeem')}
-              >
-                <Award size={18} />
-                Riscatta Premio
-              </button>
-              <button
-                className={`rewards-section-btn ${rewardsView === 'redeemed' ? 'active' : ''}`}
-                onClick={() => setRewardsView('redeemed')}
-              >
-                <Star size={18} />
-                Premi Riscattati
-              </button>
-            </div>
-
-            {/* Content based on selected view */}
-            <div className="rewards-section-content">
-              {rewardsView === 'redeem' ? (
-                // RISCATTA PREMIO - Lista premi disponibili
-                <div className="rewards-available">
-                  <p className="rewards-section-info">
-                    <Target size={16} />
-                    Hai <strong>{localCustomer.points} {pointsName.toLowerCase()}</strong> disponibili
-                  </p>
-                  <p className="rewards-section-subtitle">
-                    Seleziona un premio da riscattare:
-                  </p>
-
-                  {/* Lista premi disponibili */}
-                  <div className="rewards-list">
-                    {loadingRewards ? (
-                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Caricamento premi...</p>
-                    ) : allRewards.length === 0 ? (
-                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Nessun premio configurato</p>
-                    ) : (
-                      allRewards.map(reward => {
-                        const isAvailable = availableRewards.some(r => r.id === reward.id);
-                        const canRedeem = isAvailable && localCustomer.points >= reward.points_required;
-
-                        return (
-                          <div
-                            key={reward.id}
-                            className={`reward-item ${!canRedeem ? 'disabled' : ''}`}
-                          >
-                            <div className="reward-item-header">
-                              <Award size={20} className="reward-icon" />
-                              <div className="reward-info">
-                                <h4>{reward.name}</h4>
-                                <p className="reward-points">{reward.points_required} {pointsName.toLowerCase()}</p>
-                                {reward.required_tier && (
-                                  <p className="reward-tier-requirement" style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-                                    Richiede: {reward.required_tier}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              className="reward-redeem-btn"
-                              disabled={!canRedeem}
-                              onClick={() => handleRedeemReward(reward)}
-                            >
-                              {!isAvailable && reward.required_tier
-                                ? `Richiede ${reward.required_tier}`
-                                : !canRedeem
-                                ? `${pointsName} Insufficienti`
-                                : 'Riscatta'}
-                            </button>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              ) : (
-                // PREMI RISCATTATI - Storico premi
-                <div className="rewards-redeemed">
-                  <p className="rewards-section-subtitle">
-                    Storico dei premi riscattati:
-                  </p>
-
-                  {/* Lista premi riscattati */}
-                  <div className="rewards-history-list">
-                    {loadingHistory ? (
-                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Caricamento storico...</p>
-                    ) : redemptionHistory.length === 0 ? (
-                      <p style={{ textAlign: 'center', color: '#6b7280' }}>Nessun premio riscattato ancora</p>
-                    ) : (
-                      redemptionHistory.map(redemption => (
-                        <div key={redemption.id} className="reward-history-item">
-                          <div className="reward-history-info">
-                            <Sparkles size={18} className="reward-history-icon" />
-                            <div>
-                              <h5>{redemption.reward_name}</h5>
-                              <p className="reward-history-date">
-                                {new Date(redemption.redeemed_at).toLocaleDateString('it-IT', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric'
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                          <span className="reward-history-points">-{redemption.points_spent} pt</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Contact Info */}
         <div className="customer-slide-panel-contact">
@@ -1249,21 +980,6 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         currentTier={currentTier}
         bonusCategories={bonusCategories}
         pointsName={pointsName}
-      />
-
-      {/* Confirm Redeem Modal */}
-      <ConfirmModal
-        isOpen={showConfirmModal}
-        title="Conferma Riscatto Premio"
-        message={confirmRedeemMessage}
-        confirmText="Riscatta"
-        cancelText="Annulla"
-        type="info"
-        onConfirm={confirmRedeemReward}
-        onCancel={() => {
-          setShowConfirmModal(false);
-          setSelectedReward(null);
-        }}
       />
 
       {/* Modify Points Modal */}
@@ -1376,6 +1092,25 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Rewards Modal */}
+      {customer && (
+        <RewardsModal
+          isOpen={showRewardsModal}
+          onClose={() => setShowRewardsModal(false)}
+          customer={customer}
+          organizationId={customer.organization_id}
+          pointsName={pointsName}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+          onCustomerUpdate={async () => {
+            // Ricarica i dati del cliente dal database
+            if (onUpdateCustomer && customer.id) {
+              await onUpdateCustomer(customer.id, {});
+            }
+          }}
+        />
       )}
 
     </>

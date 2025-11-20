@@ -500,7 +500,8 @@ export class RewardsService {
     customerId: string,
     rewardId: string,
     customerPoints: number,
-    customerTier: string
+    customerTier: string,
+    redeemedBy: 'customer' | 'operator' = 'operator'
   ): Promise<{success: boolean; redemption?: any; error?: string}> {
     try {
       console.log(`🎁 REDEEM: Inizio riscatto premio ${rewardId} per cliente ${customerId}`);
@@ -546,6 +547,7 @@ export class RewardsService {
       }
 
       // 7. Registra riscatto
+      const now = new Date().toISOString();
       const redemptionData = {
         organization_id: organizationId,
         customer_id: customerId,
@@ -557,10 +559,12 @@ export class RewardsService {
         customer_points_before: customerPoints,
         customer_points_after: newPoints,
         customer_tier: customerTier,
-        status: 'redeemed',
-        redeemed_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        status: redeemedBy === 'operator' ? 'used' : 'redeemed',
+        redeemed_by: redeemedBy,
+        redeemed_at: now,
+        used_at: redeemedBy === 'operator' ? now : null, // Se operatore riscatta, già usato
+        created_at: now,
+        updated_at: now
       };
 
       const { data: redemption, error: redemptionError } = await supabase
@@ -598,6 +602,34 @@ export class RewardsService {
 
     } catch (error: any) {
       console.error('Error in RewardsService.redeemForCustomer:', error);
+      return { success: false, error: error.message || 'Errore sconosciuto' };
+    }
+  }
+
+  /**
+   * Marca un premio riscattato come "usato" quando viene scansionato in negozio
+   */
+  async markRewardAsUsed(redemptionId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('reward_redemptions')
+        .update({
+          used_at: new Date().toISOString(),
+          status: 'used'
+        })
+        .eq('id', redemptionId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Failed to mark reward as used:', error);
+        return { success: false, error: error.message };
+      }
+
+      console.log('✅ Reward marked as used:', data);
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error in RewardsService.markRewardAsUsed:', error);
       return { success: false, error: error.message || 'Errore sconosciuto' };
     }
   }

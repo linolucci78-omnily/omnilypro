@@ -3547,6 +3547,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationPhone={currentOrganization?.phone || ''}
         organizationTax={currentOrganization?.partita_iva || ''}
         primaryColor={currentOrganization?.primary_color || '#dc2626'}
+        secondaryColor={currentOrganization?.secondary_color || '#ef4444'}
         operatorName={user?.email || 'Operatore'}
         organizationId={currentOrganization?.id}
         onOpenGamingHub={() => {

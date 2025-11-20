@@ -16,7 +16,6 @@ import AccountDetails from './pages/AccountDetails'
 import { getCookie } from './utils/cookies'
 import NotificationAnimations from './components/NotificationAnimations'
 import { useNotificationAnimations } from './hooks/useNotificationAnimations'
-import AnimationTester from './components/AnimationTester'
 import './styles/global.css'
 
 // Root redirect component - redirects to saved org slug
@@ -119,7 +118,6 @@ function OrgWrapper() {
       <AuthProvider>
         <Outlet />
         <NotificationAnimations ref={animations.animationsRef} />
-        <AnimationTester onTriggerAnimation={handleTriggerAnimation} />
       </AuthProvider>
     </OrganizationProvider>
   )
