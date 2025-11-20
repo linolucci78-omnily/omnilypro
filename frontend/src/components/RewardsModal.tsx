@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, Gift, Clock, Heart, Lock, QrCode } from 'lucide-react';
 import { rewardsService, type Reward } from '../services/rewardsService';
 import ConfirmRedeemModal from './ConfirmRedeemModal';
-import QRScannerModal from './QRScannerModal';
 import Toast, { ToastType } from './Toast';
 import './RewardsModal.css';
 
@@ -34,7 +33,6 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
   const [loadingRewards, setLoadingRewards] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showQRScanner, setShowQRScanner] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
     message: '',
@@ -50,13 +48,81 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
   const pointsMissing = highestReward ? Math.max(0, highestReward.points_required - customer.points) : 0;
   const progressPercentage = highestReward ? Math.min(100, (customer.points / highestReward.points_required) * 100) : 0;
 
+  // Setup callback globale per lo scanner QR
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Setup global callback for QR scan result
+    (window as any).omnilyRewardQRResultHandler = (result: any) => {
+      console.log('✅ QR Code scansionato tramite bridge:', result);
+
+      // Il bridge Android passa un oggetto, non una stringa!
+      // Estrai il contenuto dal campo 'content' o 'qrCode'
+      let qrData: string;
+      if (typeof result === 'string') {
+        qrData = result;
+      } else if (result && result.content) {
+        qrData = result.content;
+      } else if (result && result.qrCode) {
+        qrData = result.qrCode;
+      } else {
+        console.error('❌ Formato risultato bridge non riconosciuto:', result);
+        setToast({
+          message: 'Formato QR code non valido',
+          type: 'error',
+          isVisible: true
+        });
+        return;
+      }
+
+      console.log('📦 QR Data estratto:', qrData);
+      handleQRScan(qrData);
+    };
+
+    return () => {
+      // Cleanup
+      delete (window as any).omnilyRewardQRResultHandler;
+    };
+  }, [isOpen]);
+
+  // Avvia scanner QR direttamente tramite bridge Android
+  const startQRScanner = () => {
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+
+      if (bridge.readQRCode) {
+        console.log('📱 Avvio scanner QR tramite bridge Android...');
+        bridge.readQRCode('omnilyRewardQRResultHandler');
+      } else {
+        console.error('❌ readQRCode non disponibile nel bridge');
+        setToast({
+          message: 'Scanner QR non disponibile su questo dispositivo.',
+          type: 'error',
+          isVisible: true
+        });
+      }
+    } else {
+      console.error('❌ Bridge Android non disponibile');
+      setToast({
+        message: 'Funzionalità disponibile solo su dispositivo POS Android.',
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
   // Gestisci scansione QR Code
   const handleQRScan = async (qrData: string) => {
     console.log('🔍 QR Code scansionato:', qrData);
+    console.log('🔍 Tipo di qrData:', typeof qrData);
 
     try {
       // Prova a parsare come JSON (nuovo formato)
+      console.log('📦 Tentativo di parsing JSON...');
       const parsed = JSON.parse(qrData);
+      console.log('✅ JSON parsed con successo:', parsed);
+      console.log('📦 parsed.type:', parsed.type);
+      console.log('📦 parsed.redemptionId:', parsed.redemptionId);
 
       if (parsed.type === 'use_reward') {
         // QR Code per USARE un premio già riscattato
@@ -88,6 +154,7 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
       }
     } catch (e) {
       // Non è JSON, potrebbe essere il vecchio formato (solo reward ID)
+      console.error('❌ Errore parsing JSON:', e);
       console.log('📦 Formato vecchio, cerco tra i premi disponibili');
     }
 
@@ -482,19 +549,12 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
       {activeTab === 'redeem' && (
         <button
           className="rewards-qr-fab"
-          onClick={() => setShowQRScanner(true)}
+          onClick={startQRScanner}
           title="Scansiona QR Code"
         >
           <QrCode size={28} />
         </button>
       )}
-
-      {/* QR Scanner Modal */}
-      <QRScannerModal
-        isOpen={showQRScanner}
-        onClose={() => setShowQRScanner(false)}
-        onScanSuccess={handleQRScan}
-      />
 
       {/* Confirm Redeem Modal */}
       <ConfirmRedeemModal
