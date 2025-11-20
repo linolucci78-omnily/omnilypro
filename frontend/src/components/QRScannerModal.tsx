@@ -33,11 +33,29 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
     }
 
     // Setup global callback for QR scan result
-    (window as any).omnilyRewardQRResultHandler = (result: string) => {
+    (window as any).omnilyRewardQRResultHandler = (result: any) => {
       console.log('✅ QR Code scansionato tramite bridge:', result);
 
+      // Il bridge Android passa un oggetto, non una stringa!
+      // Estrai il contenuto dal campo 'content' o 'qrCode'
+      let qrData: string;
+      if (typeof result === 'string') {
+        qrData = result;
+      } else if (result && result.content) {
+        qrData = result.content;
+      } else if (result && result.qrCode) {
+        qrData = result.qrCode;
+      } else {
+        console.error('❌ Formato risultato bridge non riconosciuto:', result);
+        setError('Formato QR code non valido');
+        setScanStatus('error');
+        return;
+      }
+
+      console.log('📦 QR Data estratto:', qrData);
+
       try {
-        const data = JSON.parse(result);
+        const data = JSON.parse(qrData);
         if (data.redemptionId) {
           onScanSuccess(data.redemptionId);
         } else if (data.rewardId) {
@@ -45,11 +63,11 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
         } else if (data.type === 'use_reward' && data.redemptionId) {
           onScanSuccess(data.redemptionId);
         } else {
-          onScanSuccess(result);
+          onScanSuccess(qrData);
         }
       } catch {
         // Se non è JSON, usa il testo come ID
-        onScanSuccess(result);
+        onScanSuccess(qrData);
       }
 
       setScanStatus('success');
