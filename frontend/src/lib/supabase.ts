@@ -1164,6 +1164,9 @@ export const staffApi = {
 
   // Create staff member
   async create(staffMember: Omit<StaffMember, 'id' | 'created_at' | 'updated_at'>): Promise<StaffMember> {
+    console.log('👤 [STAFF API] Creating staff member with dual auth system...')
+
+    // Step 1: Create staff_member record (per PIN login)
     const { data, error } = await supabase
       .from('staff_members')
       .insert([staffMember])
@@ -1171,6 +1174,58 @@ export const staffApi = {
       .single()
 
     if (error) throw error
+    console.log('✅ [STAFF API] Staff member created:', data.id)
+
+    // Step 2: Create auth account (per NFC e login completo) - SOLO se ha email
+    if (staffMember.email && staffMember.email.trim()) {
+      try {
+        console.log('🔐 [STAFF API] Creating auth account for:', staffMember.email)
+
+        // Genera password temporanea (PIN + email per sicurezza)
+        const tempPassword = `${staffMember.pin_code}-${staffMember.email.split('@')[0]}`
+
+        // Crea utente auth usando Admin API
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: staffMember.email,
+          password: tempPassword,
+          email_confirm: true, // Auto-conferma email
+          user_metadata: {
+            full_name: staffMember.name,
+            staff_member_id: data.id,
+            organization_id: staffMember.organization_id
+          }
+        })
+
+        if (authError) {
+          console.warn('⚠️ [STAFF API] Could not create auth account:', authError.message)
+          // Non bloccare la creazione dello staff se l'auth fallisce
+        } else {
+          console.log('✅ [STAFF API] Auth account created:', authUser.user.id)
+
+          // Step 3: Collega utente auth a organization_users
+          const { error: orgUserError } = await supabase
+            .from('organization_users')
+            .insert({
+              user_id: authUser.user.id,
+              org_id: staffMember.organization_id,
+              role: staffMember.role === 'admin' ? 'org_admin' : 'staff',
+              created_at: new Date().toISOString()
+            })
+
+          if (orgUserError) {
+            console.warn('⚠️ [STAFF API] Could not link to organization_users:', orgUserError.message)
+          } else {
+            console.log('✅ [STAFF API] Linked to organization_users')
+          }
+        }
+      } catch (authException) {
+        console.warn('⚠️ [STAFF API] Auth creation exception:', authException)
+        // Non bloccare - lo staff member esiste comunque con PIN
+      }
+    } else {
+      console.log('ℹ️ [STAFF API] No email provided - skipping auth account creation')
+    }
+
     return data
   },
 

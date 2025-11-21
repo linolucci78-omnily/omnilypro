@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, CreditCard, Users, Search, UserPlus, Trash2, Power, Shield, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { operatorNFCService, type OperatorNFCCard } from '../services/operatorNFCService'
-import { staffApi, type StaffMember } from '../lib/supabase'
+import { supabase, staffApi, type StaffMember } from '../lib/supabase'
 import { useToast } from '../contexts/ToastContext'
 import './OperatorNFCManagementFullPage.css'
 
@@ -133,15 +133,48 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
   const loadOrganizationUsers = async () => {
     try {
-      console.log('🔍 Caricamento operatori per org:', organizationId)
-      const staffMembers = await staffApi.getAll(organizationId)
-      console.log('✅ Caricati', staffMembers?.length || 0, 'operatori:', staffMembers)
+      console.log('🔍 Caricamento utenti con account auth per org:', organizationId)
 
-      setOrganizationUsers(staffMembers || [])
+      // IMPORTANTE: Carica utenti da organization_users (hanno auth.users.id)
+      // NON da staff_members (non hanno auth account)
+      const { data: orgUsers, error } = await supabase
+        .from('organization_users')
+        .select(`
+          user_id,
+          role,
+          users:auth.users!inner(
+            id,
+            email,
+            user_metadata
+          )
+        `)
+        .eq('org_id', organizationId)
+
+      if (error) {
+        console.error('Errore caricamento utenti:', error)
+        throw error
+      }
+
+      // Trasforma in formato StaffMember per compatibilità
+      const staffMembers = (orgUsers || []).map((ou: any) => ({
+        id: ou.user_id, // Questo è l'auth.users.id!
+        organization_id: organizationId,
+        name: ou.users.user_metadata?.full_name || ou.users.email,
+        email: ou.users.email,
+        role: ou.role as any,
+        pin_code: '',
+        is_active: true,
+        created_at: '',
+        updated_at: ''
+      }))
+
+      console.log('✅ Caricati', staffMembers.length, 'utenti con account auth:', staffMembers)
+
+      setOrganizationUsers(staffMembers)
 
       // DEBUG: Toast temporaneo per vedere sul POS
       if (!staffMembers || staffMembers.length === 0) {
-        console.warn('⚠️ Nessun operatore trovato')
+        console.warn('⚠️ Nessun utente trovato')
         showError('Nessun Operatore', `Non ci sono operatori configurati. Vai in Gestione Team per creare operatori.`)
       } else {
         // Mostra i primi operatori trovati
