@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Store, Target, ChevronDown, ShoppingBag, Eraser, QrCode, Printer } from 'lucide-react';
 import './SaleModal.css';
 import QRScannerModal from './QRScannerModal';
@@ -36,6 +36,9 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [printReceipt, setPrintReceipt] = useState(true); // Toggle stampa scontrino
   const [showCustomerToast, setShowCustomerToast] = useState(false); // Toast per cambio cliente
   const [toastMessage, setToastMessage] = useState(''); // Messaggio toast
+
+  // Ref per l'input amount per controllare il focus
+  const amountInputRef = useRef<HTMLInputElement>(null);
 
   // Cliente attivo - può essere diverso dal customer prop dopo una scansione QR
   const [activeCustomer, setActiveCustomer] = useState(customer);
@@ -145,6 +148,12 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
     // Reset importo per la prossima vendita
     setAmount('');
+
+    // 🔑 IMPORTANTE: Rimuovi focus dall'input per evitare tastierino
+    if (amountInputRef.current) {
+      amountInputRef.current.blur();
+      console.log('[SaleModal] ⌨️ Input blurred - tastierino nascosto');
+    }
 
     // Reset ref dopo un breve delay per permettere la prossima vendita
     setTimeout(() => {
@@ -372,6 +381,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
             <div className="gemini-amount-wrapper">
               <span className="gemini-euro">€</span>
               <input
+                ref={amountInputRef}
                 type="text"
                 value={amount || ''}
                 onChange={handleAmountChange}

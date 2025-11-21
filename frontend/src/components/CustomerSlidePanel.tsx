@@ -700,8 +700,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             console.error('❌ Errore aggiornamento attività dopo transazione:', error);
           }
 
-          // Chiudi il modale dopo la vendita completata
-          setShowSaleModal(false);
+          // NON chiudiamo più il modale - rimane aperto per la prossima scansione QR
+          // setShowSaleModal(false);
 
         } else {
           // Transazione FALLITA
