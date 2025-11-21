@@ -232,12 +232,12 @@ const SaleModal: React.FC<SaleModalProps> = ({
         (window as any).updateCustomerDisplay({
           type: 'SALE_PREVIEW',
           preview: {
-            customerName: customer.name,
+            customerName: activeCustomer.name,
             amount: numAmount,
             pointsToEarn: finalPoints,
-            currentPoints: customer.points,
-            newTotalPoints: customer.points + finalPoints,
-            tier: currentTier?.name || customer.tier || 'Bronze',
+            currentPoints: activeCustomer.points,
+            newTotalPoints: activeCustomer.points + finalPoints,
+            tier: activeTier?.name || activeCustomer.tier || 'Bronze',
             tierMultiplier: tierMultiplier
           }
         });
@@ -300,7 +300,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
   if (!isOpen || !customer) return null;
 
-  const newTotalPoints = customer.points + pointsEarned;
+  const newTotalPoints = activeCustomer.points + pointsEarned;
 
   const quickAddAmount = (addAmount: number) => {
     const currentAmount = parseFloat(amount) || 0;
@@ -329,30 +329,30 @@ const SaleModal: React.FC<SaleModalProps> = ({
           {/* Customer Card */}
           <div className="gemini-customer-card">
             <div className="gemini-avatar">
-              {customer.avatar_url ? (
+              {activeCustomer.avatar_url ? (
                 <img
-                  src={customer.avatar_url}
-                  alt={customer.name}
+                  src={activeCustomer.avatar_url}
+                  alt={activeCustomer.name}
                   className="gemini-avatar-img"
                 />
               ) : (
                 <span className="gemini-avatar-initials">
-                  {customer.name.charAt(0).toUpperCase()}
+                  {activeCustomer.name.charAt(0).toUpperCase()}
                 </span>
               )}
-              {currentTier?.multiplier && currentTier.multiplier > 1 && (
-                <span className="gemini-avatar-badge">{currentTier.multiplier}x</span>
+              {activeTier?.multiplier && activeTier.multiplier > 1 && (
+                <span className="gemini-avatar-badge">{activeTier.multiplier}x</span>
               )}
             </div>
             <div className="gemini-customer-info">
-              <h2 className="gemini-customer-name">{customer.name}</h2>
+              <h2 className="gemini-customer-name">{activeCustomer.name}</h2>
               <p className="gemini-customer-subtitle">Cliente Fidelizzato</p>
             </div>
             <div className="gemini-tier-badge" style={{
-              background: `linear-gradient(135deg, ${currentTier?.color || '#6366f1'} 0%, ${currentTier?.color || '#6366f1'}dd 100%)`
+              background: `linear-gradient(135deg, ${activeTier?.color || '#6366f1'} 0%, ${activeTier?.color || '#6366f1'}dd 100%)`
             }}>
               <span className="gemini-tier-label">LIVELLO</span>
-              <span className="gemini-tier-name">{currentTier?.name || customer.tier}</span>
+              <span className="gemini-tier-name">{activeTier?.name || activeCustomer.tier}</span>
             </div>
           </div>
 
@@ -405,7 +405,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 <Target size={20} className="gemini-target-icon" />
                 <span className="gemini-points-label">ATTUALI</span>
               </div>
-              <span className="gemini-points-value">{customer.points}</span>
+              <span className="gemini-points-value">{activeCustomer.points}</span>
             </div>
             <div className="gemini-divider" />
             <div className="gemini-points-row gemini-gain">
