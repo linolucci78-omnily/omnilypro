@@ -135,49 +135,64 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
     try {
       console.log('🔍 Caricamento utenti con account auth per org:', organizationId)
 
-      // IMPORTANTE: Carica utenti da organization_users (hanno auth.users.id)
-      // NON da staff_members (non hanno auth account)
-      const { data: orgUsers, error } = await supabase
+      // Step 1: Carica organization_users per questa org
+      const { data: orgUsers, error: orgError } = await supabase
         .from('organization_users')
-        .select(`
-          user_id,
-          role,
-          users:auth.users!inner(
-            id,
-            email,
-            user_metadata
-          )
-        `)
+        .select('user_id, role, created_at')
         .eq('org_id', organizationId)
 
-      if (error) {
-        console.error('Errore caricamento utenti:', error)
-        throw error
+      if (orgError) {
+        console.error('Errore caricamento organization_users:', orgError)
+        throw orgError
       }
 
-      // Trasforma in formato StaffMember per compatibilità
-      const staffMembers = (orgUsers || []).map((ou: any) => ({
-        id: ou.user_id, // Questo è l'auth.users.id!
-        organization_id: organizationId,
-        name: ou.users.user_metadata?.full_name || ou.users.email,
-        email: ou.users.email,
-        role: ou.role as any,
-        pin_code: '',
-        is_active: true,
-        created_at: '',
-        updated_at: ''
-      }))
+      console.log('📋 Organization users trovati:', orgUsers?.length || 0)
+
+      if (!orgUsers || orgUsers.length === 0) {
+        console.warn('⚠️ Nessun utente in organization_users')
+        setOrganizationUsers([])
+        showError('Nessun Operatore', `Non ci sono operatori configurati. Vai in Gestione Team per creare operatori.`)
+        return
+      }
+
+      // Step 2: Carica dettagli utenti dalla tabella users
+      const userIds = orgUsers.map(ou => ou.user_id)
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, full_name')
+        .in('id', userIds)
+
+      if (usersError) {
+        console.error('Errore caricamento users:', usersError)
+        throw usersError
+      }
+
+      console.log('👥 User details trovati:', usersData?.length || 0)
+
+      // Step 3: Combina i dati
+      const usersMap = new Map((usersData || []).map(u => [u.id, u]))
+
+      const staffMembers = orgUsers.map((ou: any) => {
+        const userData = usersMap.get(ou.user_id)
+        return {
+          id: ou.user_id, // Questo è l'auth.users.id!
+          organization_id: organizationId,
+          name: userData?.full_name || userData?.email || 'Utente Sconosciuto',
+          email: userData?.email || '',
+          role: ou.role as any,
+          pin_code: '',
+          is_active: true,
+          created_at: ou.created_at || '',
+          updated_at: ou.created_at || ''
+        }
+      })
 
       console.log('✅ Caricati', staffMembers.length, 'utenti con account auth:', staffMembers)
 
       setOrganizationUsers(staffMembers)
 
       // DEBUG: Toast temporaneo per vedere sul POS
-      if (!staffMembers || staffMembers.length === 0) {
-        console.warn('⚠️ Nessun utente trovato')
-        showError('Nessun Operatore', `Non ci sono operatori configurati. Vai in Gestione Team per creare operatori.`)
-      } else {
-        // Mostra i primi operatori trovati
+      if (staffMembers.length > 0) {
         const operatorNames = staffMembers.slice(0, 3).map((u: any) => u.name).join(', ')
         showSuccess('Operatori Trovati', `Trovati ${staffMembers.length} operatori: ${operatorNames}${staffMembers.length > 3 ? '...' : ''}`)
       }

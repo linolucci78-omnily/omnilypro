@@ -1056,12 +1056,12 @@ export const staffApi = {
 
     // Get ALL organization users (admin, owner, manager, etc.) from organization_users table
     // This includes:
-    // 1. Super admins (global, organization_id might be NULL)
-    // 2. Organization owner and administrators (organization_id matches)
+    // 1. Super admins (global, org_id might be NULL)
+    // 2. Organization owner and administrators (org_id matches)
     const { data: orgUsers, error: orgError } = await supabase
       .from('organization_users')
-      .select('user_id, role, created_at, organization_id')
-      .or(`organization_id.eq.${organizationId},role.eq.super_admin`) // Include org-specific users OR super admins
+      .select('user_id, role, created_at, org_id')
+      .or(`org_id.eq.${organizationId},role.eq.super_admin`) // Include org-specific users OR super admins
       .in('role', ['super_admin', 'admin', 'owner', 'manager']) // Include all admin roles
 
     console.log('🔐 [STAFF API] Organization users query result:', { orgUsers, orgError })

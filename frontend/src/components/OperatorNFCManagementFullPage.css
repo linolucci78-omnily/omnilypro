@@ -1,78 +1,123 @@
-/* Operator NFC Management Full Page */
+/* =====================================================
+   OPERATOR NFC MANAGEMENT - Professional Design
+   ===================================================== */
 
 .operator-nfc-fullpage {
+  width: 100%;
   height: 100vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-  padding-bottom: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  overflow: hidden;
 }
 
-/* Header */
+/* =====================================================
+   HEADER CON GRADIENTE ROSSO
+   ===================================================== */
+
 .operator-nfc-fullpage .fullpage-header {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 1.5rem 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: block !important;
+  background: linear-gradient(to right, #c0392b 0%, #8b0000 50%, #2c1810 100%);
+  padding: 1.5rem 3rem 2rem 3rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(192, 57, 43, 0.4);
+  position: relative;
+  overflow: hidden;
+  border-bottom: none;
+}
+
+/* Effetto animato sfondo */
+.operator-nfc-fullpage .fullpage-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatAnimation 8s ease-in-out infinite;
+}
+
+@keyframes floatAnimation {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-20px) translateX(20px); }
 }
 
 .operator-nfc-fullpage .back-button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  color: #6b7280;
-  font-size: 0.9375rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 1rem;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .operator-nfc-fullpage .back-button:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  color: #111827;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.operator-nfc-fullpage .back-button:active {
+  transform: translateY(0);
 }
 
 .operator-nfc-fullpage .header-info h1 {
-  margin: 0 0 0.5rem 0;
+  color: #ffffff;
   font-size: 2rem;
   font-weight: 700;
-  color: #111827;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .operator-nfc-fullpage .header-info p {
-  margin: 0;
+  color: #ffffff;
   font-size: 1rem;
-  color: #6b7280;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Mode Tabs */
+/* =====================================================
+   NAVIGATION TABS
+   ===================================================== */
+
 .operator-nfc-fullpage .mode-tabs {
   display: flex;
-  gap: 1rem;
-  padding: 1.5rem 2rem;
+  gap: 0;
+  padding: 0 3rem;
   background: white;
   border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
 
 .operator-nfc-fullpage .mode-tab {
-  flex: 1;
-  max-width: 300px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 2rem;
   background: transparent;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border: none;
+  border-bottom: 3px solid transparent;
   color: #6b7280;
   font-size: 1rem;
   font-weight: 600;
@@ -81,23 +126,21 @@
 }
 
 .operator-nfc-fullpage .mode-tab:hover {
-  background: #f9fafb;
-  border-color: #c0392b;
-  color: #c0392b;
+  background: rgba(231, 76, 60, 0.05);
+  color: #e74c3c;
 }
 
 .operator-nfc-fullpage .mode-tab.active {
-  background: linear-gradient(135deg, #c0392b, #a93226);
-  color: white;
-  border-color: #c0392b;
-  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.2);
+  background: transparent;
+  color: #e74c3c;
+  border-bottom-color: #e74c3c;
 }
 
 /* Content */
 .operator-nfc-fullpage .fullpage-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 2.5rem;
 }
 
 /* Search Box */
