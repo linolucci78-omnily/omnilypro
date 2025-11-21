@@ -174,10 +174,27 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
       const staffMembers = orgUsers.map((ou: any) => {
         const userData = usersMap.get(ou.user_id)
+
+        // Determina il nome: priorità a full_name se esiste e non è vuoto
+        let displayName = 'Utente Sconosciuto'
+        if (userData?.full_name && userData.full_name.trim() !== '') {
+          displayName = userData.full_name.trim()
+        } else if (userData?.email) {
+          // Usa solo la parte prima della @ come fallback
+          displayName = userData.email.split('@')[0]
+        }
+
+        console.log('👤 User mapping:', {
+          user_id: ou.user_id,
+          full_name: userData?.full_name,
+          email: userData?.email,
+          displayName
+        })
+
         return {
           id: ou.user_id, // Questo è l'auth.users.id!
           organization_id: organizationId,
-          name: userData?.full_name || userData?.email || 'Utente Sconosciuto',
+          name: displayName,
           email: userData?.email || '',
           role: ou.role as any,
           pin_code: '',
@@ -519,7 +536,12 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
                             className={`user-item ${selectedUser?.id === user.id ? 'selected' : ''}`}
                             onClick={() => {
                               setSelectedUser(user)
-                              setOperatorName(user.name)
+                              // Pre-compila con nome formattato in modo carino
+                              const defaultName = user.name
+                                .split(/[._-]/)  // Splitta su . _ -
+                                .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())  // Capitalizza
+                                .join(' ')  // Unisci con spazi
+                              setOperatorName(defaultName)
                             }}
                           >
                             <div className="user-avatar">
