@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import POSLayout from './POSLayout';
 import OrganizationsDashboard from '../OrganizationsDashboard';
+import NotificationAnimations, { NotificationAnimationsRef } from '../NotificationAnimations';
 
 interface POSDashboardWrapperProps {
   currentOrganization?: any;
@@ -14,6 +15,7 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
     primary: string | null
     secondary: string | null
   }>({ primary: null, secondary: null });
+  const animationsRef = useRef<NotificationAnimationsRef>(null);
 
   /**
    * Invia dati al customer display tramite bridge Android.
@@ -60,10 +62,14 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
   useEffect(() => {
     console.log('🔄 POSDashboardWrapper montato - customer display gestito SOLO da Android');
     (window as any).updateCustomerDisplay = updateCustomerDisplay;
+    // Esponi animationsRef globalmente per accesso da CustomerSlidePanel
+    (window as any).notificationAnimationsRef = animationsRef;
+    console.log('✅ animationsRef esposto globalmente');
 
     return () => {
       console.log('🧹 Cleanup POSDashboardWrapper');
       delete (window as any).updateCustomerDisplay;
+      delete (window as any).notificationAnimationsRef;
     };
   }, [updateCustomerDisplay]);
 
@@ -82,19 +88,24 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
   }, []); // Solo al mount iniziale
 
   return (
-    <POSLayout
-      activeSection={activeSection}
-      onSectionChange={setActiveSection}
-      currentOrganization={organization}
-      previewColors={previewColors}
-    >
-      <OrganizationsDashboard
+    <>
+      <POSLayout
         activeSection={activeSection}
         onSectionChange={setActiveSection}
-        onOrganizationChange={handleOrganizationChange}
-        onPreviewColorsChange={handlePreviewColorsChange}
-      />
-    </POSLayout>
+        currentOrganization={organization}
+        previewColors={previewColors}
+      >
+        <OrganizationsDashboard
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          onOrganizationChange={handleOrganizationChange}
+          onPreviewColorsChange={handlePreviewColorsChange}
+        />
+      </POSLayout>
+
+      {/* Notification Animations - Persistent across all POS operations */}
+      <NotificationAnimations ref={animationsRef} />
+    </>
   );
 };
 
