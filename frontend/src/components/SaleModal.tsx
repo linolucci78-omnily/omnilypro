@@ -446,7 +446,16 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
               {/* Toggle Switch - rettangolo orizzontale */}
               <button
-                onClick={() => setPrintReceipt(!printReceipt)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setPrintReceipt(!printReceipt);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 style={{
                   position: 'relative',
                   width: '50px',
@@ -462,7 +471,8 @@ const SaleModal: React.FC<SaleModalProps> = ({
                   alignItems: 'center',
                   justifyContent: printReceipt ? 'flex-start' : 'flex-end',
                   paddingLeft: printReceipt ? '3px' : '0',
-                  paddingRight: printReceipt ? '0' : '3px'
+                  paddingRight: printReceipt ? '0' : '3px',
+                  WebkitTapHighlightColor: 'transparent'
                 }}
               >
                 {/* Pallina con icona */}
