@@ -423,9 +423,11 @@ const CustomerDisplay: React.FC = () => {
             )}
           </>
         ) : saleProcessing ? (
-          // Sale Processing Screen - COMPATTA per 4"
+          // Sale Processing Screen REDESIGN - BRAND ROSSO per 4"
           <div style={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+            backgroundSize: '200% 200%',
+            animation: 'gradientShift 2s ease infinite',
             color: 'white',
             padding: '1.5rem',
             borderRadius: '12px',
@@ -434,52 +436,125 @@ const CustomerDisplay: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            gap: '1rem'
+            gap: '1.2rem',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            {/* Spinner piccolo */}
+            {/* Onde decorative animate */}
             <div style={{
-              width: '40px',
-              height: '40px',
-              border: '4px solid rgba(255, 255, 255, 0.3)',
-              borderTop: '4px solid white',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto'
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              height: '60px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50% 50% 0 0',
+              animation: 'wave1 3s ease-in-out infinite',
+              zIndex: 0
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              height: '50px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              borderRadius: '50% 50% 0 0',
+              animation: 'wave2 3s ease-in-out infinite 0.5s',
+              zIndex: 0
             }} />
 
-            {/* Nome cliente compatto */}
-            <h2 style={{
-              margin: 0,
-              fontSize: '1.8rem',
-              fontWeight: 'bold'
-            }}>
-              {saleProcessing.customerName}
-            </h2>
+            {/* Content sopra le onde */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Spinner moderno con cerchi multipli */}
+              <div style={{
+                width: '60px',
+                height: '60px',
+                margin: '0 auto 1rem',
+                position: 'relative'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  border: '3px solid rgba(255, 255, 255, 0.2)',
+                  borderTop: '3px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  border: '3px solid rgba(255, 255, 255, 0.2)',
+                  borderBottom: '3px solid rgba(255, 255, 255, 0.8)',
+                  borderRadius: '50%',
+                  animation: 'spinReverse 1.5s linear infinite'
+                }} />
+              </div>
 
-            {/* Importo grande */}
-            <div style={{
-              fontSize: '3rem',
-              fontWeight: 'bold',
-              lineHeight: 1
-            }}>
-              €{saleProcessing.amount.toFixed(2)}
-            </div>
+              {/* Nome cliente */}
+              <h2 style={{
+                margin: '0 0 1rem 0',
+                fontSize: '1.6rem',
+                fontWeight: 'bold',
+                textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                animation: 'pulse 2s ease-in-out infinite'
+              }}>
+                {saleProcessing.customerName}
+              </h2>
 
-            {/* Punti compatti */}
-            <div style={{
-              fontSize: '1.2rem',
-              opacity: 0.9
-            }}>
-              +{saleProcessing.pointsToEarn} punti
-            </div>
+              {/* Box importo e punti */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                padding: '1.25rem',
+                borderRadius: '12px',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+              }}>
+                {/* Importo */}
+                <div style={{
+                  fontSize: '2.8rem',
+                  fontWeight: 'bold',
+                  lineHeight: 1,
+                  marginBottom: '0.75rem',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                }}>
+                  €{saleProcessing.amount.toFixed(2)}
+                </div>
 
-            {/* Messaggio elaborazione */}
-            <div style={{
-              fontSize: '1rem',
-              opacity: 0.8,
-              animation: 'pulse 2s infinite'
-            }}>
-              Elaborazione...
+                {/* Separatore */}
+                <div style={{
+                  height: '2px',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                  margin: '0.75rem 0'
+                }} />
+
+                {/* Punti */}
+                <div style={{
+                  fontSize: '1.4rem',
+                  fontWeight: 'bold',
+                  color: '#fef3c7',
+                  textShadow: '0 0 15px rgba(254, 243, 199, 0.5)'
+                }}>
+                  +{saleProcessing.pointsToEarn} punti
+                </div>
+              </div>
+
+              {/* Messaggio elaborazione con dots animati */}
+              <div style={{
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                marginTop: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}>
+                <span>Elaborazione</span>
+                <span style={{ animation: 'dots 1.5s steps(4) infinite' }}>...</span>
+              </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
@@ -488,17 +563,36 @@ const CustomerDisplay: React.FC = () => {
                   0% { transform: rotate(0deg); }
                   100% { transform: rotate(360deg); }
                 }
+                @keyframes spinReverse {
+                  0% { transform: rotate(360deg); }
+                  100% { transform: rotate(0deg); }
+                }
+                @keyframes wave1 {
+                  0%, 100% { transform: translateX(0) scaleY(1); }
+                  50% { transform: translateX(-20px) scaleY(1.1); }
+                }
+                @keyframes wave2 {
+                  0%, 100% { transform: translateX(0) scaleY(1); }
+                  50% { transform: translateX(20px) scaleY(1.15); }
+                }
+                @keyframes dots {
+                  0% { content: '.'; }
+                  33% { content: '..'; }
+                  66% { content: '...'; }
+                }
                 @keyframes pulse {
-                  0%, 100% { opacity: 0.6; }
+                  0%, 100% { opacity: 0.9; }
                   50% { opacity: 1; }
                 }
               `
             }} />
           </div>
         ) : salePreview ? (
-          // Sale Preview Screen - COMPATTA per 4"
+          // Sale Preview Screen REDESIGN - BRAND ROSSO per 4"
           <div style={{
-            background: 'white',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+            backgroundSize: '200% 200%',
+            animation: 'gradientShift 6s ease infinite',
             padding: '1.5rem',
             borderRadius: '12px',
             textAlign: 'center',
@@ -506,111 +600,185 @@ const CustomerDisplay: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            gap: '1rem'
+            gap: '1.2rem',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            {/* Customer Name - Compatto */}
+            {/* Particelle decorative */}
             <div style={{
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              color: 'white',
-              padding: '1rem',
-              borderRadius: '8px'
-            }}>
-              <h2 style={{
-                margin: 0,
-                fontSize: '1.6rem',
-                fontWeight: 'bold'
+              position: 'absolute',
+              top: '15%',
+              right: '10%',
+              width: '60px',
+              height: '60px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              borderRadius: '50%',
+              animation: 'float1 5s ease-in-out infinite'
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '25%',
+              left: '8%',
+              width: '45px',
+              height: '45px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              borderRadius: '50%',
+              animation: 'float2 6s ease-in-out infinite'
+            }} />
+
+            {/* Content */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Customer Name con pulse */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                padding: '1rem',
+                borderRadius: '12px',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                marginBottom: '1.2rem'
               }}>
-                {salePreview.customerName}
-              </h2>
+                <h2 style={{
+                  margin: 0,
+                  fontSize: '1.6rem',
+                  fontWeight: 'bold',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                }}>
+                  {salePreview.customerName}
+                </h2>
+              </div>
+
+              {/* Amount Display */}
+              {salePreview.amount > 0 ? (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  padding: '1.5rem',
+                  borderRadius: '16px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,1)',
+                  marginBottom: '1rem',
+                  animation: 'scaleIn 0.3s ease-out'
+                }}>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    color: '#dc2626',
+                    fontWeight: '600',
+                    marginBottom: '0.5rem',
+                    letterSpacing: '0.05em'
+                  }}>
+                    IMPORTO
+                  </div>
+                  <div style={{
+                    fontSize: '3.5rem',
+                    fontWeight: 'bold',
+                    color: '#1e293b',
+                    lineHeight: 1,
+                    textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    animation: 'countUp 0.4s ease-out'
+                  }}>
+                    €{salePreview.amount.toFixed(2)}
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  padding: '2rem',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{
+                    fontSize: '2.5rem',
+                    marginBottom: '0.5rem',
+                    animation: 'bounce 2s ease-in-out infinite'
+                  }}>
+                    💰
+                  </div>
+                  <div style={{
+                    fontSize: '1.2rem',
+                    color: 'white',
+                    fontWeight: '600',
+                    opacity: 0.9
+                  }}>
+                    Inserisci importo...
+                  </div>
+                </div>
+              )}
+
+              {/* Points Display - Solo se c'è importo */}
+              {salePreview.amount > 0 && (
+                <div style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  justifyContent: 'center'
+                }}>
+                  {/* Points to Earn - EVIDENZIATO */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                    color: 'white',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    flex: 1,
+                    boxShadow: '0 4px 16px rgba(251, 191, 36, 0.4)',
+                    animation: 'glow 2s ease-in-out infinite'
+                  }}>
+                    <div style={{
+                      fontSize: '2rem',
+                      fontWeight: 'bold',
+                      textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                    }}>
+                      +{salePreview.pointsToEarn}
+                    </div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      opacity: 0.95,
+                      fontWeight: '600'
+                    }}>
+                      GUADAGNI
+                    </div>
+                  </div>
+
+                  {/* Total Points */}
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    flex: 1,
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      fontSize: '2rem',
+                      fontWeight: 'bold',
+                      textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                    }}>
+                      {salePreview.newTotalPoints}
+                    </div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      opacity: 0.9,
+                      fontWeight: '600'
+                    }}>
+                      TOTALI
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Amount - Compatto */}
-            {salePreview.amount > 0 ? (
-              <div style={{
-                background: '#f8fafc',
-                padding: '1.5rem',
-                borderRadius: '8px',
-                border: '2px solid #e2e8f0'
-              }}>
-                <div style={{
-                  fontSize: '3.5rem',
-                  fontWeight: 'bold',
-                  color: '#1e293b',
-                  lineHeight: 1
-                }}>
-                  €{salePreview.amount.toFixed(2)}
-                </div>
-              </div>
-            ) : (
-              <div style={{
-                background: '#f8fafc',
-                padding: '2rem',
-                borderRadius: '8px'
-              }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💰</div>
-                <div style={{
-                  fontSize: '1.2rem',
-                  color: '#64748b'
-                }}>
-                  In attesa...
-                </div>
-              </div>
-            )}
-
-            {/* Points - Una riga compatta */}
-            {salePreview.amount > 0 && (
-              <div style={{
-                display: 'flex',
-                gap: '1rem',
-                justifyContent: 'center'
-              }}>
-                {/* Points to Earn */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                  color: 'white',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  flex: 1
-                }}>
-                  <div style={{
-                    fontSize: '1.8rem',
-                    fontWeight: 'bold'
-                  }}>
-                    +{salePreview.pointsToEarn}
-                  </div>
-                  <div style={{
-                    fontSize: '0.8rem',
-                    opacity: 0.9
-                  }}>
-                    guadagni
-                  </div>
-                </div>
-
-                {/* Total Points */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                  color: 'white',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  flex: 1
-                }}>
-                  <div style={{
-                    fontSize: '1.8rem',
-                    fontWeight: 'bold'
-                  }}>
-                    {salePreview.newTotalPoints}
-                  </div>
-                  <div style={{
-                    fontSize: '0.8rem',
-                    opacity: 0.9
-                  }}>
-                    totali
-                  </div>
-                </div>
-              </div>
-            )}
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes bounce {
+                  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                  40% { transform: translateY(-10px); }
+                  60% { transform: translateY(-5px); }
+                }
+              `
+            }} />
           </div>
         ) : giftCertificate ? (
           // Gift Certificate Display - MINI per 4"
