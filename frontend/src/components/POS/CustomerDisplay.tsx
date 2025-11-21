@@ -435,8 +435,8 @@ const CustomerDisplay: React.FC = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            gap: '1.2rem',
+            justifyContent: 'space-between',
+            gap: '0.8rem',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -464,13 +464,13 @@ const CustomerDisplay: React.FC = () => {
               zIndex: 0
             }} />
 
-            {/* Content sopra le onde */}
-            <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* Content sopra le onde - Compatto */}
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
               {/* Spinner moderno con cerchi multipli */}
               <div style={{
-                width: '60px',
-                height: '60px',
-                margin: '0 auto 1rem',
+                width: '50px',
+                height: '50px',
+                margin: '0 auto',
                 position: 'relative'
               }}>
                 <div style={{
@@ -495,8 +495,8 @@ const CustomerDisplay: React.FC = () => {
 
               {/* Nome cliente */}
               <h2 style={{
-                margin: '0 0 1rem 0',
-                fontSize: '1.6rem',
+                margin: '0',
+                fontSize: '1.4rem',
                 fontWeight: 'bold',
                 textShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 animation: 'pulse 2s ease-in-out infinite'
@@ -504,10 +504,10 @@ const CustomerDisplay: React.FC = () => {
                 {saleProcessing.customerName}
               </h2>
 
-              {/* Box importo e punti */}
+              {/* Box importo e punti - Compatto */}
               <div style={{
                 background: 'rgba(255, 255, 255, 0.15)',
-                padding: '1.25rem',
+                padding: '0.8rem',
                 borderRadius: '12px',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -515,10 +515,10 @@ const CustomerDisplay: React.FC = () => {
               }}>
                 {/* Importo */}
                 <div style={{
-                  fontSize: '2.8rem',
+                  fontSize: '2.2rem',
                   fontWeight: 'bold',
                   lineHeight: 1,
-                  marginBottom: '0.75rem',
+                  marginBottom: '0.4rem',
                   textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                 }}>
                   €{saleProcessing.amount.toFixed(2)}
@@ -528,12 +528,12 @@ const CustomerDisplay: React.FC = () => {
                 <div style={{
                   height: '2px',
                   background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
-                  margin: '0.75rem 0'
+                  margin: '0.4rem 0'
                 }} />
 
                 {/* Punti */}
                 <div style={{
-                  fontSize: '1.4rem',
+                  fontSize: '1.1rem',
                   fontWeight: 'bold',
                   color: '#fef3c7',
                   textShadow: '0 0 15px rgba(254, 243, 199, 0.5)'
@@ -544,9 +544,8 @@ const CustomerDisplay: React.FC = () => {
 
               {/* Messaggio elaborazione con dots animati */}
               <div style={{
-                fontSize: '1.1rem',
+                fontSize: '0.95rem',
                 fontWeight: '600',
-                marginTop: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -555,27 +554,28 @@ const CustomerDisplay: React.FC = () => {
                 <span>Elaborazione</span>
                 <span style={{ animation: 'dots 1.5s steps(4) infinite' }}>...</span>
               </div>
+            </div>
 
-              {/* Footer indicatore - come IDLE */}
+            {/* Footer indicatore - FUORI dal content */}
+            <div style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontSize: '0.85rem',
+              opacity: 0.9,
+              animation: 'fadeInOut 2s ease-in-out infinite'
+            }}>
               <div style={{
-                marginTop: '1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                fontSize: '0.9rem',
-                opacity: 0.9,
-                animation: 'fadeInOut 2s ease-in-out infinite'
-              }}>
-                <div style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: 'white',
-                  animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
-                }} />
-                <span>Pronto per la prossima transazione</span>
-              </div>
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'white',
+                animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+              }} />
+              <span>Pronto per la prossima transazione</span>
             </div>
 
             <style dangerouslySetInnerHTML={{
@@ -628,8 +628,8 @@ const CustomerDisplay: React.FC = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            gap: '1.2rem',
+            justifyContent: 'space-between',
+            gap: '0.8rem',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -655,22 +655,21 @@ const CustomerDisplay: React.FC = () => {
               animation: 'float2 6s ease-in-out infinite'
             }} />
 
-            {/* Content */}
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              {/* Customer Name con pulse */}
+            {/* Content - Compatto */}
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
+              {/* Customer Name - Compatto */}
               <div style={{
                 background: 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
-                padding: '1rem',
+                padding: '0.6rem',
                 borderRadius: '12px',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                marginBottom: '1.2rem'
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
               }}>
                 <h2 style={{
                   margin: 0,
-                  fontSize: '1.6rem',
+                  fontSize: '1.3rem',
                   fontWeight: 'bold',
                   textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                 }}>
@@ -678,27 +677,26 @@ const CustomerDisplay: React.FC = () => {
                 </h2>
               </div>
 
-              {/* Amount Display */}
+              {/* Amount Display - Compatto */}
               {salePreview.amount > 0 ? (
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.95)',
-                  padding: '1.5rem',
+                  padding: '0.8rem',
                   borderRadius: '16px',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,1)',
-                  marginBottom: '1rem',
                   animation: 'scaleIn 0.3s ease-out'
                 }}>
                   <div style={{
-                    fontSize: '0.9rem',
+                    fontSize: '0.75rem',
                     color: '#dc2626',
                     fontWeight: '600',
-                    marginBottom: '0.5rem',
+                    marginBottom: '0.3rem',
                     letterSpacing: '0.05em'
                   }}>
                     IMPORTO
                   </div>
                   <div style={{
-                    fontSize: '3.5rem',
+                    fontSize: '2.5rem',
                     fontWeight: 'bold',
                     color: '#1e293b',
                     lineHeight: 1,
@@ -711,21 +709,20 @@ const CustomerDisplay: React.FC = () => {
               ) : (
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.15)',
-                  padding: '2rem',
+                  padding: '1.2rem',
                   borderRadius: '16px',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  marginBottom: '1rem'
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
                 }}>
                   <div style={{
-                    fontSize: '2.5rem',
-                    marginBottom: '0.5rem',
+                    fontSize: '2rem',
+                    marginBottom: '0.3rem',
                     animation: 'bounce 2s ease-in-out infinite'
                   }}>
                     ⏳
                   </div>
                   <div style={{
-                    fontSize: '1.2rem',
+                    fontSize: '1rem',
                     color: 'white',
                     fontWeight: '600',
                     opacity: 0.9
@@ -735,18 +732,18 @@ const CustomerDisplay: React.FC = () => {
                 </div>
               )}
 
-              {/* Points Display - Solo se c'è importo */}
+              {/* Points Display - Solo se c'è importo - Compatto */}
               {salePreview.amount > 0 && (
                 <div style={{
                   display: 'flex',
-                  gap: '0.75rem',
+                  gap: '0.5rem',
                   justifyContent: 'center'
                 }}>
                   {/* Points to Earn - EVIDENZIATO */}
                   <div style={{
                     background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
                     color: 'white',
-                    padding: '1rem',
+                    padding: '0.6rem',
                     borderRadius: '12px',
                     textAlign: 'center',
                     flex: 1,
@@ -754,14 +751,14 @@ const CustomerDisplay: React.FC = () => {
                     animation: 'glow 2s ease-in-out infinite'
                   }}>
                     <div style={{
-                      fontSize: '2rem',
+                      fontSize: '1.5rem',
                       fontWeight: 'bold',
                       textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                     }}>
                       +{salePreview.pointsToEarn}
                     </div>
                     <div style={{
-                      fontSize: '0.75rem',
+                      fontSize: '0.65rem',
                       opacity: 0.95,
                       fontWeight: '600'
                     }}>
@@ -773,7 +770,7 @@ const CustomerDisplay: React.FC = () => {
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.2)',
                     color: 'white',
-                    padding: '1rem',
+                    padding: '0.6rem',
                     borderRadius: '12px',
                     textAlign: 'center',
                     flex: 1,
@@ -781,14 +778,14 @@ const CustomerDisplay: React.FC = () => {
                     border: '1px solid rgba(255, 255, 255, 0.3)'
                   }}>
                     <div style={{
-                      fontSize: '2rem',
+                      fontSize: '1.5rem',
                       fontWeight: 'bold',
                       textShadow: '0 2px 8px rgba(0,0,0,0.3)'
                     }}>
                       {salePreview.newTotalPoints}
                     </div>
                     <div style={{
-                      fontSize: '0.75rem',
+                      fontSize: '0.65rem',
                       opacity: 0.9,
                       fontWeight: '600'
                     }}>
@@ -797,27 +794,28 @@ const CustomerDisplay: React.FC = () => {
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* Footer indicatore - come IDLE */}
+            {/* Footer indicatore - FUORI dal content */}
+            <div style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontSize: '0.85rem',
+              opacity: 0.9,
+              animation: 'fadeInOut 2s ease-in-out infinite'
+            }}>
               <div style={{
-                marginTop: '1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                fontSize: '0.9rem',
-                opacity: 0.9,
-                animation: 'fadeInOut 2s ease-in-out infinite'
-              }}>
-                <div style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: 'white',
-                  animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
-                }} />
-                <span>Pronto per la prossima transazione</span>
-              </div>
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'white',
+                animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+              }} />
+              <span>Pronto per la prossima transazione</span>
             </div>
 
             <style dangerouslySetInnerHTML={{
@@ -1201,130 +1199,132 @@ const CustomerDisplay: React.FC = () => {
             animation: 'gradientShift 3s ease infinite',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
             alignItems: 'center',
             zIndex: 99999,
             color: 'white',
             textAlign: 'center',
-            padding: '1rem',
-            gap: '0.75rem'
+            padding: '1.5rem',
+            gap: '0.5rem'
           }}
         >
 
-          {/* Icona successo con scale-in */}
-          <div style={{
-            fontSize: '3rem',
-            animation: 'scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
-          }}>
-            ✅
-          </div>
-
-          {/* Nome cliente con slide-in */}
-          <h1 style={{
-            margin: 0,
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            textShadow: '0 2px 8px rgba(0,0,0,0.4)',
-            lineHeight: 1.2,
-            animation: 'slideInDown 0.6s ease-out 0.2s both'
-          }}>
-            Grazie {celebrationData.customerName}!
-          </h1>
-
-          {/* Box transazione con fade-in sequenziale */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            padding: '1rem',
-            borderRadius: '12px',
-            backdropFilter: 'blur(20px)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            width: '100%',
-            maxWidth: '300px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-            animation: 'fadeInUp 0.6s ease-out 0.4s both'
-          }}>
-            {/* Importo pagato */}
+          {/* Content centrale - Compatto */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+            {/* Icona successo con scale-in - Compatta */}
             <div style={{
               fontSize: '2.5rem',
-              fontWeight: 'bold',
-              marginBottom: '0.5rem',
-              lineHeight: 1,
-              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
-              animation: 'countUp 0.8s ease-out 0.6s both'
+              animation: 'scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
             }}>
-              €{celebrationData.amount.toFixed(2)}
+              ✅
             </div>
 
-            {/* Separatore elegante */}
-            <div style={{
-              height: '2px',
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
-              margin: '0.5rem 0',
-              animation: 'expandWidth 0.6s ease-out 0.8s both'
-            }} />
-
-            {/* Punti guadagnati - EVIDENZIATO */}
-            <div style={{
+            {/* Nome cliente con slide-in - Compatto */}
+            <h1 style={{
+              margin: 0,
               fontSize: '1.3rem',
               fontWeight: 'bold',
-              marginBottom: '0.4rem',
-              color: '#fef3c7',
-              textShadow: '0 0 20px rgba(254, 243, 199, 0.5)',
-              animation: 'glow 1.5s ease-in-out 1s infinite'
+              textShadow: '0 2px 8px rgba(0,0,0,0.4)',
+              lineHeight: 1.2,
+              animation: 'slideInDown 0.6s ease-out 0.2s both'
             }}>
-              +{celebrationData.pointsEarned} PUNTI! 🎉
-            </div>
+              Grazie {celebrationData.customerName}!
+            </h1>
 
-            {/* Progress bar animato */}
+            {/* Box transazione con fade-in sequenziale - Compatto */}
             <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              padding: '0.8rem',
+              borderRadius: '12px',
+              backdropFilter: 'blur(20px)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
               width: '100%',
-              height: '4px',
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '2px',
-              overflow: 'hidden',
-              marginBottom: '0.5rem'
+              maxWidth: '300px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              animation: 'fadeInUp 0.6s ease-out 0.4s both'
             }}>
+              {/* Importo pagato - Compatto */}
               <div style={{
-                height: '100%',
-                background: 'linear-gradient(90deg, #fbbf24, #fef3c7)',
-                animation: 'fillBar 1.2s ease-out 1.2s both',
-                boxShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                marginBottom: '0.4rem',
+                lineHeight: 1,
+                textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                animation: 'countUp 0.8s ease-out 0.6s both'
+              }}>
+                €{celebrationData.amount.toFixed(2)}
+              </div>
+
+              {/* Separatore elegante */}
+              <div style={{
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                margin: '0.4rem 0',
+                animation: 'expandWidth 0.6s ease-out 0.8s both'
               }} />
+
+              {/* Punti guadagnati - EVIDENZIATO - Compatto */}
+              <div style={{
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                marginBottom: '0.3rem',
+                color: '#fef3c7',
+                textShadow: '0 0 20px rgba(254, 243, 199, 0.5)',
+                animation: 'glow 1.5s ease-in-out 1s infinite'
+              }}>
+                +{celebrationData.pointsEarned} PUNTI! 🎉
+              </div>
+
+              {/* Progress bar animato */}
+              <div style={{
+                width: '100%',
+                height: '3px',
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '2px',
+                overflow: 'hidden',
+                marginBottom: '0.4rem'
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #fbbf24, #fef3c7)',
+                  animation: 'fillBar 1.2s ease-out 1.2s both',
+                  boxShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
+                }} />
+              </div>
+
+              {/* Nuovo totale punti - Compatto */}
+              <div style={{
+                fontSize: '0.8rem',
+                opacity: 0.95,
+                animation: 'fadeIn 0.6s ease-out 1.8s both'
+              }}>
+                Nuovo saldo: <strong>{celebrationData.newTotalPoints} punti</strong>
+              </div>
             </div>
 
-            {/* Nuovo totale punti */}
+            {/* Messaggio finale con pulse - Compatto */}
             <div style={{
               fontSize: '0.9rem',
+              fontWeight: '600',
               opacity: 0.95,
-              animation: 'fadeIn 0.6s ease-out 1.8s both'
+              animation: 'fadeIn 0.6s ease-out 2s both, pulse 2s ease-in-out 2.5s infinite',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
             }}>
-              Nuovo saldo: <strong>{celebrationData.newTotalPoints} punti</strong>
+              <span>Transazione completata</span>
+              <span style={{ animation: 'spin 1s linear infinite' }}>⚡</span>
             </div>
           </div>
 
-          {/* Messaggio finale con pulse */}
+          {/* Footer indicatore - FUORI dal content */}
           <div style={{
-            fontSize: '1rem',
-            fontWeight: '600',
-            opacity: 0.95,
-            animation: 'fadeIn 0.6s ease-out 2s both, pulse 2s ease-in-out 2.5s infinite',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}>
-            <span>Transazione completata</span>
-            <span style={{ animation: 'spin 1s linear infinite' }}>⚡</span>
-          </div>
-
-          {/* Footer indicatore - come IDLE */}
-          <div style={{
-            marginTop: '1.5rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.5rem',
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
             opacity: 0.9,
             animation: 'fadeIn 0.6s ease-out 2.5s both, fadeInOut 2s ease-in-out 3s infinite'
           }}>
