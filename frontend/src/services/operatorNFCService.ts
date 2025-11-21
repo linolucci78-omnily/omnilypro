@@ -162,6 +162,21 @@ export const operatorNFCService = {
       throw new Error('Questa tessera è già associata ad un operatore')
     }
 
+    // IMPORTANTE: Disattiva tutte le altre tessere attive di questo operatore
+    // per evitare violazione del constraint UNIQUE(user_id, organization_id, is_active)
+    console.log('🔄 Disattivazione tessere precedenti per operatore:', card.user_id)
+    const { error: deactivateError } = await supabase
+      .from('operator_nfc_cards')
+      .update({ is_active: false })
+      .eq('user_id', card.user_id)
+      .eq('organization_id', card.organization_id)
+      .eq('is_active', true)
+
+    if (deactivateError) {
+      console.warn('⚠️ Errore disattivazione tessere precedenti (potrebbe non esisterne):', deactivateError)
+      // Non blocchiamo l'operazione, continua comunque
+    }
+
     // Simple base64 encoding for password obfuscation
     // TODO: This should be properly encrypted on the server side with PostgreSQL encryption
     const encryptedPassword = btoa(card.password)
@@ -185,6 +200,7 @@ export const operatorNFCService = {
       throw error
     }
 
+    console.log('✅ Tessera operatore creata con successo:', data)
     return data
   },
 
