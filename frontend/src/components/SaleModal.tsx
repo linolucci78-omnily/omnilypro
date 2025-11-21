@@ -155,8 +155,38 @@ const SaleModal: React.FC<SaleModalProps> = ({
       console.log('[SaleModal] ⌨️ Input blurred - tastierino nascosto');
     }
 
-    // Reset ref dopo un breve delay per permettere la prossima vendita
-    setTimeout(() => {
+    // 🔄 AGGIORNA: Dopo la vendita, ricarica i dati aggiornati del cliente attivo
+    setTimeout(async () => {
+      try {
+        const { data: updatedCustomer, error } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('id', activeCustomer.id)
+          .single();
+
+        if (updatedCustomer && !error) {
+          setActiveCustomer(updatedCustomer);
+
+          // Ricalcola tier aggiornato
+          const calculateCustomerTier = (points: number) => {
+            if (!loyaltyTiers || loyaltyTiers.length === 0) return { name: 'Standard', multiplier: 1, color: '#6366f1' };
+            for (let i = loyaltyTiers.length - 1; i >= 0; i--) {
+              if (points >= parseFloat(loyaltyTiers[i].threshold)) {
+                return loyaltyTiers[i];
+              }
+            }
+            return loyaltyTiers[0];
+          };
+
+          const updatedTier = calculateCustomerTier(updatedCustomer.points);
+          setActiveTier(updatedTier);
+
+          console.log(`[SaleModal] 🔄 Dati cliente aggiornati: ${updatedCustomer.name} - ${updatedCustomer.points} punti`);
+        }
+      } catch (error) {
+        console.error('[SaleModal] ❌ Errore ricaricamento dati cliente:', error);
+      }
+
       confirmClickedRef.current = false;
       console.log('[SaleModal] 🔓 Pronto per la prossima vendita');
     }, 1000);
