@@ -1027,7 +1027,21 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       <SaleModal
         customer={localCustomer}
         isOpen={showSaleModal}
-        onClose={() => setShowSaleModal(false)}
+        onClose={() => {
+          setShowSaleModal(false);
+
+          // 📺 Reset Customer Display allo stato IDLE quando chiudi il modal
+          if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            console.log('📺 Chiusura SaleModal - reset Customer Display a IDLE');
+            (window as any).updateCustomerDisplay({
+              type: 'IDLE',
+              idle: {
+                message: 'In attesa...',
+                showLogo: true
+              }
+            });
+          }
+        }}
         onConfirm={handleSaleConfirm}
         pointsPerEuro={pointsPerEuro}
         loyaltyTiers={loyaltyTiers}
