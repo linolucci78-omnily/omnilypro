@@ -17,6 +17,7 @@ import CardManagementHub from './CardManagementHub'
 import CardManagementFullPage from './CardManagementFullPage'
 import CardStatisticsPage from './CardStatisticsPage'
 import OperatorNFCManagementFullPage from './OperatorNFCManagementFullPage'
+import StaffActivityLogs from './StaffActivityLogs'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
 import AccountSettingsHub from './AccountSettingsHub'
@@ -2479,6 +2480,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           <OperatorNFCManagementFullPage
             organizationId={currentOrganization.id}
             onBack={() => handleSectionChange('settings')}
+          />
+        ) : null
+
+      case 'staff-activity-logs':
+        return currentOrganization ? (
+          <StaffActivityLogs
+            organizationId={currentOrganization.id}
+            onClose={() => handleSectionChange('settings')}
           />
         ) : null
 

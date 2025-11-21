@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Smartphone,
   Printer,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react'
 import './SettingsHub.css'
 
@@ -153,6 +154,21 @@ const SettingsHub: React.FC<SettingsHubProps> = ({
         'Attiva/disattiva tessere'
       ],
       onClick: () => onNavigateToSection('operator-nfc-management')
+    },
+    {
+      id: 'activity-logs',
+      icon: FileText,
+      title: 'Log Attività Operatori',
+      description: 'Visualizza tutte le azioni degli operatori',
+      color: '#16a34a',
+      gradient: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+      features: [
+        'Vendite e transazioni',
+        'Riscatti premi',
+        'Modifiche clienti',
+        'Login e accessi'
+      ],
+      onClick: () => onNavigateToSection('staff-activity-logs')
     },
     {
       id: 'billing',
