@@ -29,19 +29,30 @@ export default function Profile() {
     <div className="min-h-screen bg-white pb-24">
       {/* Header con Avatar */}
       <div className="pt-12 pb-8 px-6">
-        {/* Avatar grande con bordo rosso doppio */}
+        {/* Avatar grande con bordo rosso doppio ed effetto 3D */}
         <div className="flex justify-center mb-6">
           <div className="relative">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-red-500 to-red-600 p-1 shadow-xl">
-              <div className="w-full h-full rounded-full bg-white p-1">
-                {organization?.logo_url ? (
+            {/* Ombra esterna per profondità */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-500/30 to-red-600/30 blur-xl transform scale-110"></div>
+
+            <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-red-400 via-red-500 to-red-700 p-1 shadow-2xl shadow-red-500/50">
+              <div className="w-full h-full rounded-full bg-white p-1 shadow-inner">
+                {customer?.avatar_url ? (
                   <img
-                    src={organization.logo_url}
+                    src={customer.avatar_url}
                     alt={customer.name}
-                    className="w-full h-full rounded-full object-cover"
+                    className="w-full h-full rounded-full object-cover shadow-lg"
+                    style={{
+                      boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)'
+                    }}
                   />
                 ) : (
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                  <div
+                    className="w-full h-full rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center"
+                    style={{
+                      boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)'
+                    }}
+                  >
                     <svg className="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                     </svg>
@@ -49,6 +60,10 @@ export default function Profile() {
                 )}
               </div>
             </div>
+
+            {/* Riflesso luce superiore per effetto glossy 3D */}
+            <div className="absolute top-3 left-1/4 w-12 h-12 bg-white/40 rounded-full blur-md pointer-events-none"></div>
+            <div className="absolute top-5 left-1/3 w-8 h-8 bg-white/20 rounded-full blur-sm pointer-events-none"></div>
           </div>
         </div>
 

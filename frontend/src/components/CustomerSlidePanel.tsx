@@ -11,7 +11,7 @@ import RewardsModal from './RewardsModal';
 import SaleSuccessModal from './SaleSuccessModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
-import { customerActivitiesApi } from '../lib/supabase';
+import { customerActivitiesApi, supabase } from '../lib/supabase';
 import { createPrintService } from '../services/printService';
 import { rewardsService, type Reward } from '../services/rewardsService';
 import {
@@ -1117,8 +1117,26 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           secondaryColor={secondaryColor}
           onCustomerUpdate={async () => {
             // Ricarica i dati del cliente dal database
-            if (onUpdateCustomer && customer.id) {
-              await onUpdateCustomer(customer.id, {});
+            if (customer?.id) {
+              try {
+                const { data: updatedCustomer, error } = await supabase
+                  .from('customers')
+                  .select('*')
+                  .eq('id', customer.id)
+                  .single();
+
+                if (error) {
+                  console.error('Errore ricaricamento cliente:', error);
+                  return;
+                }
+
+                if (updatedCustomer) {
+                  setLocalCustomer(updatedCustomer as Customer);
+                  console.log(`✅ Punti aggiornati nel pannello: ${updatedCustomer.points}`);
+                }
+              } catch (error) {
+                console.error('Errore durante il ricaricamento:', error);
+              }
             }
           }}
         />

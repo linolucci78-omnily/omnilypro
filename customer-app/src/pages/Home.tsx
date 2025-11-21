@@ -219,24 +219,32 @@ export default function Home() {
         <div className="relative z-10">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            {/* Avatar utente con bordo giallo */}
-            <div className="w-16 h-16 rounded-full border-3 border-yellow-500 p-0.5">
-              {false ? (
-                <img
-                  src=""
-                  alt={customer?.name || 'User'}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+            {/* Avatar utente con bordo giallo ed effetto 3D */}
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 shadow-xl shadow-yellow-500/50">
+                <div className="w-full h-full rounded-full bg-white p-0.5">
+                  {customer?.avatar_url ? (
+                    <img
+                      src={customer.avatar_url}
+                      alt={customer?.name || 'User'}
+                      className="w-full h-full rounded-full object-cover shadow-inner"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center shadow-inner">
+                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+              {/* Riflesso luce superiore per effetto 3D */}
+              <div className="absolute top-1 left-1/4 w-6 h-6 bg-white/30 rounded-full blur-sm pointer-events-none"></div>
             </div>
             <div>
-              <p className="text-white/70 text-xs uppercase tracking-wider font-medium">BENTORNATA</p>
+              <p className="text-white/70 text-xs uppercase tracking-wider font-medium">
+                {customer.gender === 'male' ? 'BENTORNATO' : customer.gender === 'female' ? 'BENTORNATA' : 'BENTORNATO/A'}
+              </p>
               <h1 className="text-white text-xl font-bold">
                 {customer.name || 'Cliente'}
               </h1>

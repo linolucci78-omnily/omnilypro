@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Gift, Clock, Heart, Lock, QrCode } from 'lucide-react';
+import { X, Gift, Clock, Heart, Lock, QrCode, Sparkles, CheckCircle } from 'lucide-react';
 import { rewardsService, type Reward } from '../services/rewardsService';
 import ConfirmRedeemModal from './ConfirmRedeemModal';
 import Toast, { ToastType } from './Toast';
@@ -34,19 +34,28 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [currentPoints, setCurrentPoints] = useState(customer.points); // Punti locali aggiornabili
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
     message: '',
     type: 'success',
     isVisible: false
   });
 
-  // Calcola il premio con il punteggio più alto
-  const highestReward = allRewards.length > 0
-    ? allRewards.reduce((max, reward) => reward.points_required > max.points_required ? reward : max, allRewards[0])
+  // Sincronizza i punti locali quando cambiano nella prop
+  useEffect(() => {
+    setCurrentPoints(customer.points);
+  }, [customer.points]);
+
+  // Calcola il prossimo premio che il cliente può raggiungere
+  // Trova il premio con il punteggio più basso che è ancora sopra i punti attuali del cliente
+  const nextReward = allRewards.length > 0
+    ? allRewards
+        .filter(reward => reward.points_required > currentPoints)
+        .sort((a, b) => a.points_required - b.points_required)[0]
     : null;
 
-  const pointsMissing = highestReward ? Math.max(0, highestReward.points_required - customer.points) : 0;
-  const progressPercentage = highestReward ? Math.min(100, (customer.points / highestReward.points_required) * 100) : 0;
+  const pointsMissing = nextReward ? Math.max(0, nextReward.points_required - currentPoints) : 0;
+  const progressPercentage = nextReward ? Math.min(100, (currentPoints / nextReward.points_required) * 100) : 0;
 
   // Setup callback globale per lo scanner QR
   useEffect(() => {
@@ -216,13 +225,17 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
         return;
       }
 
+      // Aggiorna immediatamente i punti locali (ottimistico)
+      const newPoints = currentPoints - selectedReward.points_required;
+      setCurrentPoints(newPoints);
+
       // Ricarica i dati
       const active = await rewardsService.getActive(organizationId);
       setAllRewards(active);
 
       const available = await rewardsService.getAvailableForCustomer(
         organizationId,
-        customer.points - selectedReward.points_required,
+        newPoints,
         customer.tier || 'Bronze'
       );
       setAvailableRewards(available);
@@ -344,17 +357,17 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
                 <Heart size={32} />
               </div>
               <div className="rewards-balance-text">
-                <div className="rewards-balance-number">{customer.points}</div>
+                <div className="rewards-balance-number">{currentPoints}</div>
                 <div className="rewards-balance-label">{pointsName.toLowerCase()} disponibili</div>
               </div>
             </div>
 
             {/* Progress bar per prossimo obiettivo */}
-            {highestReward && (
+            {nextReward ? (
               <div className="rewards-goal-card">
                 <div className="rewards-goal-header">
-                  <span>Prossimo obiettivo: {highestReward.name}</span>
-                  <span className="rewards-goal-points">{highestReward.points_required} 💎</span>
+                  <span>Prossimo obiettivo: {nextReward.name}</span>
+                  <span className="rewards-goal-points">{nextReward.points_required} 💎</span>
                 </div>
                 <div className="rewards-progress-bar">
                   <div
@@ -364,6 +377,67 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
                 </div>
                 <div className="rewards-goal-missing">
                   Mancano {pointsMissing} {pointsName.toLowerCase()}
+                </div>
+              </div>
+            ) : availableRewards.length > 0 && (
+              <div
+                className="rewards-goal-card"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Effetto sparkle animato */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)',
+                  animation: 'shimmer 3s infinite',
+                  pointerEvents: 'none'
+                }} />
+
+                <div className="rewards-goal-header" style={{ color: 'white', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Gift size={20} strokeWidth={2.5} />
+                  <span style={{ fontSize: '1rem', fontWeight: 700 }}>Puoi riscattare: {availableRewards[0].name}</span>
+                  <span
+                    className="rewards-goal-points"
+                    style={{
+                      color: 'white',
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      marginLeft: 'auto'
+                    }}
+                  >
+                    {availableRewards[0].points_required} <Heart size={14} style={{ display: 'inline', marginBottom: '2px' }} />
+                  </span>
+                </div>
+                <div
+                  className="rewards-goal-missing"
+                  style={{
+                    color: 'white',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    position: 'relative',
+                    zIndex: 1,
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    padding: '8px 16px',
+                    borderRadius: '12px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginTop: '8px'
+                  }}
+                >
+                  <CheckCircle size={18} strokeWidth={2.5} />
+                  Pronto al riscatto! {availableRewards.length > 1 ? `(+${availableRewards.length - 1} altri premi)` : ''}
                 </div>
               </div>
             )}
@@ -407,8 +481,8 @@ const RewardsModal: React.FC<RewardsModalProps> = ({
                 <div className="rewards-grid">
                   {allRewards.map(reward => {
                     const isAvailable = availableRewards.some(r => r.id === reward.id);
-                    const canRedeem = isAvailable && customer.points >= reward.points_required;
-                    const pointsMissing = Math.max(0, reward.points_required - customer.points);
+                    const canRedeem = isAvailable && currentPoints >= reward.points_required;
+                    const pointsMissing = Math.max(0, reward.points_required - currentPoints);
 
                     return (
                       <div key={reward.id} className="rewards-modal-card">

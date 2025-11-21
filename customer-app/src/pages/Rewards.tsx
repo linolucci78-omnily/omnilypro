@@ -462,7 +462,7 @@ export default function Rewards() {
                     {/* Badge colorato in alto a destra */}
                     <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-bold text-xs shadow-lg ${
                       isUsed
-                        ? 'bg-green-500 text-white'
+                        ? 'bg-gray-500 text-white'
                         : 'bg-yellow-500 text-white'
                     }`}>
                       {isUsed ? '✓ Usato' : '⏱ In Attesa'}
@@ -501,8 +501,8 @@ export default function Rewards() {
                           isUsed ? 'text-gray-400' : 'text-gray-600'
                         }`}>
                           {isUsed
-                            ? `Usato il ${new Date(reward.used_at).toLocaleDateString('it-IT')}`
-                            : `Riscattato il ${new Date(reward.redeemed_at).toLocaleDateString('it-IT')}`
+                            ? `Usato il ${new Date(reward.used_at).toLocaleDateString('it-IT')} alle ${new Date(reward.used_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`
+                            : `Riscattato il ${new Date(reward.redeemed_at).toLocaleDateString('it-IT')} alle ${new Date(reward.redeemed_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`
                           }
                         </p>
 

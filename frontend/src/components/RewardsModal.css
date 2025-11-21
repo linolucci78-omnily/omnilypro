@@ -586,3 +586,13 @@
   color: #22c55e;
   font-weight: 600;
 }
+
+/* Shimmer animation for ready-to-redeem badge */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
