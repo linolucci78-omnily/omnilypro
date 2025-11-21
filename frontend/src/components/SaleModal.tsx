@@ -34,6 +34,8 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const confirmClickedRef = React.useRef(false); // Previene click multipli
   const [printReceipt, setPrintReceipt] = useState(true); // Toggle stampa scontrino
+  const [showCustomerToast, setShowCustomerToast] = useState(false); // Toast per cambio cliente
+  const [toastMessage, setToastMessage] = useState(''); // Messaggio toast
 
   // Cliente attivo - può essere diverso dal customer prop dopo una scansione QR
   const [activeCustomer, setActiveCustomer] = useState(customer);
@@ -161,7 +163,9 @@ const SaleModal: React.FC<SaleModalProps> = ({
     // Parse QR code formato: "OMNILY_CUSTOMER:customer_id"
     if (!scannedCode.startsWith('OMNILY_CUSTOMER:')) {
       console.error('[SaleModal] ❌ QR code non valido');
-      alert('QR code non valido. Assicurati di scansionare il QR della carta cliente.');
+      setToastMessage('❌ QR code non valido');
+      setShowCustomerToast(true);
+      setTimeout(() => setShowCustomerToast(false), 3000);
       return;
     }
 
@@ -178,7 +182,9 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
       if (error || !newCustomer) {
         console.error('[SaleModal] ❌ Cliente non trovato:', error);
-        alert('Cliente non trovato nel database.');
+        setToastMessage('❌ Cliente non trovato');
+        setShowCustomerToast(true);
+        setTimeout(() => setShowCustomerToast(false), 3000);
         return;
       }
 
@@ -207,12 +213,16 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
       console.log(`[SaleModal] 🔄 Cliente cambiato: ${newCustomer.name} (${newTier.name})`);
 
-      // Mostra messaggio di successo breve
-      alert(`✅ Cliente caricato: ${newCustomer.name}\nPunti: ${newCustomer.points}\nLivello: ${newTier.name}`);
+      // Mostra toast di successo
+      setToastMessage(`✅ ${newCustomer.name} - ${newCustomer.points} punti - ${newTier.name}`);
+      setShowCustomerToast(true);
+      setTimeout(() => setShowCustomerToast(false), 3000);
 
     } catch (error) {
       console.error('[SaleModal] ❌ Errore caricamento cliente:', error);
-      alert('Errore durante il caricamento del cliente.');
+      setToastMessage('❌ Errore caricamento cliente');
+      setShowCustomerToast(true);
+      setTimeout(() => setShowCustomerToast(false), 3000);
     }
   };
 
@@ -549,6 +559,45 @@ const SaleModal: React.FC<SaleModalProps> = ({
           await handleQRScan(scannedCode);
         }}
       />
+
+      {/* Toast Notification per cambio cliente */}
+      {showCustomerToast && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10001,
+          backgroundColor: toastMessage.startsWith('❌') ? '#ef4444' : '#10b981',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          fontSize: '15px',
+          fontWeight: '600',
+          maxWidth: '400px',
+          textAlign: 'center',
+          animation: 'slideDown 0.3s ease-out',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>
+          {toastMessage}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+      `}</style>
     </>
   );
 };
