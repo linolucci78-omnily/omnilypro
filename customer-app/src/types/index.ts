@@ -31,6 +31,10 @@ export interface Customer {
   friends_invited: number
   referral_points_earned: number
   created_at: string
+  avatar_url?: string | null
+  gender?: string | null
+  total_spent?: number
+  last_sale_amount?: number
 }
 
 export interface LoyaltyTier {
