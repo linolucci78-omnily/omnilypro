@@ -11,7 +11,17 @@ import { SparklesCore } from '@/components/UI/sparkles';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
 const Login: React.FC = () => {
-  const [isPosMode, setIsPosMode] = useState(false);
+  // IMPORTANTE: Rileva modalità POS IMMEDIATAMENTE per evitare flash
+  const [isPosMode, setIsPosMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasPosParam = urlParams.has('pos') || urlParams.has('posomnily');
+      const hasUserAgentPOS = navigator.userAgent.includes('OMNILY-POS-APP');
+      const hasLocalStorage = localStorage.getItem('pos-mode') === 'true';
+      return hasPosParam || hasUserAgentPOS || hasLocalStorage;
+    }
+    return false;
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
