@@ -133,6 +133,17 @@ const CustomerDisplay: React.FC = () => {
         setSaleProcessing(null);
         setShowCelebration(false);
         setGiftCertificate(null);
+      } else if (event.data.type === 'IDLE') {
+        console.log('💤 Reset a IDLE ricevuto - torno alla schermata iniziale');
+        // Reset completo di tutti gli stati
+        setSalePreview(null);
+        setSaleProcessing(null);
+        setShowCelebration(false);
+        setGiftCertificate(null);
+        setTierUpgrade(null);
+        setCelebrationData(null);
+        setTransaction({ items: [], total: 0 }); // Reset transazione
+        console.log('✅ Customer Display resettato a IDLE');
       } else {
         console.log('❌ Tipo messaggio sconosciuto:', event.data.type);
       }
@@ -933,7 +944,7 @@ const CustomerDisplay: React.FC = () => {
         )}
       </div>
 
-      {/* Celebration Screen - BRAND ROSSO ULTRA-COMPATTA per 4" - AUTO-CHIUSURA 3 SEC */}
+      {/* Celebration Screen REDESIGN - BRAND ROSSO ULTRA-COMPATTA per 4" */}
       {showCelebration && celebrationData && (
         <div
           style={{
@@ -943,90 +954,173 @@ const CustomerDisplay: React.FC = () => {
             width: '100%',
             height: '100%',
             background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+            backgroundSize: '200% 200%',
+            animation: 'gradientShift 3s ease infinite',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 99999, // MASSIMO! Sopra TUTTO
+            zIndex: 99999,
             color: 'white',
             textAlign: 'center',
-            padding: '0.75rem',
-            gap: '0.5rem'
+            padding: '1rem',
+            gap: '0.75rem'
           }}
         >
 
-          {/* Icona successo ULTRA-COMPATTA per 4" */}
+          {/* Icona successo con scale-in */}
           <div style={{
-            fontSize: '2rem',
-            animation: 'bounce 1s ease-in-out'
+            fontSize: '3rem',
+            animation: 'scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
           }}>
             ✅
           </div>
 
-          {/* Nome cliente ULTRA-COMPATTO per 4" */}
+          {/* Nome cliente con slide-in */}
           <h1 style={{
             margin: 0,
-            fontSize: '1.4rem',
+            fontSize: '1.5rem',
             fontWeight: 'bold',
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-            lineHeight: 1.2
+            textShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            lineHeight: 1.2,
+            animation: 'slideInDown 0.6s ease-out 0.2s both'
           }}>
             Grazie {celebrationData.customerName}!
           </h1>
 
-          {/* Informazioni transazione ULTRA-COMPATTE per 4" */}
+          {/* Box transazione con fade-in sequenziale */}
           <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            padding: '0.75rem',
-            borderRadius: '8px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(255, 255, 255, 0.2)',
+            padding: '1rem',
+            borderRadius: '12px',
+            backdropFilter: 'blur(20px)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
             width: '100%',
-            maxWidth: '280px'
+            maxWidth: '300px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            animation: 'fadeInUp 0.6s ease-out 0.4s both'
           }}>
+            {/* Importo pagato */}
             <div style={{
-              fontSize: '2.2rem',
+              fontSize: '2.5rem',
               fontWeight: 'bold',
-              marginBottom: '0.3rem',
-              lineHeight: 1
+              marginBottom: '0.5rem',
+              lineHeight: 1,
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              animation: 'countUp 0.8s ease-out 0.6s both'
             }}>
               €{celebrationData.amount.toFixed(2)}
             </div>
+
+            {/* Separatore elegante */}
             <div style={{
-              fontSize: '1rem',
-              marginBottom: '0.2rem',
-              opacity: 0.95
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+              margin: '0.5rem 0',
+              animation: 'expandWidth 0.6s ease-out 0.8s both'
+            }} />
+
+            {/* Punti guadagnati - EVIDENZIATO */}
+            <div style={{
+              fontSize: '1.3rem',
+              fontWeight: 'bold',
+              marginBottom: '0.4rem',
+              color: '#fef3c7',
+              textShadow: '0 0 20px rgba(254, 243, 199, 0.5)',
+              animation: 'glow 1.5s ease-in-out 1s infinite'
             }}>
-              +{celebrationData.pointsEarned} punti!
+              +{celebrationData.pointsEarned} PUNTI! 🎉
             </div>
+
+            {/* Progress bar animato */}
             <div style={{
-              fontSize: '0.85rem',
-              opacity: 0.8
+              width: '100%',
+              height: '4px',
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '2px',
+              overflow: 'hidden',
+              marginBottom: '0.5rem'
             }}>
-              Totale: {celebrationData.newTotalPoints} punti
+              <div style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, #fbbf24, #fef3c7)',
+                animation: 'fillBar 1.2s ease-out 1.2s both',
+                boxShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
+              }} />
+            </div>
+
+            {/* Nuovo totale punti */}
+            <div style={{
+              fontSize: '0.9rem',
+              opacity: 0.95,
+              animation: 'fadeIn 0.6s ease-out 1.8s both'
+            }}>
+              Nuovo saldo: <strong>{celebrationData.newTotalPoints} punti</strong>
             </div>
           </div>
 
-          {/* Messaggio finale ULTRA-COMPATTO per 4" */}
+          {/* Messaggio finale con pulse */}
           <div style={{
             fontSize: '1rem',
-            opacity: 0.9,
-            animation: 'pulse 2s infinite'
+            fontWeight: '600',
+            opacity: 0.95,
+            animation: 'fadeIn 0.6s ease-out 2s both, pulse 2s ease-in-out 2.5s infinite',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
           }}>
-            Vendita completata! 🎉
+            <span>Transazione completata</span>
+            <span style={{ animation: 'spin 1s linear infinite' }}>⚡</span>
           </div>
 
-          {/* Stili per le animazioni */}
+          {/* Stili per le animazioni NUOVE */}
           <style dangerouslySetInnerHTML={{
             __html: `
-              @keyframes bounce {
-                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-                40% { transform: translateY(-10px); }
-                60% { transform: translateY(-5px); }
+              @keyframes scaleIn {
+                0% { transform: scale(0); opacity: 0; }
+                100% { transform: scale(1); opacity: 1; }
+              }
+              @keyframes slideInDown {
+                0% { transform: translateY(-30px); opacity: 0; }
+                100% { transform: translateY(0); opacity: 1; }
+              }
+              @keyframes fadeInUp {
+                0% { transform: translateY(20px); opacity: 0; }
+                100% { transform: translateY(0); opacity: 1; }
+              }
+              @keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+              }
+              @keyframes countUp {
+                0% { transform: scale(0.5); opacity: 0; }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); opacity: 1; }
+              }
+              @keyframes expandWidth {
+                0% { width: 0; }
+                100% { width: 100%; }
+              }
+              @keyframes fillBar {
+                0% { width: 0; }
+                100% { width: 100%; }
+              }
+              @keyframes glow {
+                0%, 100% { text-shadow: 0 0 10px rgba(254, 243, 199, 0.5); }
+                50% { text-shadow: 0 0 25px rgba(254, 243, 199, 0.8), 0 0 35px rgba(254, 243, 199, 0.6); }
               }
               @keyframes pulse {
-                0%, 100% { opacity: 0.7; }
-                50% { opacity: 1; }
+                0%, 100% { opacity: 0.8; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.02); }
+              }
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+              @keyframes gradientShift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
               }
             `
           }} />
