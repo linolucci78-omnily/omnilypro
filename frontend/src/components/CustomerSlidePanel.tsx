@@ -539,7 +539,29 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number, printReceipt: boolean = true) => {
     if (!customer) return;
 
-    console.log(`⚡ Iniziando transazione IMMEDIATA: €${amount} per ${customer.name}, +${pointsEarned} punti`);
+    // 🔍 IMPORTANTE: Carica i dati del cliente CORRETTO (potrebbe essere diverso dal customer prop dopo QR scan)
+    let targetCustomer = customer;
+    if (customerId !== customer.id) {
+      console.log(`[handleSaleConfirm] ⚠️ CustomerId (${customerId}) diverso da customer.id (${customer.id}) - caricamento dati cliente corretto...`);
+      try {
+        const { data, error } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('id', customerId)
+          .single();
+
+        if (data && !error) {
+          targetCustomer = data;
+          console.log(`[handleSaleConfirm] ✅ Dati cliente corretto caricati: ${targetCustomer.name}`);
+        } else {
+          console.error('[handleSaleConfirm] ❌ Errore caricamento cliente:', error);
+        }
+      } catch (error) {
+        console.error('[handleSaleConfirm] ❌ Errore query cliente:', error);
+      }
+    }
+
+    console.log(`⚡ Iniziando transazione IMMEDIATA: €${amount} per ${targetCustomer.name}, +${pointsEarned} punti`);
     console.log(`🖨️ Stampa scontrino: ${printReceipt ? 'SI' : 'NO (digitale)'}`);
 
     // ⚡ FEEDBACK IMMEDIATO - PRIMA di aspettare il database!
@@ -550,7 +572,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     // 🎉 Mostra modale verde "Vendita Registrata!"
     // Nota: La fontana di monete viene triggerata da SaleModal DOPO che questo modale appare
     setSaleSuccessData({
-      customerName: customer.name,
+      customerName: targetCustomer.name,
       pointsEarned
     });
     setShowSaleSuccessModal(true);
@@ -566,11 +588,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           console.log('✅ Transazione completata con successo!');
 
           // 📝 LOG STAFF ACTIVITY (in background, non blocca)
-          if (customer.organization_id) {
+          if (targetCustomer.organization_id) {
             logSale(
-              customer.organization_id,
-              customer.id,
-              customer.name,
+              targetCustomer.organization_id,
+              targetCustomer.id,
+              targetCustomer.name,
               amount,
               pointsEarned
             ).catch(err => console.error('Log sale error:', err)); // Non bloccare per errori di log
@@ -587,12 +609,12 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             (window as any).updateCustomerDisplay({
               type: 'SALE_CELEBRATION',
               celebration: {
-                customerName: customer.name,
+                customerName: targetCustomer.name,
                 amount: amount,
                 pointsEarned: pointsEarned,
-                oldPoints: customer.points,
-                newTotalPoints: result.customer?.points || (customer.points + pointsEarned),
-                tier: customer.tier,
+                oldPoints: targetCustomer.points,
+                newTotalPoints: result.customer?.points || (targetCustomer.points + pointsEarned),
+                tier: targetCustomer.tier,
                 showCoinsRain: true, // Attiva pioggia di monete
                 duration: 4000 // Celebrazione per 4 secondi
               }
@@ -634,7 +656,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               paymentMethod: 'Contanti',
               cashierName: operatorName,
               customerPoints: pointsEarned,
-              loyaltyCard: customer.id
+              loyaltyCard: targetCustomer.id
             };
 
             // Stampa scontrino solo se richiesto
@@ -673,14 +695,14 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
           // 🎯 CONTROLLA CAMBIO TIER dopo vendita
           try {
-            const oldPoints = customer.points;
-            const newPoints = result.customer?.points || (customer.points + pointsEarned);
+            const oldPoints = targetCustomer.points;
+            const newPoints = result.customer?.points || (targetCustomer.points + pointsEarned);
 
             await handleTierChange({
-              customerId: customer.id,
-              customerName: customer.name,
-              customerEmail: customer.email || '',
-              organizationId: customer.organization_id,
+              customerId: targetCustomer.id,
+              customerName: targetCustomer.name,
+              customerEmail: targetCustomer.email || '',
+              organizationId: targetCustomer.organization_id,
               organizationName,
               oldPoints,
               newPoints,
@@ -691,11 +713,15 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             console.error('❌ Errore controllo tier change dopo vendita:', error);
           }
 
-          // Ricarica le attività per mostrare la nuova transazione
+          // Ricarica le attività del cliente corretto (se è lo stesso del pannello)
           try {
-            const refreshedActivities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
-            setCustomerActivities(refreshedActivities);
-            console.log('✅ Attività aggiornate dopo transazione completata');
+            if (customerId === customer.id) {
+              const refreshedActivities = await customerActivitiesApi.getByCustomerId(customerId, 5);
+              setCustomerActivities(refreshedActivities);
+              console.log('✅ Attività aggiornate dopo transazione completata');
+            } else {
+              console.log('ℹ️ Cliente scansionato diverso dal pannello - attività non aggiornate nel pannello');
+            }
           } catch (error) {
             console.error('❌ Errore aggiornamento attività dopo transazione:', error);
           }

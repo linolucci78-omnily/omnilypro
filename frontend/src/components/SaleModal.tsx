@@ -219,6 +219,27 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
       // Reset importo per nuovo cliente
       setAmount('');
+      setPointsEarned(0);
+      setDisplayedPoints(0);
+
+      // Carica preferenza stampa del nuovo cliente
+      setPrintReceipt(newCustomer.print_receipt_preference !== false);
+
+      // 📺 AGGIORNA CUSTOMER DISPLAY con il nuovo cliente
+      if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+        (window as any).updateCustomerDisplay({
+          type: 'SALE_PREVIEW',
+          preview: {
+            customerName: newCustomer.name,
+            amount: 0,
+            pointsToEarn: 0,
+            currentPoints: newCustomer.points,
+            newTotalPoints: newCustomer.points,
+            tier: newTier.name
+          }
+        });
+        console.log(`[SaleModal] 📺 Customer display aggiornato per ${newCustomer.name}`);
+      }
 
       console.log(`[SaleModal] 🔄 Cliente cambiato: ${newCustomer.name} (${newTier.name})`);
 
