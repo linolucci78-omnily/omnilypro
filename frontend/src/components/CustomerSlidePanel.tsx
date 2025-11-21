@@ -536,10 +536,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     console.log('[CoinsRain MainScreen] 🎉 82 elementi creati (12 esplosione + 45 monete + 25 particelle) - sincronizzati con il suono!');
   };
 
-  const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number) => {
+  const handleSaleConfirm = async (customerId: string, amount: number, pointsEarned: number, printReceipt: boolean = true) => {
     if (!customer) return;
 
     console.log(`⚡ Iniziando transazione IMMEDIATA: €${amount} per ${customer.name}, +${pointsEarned} punti`);
+    console.log(`🖨️ Stampa scontrino: ${printReceipt ? 'SI' : 'NO (digitale)'}`);
 
     // ⚡ FEEDBACK IMMEDIATO - PRIMA di aspettare il database!
     // 🔊 SUONO parte SUBITO al click
@@ -636,19 +637,35 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               loyaltyCard: customer.id
             };
 
-            // Crea servizio stampa e stampa
-            const printService = createPrintService(printConfig);
-            const initialized = await printService.initialize();
+            // Stampa scontrino solo se richiesto
+            if (printReceipt) {
+              console.log('🖨️ Avvio stampa scontrino cartaceo...');
+              const printService = createPrintService(printConfig);
+              const initialized = await printService.initialize();
 
-            if (initialized) {
-              const printed = await printService.printReceiptOptimized(receiptData);
-              if (printed) {
-                console.log('✅ Scontrino stampato con successo (layout ottimizzato)!');
+              if (initialized) {
+                const printed = await printService.printReceiptOptimized(receiptData);
+                if (printed) {
+                  console.log('✅ Scontrino stampato con successo (layout ottimizzato)!');
+                } else {
+                  console.error('❌ Errore durante la stampa dello scontrino');
+                }
               } else {
-                console.error('❌ Errore durante la stampa dello scontrino');
+                console.error('❌ Impossibile inizializzare la stampante');
               }
             } else {
-              console.error('❌ Impossibile inizializzare la stampante');
+              console.log('📱 Scontrino digitale - stampa saltata (cliente usa app)');
+            }
+
+            // Salva la preferenza di stampa del cliente nel database
+            try {
+              await supabase
+                .from('customers')
+                .update({ print_receipt_preference: printReceipt })
+                .eq('id', customerId);
+              console.log('💾 Preferenza stampa salvata:', printReceipt);
+            } catch (prefError) {
+              console.error('❌ Errore salvataggio preferenza stampa:', prefError);
             }
           } catch (printError) {
             console.error('❌ Errore stampa scontrino:', printError);

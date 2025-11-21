@@ -1173,7 +1173,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         .from('customers')
         .update({
           points: newPoints,
-          total_spent: newTotalSpent
+          total_spent: newTotalSpent,
+          last_sale_amount: amount  // Salva l'importo esatto della vendita per notifiche app
         })
         .eq('id', customerId)
         .select()

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Store, Target, ChevronDown, ShoppingBag, Eraser, QrCode } from 'lucide-react';
+import { X, Store, Target, ChevronDown, ShoppingBag, Eraser, QrCode, Printer } from 'lucide-react';
 import './SaleModal.css';
 import QRScannerModal from './QRScannerModal';
 import { supabase } from '../lib/supabase';
@@ -8,7 +8,7 @@ interface SaleModalProps {
   customer: any;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (customerId: string, amount: number, pointsEarned: number) => void;
+  onConfirm: (customerId: string, amount: number, pointsEarned: number, printReceipt?: boolean) => void;
   pointsPerEuro?: number; // Configurazione dinamica punti per euro
   loyaltyTiers?: any[]; // Tiers di fedeltà per calcoli dinamici
   currentTier?: any; // Tier corrente del cliente
@@ -33,6 +33,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const confirmClickedRef = React.useRef(false); // Previene click multipli
+  const [printReceipt, setPrintReceipt] = useState(true); // Toggle stampa scontrino
 
   // Cliente attivo - può essere diverso dal customer prop dopo una scansione QR
   const [activeCustomer, setActiveCustomer] = useState(customer);
@@ -43,7 +44,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
     if (isOpen && customer) {
       setActiveCustomer(customer);
       setActiveTier(currentTier);
+      // Carica preferenza stampa del cliente (default true se non specificato)
+      setPrintReceipt(customer.print_receipt_preference !== false);
       console.log('[SaleModal] 👤 Cliente iniziale:', customer.name);
+      console.log('[SaleModal] 🖨️ Preferenza stampa:', customer.print_receipt_preference !== false ? 'SI' : 'NO');
     }
   }, [isOpen, customer, currentTier]);
 
@@ -132,8 +136,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
     // Chiama onConfirm che mostra il modale verde in CustomerSlidePanel
     // La fontana di monete viene ora triggerata automaticamente da SaleSuccessModal
     // USA activeCustomer invece di customer per supportare scansioni QR
-    onConfirm(activeCustomer.id, numAmount, pointsEarned);
+    // Passa anche la preferenza di stampa
+    onConfirm(activeCustomer.id, numAmount, pointsEarned, printReceipt);
     console.log(`[SaleModal] 💳 Vendita registrata per ${activeCustomer.name}`);
+    console.log(`[SaleModal] 🖨️ Stampa scontrino: ${printReceipt ? 'SI' : 'NO'}`);
 
     // Reset importo per la prossima vendita
     setAmount('');
@@ -412,6 +418,82 @@ const SaleModal: React.FC<SaleModalProps> = ({
             <div className="gemini-saldo-row">
               <span className="gemini-saldo-label">Nuovo Saldo</span>
               <span className="gemini-saldo-value">{newTotalPoints} {pointsName.toLowerCase()}</span>
+            </div>
+          </div>
+
+          {/* Print Receipt Toggle */}
+          <div style={{
+            padding: '14px 20px',
+            borderTop: '1px solid rgba(255,255,255,0.1)',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            marginBottom: '10px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Printer size={18} color="white" strokeWidth={2} />
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: 'white'
+                }}>
+                  Scontrino cartaceo
+                </span>
+              </div>
+
+              {/* Toggle Switch - rettangolo orizzontale */}
+              <button
+                onClick={() => setPrintReceipt(!printReceipt)}
+                style={{
+                  position: 'relative',
+                  width: '50px',
+                  height: '26px',
+                  borderRadius: '13px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  backgroundColor: printReceipt ? '#10b981' : '#4b5563',
+                  padding: 0,
+                  outline: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: printReceipt ? 'flex-start' : 'flex-end',
+                  paddingLeft: printReceipt ? '3px' : '0',
+                  paddingRight: printReceipt ? '0' : '3px'
+                }}
+              >
+                {/* Pallina con icona */}
+                <div style={{
+                  position: 'absolute',
+                  top: '3px',
+                  left: printReceipt ? '28px' : '3px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: 'white',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Printer size={11} color={printReceipt ? '#10b981' : '#6b7280'} strokeWidth={2.5} />
+                </div>
+              </button>
+            </div>
+
+            {/* Status Text */}
+            <div style={{
+              marginTop: '6px',
+              fontSize: '11px',
+              color: printReceipt ? '#10b981' : '#9ca3af',
+              fontWeight: '500',
+              paddingLeft: '30px'
+            }}>
+              {printReceipt ? '✓ Scontrino cartaceo' : '📱 Solo digitale (app)'}
             </div>
           </div>
 

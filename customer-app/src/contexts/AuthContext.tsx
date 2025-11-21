@@ -99,7 +99,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Controlla se i punti sono aumentati
           if (newPoints > oldPoints) {
             const pointsEarned = newPoints - oldPoints
-            const amountSpent = updatedCustomer.total_spent - (customer.total_spent || 0)
+            // Usa last_sale_amount per l'importo esatto invece di calcolare la differenza
+            const amountSpent = updatedCustomer.last_sale_amount || (updatedCustomer.total_spent - (customer.total_spent || 0))
 
             console.log(`💰 Nuova vendita! +${pointsEarned} punti, €${amountSpent.toFixed(2)} spesi`)
 
