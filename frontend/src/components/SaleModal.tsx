@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Store, Target, ChevronDown, ShoppingBag, Eraser, QrCode } from 'lucide-react';
 import './SaleModal.css';
 import QRScannerModal from './QRScannerModal';
+import { supabase } from '../lib/supabase';
 
 interface SaleModalProps {
   customer: any;
@@ -33,11 +34,24 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const confirmClickedRef = React.useRef(false); // Previene click multipli
 
+  // Cliente attivo - può essere diverso dal customer prop dopo una scansione QR
+  const [activeCustomer, setActiveCustomer] = useState(customer);
+  const [activeTier, setActiveTier] = useState(currentTier);
+
+  // Sincronizza activeCustomer con customer quando il modale si apre per la prima volta
+  useEffect(() => {
+    if (isOpen && customer) {
+      setActiveCustomer(customer);
+      setActiveTier(currentTier);
+      console.log('[SaleModal] 👤 Cliente iniziale:', customer.name);
+    }
+  }, [isOpen, customer, currentTier]);
+
   // Calcola punti guadagnati basato sulla configurazione dell'organizzazione, tier e categoria
   useEffect(() => {
     const numAmount = parseFloat(amount) || 0;
     const basePoints = numAmount * pointsPerEuro; // Punti base
-    const tierMultiplier = currentTier?.multiplier || 1; // Moltiplicatore del tier
+    const tierMultiplier = activeTier?.multiplier || 1; // Moltiplicatore del tier ATTIVO
 
     // Trova moltiplicatore categoria se selezionata
     let categoryMultiplier = 1;
@@ -48,11 +62,11 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
     const finalPoints = Math.floor(basePoints * tierMultiplier * categoryMultiplier); // Punti finali con tutti i moltiplicatori
 
-    console.log(`💰 Calcolo punti: €${numAmount} × ${pointsPerEuro} × ${tierMultiplier} (${currentTier?.name || 'Default'}) × ${categoryMultiplier} (${selectedCategory || 'Nessuna'}) = ${finalPoints} punti`);
+    console.log(`💰 Calcolo punti: €${numAmount} × ${pointsPerEuro} × ${tierMultiplier} (${activeTier?.name || 'Default'}) × ${categoryMultiplier} (${selectedCategory || 'Nessuna'}) = ${finalPoints} punti`);
 
     // Aggiorna solo se i punti sono davvero cambiati
     setPointsEarned(prevPoints => prevPoints !== finalPoints ? finalPoints : prevPoints);
-  }, [amount, pointsPerEuro, currentTier, selectedCategory, bonusCategories]);
+  }, [amount, pointsPerEuro, activeTier, selectedCategory, bonusCategories]);
 
   // Effetto conteggio animato per i punti guadagnati
   useEffect(() => {
@@ -104,10 +118,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
       (window as any).updateCustomerDisplay({
         type: 'SALE_PROCESSING',
         processing: {
-          customerName: customer.name,
+          customerName: activeCustomer.name,
           amount: parseFloat(amount),
           pointsToEarn: pointsEarned,
-          tier: currentTier?.name || customer.tier || 'Bronze'
+          tier: activeTier?.name || activeCustomer.tier || 'Bronze'
         }
       });
       console.log('🔄 Mostrando schermata di elaborazione transazione...');
@@ -117,10 +131,83 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
     // Chiama onConfirm che mostra il modale verde in CustomerSlidePanel
     // La fontana di monete viene ora triggerata automaticamente da SaleSuccessModal
-    onConfirm(customer.id, numAmount, pointsEarned);
+    // USA activeCustomer invece di customer per supportare scansioni QR
+    onConfirm(activeCustomer.id, numAmount, pointsEarned);
+    console.log(`[SaleModal] 💳 Vendita registrata per ${activeCustomer.name}`);
 
+    // Reset importo per la prossima vendita
     setAmount('');
-    onClose();
+
+    // Reset ref dopo un breve delay per permettere la prossima vendita
+    setTimeout(() => {
+      confirmClickedRef.current = false;
+      console.log('[SaleModal] 🔓 Pronto per la prossima vendita');
+    }, 1000);
+
+    // NON chiudiamo più il modale - rimane aperto per la prossima scansione
+    // onClose();
+  };
+
+  // Funzione per gestire la scansione QR e caricare il nuovo cliente
+  const handleQRScan = async (scannedCode: string) => {
+    console.log('[SaleModal] 📱 QR scansionato:', scannedCode);
+
+    // Parse QR code formato: "OMNILY_CUSTOMER:customer_id"
+    if (!scannedCode.startsWith('OMNILY_CUSTOMER:')) {
+      console.error('[SaleModal] ❌ QR code non valido');
+      alert('QR code non valido. Assicurati di scansionare il QR della carta cliente.');
+      return;
+    }
+
+    const customerId = scannedCode.replace('OMNILY_CUSTOMER:', '');
+    console.log('[SaleModal] 🔍 Ricerca cliente con ID:', customerId);
+
+    try {
+      // Carica cliente dal database
+      const { data: newCustomer, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+      if (error || !newCustomer) {
+        console.error('[SaleModal] ❌ Cliente non trovato:', error);
+        alert('Cliente non trovato nel database.');
+        return;
+      }
+
+      console.log('[SaleModal] ✅ Cliente caricato:', newCustomer.name);
+
+      // Calcola tier del nuovo cliente
+      const calculateCustomerTier = (points: number) => {
+        if (!loyaltyTiers || loyaltyTiers.length === 0) return { name: 'Standard', multiplier: 1, color: '#6366f1' };
+
+        for (let i = loyaltyTiers.length - 1; i >= 0; i--) {
+          if (points >= parseFloat(loyaltyTiers[i].threshold)) {
+            return loyaltyTiers[i];
+          }
+        }
+        return loyaltyTiers[0];
+      };
+
+      const newTier = calculateCustomerTier(newCustomer.points);
+
+      // Aggiorna activeCustomer e activeTier
+      setActiveCustomer(newCustomer);
+      setActiveTier(newTier);
+
+      // Reset importo per nuovo cliente
+      setAmount('');
+
+      console.log(`[SaleModal] 🔄 Cliente cambiato: ${newCustomer.name} (${newTier.name})`);
+
+      // Mostra messaggio di successo breve
+      alert(`✅ Cliente caricato: ${newCustomer.name}\nPunti: ${newCustomer.points}\nLivello: ${newTier.name}`);
+
+    } catch (error) {
+      console.error('[SaleModal] ❌ Errore caricamento cliente:', error);
+      alert('Errore durante il caricamento del cliente.');
+    }
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -364,10 +451,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
       <QRScannerModal
         isOpen={isQRScannerOpen}
         onClose={() => setIsQRScannerOpen(false)}
-        onScanSuccess={(scannedCode) => {
+        onScanSuccess={async (scannedCode) => {
           console.log('QR scansionato:', scannedCode);
           setIsQRScannerOpen(false);
-          // Qui potresti gestire il codice scansionato
+          await handleQRScan(scannedCode);
         }}
       />
     </>

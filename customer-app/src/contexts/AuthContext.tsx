@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { supabase } from '../services/supabase'
 import type { Customer } from '../types'
 import { useOrganization } from './OrganizationContext'
@@ -9,6 +9,11 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   refreshCustomer: () => Promise<void>
+  // Sale celebration
+  showSaleSuccess: boolean
+  setShowSaleSuccess: (show: boolean) => void
+  saleData: { pointsEarned: number; amount: number } | null
+  coinFountainRef: React.MutableRefObject<any>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,7 +21,11 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   logout: async () => {},
-  refreshCustomer: async () => {}
+  refreshCustomer: async () => {},
+  showSaleSuccess: false,
+  setShowSaleSuccess: () => {},
+  saleData: null,
+  coinFountainRef: { current: null }
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -29,6 +38,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { organization } = useOrganization()
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Sale celebration state
+  const [showSaleSuccess, setShowSaleSuccess] = useState(false)
+  const [saleData, setSaleData] = useState<{ pointsEarned: number; amount: number } | null>(null)
+  const coinFountainRef = useRef<any>(null)
+  const previousPointsRef = useRef<number | null>(null)
 
   useEffect(() => {
     // Check if user is already logged in
@@ -48,6 +63,88 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       subscription.unsubscribe()
     }
   }, [organization])
+
+  // Setup Realtime subscription for sale notifications
+  useEffect(() => {
+    if (!customer?.id) {
+      console.log('🔇 Nessun cliente loggato, subscription non attiva')
+      return
+    }
+
+    console.log('🔔 Attivazione subscription Realtime per cliente:', customer.id)
+
+    // Imposta i punti iniziali
+    previousPointsRef.current = customer.points
+
+    // Subscribe agli aggiornamenti del cliente
+    const channel = supabase
+      .channel(`customer-${customer.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'customers',
+          filter: `id=eq.${customer.id}`
+        },
+        async (payload) => {
+          console.log('🎉 Aggiornamento cliente ricevuto da Realtime!', payload)
+
+          const updatedCustomer = payload.new as any
+          const oldPoints = previousPointsRef.current || customer.points
+          const newPoints = updatedCustomer.points
+
+          console.log('📊 Punti vecchi:', oldPoints, 'Punti nuovi:', newPoints)
+
+          // Controlla se i punti sono aumentati
+          if (newPoints > oldPoints) {
+            const pointsEarned = newPoints - oldPoints
+            const amountSpent = updatedCustomer.total_spent - (customer.total_spent || 0)
+
+            console.log(`💰 Nuova vendita! +${pointsEarned} punti, €${amountSpent.toFixed(2)} spesi`)
+
+            // Aggiorna i punti precedenti
+            previousPointsRef.current = newPoints
+
+            // Salva i dati della vendita
+            setSaleData({ pointsEarned, amount: amountSpent })
+
+            // Suono celebrativo punti
+            try {
+              const audio = new Audio('/sounds/slot-machine-coin-payout-1-188227.mp3')
+              audio.volume = 0.5
+              audio.play().catch(err => console.log('Audio play failed:', err))
+            } catch (error) {
+              console.log('Audio error:', error)
+            }
+
+            // Trigger confetti (se disponibile - importeremo dopo)
+            if (typeof window !== 'undefined' && (window as any).confetti) {
+              (window as any).confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } })
+            }
+
+            // Trigger fontana di monete
+            if (coinFountainRef.current) {
+              coinFountainRef.current.triggerFountain(pointsEarned)
+            }
+
+            // Mostra modal di successo
+            setShowSaleSuccess(true)
+
+            // Aggiorna il customer nel context
+            setCustomer(updatedCustomer)
+          }
+        }
+      )
+      .subscribe()
+
+    console.log('✅ Subscription Realtime attivata!')
+
+    return () => {
+      console.log('🔕 Disattivazione subscription Realtime')
+      channel.unsubscribe()
+    }
+  }, [customer?.id])
 
   const checkSession = async () => {
     try {
@@ -178,7 +275,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ customer, loading, login, logout, refreshCustomer }}>
+    <AuthContext.Provider value={{
+      customer,
+      loading,
+      login,
+      logout,
+      refreshCustomer,
+      showSaleSuccess,
+      setShowSaleSuccess,
+      saleData,
+      coinFountainRef
+    }}>
       {children}
     </AuthContext.Provider>
   )

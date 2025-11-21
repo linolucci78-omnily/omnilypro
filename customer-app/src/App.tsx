@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { OrganizationProvider } from './contexts/OrganizationContext'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Activate from './pages/Activate'
@@ -17,6 +17,7 @@ import { getCookie } from './utils/cookies'
 import NotificationAnimations from './components/NotificationAnimations'
 import { useNotificationAnimations } from './hooks/useNotificationAnimations'
 import UpdatePrompt from './components/UpdatePrompt'
+import CoinFountain from './components/CoinFountain'
 import './styles/global.css'
 
 // Root redirect component - redirects to saved org slug
@@ -93,6 +94,71 @@ function RootRedirect() {
   )
 }
 
+// Global sale success wrapper - MUST be inside AuthProvider
+function GlobalSaleSuccess() {
+  const { showSaleSuccess, setShowSaleSuccess, saleData, coinFountainRef } = useAuth()
+
+  // Auto-hide sale success modal after 3 seconds
+  useEffect(() => {
+    if (showSaleSuccess) {
+      const timer = setTimeout(() => {
+        setShowSaleSuccess(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showSaleSuccess, setShowSaleSuccess])
+
+  return (
+    <>
+      {/* Sale Success Modal - visible on ALL pages */}
+      {showSaleSuccess && saleData && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/70 z-[9999]"></div>
+
+          {/* Modal */}
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl shadow-2xl z-[10000] max-w-md mx-auto">
+            <div className="p-8 text-center text-white">
+              {/* Icona successo con animazione */}
+              <div className="flex justify-center mb-6">
+                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center animate-bounce backdrop-blur-sm">
+                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Titolo */}
+              <h2 className="text-3xl font-black mb-4">
+                Vendita Registrata!
+              </h2>
+
+              {/* Importo */}
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4">
+                <p className="text-5xl font-black mb-2">
+                  €{saleData.amount.toFixed(2)}
+                </p>
+              </div>
+
+              {/* Punti guadagnati */}
+              <p className="text-2xl font-bold mb-2">
+                +{saleData.pointsEarned} punti!
+              </p>
+
+              <p className="text-lg opacity-90">
+                Continua così! 🎉
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Coin Fountain Animation - always mounted, visible on ALL pages */}
+      <CoinFountain ref={coinFountainRef} />
+    </>
+  )
+}
+
 // Shared wrapper component
 function OrgWrapper() {
   const animations = useNotificationAnimations()
@@ -118,6 +184,7 @@ function OrgWrapper() {
     <OrganizationProvider>
       <AuthProvider>
         <Outlet />
+        <GlobalSaleSuccess />
         <NotificationAnimations ref={animations.animationsRef} />
       </AuthProvider>
     </OrganizationProvider>

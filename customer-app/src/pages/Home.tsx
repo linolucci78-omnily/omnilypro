@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrganization } from '../contexts/OrganizationContext'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -8,11 +8,9 @@ import NotificationsPanel from '../components/NotificationsPanel'
 import InviteFriendsModal from '../components/InviteFriendsModal'
 import FlashOfferModal from '../components/FlashOfferModal'
 import ChatButton from '../components/ChatButton'
-import CoinFountain, { CoinFountainRef } from '../components/CoinFountain'
-import confetti from 'canvas-confetti'
 
 export default function Home() {
-  const { customer, loading: authLoading, refreshCustomer } = useAuth()
+  const { customer, loading: authLoading } = useAuth()
   const { loyaltyTiers, organization } = useOrganization()
   const navigate = useNavigate()
   const { slug } = useParams()
@@ -20,96 +18,12 @@ export default function Home() {
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [selectedFlashOffer, setSelectedFlashOffer] = useState<any>(null)
   const [savedOffers, setSavedOffers] = useState<number[]>([])
-  const coinFountainRef = useRef<CoinFountainRef>(null)
-  const [showSaleSuccess, setShowSaleSuccess] = useState(false)
-  const [saleData, setSaleData] = useState<{ pointsEarned: number; amount: number } | null>(null)
-  const previousPointsRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!authLoading && !customer) {
       navigate(`/${slug}/login`, { replace: true })
     }
   }, [customer, authLoading, navigate, slug])
-
-  // Inizializza i punti precedenti
-  useEffect(() => {
-    if (customer && previousPointsRef.current === null) {
-      previousPointsRef.current = customer.points
-      console.log('🔢 Punti iniziali salvati:', customer.points)
-    }
-  }, [customer])
-
-  // Supabase Realtime per ascoltare aggiornamenti ai punti del cliente
-  useEffect(() => {
-    if (!customer?.id) return
-
-    console.log('🔌 Realtime listener attivato per customer:', customer.id)
-
-    const channel = supabase
-      .channel('customer_points_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'customers',
-          filter: `id=eq.${customer.id}`
-        },
-        async (payload) => {
-          console.log('🎉 Aggiornamento cliente ricevuto da Realtime!', payload)
-
-          const updatedCustomer = payload.new as any
-          const oldCustomer = payload.old as any
-
-          // Controlla se i punti sono aumentati
-          if (updatedCustomer.points > oldCustomer.points) {
-            const pointsEarned = updatedCustomer.points - oldCustomer.points
-            const amountSpent = updatedCustomer.total_spent - oldCustomer.total_spent
-
-            console.log(`💰 Nuova vendita! +${pointsEarned} punti, €${amountSpent.toFixed(2)} spesi`)
-
-            // Aggiorna i punti precedenti
-            previousPointsRef.current = updatedCustomer.points
-
-            // Salva i dati della vendita
-            setSaleData({ pointsEarned, amount: amountSpent })
-
-            // Trigger confetti
-            confetti({
-              particleCount: 150,
-              spread: 100,
-              origin: { y: 0.6 },
-              colors: ['#dc2626', '#fbbf24', '#10b981', '#ffffff']
-            })
-
-            // Trigger fontana di monete
-            if (coinFountainRef.current) {
-              coinFountainRef.current.triggerFountain(pointsEarned)
-            }
-
-            // Mostra modal di successo
-            setShowSaleSuccess(true)
-
-            // Ricarica i dati del cliente per sincronizzare tutto
-            await refreshCustomer()
-
-            // Nascondi modal dopo 3 secondi
-            setTimeout(() => {
-              setShowSaleSuccess(false)
-              setSaleData(null)
-            }, 3000)
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Realtime subscription status:', status)
-      })
-
-    return () => {
-      console.log('🔌 Realtime listener disattivato')
-      supabase.removeChannel(channel)
-    }
-  }, [customer?.id, refreshCustomer])
 
   const handleShare = () => {
     if (!customer || !organization) return
@@ -514,52 +428,6 @@ export default function Home() {
           onSave={handleSaveOffer}
         />
       )}
-
-      {/* Sale Success Modal */}
-      {showSaleSuccess && saleData && (
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 bg-black/70 z-[9999]"></div>
-
-          {/* Modal */}
-          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl shadow-2xl z-[10000] max-w-md mx-auto">
-            <div className="p-8 text-center text-white">
-              {/* Icona successo con animazione */}
-              <div className="flex justify-center mb-6">
-                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center animate-bounce backdrop-blur-sm">
-                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Titolo */}
-              <h2 className="text-3xl font-black mb-4">
-                Vendita Registrata!
-              </h2>
-
-              {/* Importo */}
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4">
-                <p className="text-5xl font-black mb-2">
-                  €{saleData.amount.toFixed(2)}
-                </p>
-              </div>
-
-              {/* Punti guadagnati */}
-              <p className="text-2xl font-bold mb-2">
-                +{saleData.pointsEarned} punti!
-              </p>
-
-              <p className="text-lg opacity-90">
-                Continua così! 🎉
-              </p>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Coin Fountain Animation - sempre montato */}
-      <CoinFountain ref={coinFountainRef} />
 
       {/* Chat Button */}
       <ChatButton />
