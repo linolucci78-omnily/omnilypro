@@ -770,89 +770,162 @@ const CustomerDisplay: React.FC = () => {
             }} />
           </div>
         ) : (
-          // Welcome Screen - BRAND ROSSO per 4"
+          // Welcome Screen IDLE - REDESIGN PREMIUM - BRAND ROSSO per 4"
           <div style={{
-            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-            padding: '1rem',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+            backgroundSize: '200% 200%',
+            animation: 'gradientShift 8s ease infinite',
+            padding: '1.5rem',
             borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)',
+            boxShadow: '0 12px 32px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
             textAlign: 'center',
             color: 'white',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
           }}>
-            {/* Decorative circles */}
+            {/* Particelle animate decorative */}
             <div style={{
               position: 'absolute',
-              top: '-50px',
-              right: '-50px',
-              width: '150px',
-              height: '150px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50%'
+              top: '10%',
+              right: '15%',
+              width: '80px',
+              height: '80px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              borderRadius: '50%',
+              animation: 'float1 6s ease-in-out infinite'
             }} />
             <div style={{
               position: 'absolute',
-              bottom: '-30px',
-              left: '-30px',
-              width: '100px',
-              height: '100px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50%'
+              bottom: '20%',
+              left: '10%',
+              width: '60px',
+              height: '60px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              borderRadius: '50%',
+              animation: 'float2 7s ease-in-out infinite'
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '5%',
+              width: '40px',
+              height: '40px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '50%',
+              animation: 'float3 5s ease-in-out infinite'
             }} />
 
             {/* Content */}
             <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Logo con pulse */}
               <div style={{
-                fontSize: '3rem',
-                marginBottom: '0.5rem',
-                animation: 'wave 2s ease-in-out infinite'
+                marginBottom: '1rem',
+                animation: 'pulse 3s ease-in-out infinite'
               }}>
-                👋
+                <img
+                  src={organizationLogo || "https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"}
+                  alt={organizationName}
+                  style={{
+                    height: '60px',
+                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
+                    objectFit: 'contain'
+                  }}
+                />
               </div>
 
-              <h2 style={{
-                margin: '0 0 0.75rem 0',
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-                textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-              }}>
-                Benvenuto!
-              </h2>
-
+              {/* Orario grande e bello */}
               <div style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                padding: '1rem',
-                borderRadius: '8px',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                marginBottom: '0.75rem'
+                fontSize: '2.5rem',
+                fontWeight: 'bold',
+                marginBottom: '1rem',
+                letterSpacing: '0.05em',
+                textShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                fontVariantNumeric: 'tabular-nums'
+              }}>
+                {currentTime.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+
+              {/* Box glassmorphism migliorato */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                padding: '1.25rem',
+                borderRadius: '12px',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                marginBottom: '1rem',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
               }}>
                 <div style={{
-                  fontSize: '1.3rem',
+                  fontSize: '1.4rem',
                   fontWeight: 'bold',
-                  marginBottom: '0.25rem'
+                  marginBottom: '0.5rem',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.2)'
                 }}>
                   {organizationName}
                 </div>
+                <div style={{
+                  fontSize: '0.95rem',
+                  opacity: 0.95,
+                  lineHeight: 1.5
+                }}>
+                  {welcomeMessage}
+                </div>
               </div>
 
-              <p style={{
-                fontSize: '0.95rem',
-                margin: 0,
-                opacity: 0.95,
-                lineHeight: 1.4
+              {/* Indicatore "In attesa" con animazione */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                fontSize: '0.9rem',
+                opacity: 0.9,
+                animation: 'fadeInOut 2s ease-in-out infinite'
               }}>
-                {welcomeMessage}
-              </p>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+                }} />
+                <span>Pronto per la prossima transazione</span>
+              </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
               __html: `
-                @keyframes wave {
-                  0%, 100% { transform: rotate(0deg); }
-                  25% { transform: rotate(20deg); }
-                  75% { transform: rotate(-20deg); }
+                @keyframes gradientShift {
+                  0%, 100% { background-position: 0% 50%; }
+                  50% { background-position: 100% 50%; }
+                }
+                @keyframes pulse {
+                  0%, 100% { transform: scale(1); opacity: 1; }
+                  50% { transform: scale(1.05); opacity: 0.95; }
+                }
+                @keyframes float1 {
+                  0%, 100% { transform: translate(0, 0); }
+                  50% { transform: translate(-20px, -30px); }
+                }
+                @keyframes float2 {
+                  0%, 100% { transform: translate(0, 0); }
+                  50% { transform: translate(30px, 20px); }
+                }
+                @keyframes float3 {
+                  0%, 100% { transform: translate(0, 0); }
+                  50% { transform: translate(-15px, 25px); }
+                }
+                @keyframes fadeInOut {
+                  0%, 100% { opacity: 0.7; }
+                  50% { opacity: 1; }
+                }
+                @keyframes ping {
+                  0% { transform: scale(1); opacity: 1; }
+                  75%, 100% { transform: scale(2); opacity: 0; }
                 }
               `
             }} />
