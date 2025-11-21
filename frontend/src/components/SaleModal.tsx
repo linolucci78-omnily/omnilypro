@@ -218,7 +218,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
   return (
     <>
       <div className="gemini-backdrop" onClick={onClose} />
-      <div className="gemini-panel open">
+      <div className="gemini-panel">
         {/* Header Gemini Style */}
         <div className="gemini-header">
           <div className="gemini-header-left">
