@@ -275,7 +275,6 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 placeholder="0"
                 className="gemini-amount-input"
                 inputMode="decimal"
-                autoFocus
               />
               {amount && <div className="gemini-amount-underline" />}
             </div>
