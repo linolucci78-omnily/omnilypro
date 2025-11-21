@@ -8,6 +8,7 @@ import ModifyPointsModal from './ModifyPointsModal';
 import TierUpgradeModal from './TierUpgradeModal';
 import EditCustomerModal from './EditCustomerModal';
 import RewardsModal from './RewardsModal';
+import SaleSuccessModal from './SaleSuccessModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi } from '../lib/supabase';
@@ -77,6 +78,11 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     newTierColor: string;
   } | null>(null);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showSaleSuccessModal, setShowSaleSuccessModal] = useState(false);
+  const [saleSuccessData, setSaleSuccessData] = useState<{
+    customerName: string;
+    pointsEarned: number;
+  } | null>(null);
 
   // State locale per tenere traccia dei dati customer aggiornati in tempo reale
   const [localCustomer, setLocalCustomer] = useState<Customer | null>(customer);
@@ -540,9 +546,14 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     playCoinSound();
     console.log('🔊 Suono cash register riprodotto IMMEDIATAMENTE!');
 
-    // 🪙 MONETE partono SUBITO al click (feedback visivo istantaneo)
-    createCoinsRainOnMainScreen();
-    console.log('🪙 Monete che cadono IMMEDIATAMENTE!');
+    // 🎉 Mostra modale verde "Vendita Registrata!"
+    // Nota: La fontana di monete viene triggerata da SaleModal DOPO che questo modale appare
+    setSaleSuccessData({
+      customerName: customer.name,
+      pointsEarned
+    });
+    setShowSaleSuccessModal(true);
+    console.log('✅ Modale successo mostrato IMMEDIATAMENTE!');
 
     try {
       // Processare la transazione in background (non blocca l'animazione)
@@ -1109,6 +1120,20 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             if (onUpdateCustomer && customer.id) {
               await onUpdateCustomer(customer.id, {});
             }
+          }}
+        />
+      )}
+
+      {/* Sale Success Modal - Green Celebration */}
+      {saleSuccessData && (
+        <SaleSuccessModal
+          isOpen={showSaleSuccessModal}
+          customerName={saleSuccessData.customerName}
+          pointsEarned={saleSuccessData.pointsEarned}
+          pointsName={pointsName}
+          onClose={() => {
+            setShowSaleSuccessModal(false);
+            setSaleSuccessData(null);
           }}
         />
       )}

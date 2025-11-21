@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShoppingBag, Target, Award } from 'lucide-react';
+import { X, Store, Target, ChevronDown, ShoppingBag, Eraser, QrCode } from 'lucide-react';
 import './SaleModal.css';
+import QRScannerModal from './QRScannerModal';
 
 interface SaleModalProps {
   customer: any;
@@ -27,7 +28,9 @@ const SaleModal: React.FC<SaleModalProps> = ({
 }) => {
   const [amount, setAmount] = useState('');
   const [pointsEarned, setPointsEarned] = useState(0);
+  const [displayedPoints, setDisplayedPoints] = useState(0); // Punti visualizzati con animazione
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const confirmClickedRef = React.useRef(false); // Previene click multipli
 
   // Calcola punti guadagnati basato sulla configurazione dell'organizzazione, tier e categoria
@@ -50,6 +53,29 @@ const SaleModal: React.FC<SaleModalProps> = ({
     // Aggiorna solo se i punti sono davvero cambiati
     setPointsEarned(prevPoints => prevPoints !== finalPoints ? finalPoints : prevPoints);
   }, [amount, pointsPerEuro, currentTier, selectedCategory, bonusCategories]);
+
+  // Effetto conteggio animato per i punti guadagnati
+  useEffect(() => {
+    if (pointsEarned === displayedPoints) return;
+
+    const duration = 800; // Durata animazione in ms
+    const steps = 30; // Numero di step dell'animazione
+    const increment = (pointsEarned - displayedPoints) / steps;
+    const stepDuration = duration / steps;
+
+    let currentStep = 0;
+    const timer = setInterval(() => {
+      currentStep++;
+      if (currentStep >= steps) {
+        setDisplayedPoints(pointsEarned);
+        clearInterval(timer);
+      } else {
+        setDisplayedPoints(prev => Math.floor(prev + increment));
+      }
+    }, stepDuration);
+
+    return () => clearInterval(timer);
+  }, [pointsEarned]);
 
   // Funzione per suono "ka-ching" celebrativo - DISABILITATA TEMPORANEAMENTE
   const playCelebrationSound = () => {
@@ -88,7 +114,11 @@ const SaleModal: React.FC<SaleModalProps> = ({
     }
 
     const numAmount = parseFloat(amount);
+
+    // Chiama onConfirm che mostra il modale verde in CustomerSlidePanel
+    // La fontana di monete viene ora triggerata automaticamente da SaleSuccessModal
     onConfirm(customer.id, numAmount, pointsEarned);
+
     setAmount('');
     onClose();
   };
@@ -155,6 +185,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
     if (isOpen) {
       // Reset del ref per permettere nuova conferma
       confirmClickedRef.current = false;
+      setDisplayedPoints(0); // Reset contatore animato
       console.log('[SaleModal] 🔓 Modal aperto - ref resettato per nuova vendita');
     }
 
@@ -178,154 +209,168 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
   const newTotalPoints = customer.points + pointsEarned;
 
+  const quickAddAmount = (addAmount: number) => {
+    const currentAmount = parseFloat(amount) || 0;
+    const newAmount = currentAmount + addAmount;
+    setAmount(newAmount.toFixed(2));
+  };
+
   return (
     <>
-      <div className="sale-modal-backdrop" onClick={onClose} />
-      <div className="sale-panel open">
-        <div className="sale-modal-header">
-          <div className="sale-modal-title">
-            <ShoppingBag size={24} />
-            <h2>Nuova Vendita</h2>
+      <div className="gemini-backdrop" onClick={onClose} />
+      <div className="gemini-panel open">
+        {/* Header Gemini Style */}
+        <div className="gemini-header">
+          <div className="gemini-header-left">
+            <Store size={18} className="gemini-store-icon" />
+            <span className="gemini-pos-label">POS SYSTEM</span>
           </div>
-          <button className="sale-modal-close" onClick={onClose}>
+          <h1 className="gemini-title">Nuova Vendita</h1>
+          <button className="gemini-close" onClick={onClose}>
             <X size={24} />
           </button>
         </div>
 
-        <div className="sale-modal-content">
-          <div className="customer-info">
-            <h3>{customer.name}</h3>
-            <div
-              className={`customer-tier ${(currentTier?.name || customer.tier).toLowerCase()}`}
-              style={{
-                background: `linear-gradient(135deg, ${currentTier?.color || '#F59E0B'} 0%, ${currentTier?.color || '#F59E0B'}dd 100%)`,
-                color: 'white',
-                padding: '0.5rem 1.25rem',
-                borderRadius: '24px',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                boxShadow: `0 4px 12px ${currentTier?.color || '#F59E0B'}40`,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                border: '2px solid rgba(255, 255, 255, 0.3)'
-              }}
-            >
-              {(currentTier?.name || customer.tier) === 'Platinum' && '👑'}
-              {(currentTier?.name || customer.tier) === 'Gold' && '⭐'}
-              {(currentTier?.name || customer.tier) === 'Silver' && '✨'}
-              {(currentTier?.name || customer.tier) === 'Bronze' && '🥉'}
-              <span>{currentTier?.name || customer.tier}</span>
-              {currentTier?.multiplier && currentTier.multiplier > 1 && (
-                <span style={{
-                  background: 'rgba(255, 255, 255, 0.3)',
-                  padding: '0.15rem 0.5rem',
-                  borderRadius: '12px',
-                  fontSize: '0.75rem',
-                  fontWeight: '700'
-                }}>
-                  {currentTier.multiplier}x
+        {/* Content */}
+        <div className="gemini-content">
+          {/* Customer Card */}
+          <div className="gemini-customer-card">
+            <div className="gemini-avatar">
+              {customer.avatar_url ? (
+                <img
+                  src={customer.avatar_url}
+                  alt={customer.name}
+                  className="gemini-avatar-img"
+                />
+              ) : (
+                <span className="gemini-avatar-initials">
+                  {customer.name.charAt(0).toUpperCase()}
                 </span>
               )}
+              {currentTier?.multiplier && currentTier.multiplier > 1 && (
+                <span className="gemini-avatar-badge">{currentTier.multiplier}x</span>
+              )}
+            </div>
+            <div className="gemini-customer-info">
+              <h2 className="gemini-customer-name">{customer.name}</h2>
+              <p className="gemini-customer-subtitle">Cliente Fidelizzato</p>
+            </div>
+            <div className="gemini-tier-badge" style={{
+              background: `linear-gradient(135deg, ${currentTier?.color || '#6366f1'} 0%, ${currentTier?.color || '#6366f1'}dd 100%)`
+            }}>
+              <span className="gemini-tier-label">LIVELLO</span>
+              <span className="gemini-tier-name">{currentTier?.name || customer.tier}</span>
             </div>
           </div>
 
-          <div className="amount-input-section">
-            <label htmlFor="amount">Totale Speso</label>
-            <div className="amount-input-wrapper">
-              <span className="currency-symbol">€</span>
+          {/* Amount Input */}
+          <div className="gemini-amount-section">
+            <label className="gemini-amount-label">TOTALE SCONTRINO</label>
+            <div className="gemini-amount-wrapper">
+              <span className="gemini-euro">€</span>
               <input
-                id="amount"
                 type="text"
-                value={amount}
+                value={amount || ''}
                 onChange={handleAmountChange}
-                placeholder="0.00"
-                className="amount-input"
+                placeholder="0"
+                className="gemini-amount-input"
                 inputMode="decimal"
                 autoFocus
               />
+              {amount && <div className="gemini-amount-underline" />}
             </div>
           </div>
 
-          {/* Categoria Prodotto (opzionale) */}
-          {bonusCategories && bonusCategories.length > 0 && (
-            <div className="category-input-section">
-              <label htmlFor="category">Categoria Prodotto (opzionale)</label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="category-select"
-              >
-                <option value="">Nessuna categoria</option>
-                {bonusCategories.map((cat, index) => (
-                  <option key={index} value={cat.category}>
-                    {cat.category} ({cat.multiplier}x {pointsName.toLowerCase()})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {/* Quick Add Buttons */}
+          <div className="gemini-quick-buttons">
+            <button onClick={() => quickAddAmount(1)} className="gemini-quick-btn">+1€</button>
+            <button onClick={() => quickAddAmount(2)} className="gemini-quick-btn">+2€</button>
+            <button onClick={() => quickAddAmount(5)} className="gemini-quick-btn">+5€</button>
+            <button onClick={() => quickAddAmount(10)} className="gemini-quick-btn">+10€</button>
+          </div>
 
-          <div className="points-summary">
-            <div className="points-row">
-              <div className="points-icon">
-                <Target size={20} />
+          {/* Category Dropdown */}
+          <div className="gemini-category-wrapper">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="gemini-category-select"
+            >
+              <option value="">Seleziona categoria (opzionale)</option>
+              {bonusCategories.map((cat, index) => (
+                <option key={index} value={cat.category}>
+                  {cat.category} ({cat.multiplier}x)
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="gemini-chevron" size={20} />
+          </div>
+
+          {/* Points Box */}
+          <div className="gemini-points-box">
+            <div className="gemini-points-row">
+              <div className="gemini-points-left">
+                <Target size={20} className="gemini-target-icon" />
+                <span className="gemini-points-label">ATTUALI</span>
               </div>
-              <span className="points-label">{pointsName} Attuali</span>
-              <span className="points-value">{customer.points}</span>
+              <span className="gemini-points-value">{customer.points}</span>
             </div>
-
-            <div className="points-row earned">
-              <div className="points-icon">
-                <Award size={20} />
+            <div className="gemini-divider" />
+            <div className="gemini-points-row gemini-gain">
+              <div className="gemini-points-left">
+                <Target size={20} className="gemini-trophy-icon" />
+                <span className="gemini-points-label">GUADAGNO</span>
               </div>
-              <span className="points-label">{pointsName} Guadagnati</span>
-              <span className="points-value">+{pointsEarned}</span>
+              <span className="gemini-points-value gemini-gain-value">+{displayedPoints}</span>
             </div>
-
-            <div className="points-row total">
-              <div className="points-icon">
-                <Target size={20} />
-              </div>
-              <span className="points-label">Ora Hai</span>
-              <span className="points-value">{newTotalPoints} {pointsName.toLowerCase()}</span>
+            <div className="gemini-saldo-row">
+              <span className="gemini-saldo-label">Nuovo Saldo</span>
+              <span className="gemini-saldo-value">{newTotalPoints} {pointsName.toLowerCase()}</span>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="sale-actions-section">
-            <div className="sale-actions">
-              <button className="sale-btn-clear" onClick={clearAmount}>
-                Cancella
-              </button>
-              <button
-                className="sale-btn-confirm"
-                onClick={handleConfirm}
-                onTouchEnd={(e) => {
-                  e.preventDefault(); // Previene il click dopo il touch
-                  handleConfirm();
-                }}
-                disabled={!amount || parseFloat(amount) <= 0}
-              >
-                Conferma Vendita
-              </button>
-            </div>
+          {/* Action Buttons */}
+          <div className="gemini-action-buttons">
+            <button
+              className="gemini-confirm-btn"
+              onClick={handleConfirm}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                handleConfirm();
+              }}
+              disabled={!amount || parseFloat(amount) <= 0}
+            >
+              <span>Conferma Vendita</span>
+              <ShoppingBag size={20} />
+            </button>
+
+            {/* Clear Button */}
+            <button className="gemini-clear-icon" onClick={clearAmount}>
+              <Eraser size={22} />
+            </button>
           </div>
 
-          <div className="congratulations">
-            <p>Ben Fatto!</p>
-          </div>
-        </div>
-
-        <div className="sale-modal-actions">
-          <button className="sale-btn-cancel" onClick={onClose}>
-            Annulla
+          {/* Floating QR Code Button */}
+          <button
+            className="gemini-qr-floating-btn"
+            onClick={() => setIsQRScannerOpen(true)}
+            title="Scansiona QR Code"
+          >
+            <QrCode size={28} />
           </button>
         </div>
       </div>
+
+      {/* QR Scanner Modal */}
+      <QRScannerModal
+        isOpen={isQRScannerOpen}
+        onClose={() => setIsQRScannerOpen(false)}
+        onScanSuccess={(scannedCode) => {
+          console.log('QR scansionato:', scannedCode);
+          setIsQRScannerOpen(false);
+          // Qui potresti gestire il codice scansionato
+        }}
+      />
     </>
   );
 };
