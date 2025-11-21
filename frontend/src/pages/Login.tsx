@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { getAdminPermissions, type AdminRole } from '../utils/adminPermissions';
 import { operatorNFCService, type OperatorAuthResult } from '../services/operatorNFCService';
+import { staffActivityService } from '../services/staffActivityService';
 import { SparklesCore } from '@/components/UI/sparkles';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
@@ -251,7 +252,7 @@ const Login: React.FC = () => {
 
             await signIn(operatorAuth.user_email, operatorPassword);
 
-            // Log del login
+            // Log del login (dual logging)
             await operatorNFCService.logLogin({
               operator_card_id: operatorAuth.card_id,
               user_id: operatorAuth.user_id,
@@ -259,6 +260,19 @@ const Login: React.FC = () => {
               nfc_uid: nfcUid,
               success: true
             });
+
+            // Log to staff_activity_logs (new system)
+            try {
+              await staffActivityService.logLogin({
+                organizationId: operatorAuth.organization_id,
+                staffUserId: operatorAuth.user_id,
+                staffName: operatorAuth.operator_name,
+                deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
+              });
+              console.log('✅ Login logged to staff_activity_logs');
+            } catch (logError) {
+              console.error('❌ Error logging to staff_activity_logs:', logError);
+            }
 
             // Il redirect automatico conferma il login
             console.log('✅ Login NFC completato');

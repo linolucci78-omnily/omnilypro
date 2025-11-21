@@ -3,9 +3,14 @@
  *
  * Provides easy-to-use functions for logging staff activities.
  * Automatically handles super admin virtual staff member creation.
+ *
+ * DUAL LOGGING SYSTEM:
+ * - Logs to 'staff_activities' (legacy system, for staff_members)
+ * - Logs to 'staff_activity_logs' (new system, for NFC operator tracking)
  */
 
 import { supabase, staffApi } from './supabase'
+import { staffActivityService } from '../services/staffActivityService'
 
 interface LogActivityParams {
   organizationId: string
@@ -125,12 +130,15 @@ export async function logActivity({
 
 /**
  * Log customer creation
+ * DUAL LOGGING: Logs to both legacy staff_activities and new staff_activity_logs
  */
 export async function logCustomerCreated(
   organizationId: string,
   customerId: string,
-  customerName: string
+  customerName: string,
+  customerEmail?: string
 ): Promise<void> {
+  // Log to legacy system (staff_activities)
   await logActivity({
     organizationId,
     action: 'created_customer',
@@ -138,10 +146,33 @@ export async function logCustomerCreated(
     entityId: customerId,
     details: { customer_name: customerName }
   })
+
+  // Log to new system (staff_activity_logs) - handles NFC operators
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const staffName = user.user_metadata?.full_name || user.email || 'Operatore Sconosciuto'
+
+      await staffActivityService.logCustomerCreate({
+        organizationId,
+        staffUserId: user.id,
+        staffName,
+        customerId,
+        customerName,
+        customerEmail: customerEmail || '',
+        deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
+      })
+      console.log('✅ [ACTIVITY LOGGER] Customer creation logged to staff_activity_logs')
+    }
+  } catch (error) {
+    console.error('❌ [ACTIVITY LOGGER] Error logging customer creation to staff_activity_logs:', error)
+    // Don't throw - logging errors shouldn't break the main flow
+  }
 }
 
 /**
  * Log customer update
+ * DUAL LOGGING: Logs to both legacy staff_activities and new staff_activity_logs
  */
 export async function logCustomerUpdated(
   organizationId: string,
@@ -149,6 +180,7 @@ export async function logCustomerUpdated(
   customerName: string,
   changes: any
 ): Promise<void> {
+  // Log to legacy system (staff_activities)
   await logActivity({
     organizationId,
     action: 'updated_customer',
@@ -156,6 +188,33 @@ export async function logCustomerUpdated(
     entityId: customerId,
     details: { customer_name: customerName, changes }
   })
+
+  // Log to new system (staff_activity_logs) - handles NFC operators
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const staffName = user.user_metadata?.full_name || user.email || 'Operatore Sconosciuto'
+
+      // Log each changed field separately for better audit trail
+      for (const [field, value] of Object.entries(changes)) {
+        await staffActivityService.logCustomerUpdate({
+          organizationId,
+          staffUserId: user.id,
+          staffName,
+          customerId,
+          customerName,
+          fieldChanged: field,
+          oldValue: (value as any)?.old,
+          newValue: (value as any)?.new || value,
+          deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
+        })
+      }
+      console.log('✅ [ACTIVITY LOGGER] Customer update logged to staff_activity_logs')
+    }
+  } catch (error) {
+    console.error('❌ [ACTIVITY LOGGER] Error logging customer update to staff_activity_logs:', error)
+    // Don't throw - logging errors shouldn't break the main flow
+  }
 }
 
 /**
@@ -198,6 +257,7 @@ export async function logPointsRemoved(
 
 /**
  * Log reward redeemed
+ * DUAL LOGGING: Logs to both legacy staff_activities and new staff_activity_logs
  */
 export async function logRewardRedeemed(
   organizationId: string,
@@ -207,6 +267,7 @@ export async function logRewardRedeemed(
   rewardName: string,
   pointsCost: number
 ): Promise<void> {
+  // Log to legacy system (staff_activities)
   await logActivity({
     organizationId,
     action: 'redeemed_reward',
@@ -219,10 +280,35 @@ export async function logRewardRedeemed(
       points_cost: pointsCost
     }
   })
+
+  // Log to new system (staff_activity_logs) - handles NFC operators
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const staffName = user.user_metadata?.full_name || user.email || 'Operatore Sconosciuto'
+
+      await staffActivityService.logRewardRedeem({
+        organizationId,
+        staffUserId: user.id,
+        staffName,
+        customerId,
+        customerName,
+        rewardId,
+        rewardName,
+        pointsSpent: pointsCost,
+        deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
+      })
+      console.log('✅ [ACTIVITY LOGGER] Reward redemption logged to staff_activity_logs')
+    }
+  } catch (error) {
+    console.error('❌ [ACTIVITY LOGGER] Error logging reward redemption to staff_activity_logs:', error)
+    // Don't throw - logging errors shouldn't break the main flow
+  }
 }
 
 /**
  * Log sale/transaction
+ * DUAL LOGGING: Logs to both legacy staff_activities and new staff_activity_logs
  */
 export async function logSale(
   organizationId: string,
@@ -231,6 +317,7 @@ export async function logSale(
   amount: number,
   pointsEarned?: number
 ): Promise<void> {
+  // Log to legacy system (staff_activities)
   await logActivity({
     organizationId,
     action: 'sale_transaction',
@@ -242,6 +329,31 @@ export async function logSale(
       points_earned: pointsEarned
     }
   })
+
+  // Log to new system (staff_activity_logs) - handles NFC operators
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      // Get staff name from user metadata or email
+      const staffName = user.user_metadata?.full_name || user.email || 'Operatore Sconosciuto'
+
+      await staffActivityService.logSale({
+        organizationId,
+        staffUserId: user.id,
+        staffName,
+        customerId: customerId || undefined,
+        customerName: customerName || undefined,
+        amount,
+        points: pointsEarned || 0,
+        paymentMethod: 'cash', // Default to cash, can be parameterized in future
+        deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
+      })
+      console.log('✅ [ACTIVITY LOGGER] Sale logged to staff_activity_logs')
+    }
+  } catch (error) {
+    console.error('❌ [ACTIVITY LOGGER] Error logging sale to staff_activity_logs:', error)
+    // Don't throw - logging errors shouldn't break the main flow
+  }
 }
 
 /**
