@@ -79,6 +79,46 @@ class RewardsService {
   }
 
   /**
+   * Crea un nuovo riscatto (stato "In Attesa")
+   */
+  async createRedemption(
+    customerId: string,
+    organizationId: string,
+    rewardId: string,
+    rewardName: string,
+    pointsSpent: number
+  ): Promise<{ success: boolean; redemptionId?: string; error?: string }> {
+    try {
+      console.log('🎁 Creazione redemption:', { customerId, rewardId, pointsSpent })
+
+      const { data, error } = await supabase
+        .from('reward_redemptions')
+        .insert({
+          customer_id: customerId,
+          organization_id: organizationId,
+          reward_id: rewardId,
+          reward_name: rewardName,
+          points_spent: pointsSpent,
+          used_at: null, // In attesa
+          redeemed_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error creating redemption:', error)
+        return { success: false, error: error.message }
+      }
+
+      console.log('✅ Redemption creato con successo:', data)
+      return { success: true, redemptionId: data.id }
+    } catch (error: any) {
+      console.error('Error in createRedemption:', error)
+      return { success: false, error: error.message || 'Errore sconosciuto' }
+    }
+  }
+
+  /**
    * Carica lo storico riscatti del cliente
    */
   async getCustomerRedemptions(customerId: string, organizationId: string): Promise<any[]> {

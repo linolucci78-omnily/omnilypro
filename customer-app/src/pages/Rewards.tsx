@@ -21,6 +21,7 @@ export default function Rewards() {
   const [loading, setLoading] = useState(true)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [redeemedRewardName, setRedeemedRewardName] = useState('')
+  const [redemptionId, setRedemptionId] = useState<string | null>(null)
   const [successAudio] = useState(() => {
     const audio = new Audio('/sounds/mixkit-winning-notification-2018.wav')
     audio.volume = 1.0
@@ -240,12 +241,33 @@ export default function Rewards() {
     })
   }
 
-  const handleConfirmRedeem = () => {
+  const handleConfirmRedeem = async () => {
+    if (!customer || !selectedReward) return
+
     setShowConfirmModal(false)
 
-    // Log dell'ID del premio per debug
     console.log('🎁 Premio selezionato:', selectedReward)
-    console.log('🔑 ID Premio per QR Code:', selectedReward?.id)
+    console.log('🔑 Creazione redemption per:', selectedReward.name)
+
+    // Crea il redemption nel database (stato "In Attesa")
+    const result = await rewardsService.createRedemption(
+      customer.id,
+      customer.organization_id,
+      selectedReward.id,
+      selectedReward.name,
+      selectedReward.points_required
+    )
+
+    if (!result.success) {
+      console.error('❌ Errore creazione redemption:', result.error)
+      alert('Errore durante il riscatto del premio. Riprova.')
+      return
+    }
+
+    console.log('✅ Redemption creato con ID:', result.redemptionId)
+
+    // Salva l'ID del redemption per il QR code
+    setRedemptionId(result.redemptionId!)
 
     // Trigger confetti
     triggerConfetti()
@@ -585,7 +607,7 @@ export default function Rewards() {
               <div className="bg-pink-50 rounded-xl p-4 border-2 border-dashed border-pink-300 mb-4">
                 <div className="flex justify-center">
                   <QRCodeSVG
-                    value={JSON.stringify({ redemptionId: selectedReward.id, type: 'use_reward' })}
+                    value={JSON.stringify({ redemptionId: redemptionId || selectedReward.id, type: 'use_reward' })}
                     size={220}
                     level="H"
                     includeMargin={false}
