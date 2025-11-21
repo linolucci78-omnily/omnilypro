@@ -2487,7 +2487,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return currentOrganization ? (
           <StaffActivityLogs
             organizationId={currentOrganization.id}
-            onClose={() => handleSectionChange('settings')}
+            onBack={() => handleSectionChange('settings')}
           />
         ) : null
 

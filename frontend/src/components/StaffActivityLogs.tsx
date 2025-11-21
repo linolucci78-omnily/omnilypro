@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { X, Filter, Download, Calendar, User, FileText, TrendingUp, Search, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Filter, Download, Calendar, User, FileText, TrendingUp, Search, RefreshCw } from 'lucide-react'
 import { staffActivityService, type StaffActivityLog, type StaffActivityStats } from '../services/staffActivityService'
 import './StaffActivityLogs.css'
 
 interface StaffActivityLogsProps {
   organizationId: string
-  onClose: () => void
+  onBack: () => void
 }
 
 const StaffActivityLogs: React.FC<StaffActivityLogsProps> = ({
   organizationId,
-  onClose
+  onBack
 }) => {
   const [logs, setLogs] = useState<StaffActivityLog[]>([])
   const [stats, setStats] = useState<StaffActivityStats[]>([])
@@ -145,144 +145,146 @@ const StaffActivityLogs: React.FC<StaffActivityLogsProps> = ({
   }
 
   return (
-    <div className="staff-activity-logs-overlay">
-      <div className="staff-activity-logs-modal">
-        {/* Header */}
-        <div className="staff-activity-logs-header">
-          <div>
-            <h2 className="staff-activity-logs-title">
-              <FileText size={24} />
-              Log Attività Operatori
-            </h2>
-            <p className="staff-activity-logs-subtitle">
-              Monitora tutte le azioni degli operatori in tempo reale
-            </p>
-          </div>
-          <button className="staff-activity-logs-close" onClick={onClose}>
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="staff-activity-logs-stats">
-          {stats.slice(0, 4).map((stat) => (
-            <div
-              key={stat.action_type}
-              className="staff-activity-logs-stat-card"
-              style={{ borderLeft: `4px solid ${getActionColor(stat.action_type)}` }}
-            >
-              <div className="stat-label">{getActionLabel(stat.action_type)}</div>
-              <div className="stat-value">{stat.count}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div className="staff-activity-logs-filters">
-          {/* Search */}
-          <div className="filter-search">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder="Cerca per operatore, cliente..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          {/* Date Range */}
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as any)}
-            className="filter-select"
-          >
-            <option value="today">Oggi</option>
-            <option value="week">Ultima Settimana</option>
-            <option value="month">Ultimo Mese</option>
-            <option value="all">Tutto</option>
-          </select>
-
-          {/* Action Type */}
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Tutte le azioni</option>
-            <option value="sale">Vendite</option>
-            <option value="reward_redeem">Riscatti Premi</option>
-            <option value="customer_create">Nuovi Clienti</option>
-            <option value="customer_update">Modifiche Clienti</option>
-            <option value="login">Login</option>
-          </select>
-
-          {/* Actions */}
-          <button className="filter-button" onClick={loadData}>
-            <RefreshCw size={18} />
-            Aggiorna
-          </button>
-          <button className="filter-button" onClick={exportToCSV}>
-            <Download size={18} />
-            Esporta CSV
-          </button>
-        </div>
-
-        {/* Logs Table */}
-        <div className="staff-activity-logs-content">
-          {loading ? (
-            <div className="staff-activity-logs-loading">
-              <div className="spinner"></div>
-              <p>Caricamento logs...</p>
-            </div>
-          ) : filteredLogs.length === 0 ? (
-            <div className="staff-activity-logs-empty">
-              <FileText size={48} opacity={0.3} />
-              <p>Nessun log trovato per i filtri selezionati</p>
-            </div>
-          ) : (
-            <div className="staff-activity-logs-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Data/Ora</th>
-                    <th>Operatore</th>
-                    <th>Azione</th>
-                    <th>Descrizione</th>
-                    <th>Cliente</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.map((log) => (
-                    <tr key={log.id}>
-                      <td className="log-date">{formatDate(log.created_at)}</td>
-                      <td className="log-staff">
-                        <User size={16} />
-                        {log.staff_name}
-                      </td>
-                      <td>
-                        <span
-                          className="log-action-badge"
-                          style={{ backgroundColor: getActionColor(log.action_type) + '20', color: getActionColor(log.action_type) }}
-                        >
-                          {getActionLabel(log.action_type)}
-                        </span>
-                      </td>
-                      <td className="log-description">{log.description}</td>
-                      <td className="log-customer">{log.customer_name || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="staff-activity-logs-footer">
-          <p className="logs-count">
-            {filteredLogs.length} log{filteredLogs.length !== 1 ? 's' : ''} trovati
+    <div className="staff-activity-logs-page">
+      {/* Header */}
+      <div className="staff-activity-logs-header">
+        <button className="back-button" onClick={onBack}>
+          <ArrowLeft size={20} />
+          Indietro
+        </button>
+        <div className="header-content">
+          <h1 className="page-title">
+            <FileText size={28} />
+            Log Attività Operatori
+          </h1>
+          <p className="page-subtitle">
+            Monitora tutte le azioni degli operatori in tempo reale
           </p>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="staff-activity-logs-stats">
+        {stats.slice(0, 4).map((stat) => (
+          <div
+            key={stat.action_type}
+            className="staff-activity-logs-stat-card"
+            style={{ borderLeft: `4px solid ${getActionColor(stat.action_type)}` }}
+          >
+            <div className="stat-label">{getActionLabel(stat.action_type)}</div>
+            <div className="stat-value">{stat.count}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="staff-activity-logs-filters">
+        {/* Search */}
+        <div className="filter-search">
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Cerca per operatore, cliente..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Date Range */}
+        <select
+          value={dateRange}
+          onChange={(e) => setDateRange(e.target.value as any)}
+          className="filter-select"
+        >
+          <option value="today">Oggi</option>
+          <option value="week">Ultima Settimana</option>
+          <option value="month">Ultimo Mese</option>
+          <option value="all">Tutto</option>
+        </select>
+
+        {/* Action Type */}
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="filter-select"
+        >
+          <option value="all">Tutte le azioni</option>
+          <option value="sale">Vendite</option>
+          <option value="reward_redeem">Riscatti Premi</option>
+          <option value="customer_create">Nuovi Clienti</option>
+          <option value="customer_update">Modifiche Clienti</option>
+          <option value="login">Login</option>
+        </select>
+
+        {/* Actions */}
+        <button className="filter-button" onClick={loadData}>
+          <RefreshCw size={18} />
+          Aggiorna
+        </button>
+        <button className="filter-button" onClick={exportToCSV}>
+          <Download size={18} />
+          Esporta CSV
+        </button>
+      </div>
+
+      {/* Logs Table */}
+      <div className="staff-activity-logs-content">
+        {loading ? (
+          <div className="staff-activity-logs-loading">
+            <div className="spinner"></div>
+            <p>Caricamento logs...</p>
+          </div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="staff-activity-logs-empty">
+            <FileText size={48} opacity={0.3} />
+            <p>Nessun log trovato per i filtri selezionati</p>
+          </div>
+        ) : (
+          <div className="staff-activity-logs-table-wrapper">
+            <table className="staff-activity-logs-table">
+              <thead>
+                <tr>
+                  <th>Data/Ora</th>
+                  <th>Operatore</th>
+                  <th>Azione</th>
+                  <th>Descrizione</th>
+                  <th>Cliente</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLogs.map((log) => (
+                  <tr key={log.id}>
+                    <td className="log-date">{formatDate(log.created_at)}</td>
+                    <td className="log-staff">
+                      <User size={16} />
+                      {log.staff_name}
+                    </td>
+                    <td>
+                      <span
+                        className="log-action-badge"
+                        style={{
+                          backgroundColor: getActionColor(log.action_type) + '20',
+                          color: getActionColor(log.action_type)
+                        }}
+                      >
+                        {getActionLabel(log.action_type)}
+                      </span>
+                    </td>
+                    <td className="log-description">{log.description}</td>
+                    <td className="log-customer">{log.customer_name || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="staff-activity-logs-footer">
+        <p className="logs-count">
+          {filteredLogs.length} log{filteredLogs.length !== 1 ? 's' : ''} trovati
+        </p>
       </div>
     </div>
   )
