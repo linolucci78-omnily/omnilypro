@@ -555,6 +555,27 @@ const CustomerDisplay: React.FC = () => {
                 <span>Elaborazione</span>
                 <span style={{ animation: 'dots 1.5s steps(4) infinite' }}>...</span>
               </div>
+
+              {/* Footer indicatore - come IDLE */}
+              <div style={{
+                marginTop: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                fontSize: '0.9rem',
+                opacity: 0.9,
+                animation: 'fadeInOut 2s ease-in-out infinite'
+              }}>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+                }} />
+                <span>Pronto per la prossima transazione</span>
+              </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
@@ -583,6 +604,14 @@ const CustomerDisplay: React.FC = () => {
                 @keyframes pulse {
                   0%, 100% { opacity: 0.9; }
                   50% { opacity: 1; }
+                }
+                @keyframes fadeInOut {
+                  0%, 100% { opacity: 0.7; }
+                  50% { opacity: 1; }
+                }
+                @keyframes ping {
+                  0% { transform: scale(1); opacity: 1; }
+                  75%, 100% { transform: scale(1.5); opacity: 0; }
                 }
               `
             }} />
@@ -693,7 +722,7 @@ const CustomerDisplay: React.FC = () => {
                     marginBottom: '0.5rem',
                     animation: 'bounce 2s ease-in-out infinite'
                   }}>
-                    💰
+                    ⏳
                   </div>
                   <div style={{
                     fontSize: '1.2rem',
@@ -701,7 +730,7 @@ const CustomerDisplay: React.FC = () => {
                     fontWeight: '600',
                     opacity: 0.9
                   }}>
-                    Inserisci importo...
+                    Un momento...
                   </div>
                 </div>
               )}
@@ -768,6 +797,27 @@ const CustomerDisplay: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Footer indicatore - come IDLE */}
+              <div style={{
+                marginTop: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                fontSize: '0.9rem',
+                opacity: 0.9,
+                animation: 'fadeInOut 2s ease-in-out infinite'
+              }}>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+                }} />
+                <span>Pronto per la prossima transazione</span>
+              </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
@@ -776,6 +826,31 @@ const CustomerDisplay: React.FC = () => {
                   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
                   40% { transform: translateY(-10px); }
                   60% { transform: translateY(-5px); }
+                }
+                @keyframes fadeInOut {
+                  0%, 100% { opacity: 0.7; }
+                  50% { opacity: 1; }
+                }
+                @keyframes ping {
+                  0% { transform: scale(1); opacity: 1; }
+                  75%, 100% { transform: scale(1.5); opacity: 0; }
+                }
+                @keyframes scaleIn {
+                  0% { transform: scale(0); opacity: 0; }
+                  100% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes countUp {
+                  0% { transform: scale(0.5); opacity: 0; }
+                  50% { transform: scale(1.1); }
+                  100% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes glow {
+                  0%, 100% { box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4); }
+                  50% { box-shadow: 0 4px 24px rgba(251, 191, 36, 0.7), 0 0 30px rgba(251, 191, 36, 0.4); }
+                }
+                @keyframes gradientShift {
+                  0%, 100% { background-position: 0% 50%; }
+                  50% { background-position: 100% 50%; }
                 }
               `
             }} />
@@ -1242,6 +1317,27 @@ const CustomerDisplay: React.FC = () => {
             <span style={{ animation: 'spin 1s linear infinite' }}>⚡</span>
           </div>
 
+          {/* Footer indicatore - come IDLE */}
+          <div style={{
+            marginTop: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            fontSize: '0.9rem',
+            opacity: 0.9,
+            animation: 'fadeIn 0.6s ease-out 2.5s both, fadeInOut 2s ease-in-out 3s infinite'
+          }}>
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: 'white',
+              animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite 2.5s'
+            }} />
+            <span>Pronto per la prossima transazione</span>
+          </div>
+
           {/* Stili per le animazioni NUOVE */}
           <style dangerouslySetInnerHTML={{
             __html: `
@@ -1289,6 +1385,14 @@ const CustomerDisplay: React.FC = () => {
               @keyframes gradientShift {
                 0%, 100% { background-position: 0% 50%; }
                 50% { background-position: 100% 50%; }
+              }
+              @keyframes fadeInOut {
+                0%, 100% { opacity: 0.7; }
+                50% { opacity: 1; }
+              }
+              @keyframes ping {
+                0% { transform: scale(1); opacity: 1; }
+                75%, 100% { transform: scale(1.5); opacity: 0; }
               }
             `
           }} />
