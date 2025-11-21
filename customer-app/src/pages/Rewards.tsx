@@ -255,7 +255,10 @@ export default function Rewards() {
       customer.organization_id,
       selectedReward.id,
       selectedReward.name,
-      selectedReward.points_required
+      selectedReward.type || 'product',
+      selectedReward.value || '',
+      selectedReward.points_required,
+      customer.points
     )
 
     if (!result.success) {
@@ -268,6 +271,11 @@ export default function Rewards() {
 
     // Salva l'ID del redemption per il QR code
     setRedemptionId(result.redemptionId!)
+
+    // Ricarica la lista dei redemptions per mostrarlo in "I Miei Premi"
+    const updatedRedemptions = await rewardsService.getCustomerRedemptions(customer.id, customer.organization_id)
+    setMyRewards(updatedRedemptions)
+    console.log('📋 Lista redemptions aggiornata:', updatedRedemptions.length)
 
     // Trigger confetti
     triggerConfetti()

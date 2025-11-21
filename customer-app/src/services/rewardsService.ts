@@ -86,10 +86,15 @@ class RewardsService {
     organizationId: string,
     rewardId: string,
     rewardName: string,
-    pointsSpent: number
+    rewardType: string,
+    rewardValue: string,
+    pointsSpent: number,
+    customerPointsBefore: number
   ): Promise<{ success: boolean; redemptionId?: string; error?: string }> {
     try {
-      console.log('🎁 Creazione redemption:', { customerId, rewardId, pointsSpent })
+      console.log('🎁 Creazione redemption:', { customerId, rewardId, rewardType, rewardValue, pointsSpent, customerPointsBefore })
+
+      const customerPointsAfter = customerPointsBefore - pointsSpent
 
       const { data, error } = await supabase
         .from('reward_redemptions')
@@ -98,7 +103,11 @@ class RewardsService {
           organization_id: organizationId,
           reward_id: rewardId,
           reward_name: rewardName,
+          reward_type: rewardType,
+          reward_value: rewardValue,
           points_spent: pointsSpent,
+          customer_points_before: customerPointsBefore,
+          customer_points_after: customerPointsAfter,
           used_at: null, // In attesa
           redeemed_at: new Date().toISOString()
         })
