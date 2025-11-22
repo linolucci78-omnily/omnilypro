@@ -429,12 +429,6 @@ export class ZCSPrintService {
     }
   }
 
-  // Helper to center text for thermal printer (40 chars width for 58mm)
-  private centerText(text: string, width: number = 40): string {
-    const padding = Math.max(0, Math.floor((width - text.length) / 2))
-    return ' '.repeat(padding) + text
-  }
-
   async printLoyaltyCard(customerName: string, cardNumber: string, points: number): Promise<boolean> {
     if (!this.isInitialized) {
       console.error('Printer not initialized')

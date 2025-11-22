@@ -1073,7 +1073,6 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
           </div>
         </div>
       )}
-    </div>
 
       {/* Test Panel - Only in development */}
       {process.env.NODE_ENV === 'development' && (
