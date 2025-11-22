@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, Ticket, User, Mail, Phone, Sparkles, Printer, Check, Loader, AlertCircle, Plus, Trophy, Calendar, DollarSign } from 'lucide-react'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../../services/lotteryService'
 import { ZCSPrintService } from '../../services/printService'
+import Toast from '../UI/Toast'
 import './LotteryTicketSaleInline.css'
 
 interface LotteryTicketSaleInlineProps {
@@ -42,6 +43,25 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
 
   // Printer service instance
   const [printerService, setPrinterService] = useState<ZCSPrintService | null>(null)
+
+  // Toast state
+  const [toast, setToast] = useState<{
+    isVisible: boolean
+    message: string
+    type: 'success' | 'error' | 'warning' | 'info'
+  }>({
+    isVisible: false,
+    message: '',
+    type: 'info'
+  })
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+    setToast({ isVisible: true, message, type })
+  }
+
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
 
   // Initialize printer service
   useEffect(() => {
@@ -93,7 +113,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
 
   const handleSell = async () => {
     if (!selectedEvent || !customerName.trim()) {
-      alert('Seleziona un evento e inserisci il nome del cliente')
+      showToast('Seleziona un evento e inserisci il nome del cliente', 'warning')
       return
     }
 
@@ -121,7 +141,8 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
         await handlePrintTicket(ticket)
       }
     } catch (error: any) {
-      alert(`Errore: ${error.message}`)
+      console.error('Failed to sell ticket:', error)
+      showToast(`Errore: ${error.message}`, 'error')
     } finally {
       setSelling(false)
     }
@@ -129,36 +150,38 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
 
   const handlePrintTicket = async (ticket: LotteryTicket) => {
     if (!selectedEvent || !printerService) {
-      console.log('⚠️ Stampante non disponibile')
+      console.warn('Cannot print: missing event or printer service')
+      showToast('Stampante non disponibile', 'warning')
       return
     }
 
     try {
-      console.log('🖨️ Avvio stampa biglietto lotteria...')
-
       const success = await printerService.printLotteryTicket({
         eventName: selectedEvent.name,
         ticketNumber: ticket.ticket_number,
         customerName: ticket.customer_name,
-        customerEmail: ticket.customer_email,
-        customerPhone: ticket.customer_phone,
-        fortuneMessage: ticket.fortune_message,
-        prizeName: selectedEvent.prize_name,
-        prizeValue: selectedEvent.prize_value,
+        customerEmail: ticket.customer_email || undefined,
+        customerPhone: ticket.customer_phone || undefined,
+        fortuneMessage: ticket.fortune_message || undefined,
+        prizeName: selectedEvent.prize_name || undefined,
+        prizeValue: selectedEvent.prize_value || undefined,
         extractionDate: selectedEvent.extraction_date,
         pricePaid: ticket.price_paid,
-        purchasedByStaff: ticket.purchased_by_staff_name,
+        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
         createdAt: ticket.created_at,
         qrCodeData: ticket.qr_code_data
       })
 
       if (success) {
         console.log('✅ Biglietto stampato con successo!')
+        showToast('Biglietto stampato con successo!', 'success')
       } else {
-        console.error('❌ Errore durante la stampa del biglietto')
+        console.error('❌ Errore stampa biglietto')
+        showToast('Errore durante la stampa del biglietto', 'error')
       }
     } catch (error) {
-      console.error('❌ Errore stampa:', error)
+      console.error('❌ Print error:', error)
+      showToast('Errore durante la stampa del biglietto', 'error')
     }
   }
 
@@ -380,6 +403,14 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
           </form>
         )}
       </div>
+
+      {/* Toast */}
+      <Toast
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={closeToast}
+      />
     </div>
   )
 }

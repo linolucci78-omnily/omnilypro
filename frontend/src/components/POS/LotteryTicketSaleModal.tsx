@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, Ticket, User, Mail, Phone, Sparkles, Printer, Check } from 'lucide-react'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../../services/lotteryService'
 import { ZCSPrintService } from '../../services/printService'
+import Toast from '../UI/Toast'
 import './LotteryTicketSaleModal.css'
 
 interface LotteryTicketSaleModalProps {
@@ -41,6 +42,25 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
 
   // Printer service instance
   const [printerService, setPrinterService] = useState<ZCSPrintService | null>(null)
+
+  // Toast state
+  const [toast, setToast] = useState<{
+    isVisible: boolean
+    message: string
+    type: 'success' | 'error' | 'warning' | 'info'
+  }>({
+    isVisible: false,
+    message: '',
+    type: 'info'
+  })
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+    setToast({ isVisible: true, message, type })
+  }
+
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
 
   // Initialize printer service
   useEffect(() => {
@@ -93,7 +113,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
 
   const handleSellTicket = async () => {
     if (!selectedEvent || !customerName.trim()) {
-      alert('Inserisci almeno il nome del cliente')
+      showToast('Inserisci almeno il nome del cliente', 'warning')
       return
     }
 
@@ -126,9 +146,9 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
         handlePrintTicket(ticket)
       }, 500)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to sell ticket:', error)
-      alert('Errore nella vendita del biglietto')
+      showToast(`Errore nella vendita del biglietto: ${error.message || 'Errore sconosciuto'}`, 'error')
     } finally {
       setSelling(false)
     }
@@ -137,6 +157,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
   const handlePrintTicket = async (ticket: LotteryTicket) => {
     if (!selectedEvent || !printerService) {
       console.warn('Cannot print: missing event or printer service')
+      showToast('Stampante non disponibile', 'warning')
       return
     }
 
@@ -159,13 +180,14 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
 
       if (success) {
         console.log('✅ Biglietto stampato con successo!')
+        showToast('Biglietto stampato con successo!', 'success')
       } else {
         console.error('❌ Errore stampa biglietto')
-        alert('Errore durante la stampa del biglietto')
+        showToast('Errore durante la stampa del biglietto', 'error')
       }
     } catch (error) {
       console.error('❌ Print error:', error)
-      alert('Errore durante la stampa del biglietto')
+      showToast('Errore durante la stampa del biglietto', 'error')
     }
   }
 
@@ -415,6 +437,14 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Toast */}
+      <Toast
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={closeToast}
+      />
     </div>
   )
 }
