@@ -128,9 +128,14 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
   }
 
   const handlePrintTicket = async (ticket: LotteryTicket) => {
-    if (!selectedEvent || !printerService) return
+    if (!selectedEvent || !printerService) {
+      console.log('⚠️ Stampante non disponibile')
+      return
+    }
 
     try {
+      console.log('🖨️ Avvio stampa biglietto lotteria...')
+
       const success = await printerService.printLotteryTicket({
         eventName: selectedEvent.name,
         ticketNumber: ticket.ticket_number,
@@ -142,21 +147,18 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
         prizeValue: selectedEvent.prize_value,
         extractionDate: selectedEvent.extraction_date,
         pricePaid: ticket.price_paid,
-        purchasedByStaff: ticket.sold_by_staff_name,
+        purchasedByStaff: ticket.purchased_by_staff_name,
         createdAt: ticket.created_at,
-        qrCodeData: JSON.stringify({
-          ticketId: ticket.id,
-          ticketNumber: ticket.ticket_number,
-          eventId: selectedEvent.id,
-          eventName: selectedEvent.name
-        })
+        qrCodeData: ticket.qr_code_data
       })
 
       if (success) {
         console.log('✅ Biglietto stampato con successo!')
+      } else {
+        console.error('❌ Errore durante la stampa del biglietto')
       }
     } catch (error) {
-      console.error('Errore stampa:', error)
+      console.error('❌ Errore stampa:', error)
     }
   }
 

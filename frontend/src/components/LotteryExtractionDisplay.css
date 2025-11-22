@@ -414,15 +414,25 @@
   width: 100vw;
   height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* Posiziona in fondo */
   justify-content: center;
+  position: relative;
 }
 
 .idle-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end; /* Allinea in basso */
   text-align: center;
+  width: 100%;
+  padding: 3rem 2rem; /* Più padding in basso */
+  opacity: 0.4; /* Semi-trasparente per non attirare attenzione */
+  transition: opacity 0.3s ease;
+}
+
+.idle-content:hover {
+  opacity: 0.7; /* Leggermente più visibile al hover */
 }
 
 .pulse-indicator {

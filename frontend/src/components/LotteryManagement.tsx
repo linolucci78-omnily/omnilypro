@@ -34,6 +34,7 @@ import { lotteryService, LotteryEvent, LotteryTicket } from '../services/lottery
 import { ZCSPrintService } from '../services/printService'
 import { supabase } from '../lib/supabase'
 import { LotteryTicketSaleInline } from './POS/LotteryTicketSaleInline'
+import { LotteryTestPanel } from './LotteryTestPanel'
 import './LotteryManagement.css'
 
 interface LotteryManagementProps {
@@ -1071,6 +1072,12 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
             </div>
           </div>
         </div>
+      )}
+    </div>
+
+      {/* Test Panel - Only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <LotteryTestPanel organizationId={organizationId} />
       )}
     </div>
   )
