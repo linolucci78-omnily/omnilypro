@@ -22,14 +22,22 @@ const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
 
   // Triggera fontana di monete quando il modale si apre
   useEffect(() => {
-    if (isOpen && animationsRef.current) {
+    if (isOpen) {
       console.log('🎉 SaleSuccessModal aperto - triggering coin fountain con', pointsEarned, 'punti');
+      console.log('🔍 animationsRef.current disponibile:', !!animationsRef.current);
+
       // Piccolo delay per dare tempo al canvas di renderizzarsi
       setTimeout(() => {
-        if (animationsRef.current) {
+        if (animationsRef.current && animationsRef.current.triggerCoinFountain) {
+          console.log('✅ Chiamando triggerCoinFountain...');
           animationsRef.current.triggerCoinFountain(pointsEarned);
+        } else {
+          console.error('❌ animationsRef.current o triggerCoinFountain non disponibile!', {
+            hasRef: !!animationsRef.current,
+            hasMethod: !!(animationsRef.current?.triggerCoinFountain)
+          });
         }
-      }, 50);
+      }, 100);
     }
   }, [isOpen, pointsEarned]);
 
@@ -46,6 +54,9 @@ const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
 
   return (
     <>
+      {/* Coin Fountain Animation - SEMPRE montato PRIMA del modale */}
+      <NotificationAnimations ref={animationsRef} />
+
       {isOpen && (
         <>
           <div className="sale-success-overlay" onClick={onClose} />
@@ -72,9 +83,6 @@ const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
           </div>
         </>
       )}
-
-      {/* Coin Fountain Animation - sempre montato */}
-      <NotificationAnimations ref={animationsRef} />
     </>
   );
 };

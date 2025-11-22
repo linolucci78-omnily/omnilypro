@@ -1,0 +1,520 @@
+/* ============================================
+   LOTTERY HUB - CENTRO LOTTERIE
+   ============================================ */
+
+.lottery-hub {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.lottery-hub-header {
+  margin-bottom: 2.5rem;
+}
+
+.lottery-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.lottery-hub-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.lottery-hub-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.lottery-hub-header p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   STATISTICHE OVERVIEW
+   ============================================ */
+
+.lottery-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.lottery-stat-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lottery-stat-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.15);
+  transform: translateY(-4px);
+}
+
+.lottery-stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.lottery-stat-content {
+  flex: 1;
+}
+
+.lottery-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.lottery-stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   TOP EVENTI
+   ============================================ */
+
+.lottery-top-section {
+  margin-bottom: 2.5rem;
+}
+
+.lottery-top-section h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.lottery-top-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.lottery-top-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.lottery-top-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.15);
+  transform: translateY(-4px);
+}
+
+.lottery-top-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color, #dc2626), var(--secondary-color, #b91c1c));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.125rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.lottery-top-info h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  padding-right: 3rem;
+}
+
+.lottery-top-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.lottery-top-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.lottery-top-tickets,
+.lottery-top-revenue {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.lottery-top-prize {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 0.75rem;
+}
+
+.lottery-top-status {
+  margin-top: 1rem;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+
+.lottery-status-badge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lottery-status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.lottery-status-draft {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.lottery-status-closed {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.lottery-status-extracted {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ============================================
+   AZIONI RAPIDE
+   ============================================ */
+
+.lottery-actions-section {
+  margin-bottom: 2.5rem;
+}
+
+.lottery-actions-section h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.lottery-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.lottery-action-card {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lottery-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.lottery-action-card svg {
+  margin-bottom: 1rem;
+}
+
+.lottery-action-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.lottery-action-card p {
+  font-size: 0.875rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.lottery-action-secondary {
+  background: white;
+  color: #1f2937;
+  border: 2px solid #e5e7eb;
+}
+
+.lottery-action-secondary:hover {
+  border-color: var(--primary-color, #dc2626);
+  color: var(--primary-color, #dc2626);
+}
+
+/* ============================================
+   EVENTI RECENTI
+   ============================================ */
+
+.lottery-recent-section {
+  margin-bottom: 2.5rem;
+}
+
+.lottery-recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.lottery-recent-header h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+}
+
+.lottery-view-all-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lottery-view-all-btn:hover {
+  opacity: 0.8;
+}
+
+.lottery-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.lottery-recent-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lottery-recent-card:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
+  transform: translateY(-2px);
+}
+
+.lottery-recent-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.lottery-recent-header-card h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
+}
+
+.lottery-recent-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.lottery-recent-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.lottery-recent-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.lottery-recent-date {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.lottery-empty-state {
+  background: white;
+  border: 2px dashed #d1d5db;
+  border-radius: 16px;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.lottery-empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4b5563;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.lottery-empty-state p {
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+}
+
+.lottery-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.lottery-create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  border-color: var(--primary-color, #dc2626);
+  background: #fef2f2;
+  transform: translateX(-4px);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .lottery-hub {
+    padding: 1rem;
+  }
+
+  .lottery-hub-header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .lottery-hub-header h1 {
+    font-size: 2rem;
+  }
+
+  .lottery-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lottery-top-grid,
+  .lottery-actions-grid,
+  .lottery-recent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lottery-recent-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import POSLayout from './POSLayout';
 import OrganizationsDashboard from '../OrganizationsDashboard';
 import NotificationAnimations, { NotificationAnimationsRef } from '../NotificationAnimations';
+import { LotteryTicketSaleModal } from './LotteryTicketSaleModal';
 
 interface POSDashboardWrapperProps {
   currentOrganization?: any;
@@ -16,6 +17,7 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
     secondary: string | null
   }>({ primary: null, secondary: null });
   const animationsRef = useRef<NotificationAnimationsRef>(null);
+  const [lotteryModalOpen, setLotteryModalOpen] = useState(false);
 
   /**
    * Invia dati al customer display tramite bridge Android.
@@ -87,6 +89,14 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
     }
   }, []); // Solo al mount iniziale
 
+  // Esponi funzione globale per aprire modal lotteria
+  useEffect(() => {
+    (window as any).openLotteryModal = () => setLotteryModalOpen(true);
+    return () => {
+      delete (window as any).openLotteryModal;
+    };
+  }, []);
+
   return (
     <>
       <POSLayout
@@ -105,6 +115,24 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
 
       {/* Notification Animations - Persistent across all POS operations */}
       <NotificationAnimations ref={animationsRef} />
+
+      {/* Lottery Ticket Sale Modal */}
+      {organization && (
+        <LotteryTicketSaleModal
+          isOpen={lotteryModalOpen}
+          onClose={() => setLotteryModalOpen(false)}
+          organizationId={organization.id}
+          staffId={(window as any).currentUser?.id}
+          staffName={(window as any).currentUser?.full_name}
+          onTicketSold={(ticket) => {
+            console.log('🎟️ Biglietto venduto:', ticket);
+            // Notifica successo (se disponibile)
+            if (animationsRef.current && typeof animationsRef.current.showSuccess === 'function') {
+              animationsRef.current.showSuccess('Biglietto venduto con successo!');
+            }
+          }}
+        />
+      )}
     </>
   );
 };

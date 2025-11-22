@@ -272,6 +272,169 @@ export class ZCSPrintService {
     return this.printReceipt(testReceipt)
   }
 
+  /**
+   * Print lottery ticket
+   */
+  async printLotteryTicket(ticketData: {
+    eventName: string
+    ticketNumber: string
+    customerName: string
+    customerEmail?: string
+    customerPhone?: string
+    fortuneMessage?: string
+    prizeName?: string
+    prizeValue?: number
+    extractionDate: string
+    pricePaid: number
+    purchasedByStaff?: string
+    createdAt: string
+    qrCodeData: string
+  }): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.error('Printer not initialized')
+      return false
+    }
+
+    try {
+      const extractionDate = new Date(ticketData.extractionDate).toLocaleDateString('it-IT', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+
+      const createdAt = new Date(ticketData.createdAt).toLocaleString('it-IT')
+
+      // Build ticket text
+      const lines: string[] = [
+        '========================================',
+        this.centerText(ticketData.eventName.toUpperCase()),
+        '========================================',
+        '',
+        this.centerText('BIGLIETTO N.'),
+        '',
+        this.centerText('╔════════════════╗'),
+        this.centerText(`║  ${ticketData.ticketNumber}  ║`),
+        this.centerText('╚════════════════╝'),
+        '',
+        '----------------------------------------',
+        '',
+        this.centerText('INTESTATARIO:'),
+        this.centerText(ticketData.customerName),
+        ''
+      ]
+
+      if (ticketData.customerEmail) {
+        lines.push(this.centerText(ticketData.customerEmail))
+      }
+      if (ticketData.customerPhone) {
+        lines.push(this.centerText(ticketData.customerPhone))
+      }
+
+      lines.push('----------------------------------------')
+
+      if (ticketData.fortuneMessage) {
+        lines.push('')
+        lines.push(this.centerText('✨ MESSAGGIO FORTUNA ✨'))
+        lines.push(this.centerText(`"${ticketData.fortuneMessage}"`))
+        lines.push('')
+        lines.push('----------------------------------------')
+      }
+
+      if (ticketData.prizeName) {
+        lines.push('')
+        lines.push(this.centerText('🏆 PREMIO IN PALIO 🏆'))
+        lines.push(this.centerText(ticketData.prizeName))
+        if (ticketData.prizeValue) {
+          lines.push(this.centerText(`Valore: €${ticketData.prizeValue.toFixed(2)}`))
+        }
+        lines.push('')
+        lines.push('----------------------------------------')
+      }
+
+      lines.push(
+        '',
+        this.centerText('ESTRAZIONE:'),
+        this.centerText(extractionDate),
+        '',
+        '----------------------------------------',
+        '',
+        this.centerText('Conserva questo biglietto'),
+        this.centerText('per la validazione'),
+        '',
+        '========================================',
+        '',
+        `Data acquisto: ${createdAt}`,
+        `Prezzo: €${ticketData.pricePaid.toFixed(2)}`
+      )
+
+      if (ticketData.purchasedByStaff) {
+        lines.push(`Staff: ${ticketData.purchasedByStaff}`)
+      }
+
+      lines.push(
+        '',
+        '✂ - - - - - - - - - - - - - - - - - -',
+        '',
+        this.centerText('TALLONCINO'),
+        '',
+        this.centerText(ticketData.ticketNumber),
+        this.centerText(ticketData.customerName),
+        '',
+        this.centerText(`Estrazione: ${new Date(ticketData.extractionDate).toLocaleDateString('it-IT')}`),
+        '',
+        '========================================',
+        ''
+      )
+
+      const headerText = lines.join('\n')
+
+      return new Promise((resolve) => {
+        (window as any).omnilyLotteryTextPrintHandler = (result: any) => {
+          if (result.success) {
+            console.log('✅ Lottery ticket header printed')
+            // Print QR code after text
+            const qrCallback = (qrResult: any) => {
+              if (qrResult.success) {
+                console.log('✅ Lottery ticket QR code printed')
+                resolve(true)
+              } else {
+                console.error('❌ QR code print failed:', qrResult.error)
+                resolve(false)
+              }
+            }
+
+            (window as any).omnilyLotteryQRPrintHandler = qrCallback;
+            (window as any).OmnilyPOS.printQRCode(
+              ticketData.qrCodeData,
+              'omnilyLotteryQRPrintHandler'
+            )
+          } else {
+            console.error('❌ Lottery ticket text print failed:', result.error)
+            resolve(false)
+          }
+        }
+
+        (window as any).OmnilyPOS.printText(
+          headerText,
+          'omnilyLotteryTextPrintHandler'
+        )
+      })
+
+    } catch (error) {
+      console.error('❌ Lottery ticket print error:', error)
+      return false
+    }
+  }
+
+  // Helper to center text for thermal printer (40 chars width for 58mm)
+  private centerText(text: string, width: number = 40): string {
+    const padding = Math.max(0, Math.floor((width - text.length) / 2))
+    return ' '.repeat(padding) + text
+  }
+
   async printLoyaltyCard(customerName: string, cardNumber: string, points: number): Promise<boolean> {
     if (!this.isInitialized) {
       console.error('Printer not initialized')

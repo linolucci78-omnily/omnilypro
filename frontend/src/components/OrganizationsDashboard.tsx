@@ -7,7 +7,7 @@ import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 // REMOVED: useGamingNotifications - using console.log instead for stability
 // import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -17,6 +17,7 @@ import CardManagementHub from './CardManagementHub'
 import CardManagementFullPage from './CardManagementFullPage'
 import CardStatisticsPage from './CardStatisticsPage'
 import OperatorNFCManagementFullPage from './OperatorNFCManagementFullPage'
+import LotteryHub from './LotteryHub'
 import StaffActivityLogs from './StaffActivityLogs'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
@@ -2407,6 +2408,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'dashboard', icon: BarChart3, label: 'Dashboard', feature: null },
       { id: 'stamps', icon: Target, label: 'Tessere Punti', feature: null },
       { id: 'members', icon: Users, label: 'Clienti', feature: null },
+      { id: 'lottery', icon: TicketIcon, label: 'Lotterie', feature: null },
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'referral', icon: Share2, label: 'Sistema Referral', feature: null },
@@ -2489,6 +2491,19 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             organizationId={currentOrganization.id}
             onBack={() => handleSectionChange('settings')}
           />
+        ) : null
+
+      case 'lottery':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <LotteryHub
+              organizationId={currentOrganization.id}
+              primaryColor={previewColors.primary || currentOrganization.brand_colors?.primary || '#dc2626'}
+              secondaryColor={previewColors.secondary || currentOrganization.brand_colors?.secondary || '#b91c1c'}
+              staffId={user?.id}
+              staffName={user?.email}
+            />
+          </div>
         ) : null
 
       case 'registration-wizard':

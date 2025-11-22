@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Lottery Realtime</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #0f0;
+    }
+    .log {
+      background: #000;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+    }
+    button {
+      background: #0f0;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: monospace;
+    }
+    button:hover {
+      background: #0c0;
+    }
+    input {
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 5px 10px;
+      font-family: monospace;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎰 Lottery Realtime Test Console</h1>
+
+  <div>
+    <label>Event ID:</label>
+    <input type="text" id="eventId" placeholder="Enter event ID" style="width: 300px;">
+  </div>
+
+  <div style="margin-top: 20px;">
+    <button onclick="subscribe()">📡 Subscribe to Realtime</button>
+    <button onclick="checkPending()">🔍 Check Pending Commands</button>
+    <button onclick="clearPending()">🗑️ Clear All Pending</button>
+    <button onclick="sendCommand()">🚀 Send Test Command</button>
+  </div>
+
+  <div id="logs" style="margin-top: 20px;"></div>
+
+  <script>
+    // You need to replace these with your actual Supabase credentials
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'
+
+    let supabase = null
+    let channel = null
+
+    function log(message, type = 'info') {
+      const logs = document.getElementById('logs')
+      const div = document.createElement('div')
+      div.className = 'log'
+      div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> ${message}`
+      if (type === 'error') div.style.color = '#f00'
+      if (type === 'success') div.style.color = '#0f0'
+      logs.insertBefore(div, logs.firstChild)
+    }
+
+    async function subscribe() {
+      const eventId = document.getElementById('eventId').value
+      if (!eventId) {
+        alert('Please enter an event ID!')
+        return
+      }
+
+      if (!supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        log('✅ Supabase client initialized', 'success')
+      }
+
+      if (channel) {
+        await supabase.removeChannel(channel)
+        log('🔌 Removed old channel')
+      }
+
+      log(`🔌 Subscribing to event: ${eventId}`)
+
+      channel = supabase
+        .channel(`lottery_commands_${eventId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'lottery_extraction_commands',
+            filter: `event_id=eq.${eventId}`
+          },
+          (payload) => {
+            log(`🎮 <strong>COMMAND RECEIVED!</strong> ${JSON.stringify(payload, null, 2)}`, 'success')
+          }
+        )
+        .subscribe((status) => {
+          log(`📡 Subscription status: ${status}`)
+          if (status === 'SUBSCRIBED') {
+            log('✅ Successfully subscribed!', 'success')
+          } else if (status === 'CHANNEL_ERROR') {
+            log('❌ Subscription error!', 'error')
+          }
+        })
+    }
+
+    async function checkPending() {
+      const eventId = document.getElementById('eventId').value
+      if (!eventId) {
+        alert('Please enter an event ID!')
+        return
+      }
+
+      if (!supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      }
+
+      log('🔍 Checking pending commands...')
+      const { data, error } = await supabase
+        .from('lottery_extraction_commands')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        log(`❌ Error: ${error.message}`, 'error')
+      } else {
+        log(`Found ${data.length} pending commands: ${JSON.stringify(data, null, 2)}`)
+      }
+    }
+
+    async function clearPending() {
+      const eventId = document.getElementById('eventId').value
+      if (!eventId) {
+        alert('Please enter an event ID!')
+        return
+      }
+
+      if (!confirm('Clear all pending commands?')) return
+
+      if (!supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      }
+
+      log('🗑️ Clearing pending commands...')
+      const { error } = await supabase
+        .from('lottery_extraction_commands')
+        .update({ status: 'cancelled' })
+        .eq('event_id', eventId)
+        .eq('status', 'pending')
+
+      if (error) {
+        log(`❌ Error: ${error.message}`, 'error')
+      } else {
+        log('✅ All pending commands cleared!', 'success')
+      }
+    }
+
+    async function sendCommand() {
+      const eventId = document.getElementById('eventId').value
+      if (!eventId) {
+        alert('Please enter an event ID!')
+        return
+      }
+
+      if (!supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      }
+
+      log('🚀 Sending test command...')
+      const { data, error } = await supabase
+        .from('lottery_extraction_commands')
+        .insert({
+          event_id: eventId,
+          organization_id: '00000000-0000-0000-0000-000000000000', // dummy org id
+          command: 'START_EXTRACTION',
+          status: 'pending'
+        })
+        .select()
+
+      if (error) {
+        log(`❌ Error: ${error.message}`, 'error')
+      } else {
+        log(`✅ Command sent! ${JSON.stringify(data, null, 2)}`, 'success')
+      }
+    }
+
+    log('👋 Test console ready! Enter an event ID and click Subscribe.')
+    log('⚠️ Note: You need to edit this HTML file and add your Supabase credentials first!')
+  </script>
+</body>
+</html>

@@ -26,7 +26,8 @@ import {
   MdPalette,
   MdLanguage,
   MdShare,
-  MdNotificationsActive
+  MdNotificationsActive,
+  MdConfirmationNumber
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -89,6 +90,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'dashboard', icon: MdDashboard, label: 'Dashboard', feature: null },
     { id: 'stamps', icon: MdLoyalty, label: 'Tessere Punti', feature: null },
     { id: 'members', icon: MdPeople, label: 'Clienti', feature: null },
+    { id: 'lottery', icon: MdConfirmationNumber, label: 'Lotterie', feature: null },
     { id: 'loyalty-tiers', icon: MdStar, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
     { id: 'rewards', icon: MdCardGiftcard, label: 'Premi', feature: 'rewards' },
     { id: 'referral', icon: MdShare, label: 'Sistema Referral', feature: null },
@@ -122,6 +124,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       'dashboard': '#ef4444',
       'stamps': '#10b981',
       'members': '#3b82f6',
+      'lottery': '#dc2626',
       'loyalty-tiers': '#f59e0b',
       'rewards': '#10b981',
       'referral': '#8b5cf6',

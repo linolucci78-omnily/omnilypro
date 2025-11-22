@@ -71,6 +71,7 @@ import CustomerDisplay from './components/POS/CustomerDisplay'
 import WebsiteContentEditor from './components/POS/WebsiteContentEditor'
 import ReceiptLayoutEditorPage from './pages/ReceiptLayoutEditorPage'
 import GamingTest from './pages/GamingTest'
+import LotteryDisplayPage from './pages/LotteryDisplayPage'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -237,6 +238,7 @@ function App() {
               <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
               <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
               <Route path="/gaming-test" element={<GamingTest />} />
+              <Route path="/lottery/display/:eventId" element={<LotteryDisplayPage />} />
               <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
                 <Route index element={<AdminDashboard />} />
                 <Route path="organizations" element={<Admin />} />
