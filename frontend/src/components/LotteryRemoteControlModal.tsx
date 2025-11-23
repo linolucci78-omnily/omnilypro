@@ -44,6 +44,49 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
   const [displayOpen, setDisplayOpen] = useState(false)
   const [showDisplayOptions, setShowDisplayOptions] = useState(false)
 
+  // Listen for display status via Broadcast Channel
+  useEffect(() => {
+    if (!selectedEventId) return
+
+    const channel = new BroadcastChannel(`lottery-display-${selectedEventId}`)
+
+    let heartbeatTimeout: NodeJS.Timeout
+
+    const resetHeartbeatTimeout = () => {
+      clearTimeout(heartbeatTimeout)
+      setDisplayOpen(true)
+
+      // If no heartbeat in 10 seconds, mark as offline
+      heartbeatTimeout = setTimeout(() => {
+        setDisplayOpen(false)
+        console.log('📺 Display offline - no heartbeat')
+      }, 10000)
+    }
+
+    channel.onmessage = (event) => {
+      const { type } = event.data
+
+      if (type === 'display-online') {
+        console.log('📺 Display is online!')
+        resetHeartbeatTimeout()
+      } else if (type === 'display-heartbeat') {
+        resetHeartbeatTimeout()
+      } else if (type === 'display-offline') {
+        console.log('📺 Display went offline')
+        setDisplayOpen(false)
+        clearTimeout(heartbeatTimeout)
+      }
+    }
+
+    // Ask if display is online
+    channel.postMessage({ type: 'ping', eventId: selectedEventId })
+
+    return () => {
+      channel.close()
+      clearTimeout(heartbeatTimeout)
+    }
+  }, [selectedEventId])
+
   // Load available prizes when event is selected
   useEffect(() => {
     if (selectedEventId) {

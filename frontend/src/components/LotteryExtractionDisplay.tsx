@@ -1118,6 +1118,9 @@ export const LotteryExtractionFullPage: React.FC<{
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Create broadcast channel to notify remote control
+    const channel = new BroadcastChannel(`lottery-display-${eventId}`)
+
     const loadData = async () => {
       try {
         const { lotteryService } = await import('../services/lotteryService')
@@ -1133,6 +1136,9 @@ export const LotteryExtractionFullPage: React.FC<{
         const ticketsData = await lotteryService.getEventTickets(eventId)
         console.log('🎫 Tickets loaded:', ticketsData.length)
         setTickets(ticketsData)
+
+        // Notify that display is online
+        channel.postMessage({ type: 'display-online', eventId })
       } catch (error) {
         console.error('❌ Failed to load lottery data:', error)
         console.error('Event ID:', eventId)
@@ -1142,6 +1148,18 @@ export const LotteryExtractionFullPage: React.FC<{
     }
 
     loadData()
+
+    // Send heartbeat every 5 seconds
+    const heartbeat = setInterval(() => {
+      channel.postMessage({ type: 'display-heartbeat', eventId })
+    }, 5000)
+
+    // Cleanup
+    return () => {
+      channel.postMessage({ type: 'display-offline', eventId })
+      channel.close()
+      clearInterval(heartbeat)
+    }
   }, [eventId])
 
   if (loading) {

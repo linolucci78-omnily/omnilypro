@@ -30,6 +30,10 @@ export const DisplayOptionsModal: React.FC<DisplayOptionsModalProps> = ({
   const baseUrl = window.location.origin
   const displayUrl = `${baseUrl}/lottery/display/${eventId}`
 
+  // Debug: log the URL
+  console.log('🔗 Display URL for QR code:', displayUrl)
+  console.log('📱 Event ID:', eventId)
+
   // Get local IP (questo sarà approssimativo, in produzione potresti volerlo dal backend)
   const localIp = window.location.hostname
 
@@ -149,14 +153,20 @@ export const DisplayOptionsModal: React.FC<DisplayOptionsModalProps> = ({
               <p className="display-share-instruction">Scansiona con smartphone o tablet:</p>
 
               <div className="qr-code-container">
-                <QRCodeSVG
-                  value={displayUrl}
-                  size={220}
-                  level="H"
-                  includeMargin={true}
-                  bgColor="#ffffff"
-                  fgColor="#1e293b"
-                />
+                {displayUrl ? (
+                  <QRCodeSVG
+                    value={displayUrl}
+                    size={220}
+                    level="H"
+                    includeMargin={true}
+                    bgColor="#ffffff"
+                    fgColor="#1e293b"
+                  />
+                ) : (
+                  <div style={{ padding: '2rem', color: '#ef4444' }}>
+                    Errore: URL non disponibile
+                  </div>
+                )}
               </div>
 
               <p className="display-share-instruction">Oppure copia il link:</p>
