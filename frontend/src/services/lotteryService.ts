@@ -4,6 +4,23 @@ import { supabase } from '../lib/supabase'
 // TYPES
 // =====================================================
 
+export type LotteryTheme = 'casino' | 'bingo' | 'drum' | 'modern'
+
+export interface LotteryPrize {
+  id: string
+  event_id: string
+  organization_id: string
+  rank: number // 1 = first prize, 2 = second prize, etc.
+  prize_name: string
+  prize_value?: number
+  prize_description?: string
+  is_extracted: boolean
+  extracted_at?: string
+  winning_ticket_id?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface LotteryEvent {
   id: string
   organization_id: string
@@ -12,14 +29,19 @@ export interface LotteryEvent {
   event_date: string
   extraction_date: string
   ticket_price: number
+  // Legacy single prize fields (kept for backward compatibility)
   prize_name?: string
   prize_value?: number
   prize_description?: string
+  // Multi-prize fields
+  total_prizes: number
+  prizes_extracted: number
   brand_colors: {
     primary: string
     secondary: string
     accent: string
   }
+  theme?: LotteryTheme
   status: 'draft' | 'active' | 'closed' | 'extracted'
   total_tickets_sold: number
   total_complimentary_tickets?: number
@@ -47,6 +69,9 @@ export interface LotteryTicket {
   validated_at?: string
   is_winner: boolean
   won_at?: string
+  // Multi-prize fields
+  prize_id?: string
+  prize_rank?: number
   prize_claimed: boolean
   prize_claimed_at?: string
   created_at: string
@@ -63,7 +88,19 @@ export interface LotteryExtraction {
   extracted_by_staff_name?: string
   extraction_method: 'automatic' | 'manual'
   total_participants: number
+  // Multi-prize fields
+  prize_id?: string
+  prize_rank?: number
   created_at: string
+}
+
+export interface LotteryWinnerWithPrize {
+  ticket_number: string
+  customer_name: string
+  prize_rank: number
+  prize_name: string
+  prize_value?: number
+  won_at?: string
 }
 
 // =====================================================
@@ -152,6 +189,98 @@ export const lotteryService = {
    */
   async closeEvent(eventId: string): Promise<LotteryEvent> {
     return this.updateEvent(eventId, { status: 'closed' })
+  },
+
+  /**
+   * Delete event and all related data (tickets, extractions, commands)
+   */
+  async deleteEvent(eventId: string): Promise<void> {
+    console.log('🗑️ deleteEvent - Starting deletion for:', eventId)
+
+    // Delete in correct order to respect foreign key constraints
+
+    // 1. Delete tickets
+    console.log('🎫 Deleting tickets...')
+    const { data: ticketsData, error: ticketsError } = await supabase
+      .from('lottery_tickets')
+      .delete()
+      .eq('event_id', eventId)
+      .select()
+
+    console.log('🎫 Tickets delete result:', { data: ticketsData, error: ticketsError })
+    if (ticketsError) {
+      console.error('❌ Tickets error:', ticketsError)
+      throw new Error(`Error deleting tickets: ${ticketsError.message}`)
+    }
+
+    // 2. Delete extraction commands
+    console.log('📋 Deleting extraction commands...')
+    const { data: commandsData, error: commandsError } = await supabase
+      .from('lottery_extraction_commands')
+      .delete()
+      .eq('event_id', eventId)
+      .select()
+
+    console.log('📋 Commands delete result:', { data: commandsData, error: commandsError })
+    if (commandsError) {
+      console.error('❌ Commands error:', commandsError)
+      throw new Error(`Error deleting commands: ${commandsError.message}`)
+    }
+
+    // 3. Delete extractions
+    console.log('🎰 Deleting extractions...')
+    const { data: extractionsData, error: extractionsError } = await supabase
+      .from('lottery_extractions')
+      .delete()
+      .eq('event_id', eventId)
+      .select()
+
+    console.log('🎰 Extractions delete result:', { data: extractionsData, error: extractionsError })
+    if (extractionsError) {
+      console.error('❌ Extractions error:', extractionsError)
+      throw new Error(`Error deleting extractions: ${extractionsError.message}`)
+    }
+
+    // 4. Check if event exists before deleting
+    console.log('🔍 Checking if event exists...')
+    const { data: existingEvent, error: checkError } = await supabase
+      .from('lottery_events')
+      .select('id')
+      .eq('id', eventId)
+      .single()
+
+    console.log('🔍 Event exists check:', { exists: !!existingEvent, error: checkError })
+
+    if (!existingEvent && !checkError) {
+      console.log('⚠️ Event does not exist, nothing to delete')
+      return
+    }
+
+    // 5. Finally, delete the event itself
+    console.log('🎉 Deleting event...')
+    const { data: eventData, error: eventError, count } = await supabase
+      .from('lottery_events')
+      .delete()
+      .eq('id', eventId)
+      .select()
+
+    console.log('🎉 Event delete result:', {
+      data: eventData,
+      error: eventError,
+      count,
+      rowsDeleted: eventData?.length || 0
+    })
+
+    if (eventError) {
+      console.error('❌ Event error:', eventError)
+      throw new Error(`Error deleting event: ${eventError.message}`)
+    }
+
+    if (!eventData || eventData.length === 0) {
+      console.warn('⚠️ Delete returned 0 rows - event may not exist or RLS policy blocking')
+    }
+
+    console.log('✅ deleteEvent - Deletion completed successfully!')
   },
 
   /**
@@ -465,6 +594,275 @@ export const lotteryService = {
 
     if (error) throw error
     return data
+  },
+
+  // =====================================================
+  // PRIZES (Multi-Prize System)
+  // =====================================================
+
+  /**
+   * Get all prizes for an event
+   */
+  async getPrizesByEvent(eventId: string): Promise<LotteryPrize[]> {
+    const { data, error } = await supabase
+      .from('lottery_prizes')
+      .select('*')
+      .eq('event_id', eventId)
+      .order('rank', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
+   * Get available prizes (not yet extracted) for an event
+   */
+  async getAvailablePrizes(eventId: string): Promise<LotteryPrize[]> {
+    const { data, error } = await supabase
+      .from('lottery_prizes')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('is_extracted', false)
+      .order('rank', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
+   * Get a specific prize by ID
+   */
+  async getPrize(prizeId: string): Promise<LotteryPrize> {
+    const { data, error } = await supabase
+      .from('lottery_prizes')
+      .select('*')
+      .eq('id', prizeId)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  /**
+   * Create a prize for an event
+   */
+  async createPrize(params: {
+    eventId: string
+    organizationId: string
+    rank: number
+    prizeName: string
+    prizeValue?: number
+    prizeDescription?: string
+  }): Promise<LotteryPrize> {
+    const { data, error } = await supabase
+      .from('lottery_prizes')
+      .insert({
+        event_id: params.eventId,
+        organization_id: params.organizationId,
+        rank: params.rank,
+        prize_name: params.prizeName,
+        prize_value: params.prizeValue,
+        prize_description: params.prizeDescription
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Update event total_prizes count
+    const prizes = await this.getPrizesByEvent(params.eventId)
+    await supabase
+      .from('lottery_events')
+      .update({ total_prizes: prizes.length })
+      .eq('id', params.eventId)
+
+    return data
+  },
+
+  /**
+   * Update a prize
+   */
+  async updatePrize(
+    prizeId: string,
+    updates: Partial<Pick<LotteryPrize, 'prize_name' | 'prize_value' | 'prize_description' | 'rank'>>
+  ): Promise<LotteryPrize> {
+    const { data, error } = await supabase
+      .from('lottery_prizes')
+      .update(updates)
+      .eq('id', prizeId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  /**
+   * Delete a prize
+   */
+  async deletePrize(prizeId: string): Promise<void> {
+    // Get prize info before deleting
+    const prize = await this.getPrize(prizeId)
+
+    // Can't delete if already extracted
+    if (prize.is_extracted) {
+      throw new Error('Impossibile eliminare un premio già estratto')
+    }
+
+    const { error } = await supabase
+      .from('lottery_prizes')
+      .delete()
+      .eq('id', prizeId)
+
+    if (error) throw error
+
+    // Update event total_prizes count
+    const prizes = await this.getPrizesByEvent(prize.event_id)
+    await supabase
+      .from('lottery_events')
+      .update({ total_prizes: prizes.length })
+      .eq('id', prize.event_id)
+  },
+
+  /**
+   * Perform extraction for a specific prize
+   */
+  async performExtractionForPrize(params: {
+    eventId: string
+    prizeId: string
+    organizationId: string
+    staffId?: string
+    staffName?: string
+  }): Promise<{ winner: LotteryTicket; extraction: LotteryExtraction; prize: LotteryPrize }> {
+    // Get prize info
+    const prize = await this.getPrize(params.prizeId)
+
+    if (prize.is_extracted) {
+      throw new Error('Questo premio è già stato estratto')
+    }
+
+    // Get available tickets (that haven't won any prize yet)
+    const availableTickets = await this.getAvailableTickets(params.eventId)
+
+    if (availableTickets.length === 0) {
+      throw new Error('Nessun biglietto disponibile per l\'estrazione')
+    }
+
+    // Pick random winner
+    const randomIndex = Math.floor(Math.random() * availableTickets.length)
+    const winningTicket = availableTickets[randomIndex]
+
+    // Mark ticket as winner with prize info
+    const { data: winner, error: winnerError } = await supabase
+      .from('lottery_tickets')
+      .update({
+        is_winner: true,
+        won_at: new Date().toISOString(),
+        prize_id: params.prizeId,
+        prize_rank: prize.rank
+      })
+      .eq('id', winningTicket.id)
+      .select()
+      .single()
+
+    if (winnerError) throw winnerError
+
+    // Mark prize as extracted
+    const { data: updatedPrize, error: prizeError } = await supabase
+      .from('lottery_prizes')
+      .update({
+        is_extracted: true,
+        extracted_at: new Date().toISOString(),
+        winning_ticket_id: winner.id
+      })
+      .eq('id', params.prizeId)
+      .select()
+      .single()
+
+    if (prizeError) throw prizeError
+
+    // Create extraction record
+    const extraction = {
+      event_id: params.eventId,
+      organization_id: params.organizationId,
+      winning_ticket_id: winner.id,
+      winning_ticket_number: winner.ticket_number,
+      winner_customer_name: winner.customer_name,
+      extracted_by_staff_id: params.staffId,
+      extracted_by_staff_name: params.staffName,
+      extraction_method: 'automatic' as const,
+      total_participants: availableTickets.length,
+      prize_id: params.prizeId,
+      prize_rank: prize.rank
+    }
+
+    const { data: extractionRecord, error: extractionError } = await supabase
+      .from('lottery_extractions')
+      .insert(extraction)
+      .select()
+      .single()
+
+    if (extractionError) throw extractionError
+
+    // Update event prizes_extracted count
+    const { data: event } = await supabase
+      .from('lottery_events')
+      .select('total_prizes, prizes_extracted')
+      .eq('id', params.eventId)
+      .single()
+
+    if (event) {
+      const prizesExtracted = (event.prizes_extracted || 0) + 1
+      const updates: any = {
+        prizes_extracted: prizesExtracted
+      }
+
+      // If all prizes are extracted, mark event as extracted
+      if (prizesExtracted >= event.total_prizes) {
+        updates.status = 'extracted'
+        updates.extracted_at = new Date().toISOString()
+      }
+
+      await supabase
+        .from('lottery_events')
+        .update(updates)
+        .eq('id', params.eventId)
+    }
+
+    return { winner, extraction: extractionRecord, prize: updatedPrize }
+  },
+
+  /**
+   * Get all winners with their prizes for an event
+   */
+  async getEventWinnersWithPrizes(eventId: string): Promise<LotteryWinnerWithPrize[]> {
+    const { data, error } = await supabase
+      .from('lottery_tickets')
+      .select(`
+        ticket_number,
+        customer_name,
+        prize_rank,
+        won_at,
+        lottery_prizes!lottery_tickets_prize_id_fkey (
+          prize_name,
+          prize_value
+        )
+      `)
+      .eq('event_id', eventId)
+      .eq('is_winner', true)
+      .order('prize_rank', { ascending: true })
+
+    if (error) throw error
+
+    // Transform the data to match interface
+    return (data || []).map((item: any) => ({
+      ticket_number: item.ticket_number,
+      customer_name: item.customer_name,
+      prize_rank: item.prize_rank,
+      prize_name: item.lottery_prizes?.prize_name || '',
+      prize_value: item.lottery_prizes?.prize_value,
+      won_at: item.won_at
+    }))
   },
 
   // =====================================================

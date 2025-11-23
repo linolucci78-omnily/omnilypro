@@ -1,0 +1,550 @@
+/* =====================================================
+   COMMON THEME CONTAINER
+   ===================================================== */
+
+.theme-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.theme-title {
+  font-size: 4rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: fadeInScale 1s ease-out;
+}
+
+.theme-subtitle {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.pulsing-text {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.7);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* =====================================================
+   CASINO THEME
+   ===================================================== */
+
+.casino-theme {
+  background: linear-gradient(135deg, #1a0d00 0%, #4a0e0e 50%, #1a0d00 100%);
+}
+
+.floating-cards {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.playing-card {
+  position: absolute;
+  width: 80px;
+  height: 120px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-100px) rotate(180deg);
+  }
+}
+
+.falling-chips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chip {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  animation: fallChip linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes fallChip {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.casino-icon {
+  font-size: 6rem;
+  margin-bottom: 1rem;
+  animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.elegant-divider {
+  height: 2px;
+  width: 200px;
+  margin: 2rem auto;
+  opacity: 0.5;
+}
+
+.golden-lights {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.light-ray {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.3), transparent);
+  transform-origin: 50% 0%;
+  animation: rotateLights 10s linear infinite;
+}
+
+@keyframes rotateLights {
+  to { transform: rotate(360deg); }
+}
+
+/* =====================================================
+   BINGO THEME
+   ===================================================== */
+
+.bingo-theme {
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+}
+
+.bingo-balls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bingo-ball {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: bounceBall ease-in-out infinite;
+}
+
+@keyframes bounceBall {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-80px) scale(1.1);
+  }
+}
+
+.bingo-icon {
+  font-size: 6rem;
+  margin-bottom: 1rem;
+  animation: wobble 2s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.bingo-card {
+  margin: 2rem auto;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.bingo-cell {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.confetti-rain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 20px;
+  animation: fallConfetti linear infinite;
+}
+
+@keyframes fallConfetti {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* =====================================================
+   DRUM THEME
+   ===================================================== */
+
+.drum-theme {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+}
+
+.drum-container {
+  position: relative;
+  perspective: 1000px;
+  width: 400px;
+  height: 400px;
+}
+
+.rotating-drum {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  animation: rotateDrum 8s linear infinite;
+  border: 4px solid;
+  border-radius: 50%;
+}
+
+@keyframes rotateDrum {
+  to { transform: translate(-50%, -50%) rotateY(360deg); }
+}
+
+.drum-face {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.drum-face.front {
+  transform: translateZ(150px);
+}
+
+.drum-face.back {
+  transform: translateZ(-150px) rotateY(180deg);
+}
+
+.drum-face.left {
+  transform: rotateY(-90deg) translateZ(150px);
+}
+
+.drum-face.right {
+  transform: rotateY(90deg) translateZ(150px);
+}
+
+.flying-tickets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ticket-paper {
+  position: absolute;
+  width: 80px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  animation: flyTicket 5s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes flyTicket {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(200px, -100px) rotate(360deg);
+  }
+}
+
+.mechanical-indicator {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.gear {
+  font-size: 3rem;
+  animation: rotateGear 3s linear infinite;
+}
+
+.gear.reverse {
+  animation: rotateGear 3s linear infinite reverse;
+}
+
+@keyframes rotateGear {
+  to { transform: rotate(360deg); }
+}
+
+/* =====================================================
+   MODERN THEME
+   ===================================================== */
+
+.modern-theme {
+  background: #0f172a;
+  position: relative;
+}
+
+.geometric-shapes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.shape {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border: 3px solid;
+  animation: floatShape 4s ease-in-out infinite;
+}
+
+.shape-0 {
+  border-radius: 0;
+  animation-duration: 4s;
+}
+
+.shape-1 {
+  border-radius: 50%;
+  animation-duration: 5s;
+}
+
+.shape-2 {
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  animation-duration: 6s;
+}
+
+@keyframes floatShape {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-50px) rotate(180deg);
+    opacity: 0.6;
+  }
+}
+
+.animated-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.moving-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  animation: moveLine 3s ease-in-out infinite;
+}
+
+@keyframes moveLine {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.modern-content {
+  color: white;
+}
+
+.modern-icon-container {
+  margin-bottom: 2rem;
+}
+
+.rotating-hexagon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border: 4px solid;
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  animation: rotateHex 6s linear infinite;
+  font-size: 3rem;
+}
+
+@keyframes rotateHex {
+  to { transform: rotate(360deg); }
+}
+
+.modern-title {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+}
+
+.loading-bar {
+  width: 300px;
+  height: 8px;
+  margin: 2rem auto;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.loading-fill {
+  height: 100%;
+  width: 100%;
+  animation: loadingProgress 2s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes loadingProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.data-points {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.data-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+}
+
+.blinking-dot {
+  animation: blink 1s ease-in-out infinite;
+}
+
+.blinking-dot.slow {
+  animation-duration: 2s;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.grid-background {
+  position: absolute;
+  inset: 0;
+  background-size: 50px 50px;
+  opacity: 0.5;
+  pointer-events: none;
+}

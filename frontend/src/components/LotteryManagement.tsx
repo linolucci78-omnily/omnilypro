@@ -17,6 +17,7 @@ import {
   AlertCircle,
   CheckCircle,
   Loader,
+  Sparkles,
   ChevronDown,
   ChevronUp,
   FileText,
@@ -35,6 +36,9 @@ import { ZCSPrintService } from '../services/printService'
 import { supabase } from '../lib/supabase'
 import { LotteryTicketSaleInline } from './POS/LotteryTicketSaleInline'
 import { LotteryTestPanel } from './LotteryTestPanel'
+import { LotteryRemoteControl } from './LotteryRemoteControl'
+import { LotteryPrizesManager, Prize } from './LotteryPrizesManager'
+import Toast from './UI/Toast'
 import './LotteryManagement.css'
 
 interface LotteryManagementProps {
@@ -54,6 +58,7 @@ interface EventFormData {
   prizeName: string
   prizeValue: number
   prizeDescription: string
+  theme: 'casino' | 'bingo' | 'drum' | 'modern'
   status: 'draft' | 'active' | 'closed' | 'extracted'
 }
 
@@ -81,6 +86,25 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
   const [loadingTickets, setLoadingTickets] = useState(false)
   const [ticketSearchTerm, setTicketSearchTerm] = useState('')
 
+  // Toast notifications
+  const [toast, setToast] = useState<{
+    isVisible: boolean
+    message: string
+    type: 'success' | 'error' | 'warning' | 'info'
+  }>({
+    isVisible: false,
+    message: '',
+    type: 'info'
+  })
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+    setToast({ isVisible: true, message, type })
+  }
+
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
+
   const [formData, setFormData] = useState<EventFormData>({
     name: '',
     description: '',
@@ -95,8 +119,11 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
     prizeName: '',
     prizeValue: 0,
     prizeDescription: '',
+    theme: 'casino',
     status: 'active'
   })
+
+  const [prizes, setPrizes] = useState<Prize[]>([])
 
   useEffect(() => {
     fetchEvents()
@@ -136,10 +163,12 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
       prizeName: '',
       prizeValue: 0,
       prizeDescription: '',
+      theme: 'casino',
       status: 'active'
     })
     setEditingEvent(null)
     setValidationError('')
+    setPrizes([]) // Clear prizes array
     setShowForm(false)
   }
 
@@ -158,6 +187,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         prizeName: event.prize_name || '',
         prizeValue: event.prize_value || 0,
         prizeDescription: event.prize_description || '',
+        theme: event.theme || 'casino',
         status: event.status
       })
     } else {
@@ -223,20 +253,85 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
           secondary: secondaryColor,
           accent: '#fbbf24'
         },
+        theme: formData.theme,
         status: formData.status
       }
 
+      let eventId: string
+      const isEditing = !!editingEvent
+
       if (editingEvent) {
         await lotteryService.updateEvent(editingEvent.id, eventData)
+        eventId = editingEvent.id
       } else {
-        await lotteryService.createEvent(eventData)
+        const newEvent = await lotteryService.createEvent(eventData)
+        eventId = newEvent.id
       }
 
+      // Save prizes for the event
+      let prizesCreated = 0
+      let prizesUpdated = 0
+
+      console.log('💾 Salvataggio premi, array:', prizes)
+      console.log('💾 Numero premi da salvare:', prizes.length)
+
+      if (prizes.length > 0) {
+        for (const prize of prizes) {
+          console.log('💾 Processando premio:', prize)
+          if (prize.id) {
+            // Update existing prize
+            console.log('📝 Aggiornamento premio esistente:', prize.id)
+            await lotteryService.updatePrize(prize.id, {
+              prize_name: prize.prize_name,
+              prize_value: prize.prize_value,
+              prize_description: prize.prize_description,
+              rank: prize.rank
+            })
+            prizesUpdated++
+            console.log('✅ Premio aggiornato')
+          } else {
+            // Create new prize
+            console.log('➕ Creazione nuovo premio per evento:', eventId)
+            await lotteryService.createPrize({
+              eventId: eventId,
+              organizationId: organizationId,
+              rank: prize.rank,
+              prizeName: prize.prize_name,
+              prizeValue: prize.prize_value,
+              prizeDescription: prize.prize_description
+            })
+            prizesCreated++
+            console.log('✅ Premio creato')
+          }
+        }
+      }
+
+      console.log(`💾 Totale: ${prizesCreated} creati, ${prizesUpdated} aggiornati`)
+
       await fetchEvents()
+
+      // Show success toast with details
+      let successMessage = isEditing
+        ? `✅ Evento "${formData.name}" aggiornato con successo!`
+        : `✅ Evento "${formData.name}" creato con successo!`
+
+      if (prizes.length > 0) {
+        if (prizesCreated > 0 && prizesUpdated > 0) {
+          successMessage += ` (${prizesCreated} ${prizesCreated === 1 ? 'premio creato' : 'premi creati'}, ${prizesUpdated} ${prizesUpdated === 1 ? 'aggiornato' : 'aggiornati'})`
+        } else if (prizesCreated > 0) {
+          successMessage += ` (${prizesCreated} ${prizesCreated === 1 ? 'premio creato' : 'premi creati'})`
+        } else if (prizesUpdated > 0) {
+          successMessage += ` (${prizesUpdated} ${prizesUpdated === 1 ? 'premio aggiornato' : 'premi aggiornati'})`
+        }
+      }
+
+      showToast(successMessage, 'success')
       resetForm()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving event:', error)
-      setValidationError('Errore durante il salvataggio dell\'evento')
+      const errorMessage = error.message || 'Errore sconosciuto'
+      setValidationError(`Errore durante il salvataggio dell\'evento: ${errorMessage}`)
+      showToast(`❌ Errore: ${errorMessage}`, 'error')
     } finally {
       setSaving(false)
     }
@@ -250,11 +345,14 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
     }
 
     try {
+      console.log('🗑️ Eliminazione evento:', id)
       await lotteryService.deleteEvent(id)
+      console.log('✅ Evento eliminato con successo!')
       await fetchEvents()
       setDeleteConfirmId(null)
-    } catch (error) {
-      console.error('Error deleting event:', error)
+    } catch (error: any) {
+      console.error('❌ Error deleting event:', error)
+      alert(`Errore nell'eliminazione: ${error.message || 'Errore sconosciuto'}`)
     }
   }
 
@@ -299,7 +397,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
       // IMPORTANTE: Inizializza il bridge Android prima di stampare
       const initialized = await printer.initialize()
       if (!initialized) {
-        alert('⚠️ Stampante non disponibile. Assicurati di essere sull\'app Android POS.')
+        showToast('Stampante non disponibile. Assicurati di essere sull\'app Android POS.', 'warning')
         return
       }
 
@@ -325,13 +423,13 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
       })
 
       if (success) {
-        alert('✅ Biglietto stampato con successo!')
+        showToast('Biglietto stampato con successo!', 'success')
       } else {
-        alert('⚠️ Errore durante la stampa del biglietto')
+        showToast('Errore durante la stampa del biglietto', 'error')
       }
     } catch (error: any) {
       console.error('Errore stampa:', error)
-      alert(`Errore durante la stampa: ${error.message}`)
+      showToast(`Errore durante la stampa: ${error.message}`, 'error')
     }
   }
 
@@ -356,9 +454,9 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         await fetchEvents()
       }
 
-      alert('✅ Biglietto eliminato con successo!')
+      showToast('Biglietto eliminato con successo!', 'success')
     } catch (error: any) {
-      alert(`Errore durante l'eliminazione: ${error.message}`)
+      showToast(`Errore durante l'eliminazione: ${error.message}`, 'error')
     }
   }
 
@@ -373,9 +471,9 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         status: 'pending'
       })
 
-      alert('✅ Comando inviato! L\'estrazione sta partendo sul display!')
+      showToast('Comando inviato! L\'estrazione sta partendo sul display!', 'success')
     } catch (error: any) {
-      alert(`Errore: ${error.message}`)
+      showToast(`Errore: ${error.message}`, 'error')
     }
   }
 
@@ -388,10 +486,10 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         organizationId
       })
 
-      alert(`🎉 Vincitore: ${result.winner.customer_name}\nBiglietto: ${result.winner.ticket_number}`)
+      showToast(`🎉 Vincitore: ${result.winner.customer_name} - Biglietto: ${result.winner.ticket_number}`, 'success')
       await fetchEvents()
     } catch (error: any) {
-      alert(`Errore: ${error.message}`)
+      showToast(`Errore: ${error.message}`, 'error')
     }
   }
 
@@ -623,37 +721,53 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
                 </select>
               </div>
 
-              <div className="form-divider span-2">Premio</div>
-
-              <div className="form-group">
-                <label><Trophy size={18} /> Nome Premio</label>
-                <input
-                  type="text"
-                  value={formData.prizeName}
-                  onChange={(e) => setFormData({ ...formData, prizeName: e.target.value })}
-                  placeholder="Es: iPhone 15 Pro Max"
-                />
-              </div>
-
-              <div className="form-group">
-                <label><CircleDollarSign size={18} /> Valore Premio (€)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.prizeValue}
-                  onChange={(e) => setFormData({ ...formData, prizeValue: parseFloat(e.target.value) })}
+              {/* Prizes Manager - Multi-Prize System */}
+              <div className="form-group span-2">
+                <LotteryPrizesManager
+                  eventId={editingEvent?.id}
+                  organizationId={organizationId}
+                  prizes={prizes}
+                  onPrizesChange={setPrizes}
+                  disabled={loading}
                 />
               </div>
 
               <div className="form-group span-2">
-                <label><Gift size={18} /> Descrizione Premio</label>
-                <textarea
-                  value={formData.prizeDescription}
-                  onChange={(e) => setFormData({ ...formData, prizeDescription: e.target.value })}
-                  placeholder="Dettagli sul premio..."
-                  rows={2}
-                />
+                <label><Sparkles size={18} /> Tema Schermata</label>
+                <div className="theme-selector">
+                  <div
+                    className={`theme-option ${formData.theme === 'casino' ? 'active' : ''}`}
+                    onClick={() => setFormData({ ...formData, theme: 'casino' })}
+                  >
+                    <div className="theme-icon">🎰</div>
+                    <div className="theme-name">Casino Elegante</div>
+                    <div className="theme-desc">Carte e chips dorate</div>
+                  </div>
+                  <div
+                    className={`theme-option ${formData.theme === 'bingo' ? 'active' : ''}`}
+                    onClick={() => setFormData({ ...formData, theme: 'bingo' })}
+                  >
+                    <div className="theme-icon">🎱</div>
+                    <div className="theme-name">Bingo Hall</div>
+                    <div className="theme-desc">Palline colorate</div>
+                  </div>
+                  <div
+                    className={`theme-option ${formData.theme === 'drum' ? 'active' : ''}`}
+                    onClick={() => setFormData({ ...formData, theme: 'drum' })}
+                  >
+                    <div className="theme-icon">🎫</div>
+                    <div className="theme-name">Lottery Drum</div>
+                    <div className="theme-desc">Cilindro rotante 3D</div>
+                  </div>
+                  <div
+                    className={`theme-option ${formData.theme === 'modern' ? 'active' : ''}`}
+                    onClick={() => setFormData({ ...formData, theme: 'modern' })}
+                  >
+                    <div className="theme-icon">🎯</div>
+                    <div className="theme-name">Modern Minimal</div>
+                    <div className="theme-desc">Geometrie tech</div>
+                  </div>
+                </div>
               </div>
               </div>
             </div>
@@ -739,6 +853,14 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Remote Control */}
+      <LotteryRemoteControl
+        events={events}
+        organizationId={organizationId}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+      />
 
       {/* Events Grid */}
       {loading ? (
@@ -1083,8 +1205,20 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
 
       {/* Test Panel - Only in development */}
       {process.env.NODE_ENV === 'development' && (
-        <LotteryTestPanel organizationId={organizationId} />
+        <LotteryTestPanel
+          organizationId={organizationId}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+        />
       )}
+
+      {/* Toast Notifications */}
+      <Toast
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={closeToast}
+      />
     </div>
   )
 }

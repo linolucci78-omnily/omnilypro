@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, Crown, Trophy, Sparkles } from 'lucide-react'
+import { X, Crown, Trophy, Sparkles, Power } from 'lucide-react'
 import { LotteryTicket, LotteryEvent } from '../services/lotteryService'
+import { LotteryThemeRenderer } from './LotteryThemes'
 import './LotteryExtractionDisplay.css'
 
 type ExtractionPhase = 'idle' | 'countdown' | 'spinning' | 'slowing' | 'tease' | 'locked' | 'celebrating'
@@ -25,10 +26,15 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
   const [currentWinner, setCurrentWinner] = useState<LotteryTicket | null>(null)
   const [extractionDisplay, setExtractionDisplay] = useState('000-000')
   const [countdownValue, setCountdownValue] = useState(3)
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
+  const [customMessage, setCustomMessage] = useState<string | null>(null)
+  const [currentPrize, setCurrentPrize] = useState<{ rank: number; name: string; value?: number } | null>(null)
 
   const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const musicIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const countdownMusicRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Get brand colors from event
   const colors = event.brand_colors || {
@@ -39,17 +45,80 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
 
   // Initialize Web Audio
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const initAudio = async () => {
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+        console.log('🔊 AudioContext created, state:', audioContextRef.current.state)
+
+        // Try to resume immediately (might need user interaction)
+        if (audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume()
+          console.log('✅ AudioContext resumed on init')
+        }
+      } catch (err) {
+        console.error('❌ Failed to initialize AudioContext:', err)
+      }
+    }
+
+    initAudio()
+
+    // Also try to resume on first user interaction
+    const resumeOnInteraction = async () => {
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        console.log('🔊 User interaction detected, resuming audio...')
+        try {
+          await audioContextRef.current.resume()
+          console.log('✅ AudioContext resumed')
+        } catch (err) {
+          console.error('❌ Failed to resume AudioContext:', err)
+        }
+      }
+    }
+
+    // Try aggressive resume strategies
+    document.addEventListener('click', resumeOnInteraction, { once: true })
+    document.addEventListener('touchstart', resumeOnInteraction, { once: true })
+    document.addEventListener('keydown', resumeOnInteraction, { once: true })
+    document.addEventListener('mousemove', resumeOnInteraction, { once: true })
+
+    // Try to auto-resume after a short delay (in case window opens with focus)
+    const autoResumeTimeout = setTimeout(async () => {
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        console.log('🔊 Attempting auto-resume after delay...')
+        try {
+          await audioContextRef.current.resume()
+          console.log('✅ AudioContext auto-resumed')
+        } catch (err) {
+          console.log('⚠️ Auto-resume failed, waiting for user interaction')
+        }
+      }
+    }, 500)
+
     return () => {
+      document.removeEventListener('click', resumeOnInteraction)
+      document.removeEventListener('touchstart', resumeOnInteraction)
+      document.removeEventListener('keydown', resumeOnInteraction)
+      document.removeEventListener('mousemove', resumeOnInteraction)
+      clearTimeout(autoResumeTimeout)
       audioContextRef.current?.close()
     }
   }, [])
 
   // Heartbeat sound effect using Web Audio API
-  const playHeartbeat = (intensity: number = 1) => {
+  const playHeartbeat = async (intensity: number = 1) => {
     if (!audioContextRef.current) return
 
     const ctx = audioContextRef.current
+
+    // Ensure audio is running
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume()
+      } catch (err) {
+        return // Silently fail if can't resume
+      }
+    }
+
     const now = ctx.currentTime
 
     // First beat (BOOM)
@@ -85,47 +154,329 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     }, 150)
   }
 
-  // Celebration sound effect
-  const playCelebration = () => {
+  // Victory music - musica trionfale di vittoria
+  const playCelebration = async () => {
     if (!audioContextRef.current) return
 
     const ctx = audioContextRef.current
+
+    // Ensure audio is running
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume()
+      } catch (err) {
+        return
+      }
+    }
+
     const now = ctx.currentTime
 
-    // Triumphant chord
-    const frequencies = [523.25, 659.25, 783.99, 1046.50] // C major chord
-
-    frequencies.forEach((freq, i) => {
+    // FANFARE INIZIALE - Accordo trionfale C major
+    const chord1 = [523.25, 659.25, 783.99, 1046.50] // C major
+    chord1.forEach((freq, i) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.connect(gain)
       gain.connect(ctx.destination)
+      osc.type = 'triangle'
 
       osc.frequency.setValueAtTime(freq, now)
       gain.gain.setValueAtTime(0, now)
-      gain.gain.linearRampToValueAtTime(0.15, now + 0.1)
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5)
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.1)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8)
 
-      osc.start(now + i * 0.05)
-      osc.stop(now + 1.5)
+      osc.start(now + i * 0.03)
+      osc.stop(now + 0.8)
+    })
+
+    // SECONDO ACCORDO - G major (dopo 0.4s)
+    const chord2 = [392.00, 493.88, 587.33, 783.99] // G major
+    chord2.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'triangle'
+
+      osc.frequency.setValueAtTime(freq, now + 0.4)
+      gain.gain.setValueAtTime(0, now + 0.4)
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.5)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2)
+
+      osc.start(now + 0.4 + i * 0.03)
+      osc.stop(now + 1.2)
+    })
+
+    // TERZO ACCORDO FINALE - C major ottava alta (dopo 0.8s)
+    const chord3 = [1046.50, 1318.51, 1567.98, 2093.00] // C major high
+    chord3.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'triangle'
+
+      osc.frequency.setValueAtTime(freq, now + 0.8)
+      gain.gain.setValueAtTime(0, now + 0.8)
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.9)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 2.5)
+
+      osc.start(now + 0.8 + i * 0.03)
+      osc.stop(now + 2.5)
+    })
+
+    // MELODIA VITTORIOSA - note ascendenti (inizia dopo 1.2s)
+    const victoryMelody = [
+      { freq: 523.25, time: 1.2, duration: 0.2 }, // C
+      { freq: 587.33, time: 1.4, duration: 0.2 }, // D
+      { freq: 659.25, time: 1.6, duration: 0.2 }, // E
+      { freq: 783.99, time: 1.8, duration: 0.3 }, // G
+      { freq: 1046.50, time: 2.1, duration: 0.5 } // C high - finale!
+    ]
+
+    victoryMelody.forEach(note => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+
+      osc.frequency.setValueAtTime(note.freq, now + note.time)
+      gain.gain.setValueAtTime(0.15, now + note.time)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + note.duration)
+
+      osc.start(now + note.time)
+      osc.stop(now + note.time + note.duration)
     })
   }
 
-  // Start heartbeat sound during tense phases
-  useEffect(() => {
-    if (extractionPhase === 'slowing' || extractionPhase === 'locked') {
-      // Faster heartbeat as tension builds
-      const interval = extractionPhase === 'locked' ? 350 : 800 // Heartbeat più veloce nella fase locked!
-      const intensity = extractionPhase === 'locked' ? 2.0 : 1 // Intensità massima nella fase locked!
+  // Countdown buildup music - tensione crescente
+  const playCountdownMusic = async (intensity: number) => {
+    if (!audioContextRef.current) return
 
-      heartbeatIntervalRef.current = setInterval(() => {
-        playHeartbeat(intensity)
-      }, interval)
+    const ctx = audioContextRef.current
+
+    // Ensure audio is running
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume()
+      } catch (err) {
+        return
+      }
+    }
+
+    const now = ctx.currentTime
+
+    // Suono di tensione crescente (frequenze basse che crescono)
+    const baseFreq = 80 + (intensity * 30) // Da 80Hz a 380Hz
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(baseFreq, now)
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.2, now + 0.5)
+
+    gain.gain.setValueAtTime(0.1 * intensity, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5)
+
+    osc.start(now)
+    osc.stop(now + 0.5)
+  }
+
+  // Spinning music - ritmo pulsante
+  const playSpinningBeat = async () => {
+    if (!audioContextRef.current) return
+
+    const ctx = audioContextRef.current
+
+    // Ensure audio is running
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume()
+      } catch (err) {
+        return
+      }
+    }
+
+    const now = ctx.currentTime
+
+    // Beat ritmico con frequenze medie
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.type = 'square'
+    osc.frequency.setValueAtTime(220, now) // A3
+
+    gain.gain.setValueAtTime(0.08, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
+
+    osc.start(now)
+    osc.stop(now + 0.15)
+
+    // Secondo beat armonico
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator()
+      const gain2 = ctx.createGain()
+      osc2.connect(gain2)
+      gain2.connect(ctx.destination)
+
+      osc2.type = 'sine'
+      osc2.frequency.setValueAtTime(330, now + 0.1) // E4
+
+      gain2.gain.setValueAtTime(0.05, now + 0.1)
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.2)
+
+      osc2.start(now + 0.1)
+      osc2.stop(now + 0.2)
+    }, 100)
+  }
+
+  // Notification sound - suono di notifica elegante per messaggi
+  const playNotificationSound = async () => {
+    if (!audioContextRef.current) {
+      console.warn('❌ AudioContext not initialized')
+      return
+    }
+
+    const ctx = audioContextRef.current
+
+    // Resume AudioContext if suspended (browser policy)
+    if (ctx.state === 'suspended') {
+      console.log('🔊 Resuming suspended AudioContext...')
+      try {
+        await ctx.resume()
+        console.log('✅ AudioContext resumed')
+      } catch (err) {
+        console.error('❌ Failed to resume AudioContext:', err)
+        return
+      }
+    }
+
+    console.log('🔔 Playing notification sound, AudioContext state:', ctx.state)
+    const now = ctx.currentTime
+
+    // Prima nota - C5 (523 Hz)
+    const osc1 = ctx.createOscillator()
+    const gain1 = ctx.createGain()
+    osc1.connect(gain1)
+    gain1.connect(ctx.destination)
+    osc1.type = 'sine'
+
+    osc1.frequency.setValueAtTime(523.25, now)
+    gain1.gain.setValueAtTime(0.3, now)
+    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
+
+    osc1.start(now)
+    osc1.stop(now + 0.15)
+
+    // Seconda nota - E5 (659 Hz) - dopo 0.1s
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator()
+      const gain2 = ctx.createGain()
+      osc2.connect(gain2)
+      gain2.connect(ctx.destination)
+      osc2.type = 'sine'
+
+      osc2.frequency.setValueAtTime(659.25, now + 0.1)
+      gain2.gain.setValueAtTime(0.25, now + 0.1)
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25)
+
+      osc2.start(now + 0.1)
+      osc2.stop(now + 0.25)
+    }, 100)
+
+    // Terza nota - G5 (784 Hz) - dopo 0.2s
+    setTimeout(() => {
+      const osc3 = ctx.createOscillator()
+      const gain3 = ctx.createGain()
+      osc3.connect(gain3)
+      gain3.connect(ctx.destination)
+      osc3.type = 'sine'
+
+      osc3.frequency.setValueAtTime(783.99, now + 0.2)
+      gain3.gain.setValueAtTime(0.3, now + 0.2)
+      gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
+
+      osc3.start(now + 0.2)
+      osc3.stop(now + 0.4)
+    }, 200)
+  }
+
+  // Countdown music - tensione crescente
+  useEffect(() => {
+    if (extractionPhase === 'countdown') {
+      let intensity = 0
+
+      countdownMusicRef.current = setInterval(() => {
+        intensity += 0.1 // Intensità crescente
+        playCountdownMusic(Math.min(intensity, 1))
+      }, 500) // Ogni 0.5 secondi
 
       return () => {
-        if (heartbeatIntervalRef.current) {
-          clearInterval(heartbeatIntervalRef.current)
+        if (countdownMusicRef.current) {
+          clearInterval(countdownMusicRef.current)
         }
+      }
+    }
+  }, [extractionPhase])
+
+  // Spinning music - beat ritmico
+  useEffect(() => {
+    if (extractionPhase === 'spinning') {
+      musicIntervalRef.current = setInterval(() => {
+        playSpinningBeat()
+      }, 300) // Beat ogni 300ms
+
+      return () => {
+        if (musicIntervalRef.current) {
+          clearInterval(musicIntervalRef.current)
+        }
+      }
+    }
+  }, [extractionPhase])
+
+  // Start heartbeat sound during tense phases
+  useEffect(() => {
+    const startHeartbeat = async () => {
+      if (extractionPhase === 'slowing' || extractionPhase === 'locked') {
+        // Stop spinning music
+        if (musicIntervalRef.current) {
+          clearInterval(musicIntervalRef.current)
+        }
+
+        // Ensure audio is running before starting interval
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+          try {
+            await audioContextRef.current.resume()
+            console.log('✅ AudioContext resumed for heartbeat')
+          } catch (err) {
+            console.error('❌ Failed to resume AudioContext for heartbeat:', err)
+          }
+        }
+
+        // Faster heartbeat as tension builds
+        const interval = extractionPhase === 'locked' ? 350 : 800 // Heartbeat più veloce nella fase locked!
+        const intensity = extractionPhase === 'locked' ? 2.0 : 1 // Intensità massima nella fase locked!
+
+        heartbeatIntervalRef.current = setInterval(() => {
+          playHeartbeat(intensity)
+        }, interval)
+
+        // Play first heartbeat immediately
+        playHeartbeat(intensity)
+      }
+    }
+
+    startHeartbeat()
+
+    return () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current)
       }
     }
   }, [extractionPhase])
@@ -137,8 +488,31 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     }
   }, [extractionPhase])
 
+  // Cycle through motivational quotes during locked phase
+  useEffect(() => {
+    if (extractionPhase === 'locked') {
+      setCurrentQuoteIndex(0)
+
+      const quoteInterval = setInterval(() => {
+        setCurrentQuoteIndex(prev => (prev + 1) % 8)
+      }, 1500) // Cambia scritta ogni 1.5 secondi
+
+      return () => clearInterval(quoteInterval)
+    }
+  }, [extractionPhase])
+
   // --- CINEMATIC EXTRACTION LOGIC ---
-  const runLotterySequence = () => {
+  const runLotterySequence = async () => {
+    // IMPORTANT: Resume audio context at the very beginning
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      try {
+        await audioContextRef.current.resume()
+        console.log('✅ AudioContext resumed before extraction')
+      } catch (err) {
+        console.error('❌ Failed to resume AudioContext:', err)
+      }
+    }
+
     // Filter out tickets that have already won
     const availableTickets = tickets.filter(t => !t.is_winner)
 
@@ -319,6 +693,36 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
           case 'START_EXTRACTION':
             if (extractionPhase === 'idle') {
               console.log('🚀 Starting extraction via remote command')
+
+              // IMPORTANT: Resume AudioContext immediately when command arrives
+              if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+                try {
+                  await audioContextRef.current.resume()
+                  console.log('✅ AudioContext resumed via remote command')
+                } catch (err) {
+                  console.error('❌ Failed to resume AudioContext via remote command:', err)
+                }
+              }
+
+              // Load prize info if prize_id is provided
+              if (command.metadata && command.metadata.prize_id) {
+                const { lotteryService } = await import('../services/lotteryService')
+                try {
+                  const prize = await lotteryService.getPrize(command.metadata.prize_id)
+                  setCurrentPrize({
+                    rank: prize.rank,
+                    name: prize.prize_name,
+                    value: prize.prize_value
+                  })
+                  console.log('🏆 Prize loaded:', prize)
+                } catch (error) {
+                  console.error('❌ Error loading prize:', error)
+                  setCurrentPrize(null)
+                }
+              } else {
+                setCurrentPrize(null)
+              }
+
               runLotterySequence()
             }
             break
@@ -327,6 +731,24 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
             setExtractionPhase('idle')
             setCurrentWinner(null)
             setExtractionDisplay('000-000')
+            break
+          case 'SHOW_MESSAGE':
+            // Show custom message on screen
+            if (command.metadata && command.metadata.message) {
+              console.log('💬 Showing custom message:', command.metadata.message)
+              setCustomMessage(command.metadata.message)
+              // Play notification sound to attract attention
+              playNotificationSound()
+              // Auto-hide message after 10 seconds
+              setTimeout(() => setCustomMessage(null), 10000)
+            }
+            break
+          case 'CLEAR_SCREEN':
+            console.log('🧹 Clearing screen')
+            setExtractionPhase('idle')
+            setCurrentWinner(null)
+            setExtractionDisplay('000-000')
+            setCustomMessage(null)
             break
         }
 
@@ -394,6 +816,22 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
 
   return (
     <div className="lottery-extraction-display">
+      {/* Custom Message Overlay - ALWAYS ON TOP */}
+      {customMessage && (
+        <div className="custom-message-overlay">
+          <div
+            className="custom-message-box"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+              borderColor: colors.accent
+            }}
+          >
+            <div className="custom-message-icon">📢</div>
+            <div className="custom-message-text">{customMessage}</div>
+          </div>
+        </div>
+      )}
+
       {/* --- CINEMATIC FULL SCREEN OVERLAY --- */}
       {extractionPhase !== 'idle' && (
         <div className="extraction-overlay" style={{
@@ -425,6 +863,28 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
               {event.name}
             </div>
 
+            {/* Prize Info - Show if prize is selected */}
+            {currentPrize && (
+              <div className="prize-info-banner">
+                <div className="prize-rank-emoji">
+                  {currentPrize.rank === 1 ? '🥇' : currentPrize.rank === 2 ? '🥈' : currentPrize.rank === 3 ? '🥉' : '🎁'}
+                </div>
+                <div className="prize-info-content">
+                  <div className="prize-rank-label">
+                    {currentPrize.rank === 1 ? '1° PREMIO' : currentPrize.rank === 2 ? '2° PREMIO' : currentPrize.rank === 3 ? '3° PREMIO' : `${currentPrize.rank}° PREMIO`}
+                  </div>
+                  <div className="prize-name-label" style={{ color: colors.accent }}>
+                    {currentPrize.name}
+                  </div>
+                  {currentPrize.value && (
+                    <div className="prize-value-label">
+                      €{currentPrize.value.toFixed(2)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* PHASE: COUNTDOWN */}
             {extractionPhase === 'countdown' && (
               <div className="countdown-number">
@@ -449,36 +909,81 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
             )}
 
             {/* PHASE: LOCKED - Suspense massima! */}
-            {extractionPhase === 'locked' && (
-              <div className="locked-container">
-                <div
-                  className="locked-label"
-                  style={{ color: colors.accent }}
-                >
-                  E il vincitore è...
+            {extractionPhase === 'locked' && (() => {
+              const motivationalQuotes = [
+                '"La fortuna aiuta gli audaci"',
+                '"Ogni biglietto è una speranza"',
+                '"Il destino sta per essere rivelato"',
+                '"Un sogno sta per diventare realtà"',
+                '"Chi la dura la vince"',
+                '"La dea bendata sta per sorridere"',
+                '"Qualcuno sta per cambiare la propria giornata"',
+                '"Il momento della verità è arrivato"'
+              ]
+
+              return (
+                <div className="locked-container">
+                  {/* Particelle luminose animate */}
+                  <div className="light-particles">
+                    {[...Array(20)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="particle"
+                        style={{
+                          left: `${Math.random() * 100}%`,
+                          top: `${Math.random() * 100}%`,
+                          animationDelay: `${Math.random() * 3}s`,
+                          animationDuration: `${3 + Math.random() * 4}s`,
+                          backgroundColor: i % 3 === 0 ? colors.primary : i % 3 === 1 ? colors.secondary : colors.accent
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Raggi di luce pulsanti */}
+                  <div className="light-beams">
+                    {[...Array(8)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="light-beam"
+                        style={{
+                          transform: `rotate(${i * 45}deg)`,
+                          animationDelay: `${i * 0.2}s`,
+                          background: `linear-gradient(180deg, ${colors.primary}66 0%, transparent 100%)`
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Anelli pulsanti */}
+                  <div className="pulse-rings">
+                    <div className="pulse-ring" style={{ borderColor: colors.primary }} />
+                    <div className="pulse-ring" style={{ borderColor: colors.secondary, animationDelay: '0.5s' }} />
+                    <div className="pulse-ring" style={{ borderColor: colors.accent, animationDelay: '1s' }} />
+                  </div>
+
+                  <div
+                    className="locked-label"
+                    style={{ color: colors.accent }}
+                  >
+                    E il vincitore è...
+                  </div>
+                  <div className="suspense-dots">
+                    <span>•</span>
+                    <span>•</span>
+                    <span>•</span>
+                  </div>
+
+                  {/* Scritte motivazionali con zoom spettacolare */}
+                  <div
+                    key={currentQuoteIndex}
+                    className="motivational-quote-spectacular"
+                  >
+                    {motivationalQuotes[currentQuoteIndex]}
+                  </div>
                 </div>
-                <div className="suspense-dots">
-                  <span>•</span>
-                  <span>•</span>
-                  <span>•</span>
-                </div>
-                <div
-                  className="motivational-quote"
-                  style={{ color: colors.secondary }}
-                >
-                  {[
-                    '"La fortuna aiuta gli audaci"',
-                    '"Ogni biglietto è una speranza"',
-                    '"Il destino sta per essere rivelato"',
-                    '"Un sogno sta per diventare realtà"',
-                    '"Chi la dura la vince"',
-                    '"La dea bendata sta per sorridere"',
-                    '"Qualcuno sta per cambiare la propria giornata"',
-                    '"Il momento della verità è arrivato"'
-                  ][Math.floor(Math.random() * 8)]}
-                </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* PHASE: CELEBRATING */}
             {extractionPhase === 'celebrating' && currentWinner && (
@@ -494,12 +999,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
                   Vincitore Confermato
                 </div>
 
-                <h1
-                  className="winner-name"
-                  style={{
-                    background: `linear-gradient(to bottom, ${colors.accent}DD, ${colors.primary})`
-                  }}
-                >
+                <h1 className="winner-name">
                   {currentWinner.customer_name}
                 </h1>
 
@@ -519,17 +1019,25 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
                   </div>
                 )}
 
-                {event.prize_name && (
+                {/* Show currentPrize if available, otherwise fallback to event.prize_name */}
+                {(currentPrize || event.prize_name) && (
                   <div className="prize-info">
                     <Crown className="w-6 h-6" style={{ color: colors.accent }} />
                     <div>
-                      <div className="prize-label">Premio</div>
-                      <div className="prize-name" style={{ color: colors.accent }}>
-                        {event.prize_name}
+                      <div className="prize-label">
+                        {currentPrize ? (
+                          currentPrize.rank === 1 ? '1° PREMIO' :
+                          currentPrize.rank === 2 ? '2° PREMIO' :
+                          currentPrize.rank === 3 ? '3° PREMIO' :
+                          `${currentPrize.rank}° PREMIO`
+                        ) : 'Premio'}
                       </div>
-                      {event.prize_value && (
+                      <div className="prize-name" style={{ color: colors.accent }}>
+                        {currentPrize ? currentPrize.name : event.prize_name}
+                      </div>
+                      {(currentPrize?.value || event.prize_value) && (
                         <div className="prize-value">
-                          Valore: €{event.prize_value.toFixed(2)}
+                          Valore: €{(currentPrize?.value || event.prize_value)?.toFixed(2)}
                         </div>
                       )}
                     </div>
@@ -539,12 +1047,9 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
                 <button
                   onClick={closeOverlay}
                   className="close-button"
-                  style={{
-                    backgroundColor: colors.primary,
-                    boxShadow: `0 0 20px ${colors.primary}66`
-                  }}
+                  aria-label="Chiudi"
                 >
-                  <X className="w-5 h-5" /> Chiudi Show
+                  <Power size={32} />
                 </button>
 
                 {/* Confetti Particles */}
@@ -579,7 +1084,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
               {event.extraction_date && (
                 <div className="stat-item">
                   <span className="stat-label">Estrazione:</span>
-                  <span className="stat-value">
+                  <span className="stat-value stat-date">
                     {new Date(event.extraction_date).toLocaleDateString('it-IT')}
                   </span>
                 </div>
@@ -591,14 +1096,11 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
 
       {/* Idle State - Waiting Screen */}
       {extractionPhase === 'idle' && (
-        <div className="idle-screen" style={{ backgroundColor: colors.primary }}>
-          <div className="idle-content">
-            <Trophy className="w-32 h-32 mb-8 opacity-50" />
-            <h1 className="text-6xl font-bold text-white mb-4">{event.name}</h1>
-            <p className="text-2xl text-white/80 mb-8">Preparazione all'estrazione...</p>
-            <div className="pulse-indicator" />
-          </div>
-        </div>
+        <LotteryThemeRenderer
+          theme={event.theme || 'casino'}
+          colors={colors}
+          eventName={event.name}
+        />
       )}
     </div>
   )

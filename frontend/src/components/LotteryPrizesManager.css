@@ -1,0 +1,426 @@
+/* =====================================================
+   LOTTERY PRIZES MANAGER
+   ===================================================== */
+
+.prizes-manager {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.prizes-manager-loading {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* Header */
+.prizes-manager-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.prizes-manager-header svg {
+  color: #f59e0b;
+}
+
+.prizes-manager-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  flex: 1;
+}
+
+.prizes-count {
+  background: #f59e0b;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Empty State */
+.prizes-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #94a3b8;
+}
+
+.prizes-empty svg {
+  margin-bottom: 1rem;
+}
+
+.prizes-empty p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.prizes-empty-hint {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Prizes List */
+.prizes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Prize Item */
+.prize-item {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.prize-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.prize-item.editing {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.prize-item.extracted {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+/* Rank Badge */
+.prize-rank-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.prize-rank-emoji {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.prize-rank-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Prize Info */
+.prize-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.prize-info-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prize-name {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+  flex: 1;
+}
+
+.prize-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #10b981;
+  white-space: nowrap;
+}
+
+.prize-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.prize-extracted-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: #10b981;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+/* Prize Actions */
+.prize-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.prize-item:hover .prize-actions {
+  opacity: 1;
+}
+
+.prize-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prize-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prize-action-edit:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.prize-action-delete:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
+/* Prize Form */
+.prize-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.prize-form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.prize-form-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.prize-form-field-narrow {
+  flex: 0 0 150px;
+}
+
+.prize-form-field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.prize-form-field input,
+.prize-form-field textarea {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.prize-form-field input:focus,
+.prize-form-field textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.prize-form-field input:disabled,
+.prize-form-field textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.prize-form-field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Form Actions */
+.prize-form-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.prize-form-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prize-form-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prize-form-btn-save {
+  background: #10b981;
+  color: white;
+}
+
+.prize-form-btn-save:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.prize-form-btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.prize-form-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+/* Add Prize Button */
+.prizes-add-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: white;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prizes-add-btn:hover {
+  background: #f8fafc;
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+/* Summary */
+.prizes-summary {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #f1f5f9;
+  display: flex;
+  gap: 2rem;
+}
+
+.prizes-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prizes-summary-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.prizes-summary-value {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prizes-manager {
+    padding: 1rem;
+  }
+
+  .prize-item {
+    flex-direction: column;
+  }
+
+  .prize-rank-badge {
+    flex-direction: row;
+    width: 100%;
+    min-width: auto;
+  }
+
+  .prize-rank-emoji {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    margin-right: 0.5rem;
+  }
+
+  .prize-form-row {
+    flex-direction: column;
+  }
+
+  .prize-form-field-narrow {
+    flex: 1;
+  }
+
+  .prizes-summary {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .prize-actions {
+    position: static;
+    opacity: 1;
+    margin-top: 0.5rem;
+  }
+}

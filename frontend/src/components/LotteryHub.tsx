@@ -3,6 +3,7 @@ import { Ticket, TrendingUp, Trophy, Users, DollarSign, Play, Calendar, Plus, Ex
 import { lotteryService, LotteryEvent } from '../services/lotteryService'
 import { supabase } from '../lib/supabase'
 import LotteryManagement from './LotteryManagement'
+import { LotteryRemoteControlModal } from './LotteryRemoteControlModal'
 import './LotteryHub.css'
 
 interface LotteryHubProps {
@@ -25,6 +26,7 @@ const LotteryHub: React.FC<LotteryHubProps> = ({
   const [activeView, setActiveView] = useState<ViewType>('hub')
   const [events, setEvents] = useState<LotteryEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [showRemoteControl, setShowRemoteControl] = useState(false)
   const [stats, setStats] = useState({
     totalEvents: 0,
     activeEvents: 0,
@@ -238,6 +240,15 @@ const LotteryHub: React.FC<LotteryHubProps> = ({
             <h3>Apri Display</h3>
             <p>Visualizza display estrazione su schermo grande</p>
           </button>
+
+          <button
+            className="lottery-action-card lottery-action-secondary"
+            onClick={() => setShowRemoteControl(true)}
+          >
+            <Radio size={32} />
+            <h3>Telecomando</h3>
+            <p>Controlla display e gestisci estrazioni da remoto</p>
+          </button>
         </div>
       </div>
 
@@ -304,6 +315,16 @@ const LotteryHub: React.FC<LotteryHubProps> = ({
           </button>
         </div>
       )}
+
+      {/* Remote Control Modal */}
+      <LotteryRemoteControlModal
+        isOpen={showRemoteControl}
+        onClose={() => setShowRemoteControl(false)}
+        events={events}
+        organizationId={organizationId}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+      />
     </div>
   )
 }

@@ -1,16 +1,19 @@
 import React, { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { lotteryService } from '../services/lotteryService'
-import { Play, Users, Ticket, Trophy, Trash2, RefreshCw } from 'lucide-react'
+import { Play, Users, Ticket, Trophy, Trash2, RefreshCw, ChevronDown, ChevronUp, Settings } from 'lucide-react'
 
 interface LotteryTestPanelProps {
   organizationId: string
+  primaryColor: string
+  secondaryColor: string
 }
 
-export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organizationId }) => {
+export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organizationId, primaryColor, secondaryColor }) => {
   const [loading, setLoading] = useState(false)
   const [testEventId, setTestEventId] = useState<string | null>(null)
   const [message, setMessage] = useState<string>('')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const showMessage = (msg: string, isError = false) => {
     setMessage(msg)
@@ -155,33 +158,16 @@ export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organization
 
     setLoading(true)
     try {
-      // Elimina biglietti
-      await supabase
-        .from('lottery_tickets')
-        .delete()
-        .eq('event_id', testEventId)
+      console.log('🗑️ Iniziando pulizia per evento:', testEventId)
 
-      // Elimina comandi
-      await supabase
-        .from('lottery_extraction_commands')
-        .delete()
-        .eq('event_id', testEventId)
+      // Usa il servizio per eliminare tutto
+      await lotteryService.deleteEvent(testEventId)
 
-      // Elimina estrazioni
-      await supabase
-        .from('lottery_extractions')
-        .delete()
-        .eq('event_id', testEventId)
-
-      // Elimina evento
-      await supabase
-        .from('lottery_events')
-        .delete()
-        .eq('id', testEventId)
-
+      console.log('✅ Pulizia completata con successo!')
       setTestEventId(null)
       showMessage('✅ Pulizia completata!')
     } catch (error: any) {
+      console.error('❌ Errore durante pulizia:', error)
       showMessage(`❌ Errore: ${error.message}`, true)
     } finally {
       setLoading(false)
@@ -189,142 +175,165 @@ export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organization
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      backgroundColor: '#1f2937',
-      color: '#fff',
-      padding: '20px',
-      borderRadius: '12px',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-      width: '350px',
-      zIndex: 10000,
-      fontFamily: 'monospace'
-    }}>
+    <>
+      <style>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 3s linear infinite;
+        }
+      `}</style>
       <div style={{
-        fontSize: '16px',
-        fontWeight: 'bold',
-        marginBottom: '15px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
+        background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+        color: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        marginBottom: '2rem',
+        overflow: 'hidden',
+        border: '2px solid rgba(255,255,255,0.2)'
       }}>
-        🧪 LOTTERY TEST PANEL
+      {/* Header sempre visibile */}
+      <div
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          fontSize: '16px',
+          fontWeight: 'bold',
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          backgroundColor: 'rgba(0,0,0,0.2)',
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.3)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.2)'}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Settings size={22} className="animate-spin-slow" />
+          <span>Pannello di Test per Sviluppatori</span>
+        </div>
+        {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
       </div>
 
-      {message && (
-        <div style={{
-          padding: '10px',
-          marginBottom: '15px',
-          backgroundColor: message.startsWith('❌') ? '#dc2626' : '#10b981',
-          borderRadius: '6px',
-          fontSize: '12px'
-        }}>
-          {message}
-        </div>
-      )}
+      {/* Contenuto espandibile */}
+      {isExpanded && (
+        <div style={{ padding: '20px', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+          {message && (
+            <div style={{
+              padding: '10px',
+              marginBottom: '15px',
+              backgroundColor: message.startsWith('❌') ? '#dc2626' : '#10b981',
+              borderRadius: '6px',
+              fontSize: '12px'
+            }}>
+              {message}
+            </div>
+          )}
 
-      {testEventId && (
-        <div style={{
-          padding: '8px',
-          marginBottom: '15px',
-          backgroundColor: '#374151',
-          borderRadius: '6px',
-          fontSize: '11px',
-          wordBreak: 'break-all'
-        }}>
-          <strong>Event ID:</strong><br />
-          {testEventId.substring(0, 20)}...
-        </div>
-      )}
+          {testEventId && (
+            <div style={{
+              padding: '8px',
+              marginBottom: '15px',
+              backgroundColor: '#374151',
+              borderRadius: '6px',
+              fontSize: '11px',
+              wordBreak: 'break-all'
+            }}>
+              <strong>Event ID:</strong><br />
+              {testEventId.substring(0, 20)}...
+            </div>
+          )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px' }}>
         {/* Crea evento */}
         <button
           onClick={createTestEvent}
           disabled={loading || !!testEventId}
           style={{
-            padding: '10px',
+            padding: '14px 16px',
             backgroundColor: testEventId ? '#4b5563' : '#8b5cf6',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: testEventId ? 'not-allowed' : 'pointer',
-            fontSize: '13px',
+            fontSize: '14px',
+            fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '10px',
             transition: 'all 0.2s'
           }}
         >
-          <Trophy size={16} />
+          <Trophy size={18} />
           1. Crea Evento Test
         </button>
 
-        {/* Crea biglietti */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <button
-            onClick={() => createTestTickets(10)}
-            disabled={loading || !testEventId}
-            style={{
-              padding: '10px',
-              backgroundColor: testEventId ? '#3b82f6' : '#4b5563',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: testEventId ? 'pointer' : 'not-allowed',
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
-          >
-            <Ticket size={14} />
-            10 Biglietti
-          </button>
+        {/* Crea biglietti - 10 */}
+        <button
+          onClick={() => createTestTickets(10)}
+          disabled={loading || !testEventId}
+          style={{
+            padding: '14px 16px',
+            backgroundColor: testEventId ? '#3b82f6' : '#4b5563',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: testEventId ? 'pointer' : 'not-allowed',
+            fontSize: '14px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          <Ticket size={18} />
+          10 Biglietti
+        </button>
 
-          <button
-            onClick={() => createTestTickets(50)}
-            disabled={loading || !testEventId}
-            style={{
-              padding: '10px',
-              backgroundColor: testEventId ? '#3b82f6' : '#4b5563',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: testEventId ? 'pointer' : 'not-allowed',
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
-          >
-            <Ticket size={14} />
-            50 Biglietti
-          </button>
-        </div>
+        {/* Crea biglietti - 50 */}
+        <button
+          onClick={() => createTestTickets(50)}
+          disabled={loading || !testEventId}
+          style={{
+            padding: '14px 16px',
+            backgroundColor: testEventId ? '#3b82f6' : '#4b5563',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: testEventId ? 'pointer' : 'not-allowed',
+            fontSize: '14px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          <Ticket size={18} />
+          50 Biglietti
+        </button>
 
         {/* Biglietti omaggio */}
         <button
           onClick={() => createComplimentaryTickets(5)}
           disabled={loading || !testEventId}
           style={{
-            padding: '10px',
+            padding: '14px 16px',
             backgroundColor: testEventId ? '#10b981' : '#4b5563',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: testEventId ? 'pointer' : 'not-allowed',
-            fontSize: '12px',
+            fontSize: '14px',
+            fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '10px'
           }}
         >
-          <Users size={14} />
+          <Users size={18} />
           5 Biglietti Omaggio
         </button>
 
@@ -333,17 +342,17 @@ export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organization
           onClick={openDisplay}
           disabled={loading || !testEventId}
           style={{
-            padding: '10px',
+            padding: '14px 16px',
             backgroundColor: testEventId ? '#f59e0b' : '#4b5563',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: testEventId ? 'pointer' : 'not-allowed',
-            fontSize: '13px',
+            fontSize: '14px',
+            fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            fontWeight: 'bold'
+            gap: '10px'
           }}
         >
           📺 Apri Display
@@ -354,20 +363,20 @@ export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organization
           onClick={startTestExtraction}
           disabled={loading || !testEventId}
           style={{
-            padding: '12px',
+            padding: '14px 16px',
             backgroundColor: testEventId ? '#dc2626' : '#4b5563',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: testEventId ? 'pointer' : 'not-allowed',
             fontSize: '14px',
+            fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            fontWeight: 'bold'
+            gap: '10px'
           }}
         >
-          <Play size={16} />
+          <Play size={18} />
           🎰 AVVIA ESTRAZIONE
         </button>
 
@@ -376,38 +385,42 @@ export const LotteryTestPanel: React.FC<LotteryTestPanelProps> = ({ organization
           onClick={cleanup}
           disabled={loading || !testEventId}
           style={{
-            padding: '8px',
+            padding: '14px 16px',
             backgroundColor: testEventId ? '#7f1d1d' : '#4b5563',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: testEventId ? 'pointer' : 'not-allowed',
-            fontSize: '11px',
+            fontSize: '14px',
+            fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            marginTop: '10px'
+            gap: '10px',
+            gridColumn: 'span 1'
           }}
         >
-          <Trash2 size={12} />
+          <Trash2 size={18} />
           Pulisci Tutto
         </button>
-      </div>
+          </div>
 
-      {loading && (
-        <div style={{
-          marginTop: '15px',
-          textAlign: 'center',
-          fontSize: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
-        }}>
-          <RefreshCw size={14} className="animate-spin" />
-          Caricamento...
+          {loading && (
+            <div style={{
+              marginTop: '15px',
+              textAlign: 'center',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              <RefreshCw size={14} className="animate-spin" />
+              Caricamento...
+            </div>
+          )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }

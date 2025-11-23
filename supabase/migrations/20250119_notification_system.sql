@@ -1,12 +1,15 @@
 -- Migration: OneSignal Notification System for OmnilyPro
 -- Description: Tables for managing notification campaigns, templates, and tracking
 
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- =====================================================
 -- Table: notification_templates
 -- Purpose: Reusable notification templates per organization
 -- =====================================================
 CREATE TABLE IF NOT EXISTS notification_templates (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
 
   -- Template info
@@ -35,7 +38,7 @@ CREATE TABLE IF NOT EXISTS notification_templates (
 -- Purpose: Marketing campaigns and scheduled notifications
 -- =====================================================
 CREATE TABLE IF NOT EXISTS notification_campaigns (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
 
   -- Campaign info
@@ -84,7 +87,7 @@ CREATE TABLE IF NOT EXISTS notification_campaigns (
 -- Purpose: Track individual notification deliveries
 -- =====================================================
 CREATE TABLE IF NOT EXISTS notification_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   campaign_id UUID REFERENCES notification_campaigns(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
