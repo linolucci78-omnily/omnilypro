@@ -29,7 +29,6 @@ export const DisplayOptionsModal: React.FC<DisplayOptionsModalProps> = ({
   // Get current URL base
   const baseUrl = window.location.origin
   const displayUrl = `${baseUrl}/lottery/display/${eventId}`
-  const lotteryUrl = `${baseUrl}/lottery`
 
   // Get local IP (questo sarà approssimativo, in produzione potresti volerlo dal backend)
   const localIp = window.location.hostname
@@ -219,11 +218,11 @@ export const DisplayOptionsModal: React.FC<DisplayOptionsModalProps> = ({
                 <div className="step-content">
                   <h3>Vai all'indirizzo:</h3>
                   <div className="display-url-box large">
-                    <code>{lotteryUrl}</code>
+                    <code>{displayUrl}</code>
                   </div>
                   <button
                     className="btn-copy-inline"
-                    onClick={() => handleCopyLink(lotteryUrl)}
+                    onClick={() => handleCopyLink(displayUrl)}
                   >
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                     {copied ? 'Copiato!' : 'Copia'}
@@ -234,8 +233,8 @@ export const DisplayOptionsModal: React.FC<DisplayOptionsModalProps> = ({
               <div className="tv-instruction-step">
                 <div className="step-number">3</div>
                 <div className="step-content">
-                  <h3>Seleziona l'evento</h3>
-                  <p>Nella pagina lottery, cerca e apri:</p>
+                  <h3>Il display si aprirà automaticamente</h3>
+                  <p>Vedrai il display dell'evento:</p>
                   <div className="event-name-highlight" style={{ borderColor: primaryColor, color: primaryColor }}>
                     📺 {eventName}
                   </div>
