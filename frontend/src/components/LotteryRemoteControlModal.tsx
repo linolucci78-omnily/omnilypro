@@ -44,13 +44,13 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
   const [displayOpen, setDisplayOpen] = useState(false)
   const [showDisplayOptions, setShowDisplayOptions] = useState(false)
 
-  // Listen for display status via Broadcast Channel
+  // Listen for display status via Broadcast Channel (same browser) AND Supabase Realtime (cross-device)
   useEffect(() => {
     if (!selectedEventId) return
 
     const channel = new BroadcastChannel(`lottery-display-${selectedEventId}`)
-
     let heartbeatTimeout: NodeJS.Timeout
+    let realtimeChannel: any
 
     const resetHeartbeatTimeout = () => {
       clearTimeout(heartbeatTimeout)
@@ -63,27 +63,86 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
       }, 10000)
     }
 
+    // Listen to Broadcast Channel (same browser)
     channel.onmessage = (event) => {
       const { type } = event.data
 
       if (type === 'display-online') {
-        console.log('📺 Display is online!')
+        console.log('📺 Display is online (same browser)!')
         resetHeartbeatTimeout()
       } else if (type === 'display-heartbeat') {
         resetHeartbeatTimeout()
       } else if (type === 'display-offline') {
-        console.log('📺 Display went offline')
+        console.log('📺 Display went offline (same browser)')
         setDisplayOpen(false)
         clearTimeout(heartbeatTimeout)
       }
     }
 
-    // Ask if display is online
+    // Listen to Supabase Realtime (cross-device)
+    const setupRealtime = async () => {
+      try {
+        const { supabase } = await import('../lib/supabase')
+
+        // Check current status
+        const { data: displays } = await supabase
+          .from('lottery_display_status')
+          .select('*')
+          .eq('event_id', selectedEventId)
+          .eq('is_online', true)
+          .gte('last_heartbeat', new Date(Date.now() - 10000).toISOString())
+
+        if (displays && displays.length > 0) {
+          console.log('📺 Display is online (cross-device)!', displays.length, 'active displays')
+          setDisplayOpen(true)
+        }
+
+        // Subscribe to changes
+        realtimeChannel = supabase
+          .channel(`lottery-display-${selectedEventId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'lottery_display_status',
+              filter: `event_id=eq.${selectedEventId}`
+            },
+            (payload) => {
+              console.log('📺 Display status changed:', payload)
+
+              if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                const record = payload.new as any
+                if (record.is_online) {
+                  console.log('📺 Display came online (cross-device)')
+                  setDisplayOpen(true)
+                } else {
+                  console.log('📺 Display went offline (cross-device)')
+                  setDisplayOpen(false)
+                }
+              } else if (payload.eventType === 'DELETE') {
+                console.log('📺 Display session ended (cross-device)')
+                setDisplayOpen(false)
+              }
+            }
+          )
+          .subscribe()
+      } catch (error) {
+        console.error('Failed to setup realtime:', error)
+      }
+    }
+
+    setupRealtime()
+
+    // Ask if display is online (same browser)
     channel.postMessage({ type: 'ping', eventId: selectedEventId })
 
     return () => {
       channel.close()
       clearTimeout(heartbeatTimeout)
+      if (realtimeChannel) {
+        realtimeChannel.unsubscribe()
+      }
     }
   }, [selectedEventId])
 

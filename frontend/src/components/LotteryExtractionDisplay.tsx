@@ -1118,12 +1118,16 @@ export const LotteryExtractionFullPage: React.FC<{
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Create broadcast channel to notify remote control
+    // Create broadcast channel to notify remote control (same browser)
     const channel = new BroadcastChannel(`lottery-display-${eventId}`)
+
+    // Generate unique session ID for this display instance
+    const sessionId = `display-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
     const loadData = async () => {
       try {
         const { lotteryService } = await import('../services/lotteryService')
+        const { supabase } = await import('../lib/supabase')
 
         console.log('🎰 Loading lottery event:', eventId)
 
@@ -1137,7 +1141,19 @@ export const LotteryExtractionFullPage: React.FC<{
         console.log('🎫 Tickets loaded:', ticketsData.length)
         setTickets(ticketsData)
 
-        // Notify that display is online
+        // Register display in database for cross-device detection
+        await supabase
+          .from('lottery_display_status')
+          .upsert({
+            event_id: eventId,
+            session_id: sessionId,
+            is_online: true,
+            last_heartbeat: new Date().toISOString()
+          })
+
+        console.log('📺 Display registered with session:', sessionId)
+
+        // Notify that display is online (same browser)
         channel.postMessage({ type: 'display-online', eventId })
       } catch (error) {
         console.error('❌ Failed to load lottery data:', error)
@@ -1149,13 +1165,44 @@ export const LotteryExtractionFullPage: React.FC<{
 
     loadData()
 
-    // Send heartbeat every 5 seconds
-    const heartbeat = setInterval(() => {
+    // Send heartbeat every 5 seconds (both broadcast and database)
+    const heartbeat = setInterval(async () => {
       channel.postMessage({ type: 'display-heartbeat', eventId })
+
+      // Update database heartbeat
+      try {
+        const { supabase } = await import('../lib/supabase')
+        await supabase
+          .from('lottery_display_status')
+          .update({
+            last_heartbeat: new Date().toISOString(),
+            is_online: true
+          })
+          .eq('session_id', sessionId)
+      } catch (error) {
+        console.error('Failed to update heartbeat:', error)
+      }
     }, 5000)
 
     // Cleanup
     return () => {
+      const cleanup = async () => {
+        try {
+          const { supabase } = await import('../lib/supabase')
+
+          // Mark as offline in database
+          await supabase
+            .from('lottery_display_status')
+            .update({ is_online: false })
+            .eq('session_id', sessionId)
+
+          console.log('📺 Display marked offline')
+        } catch (error) {
+          console.error('Cleanup error:', error)
+        }
+      }
+
+      cleanup()
       channel.postMessage({ type: 'display-offline', eventId })
       channel.close()
       clearInterval(heartbeat)
