@@ -273,7 +273,7 @@ export class ZCSPrintService {
   }
 
   /**
-   * Print lottery ticket
+   * Print lottery ticket - COMPACT & ELEGANT VERSION
    */
   async printLotteryTicket(ticketData: {
     eventName: string
@@ -296,98 +296,58 @@ export class ZCSPrintService {
     }
 
     try {
-      const extractionDate = new Date(ticketData.extractionDate).toLocaleDateString('it-IT', {
-        weekday: 'long',
+      const extractionDate = new Date(ticketData.extractionDate)
+      const createdAt = new Date(ticketData.createdAt)
+
+      // Format dates compactly
+      const extractionDateShort = extractionDate.toLocaleDateString('it-IT', {
+        day: '2-digit',
+        month: '2-digit',
         year: 'numeric',
-        month: 'long',
-        day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
       })
 
-      const createdAt = new Date(ticketData.createdAt).toLocaleString('it-IT')
+      const createdAtShort = createdAt.toLocaleString('it-IT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
 
-      // Build ticket text
+      // Build ULTRA-COMPACT ticket (minimal paper usage)
       const lines: string[] = [
-        '========================================',
+        this.centerText('★ ★ ★ ★ ★ ★ ★ ★ ★ ★'),
         this.centerText(ticketData.eventName.toUpperCase()),
-        '========================================',
-        '',
-        this.centerText('BIGLIETTO N.'),
-        '',
-        this.centerText('╔════════════════╗'),
-        this.centerText(`║  ${ticketData.ticketNumber}  ║`),
-        this.centerText('╚════════════════╝'),
-        '',
-        '----------------------------------------',
-        '',
-        this.centerText('INTESTATARIO:'),
-        this.centerText(ticketData.customerName),
-        ''
+        this.centerText('★ ★ ★ ★ ★ ★ ★ ★ ★ ★'),
+        this.centerText('╔══════════════════╗'),
+        this.centerText(`║ ${this.centerText(ticketData.ticketNumber, 16)} ║`),
+        this.centerText('╚══════════════════╝')
       ]
 
-      if (ticketData.customerEmail) {
-        lines.push(this.centerText(ticketData.customerEmail))
-      }
-      if (ticketData.customerPhone) {
-        lines.push(this.centerText(ticketData.customerPhone))
-      }
-
-      lines.push('----------------------------------------')
-
-      if (ticketData.fortuneMessage) {
-        lines.push('')
-        lines.push(this.centerText('✨ MESSAGGIO FORTUNA ✨'))
-        lines.push(this.centerText(`"${ticketData.fortuneMessage}"`))
-        lines.push('')
-        lines.push('----------------------------------------')
-      }
-
+      // Prize info (only if exists)
       if (ticketData.prizeName) {
-        lines.push('')
-        lines.push(this.centerText('🏆 PREMIO IN PALIO 🏆'))
-        lines.push(this.centerText(ticketData.prizeName))
-        if (ticketData.prizeValue) {
-          lines.push(this.centerText(`Valore: €${ticketData.prizeValue.toFixed(2)}`))
-        }
-        lines.push('')
-        lines.push('----------------------------------------')
+        lines.push(this.centerText('🏆 ' + ticketData.prizeName + (ticketData.prizeValue ? ` €${ticketData.prizeValue.toFixed(2)}` : '')))
       }
 
-      lines.push(
-        '',
-        this.centerText('ESTRAZIONE:'),
-        this.centerText(extractionDate),
-        '',
-        '----------------------------------------',
-        '',
-        this.centerText('Conserva questo biglietto'),
-        this.centerText('per la validazione'),
-        '',
-        '========================================',
-        '',
-        `Data acquisto: ${createdAt}`,
-        `Prezzo: €${ticketData.pricePaid.toFixed(2)}`
-      )
+      // Customer info (single line if possible)
+      lines.push(`${ticketData.customerName}${ticketData.customerPhone ? ' - ' + ticketData.customerPhone : ''}`)
 
-      if (ticketData.purchasedByStaff) {
-        lines.push(`Staff: ${ticketData.purchasedByStaff}`)
+      // Fortune message (only if exists, single line)
+      if (ticketData.fortuneMessage) {
+        lines.push(this.centerText('✨ ' + ticketData.fortuneMessage))
       }
 
-      lines.push(
-        '',
-        '✂ - - - - - - - - - - - - - - - - - -',
-        '',
-        this.centerText('TALLONCINO'),
-        '',
-        this.centerText(ticketData.ticketNumber),
-        this.centerText(ticketData.customerName),
-        '',
-        this.centerText(`Estrazione: ${new Date(ticketData.extractionDate).toLocaleDateString('it-IT')}`),
-        '',
-        '========================================',
-        ''
-      )
+      // Extraction date (compact)
+      lines.push(this.centerText('Estrazione: ' + extractionDateShort))
+
+      // Purchase info (compact, single line)
+      const priceText = ticketData.pricePaid === 0 ? 'OMAGGIO' : `€${ticketData.pricePaid.toFixed(2)}`
+      lines.push(`${createdAtShort} - ${priceText}${ticketData.purchasedByStaff ? ' - ' + ticketData.purchasedByStaff : ''}`)
+
+      // QR code placeholder
+      lines.push(this.centerText('Scansiona QR:'))
 
       const headerText = lines.join('\n')
 
@@ -399,7 +359,35 @@ export class ZCSPrintService {
             const qrCallback = (qrResult: any) => {
               if (qrResult.success) {
                 console.log('✅ Lottery ticket QR code printed')
-                resolve(true)
+
+                // Print stub/talloncino (ULTRA-COMPACT)
+                const stubLines: string[] = [
+                  this.centerText('✂ - - - - - - - - - - - - - - -'),
+                  this.centerText(ticketData.ticketNumber),
+                  this.centerText(ticketData.customerName),
+                  this.centerText(extractionDateShort.split(',')[0]),
+                  this.centerText('Conserva questo talloncino'),
+                  ''
+                ]
+
+                const stubText = stubLines.join('\n')
+
+                // Print stub
+                const stubCallback = (stubResult: any) => {
+                  if (stubResult.success) {
+                    console.log('✅ Lottery ticket stub printed')
+                    resolve(true)
+                  } else {
+                    console.error('❌ Stub print failed:', stubResult.error)
+                    resolve(true) // Still resolve true since main ticket printed
+                  }
+                }
+
+                (window as any).omnilyLotteryStubPrintHandler = stubCallback;
+                (window as any).OmnilyPOS.printText(
+                  stubText,
+                  'omnilyLotteryStubPrintHandler'
+                )
               } else {
                 console.error('❌ QR code print failed:', qrResult.error)
                 resolve(false)

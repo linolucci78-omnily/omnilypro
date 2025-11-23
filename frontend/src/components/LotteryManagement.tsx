@@ -296,6 +296,13 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         printDensity: 3
       })
 
+      // IMPORTANTE: Inizializza il bridge Android prima di stampare
+      const initialized = await printer.initialize()
+      if (!initialized) {
+        alert('⚠️ Stampante non disponibile. Assicurati di essere sull\'app Android POS.')
+        return
+      }
+
       const success = await printer.printLotteryTicket({
         eventName: event.name,
         ticketNumber: ticket.ticket_number,
