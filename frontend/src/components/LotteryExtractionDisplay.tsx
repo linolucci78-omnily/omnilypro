@@ -1122,15 +1122,20 @@ export const LotteryExtractionFullPage: React.FC<{
       try {
         const { lotteryService } = await import('../services/lotteryService')
 
+        console.log('🎰 Loading lottery event:', eventId)
+
         // Load event
         const eventData = await lotteryService.getEvent(eventId)
+        console.log('✅ Event loaded:', eventData)
         setEvent(eventData)
 
         // Load tickets
         const ticketsData = await lotteryService.getEventTickets(eventId)
+        console.log('🎫 Tickets loaded:', ticketsData.length)
         setTickets(ticketsData)
       } catch (error) {
-        console.error('Failed to load lottery data:', error)
+        console.error('❌ Failed to load lottery data:', error)
+        console.error('Event ID:', eventId)
       } finally {
         setLoading(false)
       }
