@@ -9,10 +9,12 @@ import {
   ChevronUp,
   ChevronDown,
   Circle,
-  Trophy
+  Trophy,
+  Monitor
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { LotteryEvent, LotteryPrize, lotteryService } from '../services/lotteryService'
+import { DisplayOptionsModal } from './DisplayOptionsModal'
 import './LotteryRemoteControlModal.css'
 
 interface LotteryRemoteControlModalProps {
@@ -40,6 +42,7 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
   const [customMessage, setCustomMessage] = useState('')
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null)
   const [displayOpen, setDisplayOpen] = useState(false)
+  const [showDisplayOptions, setShowDisplayOptions] = useState(false)
 
   // Load available prizes when event is selected
   useEffect(() => {
@@ -94,24 +97,12 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
     setTimeout(() => setMessage(null), 3000)
   }
 
-  const openDisplay = () => {
+  const handleOpenDisplayOptions = () => {
     if (!selectedEventId) {
       showMessage('⚠️ Seleziona prima un evento!', 'error')
       return
     }
-
-    const displayWindow = window.open(
-      `/lottery/display/${selectedEventId}`,
-      'LotteryDisplay',
-      'fullscreen=yes,width=1920,height=1080'
-    )
-
-    if (displayWindow) {
-      setDisplayOpen(true)
-      showMessage('✅ Display aperto!', 'success')
-    } else {
-      showMessage('❌ Impossibile aprire il display. Controlla i popup bloccati.', 'error')
-    }
+    setShowDisplayOptions(true)
   }
 
   const sendCommand = async (command: 'START_EXTRACTION' | 'RESET' | 'CLEAR_SCREEN') => {
@@ -310,11 +301,11 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
           </div>
         )}
 
-        {/* Power Button */}
+        {/* Display Management Button */}
         <div className="remote-power-section">
           <button
             className="remote-power-btn"
-            onClick={openDisplay}
+            onClick={handleOpenDisplayOptions}
             disabled={!selectedEventId || loading}
             style={{
               background: selectedEventId && !loading
@@ -322,8 +313,8 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
                 : undefined
             }}
           >
-            <Power size={32} />
-            <span>APRI DISPLAY</span>
+            <Monitor size={32} />
+            <span>GESTIONE DISPLAY</span>
           </button>
         </div>
 
@@ -410,6 +401,18 @@ export const LotteryRemoteControlModal: React.FC<LotteryRemoteControlModalProps>
           <div className="remote-version">v2.0</div>
         </div>
       </div>
+
+      {/* Display Options Modal */}
+      {selectedEvent && (
+        <DisplayOptionsModal
+          isOpen={showDisplayOptions}
+          onClose={() => setShowDisplayOptions(false)}
+          eventId={selectedEventId}
+          eventName={selectedEvent.name}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+        />
+      )}
     </div>
   )
 }

@@ -395,6 +395,7 @@ export const lotteryService = {
     customerName: string
     customerEmail?: string
     customerPhone?: string
+    customerAddress?: string
     customerId?: string
     fortuneMessage?: string
     staffId?: string
@@ -415,6 +416,7 @@ export const lotteryService = {
       customer_name: params.customerName,
       customer_email: params.customerEmail,
       customer_phone: params.customerPhone,
+      customer_address: params.customerAddress,
       fortune_message: params.fortuneMessage || this.generateFortune(),
       purchased_by_staff_id: params.staffId,
       purchased_by_staff_name: params.staffName,
@@ -441,6 +443,7 @@ export const lotteryService = {
     customerName: string
     customerEmail?: string
     customerPhone?: string
+    customerAddress?: string
     customerId?: string
     fortuneMessage?: string
     staffId?: string

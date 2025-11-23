@@ -338,8 +338,28 @@ export class ZCSPrintService {
       const WIDTH = 32
       const lines: string[] = []
 
+      // Organization Header (if available)
+      if (this.config.storeName) {
+        wrapText(this.config.storeName.toUpperCase(), WIDTH).forEach(line => {
+          lines.push(this.centerText(line, WIDTH))
+        })
+        if (this.config.storeAddress) {
+          wrapText(this.config.storeAddress, WIDTH).forEach(line => {
+            lines.push(this.centerText(line, WIDTH))
+          })
+        }
+        if (this.config.storePhone) {
+          lines.push(this.centerText(`Tel: ${this.config.storePhone}`, WIDTH))
+        }
+        if (this.config.storeVat) {
+          lines.push(this.centerText(`P.IVA: ${this.config.storeVat}`, WIDTH))
+        }
+        lines.push(this.centerText('================================', WIDTH))
+        lines.push('')
+      }
+
       // Header - Event name (centered, uppercase)
-      lines.push(this.centerText('================================', WIDTH))
+      lines.push(this.centerText('--- BIGLIETTO LOTTERIA ---', WIDTH))
       wrapText(ticketData.eventName.toUpperCase(), WIDTH).forEach(line => {
         lines.push(this.centerText(line, WIDTH))
       })

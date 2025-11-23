@@ -36,7 +36,6 @@ import { ZCSPrintService } from '../services/printService'
 import { supabase } from '../lib/supabase'
 import { LotteryTicketSaleInline } from './POS/LotteryTicketSaleInline'
 import { LotteryTestPanel } from './LotteryTestPanel'
-import { LotteryRemoteControl } from './LotteryRemoteControl'
 import { LotteryPrizesManager, Prize } from './LotteryPrizesManager'
 import Toast from './UI/Toast'
 import './LotteryManagement.css'
@@ -853,14 +852,6 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Remote Control */}
-      <LotteryRemoteControl
-        events={events}
-        organizationId={organizationId}
-        primaryColor={primaryColor}
-        secondaryColor={secondaryColor}
-      />
 
       {/* Events Grid */}
       {loading ? (

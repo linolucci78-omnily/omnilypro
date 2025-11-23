@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, Ticket, User, Mail, Phone, Sparkles, Printer, Check } from 'lucide-react'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../../services/lotteryService'
 import { ZCSPrintService } from '../../services/printService'
+import { supabase } from '../../lib/supabase'
 import Toast from '../UI/Toast'
 import './LotteryTicketSaleModal.css'
 
@@ -62,14 +63,26 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
     setToast(prev => ({ ...prev, isVisible: false }))
   }
 
-  // Initialize printer service
+  // Initialize printer service with organization data
   useEffect(() => {
     const initPrinter = async () => {
       try {
+        // Fetch organization data
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('name, address, phone, vat_number')
+          .eq('id', organizationId)
+          .single()
+
+        if (orgError) {
+          console.error('Error fetching organization:', orgError)
+        }
+
         const printer = new ZCSPrintService({
-          storeName: 'Lottery System',
-          storeAddress: '',
-          storePhone: '',
+          storeName: orgData?.name || 'Lottery System',
+          storeAddress: orgData?.address || '',
+          storePhone: orgData?.phone || '',
+          storeVat: orgData?.vat_number || '',
           storeTax: '',
           paperWidth: 384,
           fontSizeNormal: 24,
@@ -80,7 +93,12 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
         // IMPORTANTE: Inizializza il bridge Android
         const initialized = await printer.initialize()
         if (initialized) {
-          console.log('✅ Printer initialized successfully')
+          console.log('✅ Printer initialized successfully with org data:', {
+            name: orgData?.name,
+            address: orgData?.address,
+            phone: orgData?.phone,
+            vat: orgData?.vat_number
+          })
           setPrinterService(printer)
         } else {
           console.error('❌ Failed to initialize printer')
@@ -94,7 +112,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
     if (isOpen) {
       initPrinter()
     }
-  }, [isOpen])
+  }, [isOpen, organizationId])
 
   // Load active events
   useEffect(() => {

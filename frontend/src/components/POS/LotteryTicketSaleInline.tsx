@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, Ticket, User, Mail, Phone, Sparkles, Printer, Check, Loader, AlertCircle, Plus, Trophy, Calendar, DollarSign } from 'lucide-react'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../../services/lotteryService'
 import { ZCSPrintService } from '../../services/printService'
+import { supabase } from '../../lib/supabase'
 import Toast from '../UI/Toast'
 import './LotteryTicketSaleInline.css'
 
@@ -35,6 +36,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+  const [customerAddress, setCustomerAddress] = useState('')
   const [customerId, setCustomerId] = useState<string | undefined>(undefined)
   const [isComplimentary, setIsComplimentary] = useState(false)
 
@@ -63,14 +65,26 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
     setToast(prev => ({ ...prev, isVisible: false }))
   }
 
-  // Initialize printer service
+  // Initialize printer service with organization data
   useEffect(() => {
     const initPrinter = async () => {
       try {
+        // Fetch organization data
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('name, address, phone, vat_number')
+          .eq('id', organizationId)
+          .single()
+
+        if (orgError) {
+          console.error('Error fetching organization:', orgError)
+        }
+
         const printer = new ZCSPrintService({
-          storeName: 'Lottery System',
-          storeAddress: '',
-          storePhone: '',
+          storeName: orgData?.name || 'Lottery System',
+          storeAddress: orgData?.address || '',
+          storePhone: orgData?.phone || '',
+          storeVat: orgData?.vat_number || '',
           storeTax: '',
           paperWidth: 384,
           fontSizeNormal: 24,
@@ -81,7 +95,12 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
         // IMPORTANTE: Inizializza il bridge Android
         const initialized = await printer.initialize()
         if (initialized) {
-          console.log('✅ Printer initialized successfully')
+          console.log('✅ Printer initialized successfully with org data:', {
+            name: orgData?.name,
+            address: orgData?.address,
+            phone: orgData?.phone,
+            vat: orgData?.vat_number
+          })
           setPrinterService(printer)
         } else {
           console.error('❌ Failed to initialize printer')
@@ -96,7 +115,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
     if (isOpen) {
       initPrinter()
     }
-  }, [isOpen])
+  }, [isOpen, organizationId])
 
   useEffect(() => {
     if (isOpen) {
@@ -136,6 +155,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim() || undefined,
         customerPhone: customerPhone.trim() || undefined,
+        customerAddress: customerAddress.trim() || undefined,
         customerId,
         pricePaid: isComplimentary ? 0 : selectedEvent.ticket_price,
         isComplimentary,
@@ -199,6 +219,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
     setCustomerName('')
     setCustomerEmail('')
     setCustomerPhone('')
+    setCustomerAddress('')
     setCustomerId(undefined)
     setSoldTicket(null)
     setSelectedEvent(null)
@@ -210,6 +231,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
     setIsComplimentary(false)
     setCustomerEmail('')
     setCustomerPhone('')
+    setCustomerAddress('')
     setCustomerId(undefined)
     setSoldTicket(null)
   }
@@ -302,7 +324,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
           // Sale Form
           <form onSubmit={(e) => { e.preventDefault(); handleSell(); }} className="sale-form">
             <div className="form-grid">
-              <div className="form-group span-2">
+              <div className="form-group">
                 <label>Evento Lotteria *</label>
                 <select
                   value={selectedEvent?.id || ''}
@@ -321,7 +343,7 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
               </div>
 
               {selectedEvent && (
-                <div className="event-info span-2">
+                <div className="event-info">
                   <div className="info-item">
                     <Trophy size={16} />
                     <span>{selectedEvent.prize_name || 'Nessun premio specificato'}</span>
@@ -337,58 +359,66 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
                 </div>
               )}
 
-              <div className="form-divider span-2">Dati Cliente</div>
+              <div className="form-divider">Dati Cliente</div>
 
-              <div className="form-group span-2">
-                <label>Nome Cliente *</label>
+              <div className="form-group">
+                <label>Nome Completo *</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Mario Rossi"
+                  placeholder="Es. Mario Rossi"
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label>Email (opzionale)</label>
+                <label>Email</label>
                 <input
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="mario@email.com"
+                  placeholder="Es. mario.rossi@email.com"
                 />
               </div>
 
               <div className="form-group">
-                <label>Telefono (opzionale)</label>
+                <label>Telefono</label>
                 <input
                   type="tel"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="+39 333 1234567"
+                  placeholder="Es. +39 333 1234567"
                 />
               </div>
 
-              <div className="complimentary-wrapper span-2">
-                <div className="checkbox-container">
-                  <input
-                    type="checkbox"
-                    id="complimentary-checkbox"
-                    checked={isComplimentary}
-                    onChange={(e) => setIsComplimentary(e.target.checked)}
-                    className="checkbox-input"
-                  />
-                  <label htmlFor="complimentary-checkbox" className="checkbox-text">
-                    🎁 Biglietto Omaggio (Gratuito)
+              <div className="form-group">
+                <label>Indirizzo</label>
+                <input
+                  type="text"
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="Es. Via Roma 123, Milano"
+                />
+              </div>
+
+              <div className="form-divider">Opzioni Pagamento</div>
+
+              <div className="form-group">
+                <div className="toggle-row">
+                  <div className="toggle-info">
+                    <label className="toggle-main-label">Biglietto Omaggio</label>
+                    <span className="toggle-description">Il biglietto sarà gratuito (€0.00)</span>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={isComplimentary}
+                      onChange={(e) => setIsComplimentary(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
                   </label>
                 </div>
-                {isComplimentary && (
-                  <div className="complimentary-notice">
-                    <AlertCircle size={16} />
-                    <span>Il biglietto sarà registrato come omaggio a €0.00</span>
-                  </div>
-                )}
               </div>
             </div>
 

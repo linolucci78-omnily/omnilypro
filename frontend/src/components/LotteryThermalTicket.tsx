@@ -8,6 +8,10 @@ interface LotteryThermalTicketProps {
   eventDate: string
   extractionDate: string
   prizeName?: string
+  organizationName?: string
+  organizationAddress?: string
+  organizationPhone?: string
+  organizationVat?: string
 }
 
 /**
@@ -20,7 +24,11 @@ export const LotteryThermalTicket: React.FC<LotteryThermalTicketProps> = ({
   eventName,
   eventDate,
   extractionDate,
-  prizeName
+  prizeName,
+  organizationName,
+  organizationAddress,
+  organizationPhone,
+  organizationVat
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = React.useState<string>('')
 
@@ -47,6 +55,52 @@ export const LotteryThermalTicket: React.FC<LotteryThermalTicketProps> = ({
       padding: '4mm',
       boxSizing: 'border-box'
     }}>
+      {/* Organization Header */}
+      {organizationName && (
+        <>
+          <div style={{
+            textAlign: 'center',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            marginBottom: '2mm',
+            textTransform: 'uppercase'
+          }}>
+            {organizationName}
+          </div>
+          {organizationAddress && (
+            <div style={{
+              textAlign: 'center',
+              fontSize: '9px',
+              marginBottom: '1mm'
+            }}>
+              {organizationAddress}
+            </div>
+          )}
+          {organizationPhone && (
+            <div style={{
+              textAlign: 'center',
+              fontSize: '9px',
+              marginBottom: '1mm'
+            }}>
+              Tel: {organizationPhone}
+            </div>
+          )}
+          {organizationVat && (
+            <div style={{
+              textAlign: 'center',
+              fontSize: '9px',
+              marginBottom: '3mm'
+            }}>
+              P.IVA: {organizationVat}
+            </div>
+          )}
+          <div style={{
+            borderTop: '2px solid #000',
+            margin: '3mm 0'
+          }} />
+        </>
+      )}
+
       {/* Header - Event Name */}
       <div style={{
         textAlign: 'center',
@@ -255,6 +309,10 @@ export const usePrintLotteryTicket = () => {
     eventDate: string
     extractionDate: string
     prizeName?: string
+    organizationName?: string
+    organizationAddress?: string
+    organizationPhone?: string
+    organizationVat?: string
   }) => {
     try {
       // Generate QR code first
@@ -427,9 +485,33 @@ export const usePrintLotteryTicket = () => {
                 font-size: 8px;
                 margin-top: 2mm;
               }
+              .org-header {
+                text-align: center;
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 2mm;
+                text-transform: uppercase;
+              }
+              .org-info {
+                text-align: center;
+                font-size: 9px;
+                margin-bottom: 1mm;
+              }
+              .org-separator {
+                border-top: 2px solid #000;
+                margin: 3mm 0;
+              }
             </style>
           </head>
           <body>
+            ${ticketData.organizationName ? `
+              <div class="org-header">${ticketData.organizationName}</div>
+              ${ticketData.organizationAddress ? `<div class="org-info">${ticketData.organizationAddress}</div>` : ''}
+              ${ticketData.organizationPhone ? `<div class="org-info">Tel: ${ticketData.organizationPhone}</div>` : ''}
+              ${ticketData.organizationVat ? `<div class="org-info">P.IVA: ${ticketData.organizationVat}</div>` : ''}
+              <div class="org-separator"></div>
+            ` : ''}
+
             <div class="header">${ticketData.eventName}</div>
 
             <div class="ticket-number-box">
