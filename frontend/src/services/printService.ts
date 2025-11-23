@@ -273,7 +273,7 @@ export class ZCSPrintService {
   }
 
   /**
-   * Print lottery ticket - COMPACT & ELEGANT VERSION
+   * Print lottery ticket - THERMAL PRINTER OPTIMIZED
    */
   async printLotteryTicket(ticketData: {
     eventName: string
@@ -316,38 +316,91 @@ export class ZCSPrintService {
         minute: '2-digit'
       })
 
-      // Build ULTRA-COMPACT ticket (minimal paper usage)
-      const lines: string[] = [
-        this.centerText('★ ★ ★ ★ ★ ★ ★ ★ ★ ★'),
-        this.centerText(ticketData.eventName.toUpperCase()),
-        this.centerText('★ ★ ★ ★ ★ ★ ★ ★ ★ ★'),
-        this.centerText('╔══════════════════╗'),
-        this.centerText(`║ ${this.centerText(ticketData.ticketNumber, 16)} ║`),
-        this.centerText('╚══════════════════╝')
-      ]
+      // Helper function for better text wrapping (max 32 chars for 58mm paper)
+      const wrapText = (text: string, maxLen: number = 32): string[] => {
+        const words = text.split(' ')
+        const lines: string[] = []
+        let currentLine = ''
 
-      // Prize info (only if exists)
+        words.forEach(word => {
+          if ((currentLine + word).length > maxLen) {
+            if (currentLine) lines.push(currentLine.trim())
+            currentLine = word + ' '
+          } else {
+            currentLine += word + ' '
+          }
+        })
+        if (currentLine.trim()) lines.push(currentLine.trim())
+        return lines
+      }
+
+      // Build THERMAL PRINTER OPTIMIZED ticket (58mm paper = 32 chars width)
+      const WIDTH = 32
+      const lines: string[] = []
+
+      // Header - Event name (centered, uppercase)
+      lines.push(this.centerText('================================', WIDTH))
+      wrapText(ticketData.eventName.toUpperCase(), WIDTH).forEach(line => {
+        lines.push(this.centerText(line, WIDTH))
+      })
+      lines.push(this.centerText('================================', WIDTH))
+
+      // Ticket number (large, centered in box)
+      lines.push(this.centerText('BIGLIETTO N.', WIDTH))
+      lines.push(this.centerText(ticketData.ticketNumber, WIDTH))
+      lines.push(this.centerText('--------------------------------', WIDTH))
+
+      // Prize (if exists) - centered
       if (ticketData.prizeName) {
-        lines.push(this.centerText('🏆 ' + ticketData.prizeName + (ticketData.prizeValue ? ` €${ticketData.prizeValue.toFixed(2)}` : '')))
+        lines.push(this.centerText('PREMIO IN PALIO', WIDTH))
+        wrapText(ticketData.prizeName, WIDTH).forEach(line => {
+          lines.push(this.centerText(line, WIDTH))
+        })
+        if (ticketData.prizeValue) {
+          lines.push(this.centerText(`VALORE: EUR ${ticketData.prizeValue.toFixed(2)}`, WIDTH))
+        }
+        lines.push(this.centerText('--------------------------------', WIDTH))
       }
 
-      // Customer info (single line if possible)
-      lines.push(`${ticketData.customerName}${ticketData.customerPhone ? ' - ' + ticketData.customerPhone : ''}`)
+      // Customer info (left aligned)
+      lines.push(`Cliente: ${ticketData.customerName}`)
+      if (ticketData.customerPhone) {
+        lines.push(`Tel: ${ticketData.customerPhone}`)
+      }
+      if (ticketData.customerEmail) {
+        // Wrap email if too long
+        const emailLines = wrapText(ticketData.customerEmail, WIDTH)
+        emailLines.forEach((line, i) => {
+          lines.push(i === 0 ? `Email: ${line}` : `       ${line}`)
+        })
+      }
 
-      // Fortune message (only if exists, single line)
+      // Fortune message (centered, wrapped)
       if (ticketData.fortuneMessage) {
-        lines.push(this.centerText('✨ ' + ticketData.fortuneMessage))
+        lines.push(this.centerText('- - - - - - - - - - - - - - - -', WIDTH))
+        wrapText(ticketData.fortuneMessage, WIDTH - 2).forEach(line => {
+          lines.push(this.centerText(line, WIDTH))
+        })
+        lines.push(this.centerText('- - - - - - - - - - - - - - - -', WIDTH))
       }
 
-      // Extraction date (compact)
-      lines.push(this.centerText('Estrazione: ' + extractionDateShort))
+      // Extraction date (centered, bold effect with spacing)
+      lines.push('')
+      lines.push(this.centerText('ESTRAZIONE', WIDTH))
+      lines.push(this.centerText(extractionDateShort, WIDTH))
+      lines.push('')
 
-      // Purchase info (compact, single line)
-      const priceText = ticketData.pricePaid === 0 ? 'OMAGGIO' : `€${ticketData.pricePaid.toFixed(2)}`
-      lines.push(`${createdAtShort} - ${priceText}${ticketData.purchasedByStaff ? ' - ' + ticketData.purchasedByStaff : ''}`)
+      // Purchase info (left aligned, compact)
+      lines.push(`Acquisto: ${createdAtShort}`)
+      const priceText = ticketData.pricePaid === 0 ? 'OMAGGIO' : `EUR ${ticketData.pricePaid.toFixed(2)}`
+      lines.push(`Prezzo: ${priceText}`)
+      if (ticketData.purchasedByStaff) {
+        lines.push(`Staff: ${ticketData.purchasedByStaff}`)
+      }
 
-      // QR code placeholder
-      lines.push(this.centerText('Scansiona QR:'))
+      // QR code instruction
+      lines.push('')
+      lines.push(this.centerText('Scansiona QR per validare', WIDTH))
 
       const headerText = lines.join('\n')
 
@@ -359,35 +412,7 @@ export class ZCSPrintService {
             const qrCallback = (qrResult: any) => {
               if (qrResult.success) {
                 console.log('✅ Lottery ticket QR code printed')
-
-                // Print stub/talloncino (ULTRA-COMPACT)
-                const stubLines: string[] = [
-                  this.centerText('✂ - - - - - - - - - - - - - - -'),
-                  this.centerText(ticketData.ticketNumber),
-                  this.centerText(ticketData.customerName),
-                  this.centerText(extractionDateShort.split(',')[0]),
-                  this.centerText('Conserva questo talloncino'),
-                  ''
-                ]
-
-                const stubText = stubLines.join('\n')
-
-                // Print stub
-                const stubCallback = (stubResult: any) => {
-                  if (stubResult.success) {
-                    console.log('✅ Lottery ticket stub printed')
-                    resolve(true)
-                  } else {
-                    console.error('❌ Stub print failed:', stubResult.error)
-                    resolve(true) // Still resolve true since main ticket printed
-                  }
-                }
-
-                (window as any).omnilyLotteryStubPrintHandler = stubCallback;
-                (window as any).OmnilyPOS.printText(
-                  stubText,
-                  'omnilyLotteryStubPrintHandler'
-                )
+                resolve(true)
               } else {
                 console.error('❌ QR code print failed:', qrResult.error)
                 resolve(false)
