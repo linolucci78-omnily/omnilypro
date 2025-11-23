@@ -76,9 +76,19 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
           fontSizeLarge: 30,
           printDensity: 3
         })
-        setPrinterService(printer)
+
+        // IMPORTANTE: Inizializza il bridge Android
+        const initialized = await printer.initialize()
+        if (initialized) {
+          console.log('✅ Printer initialized successfully')
+          setPrinterService(printer)
+        } else {
+          console.error('❌ Failed to initialize printer')
+          setPrinterService(null)
+        }
       } catch (error) {
         console.error('Failed to initialize printer:', error)
+        setPrinterService(null)
       }
     }
     if (isOpen) {
