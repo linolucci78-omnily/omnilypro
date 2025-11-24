@@ -379,18 +379,24 @@ export class ZCSPrintService {
         }
 
         // Try different methods on Android bridge
+        console.log('🔍 DEBUG: About to check printBitmap')
+        console.log('🔍 DEBUG: typeof OmnilyPOS.printBitmap =', typeof (window as any).OmnilyPOS?.printBitmap)
+        addLog('🔍 Step 9: Checking if printBitmap method exists...')
         if ((window as any).OmnilyPOS.printBitmap) {
-          addLog('📤 Step 9: Calling printBitmap()...')
-          addLog(`📤 Step 9.1: Base64 length: ${pngBase64.length}`)
-          addLog(`📤 Step 9.2: Callback name: omnilyLotteryImagePrintHandler`)
+          console.log('✅ DEBUG: Inside printBitmap if block!')
+          addLog('📤 Step 9.1: printBitmap found! Preparing call...')
+          addLog(`📤 Step 9.2: Base64 length: ${pngBase64.length}`)
+          addLog(`📤 Step 9.3: Callback name: omnilyLotteryImagePrintHandler`)
 
           try {
-            addLog('📤 Step 9.3: Executing bridge call...')
+            console.log('🔧 DEBUG: About to call printBitmap with', pngBase64.length, 'chars')
+            addLog('📤 Step 9.4: Executing bridge call...')
             ;(window as any).OmnilyPOS.printBitmap(
               pngBase64,
               'omnilyLotteryImagePrintHandler'
             )
-            addLog('✅ Step 9.4: Bridge call executed (no exception)')
+            console.log('✅ DEBUG: printBitmap called successfully!')
+            addLog('✅ Step 9.5: Bridge call executed (no exception)')
           } catch (err) {
             addLog(`❌ Step 9.4: Exception during bridge call: ${err}`)
             throw err
