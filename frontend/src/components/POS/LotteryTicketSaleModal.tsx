@@ -221,15 +221,15 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
         URL.revokeObjectURL(url)
 
         showToast('Biglietto PDF generato con successo!', 'success')
+
+        // Auto-print PDF as IMAGE on thermal printer (uses printer's full graphical capabilities)
+        setTimeout(() => {
+          handlePrintTicketImage(ticket, pdfBlob)
+        }, 500)
       } catch (pdfError) {
         console.error('PDF generation error:', pdfError)
         showToast('Biglietto creato ma errore generazione PDF', 'warning')
       }
-
-      // Auto-print thermal backup after a moment
-      setTimeout(() => {
-        handlePrintTicket(ticket)
-      }, 500)
 
     } catch (error: any) {
       console.error('Failed to sell ticket:', error)
@@ -375,6 +375,30 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
     } catch (error) {
       console.error('Resend email error:', error)
       showToast('Errore reinvio email', 'error')
+    }
+  }
+
+  const handlePrintTicketImage = async (ticket: LotteryTicket, pdfBlob: Blob) => {
+    if (!printerService) {
+      console.warn('Cannot print: missing printer service')
+      showToast('Stampante non disponibile', 'warning')
+      return
+    }
+
+    try {
+      console.log('🖼️ Printing PDF as image on thermal printer...')
+      const success = await printerService.printLotteryTicketImage(pdfBlob)
+
+      if (success) {
+        console.log('✅ Biglietto stampato come immagine con successo!')
+        showToast('Biglietto stampato con successo!', 'success')
+      } else {
+        console.error('❌ Errore stampa biglietto immagine')
+        showToast('Errore durante la stampa del biglietto', 'error')
+      }
+    } catch (error) {
+      console.error('❌ Print image error:', error)
+      showToast('Errore durante la stampa del biglietto', 'error')
     }
   }
 

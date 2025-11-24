@@ -384,6 +384,31 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
 
   const handlePrintTicket = async (ticket: LotteryTicket, event: LotteryEvent) => {
     try {
+      // Generate PDF first
+      const orgData = await supabase
+        .from('organizations')
+        .select('name, address, phone, vat_number')
+        .eq('id', organizationId)
+        .single()
+
+      const pdfBlob = await LotteryPdfService.generateTicketPDF({
+        eventName: event.name,
+        ticketNumber: ticket.ticket_number,
+        customerName: ticket.customer_name,
+        customerEmail: ticket.customer_email || undefined,
+        customerPhone: ticket.customer_phone || undefined,
+        fortuneMessage: ticket.fortune_message || undefined,
+        prizeName: event.prize_name || undefined,
+        prizeValue: event.prize_value || undefined,
+        extractionDate: event.extraction_date,
+        pricePaid: ticket.price_paid,
+        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
+        createdAt: ticket.created_at,
+        qrCodeData: ticket.qr_code_data,
+        organizationName: orgData.data?.name,
+        brandColors: event.brand_colors
+      })
+
       // Create printer instance on the fly
       const printer = new ZCSPrintService({
         storeName: event.name,
@@ -403,26 +428,9 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         return
       }
 
-      const success = await printer.printLotteryTicket({
-        eventName: event.name,
-        ticketNumber: ticket.ticket_number,
-        customerName: ticket.customer_name,
-        customerEmail: ticket.customer_email,
-        customerPhone: ticket.customer_phone,
-        fortuneMessage: ticket.fortune_message,
-        prizeName: event.prize_name,
-        prizeValue: event.prize_value,
-        extractionDate: event.extraction_date,
-        pricePaid: ticket.price_paid,
-        purchasedByStaff: ticket.purchased_by_staff_name,
-        createdAt: ticket.created_at,
-        qrCodeData: JSON.stringify({
-          ticketId: ticket.id,
-          ticketNumber: ticket.ticket_number,
-          eventId: event.id,
-          eventName: event.name
-        })
-      })
+      // Print PDF as IMAGE (uses printer's full graphical capabilities)
+      console.log('🖼️ Printing PDF as image on thermal printer...')
+      const success = await printer.printLotteryTicketImage(pdfBlob)
 
       if (success) {
         showToast('Biglietto stampato con successo!', 'success')

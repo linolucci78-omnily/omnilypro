@@ -273,7 +273,141 @@ export class ZCSPrintService {
   }
 
   /**
-   * Print lottery ticket - THERMAL PRINTER OPTIMIZED
+   * Print lottery ticket PDF as IMAGE on thermal printer
+   * This uses the printer's full graphical capabilities
+   * Converts PDF to PNG image using PDF.js and Canvas
+   */
+  async printLotteryTicketImage(pdfBlob: Blob): Promise<boolean> {
+    if (!this.isInitialized) {
+      const msg = '❌ Printer not initialized'
+      console.error(msg)
+      alert(msg)
+      return false
+    }
+
+    // Array to collect debug messages
+    const debugLogs: string[] = []
+    const addLog = (msg: string) => {
+      debugLogs.push(msg)
+      console.log(msg)
+    }
+
+    try {
+      addLog('🖼️ Step 1: Converting PDF to PNG image...')
+
+      // Import PDF.js dynamically
+      const pdfjsLib = await import('pdfjs-dist')
+      addLog('✅ PDF.js library loaded')
+
+      // Set worker source
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+
+      // Convert PDF blob to ArrayBuffer
+      const arrayBuffer = await pdfBlob.arrayBuffer()
+      addLog(`📄 Step 2: PDF blob converted (${arrayBuffer.byteLength} bytes)`)
+
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      addLog(`📄 Step 3: PDF loaded (${pdf.numPages} pages)`)
+
+      // Get first page
+      const page = await pdf.getPage(1)
+      addLog('📄 Step 4: First page extracted')
+
+      // Set scale for thermal printer (58mm = ~220 pixels at 96 DPI)
+      const scale = 2.5
+      const viewport = page.getViewport({ scale })
+      addLog(`🖼️ Step 5: Rendering ${Math.round(viewport.width)}x${Math.round(viewport.height)}px`)
+
+      // Create canvas
+      const canvas = document.createElement('canvas')
+      const context = canvas.getContext('2d')
+      if (!context) {
+        throw new Error('Could not get canvas context')
+      }
+
+      canvas.width = viewport.width
+      canvas.height = viewport.height
+
+      // Render PDF page to canvas
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise
+      addLog('✅ Step 6: PDF rendered to canvas')
+
+      // Convert canvas to PNG base64
+      const pngBase64 = canvas.toDataURL('image/png').split(',')[1]
+      addLog(`✅ Step 7: PNG created (${pngBase64.length} chars)`)
+
+      // Check available Android methods
+      const availableMethods = Object.keys((window as any).OmnilyPOS || {})
+      addLog(`📋 Step 8: Android bridge methods: ${availableMethods.join(', ')}`)
+
+      // Call Android bridge to print image
+      return new Promise((resolve) => {
+        // Set timeout to show logs if no response
+        const timeout = setTimeout(() => {
+          const allLogs = debugLogs.join('\n')
+          alert(`⏱️ TIMEOUT - No response from printer after 10s\n\n${allLogs}\n\n⚠️ Last step: Waiting for Android response...`)
+          resolve(false)
+        }, 10000)
+
+        (window as any).omnilyLotteryImagePrintHandler = (result: any) => {
+          clearTimeout(timeout)
+
+          if (result.success) {
+            addLog('✅ Step 9: SUCCESS - Image printed!')
+            const allLogs = debugLogs.join('\n')
+            alert(`✅ STAMPA COMPLETATA!\n\n${allLogs}`)
+            resolve(true)
+          } else {
+            addLog(`❌ Step 9: FAILED - ${result.error || 'Unknown error'}`)
+            const allLogs = debugLogs.join('\n')
+            alert(`❌ ERRORE STAMPA\n\n${allLogs}`)
+            resolve(false)
+          }
+        }
+
+        // Try different methods on Android bridge
+        if ((window as any).OmnilyPOS.printBitmap) {
+          addLog('📤 Step 9: Calling printBitmap()...')
+          ;(window as any).OmnilyPOS.printBitmap(
+            pngBase64,
+            'omnilyLotteryImagePrintHandler'
+          )
+        } else if ((window as any).OmnilyPOS.printImage) {
+          addLog('📤 Step 9: Calling printImage()...')
+          ;(window as any).OmnilyPOS.printImage(
+            pngBase64,
+            'omnilyLotteryImagePrintHandler'
+          )
+        } else if ((window as any).OmnilyPOS.printPNG) {
+          addLog('📤 Step 9: Calling printPNG()...')
+          ;(window as any).OmnilyPOS.printPNG(
+            pngBase64,
+            'omnilyLotteryImagePrintHandler'
+          )
+        } else {
+          addLog('❌ Step 9: NO image print method found!')
+          addLog(`Available: ${availableMethods.join(', ')}`)
+          const allLogs = debugLogs.join('\n')
+          alert(`❌ METODO STAMPA NON DISPONIBILE\n\n${allLogs}\n\n💡 Serve implementare printBitmap, printImage o printPNG in Android`)
+          resolve(false)
+        }
+      })
+
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      addLog(`❌ ERRORE: ${errorMsg}`)
+      const allLogs = debugLogs.join('\n')
+      alert(`❌ ERRORE STAMPA\n\n${allLogs}`)
+      console.error('Full error:', error)
+      return false
+    }
+  }
+
+  /**
+   * Print lottery ticket - THERMAL PRINTER OPTIMIZED (ASCII TEXT FALLBACK)
    */
   async printLotteryTicket(ticketData: {
     eventName: string
