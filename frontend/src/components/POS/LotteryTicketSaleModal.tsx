@@ -200,12 +200,16 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
 
         // Send email if customer provided email
         if (ticket.customer_email && ticket.customer_email.trim()) {
+          console.log('📧 Attempting to send email to:', ticket.customer_email)
           try {
             await handleEmailTicket(ticket, pdfBlob)
+            console.log('✅ Email sent successfully')
           } catch (emailError) {
-            console.error('Email error:', emailError)
+            console.error('❌ Email error:', emailError)
             showToast('Biglietto creato ma errore invio email', 'warning')
           }
+        } else {
+          console.log('ℹ️ No email provided, skipping email send')
         }
 
         // Auto-download PDF
@@ -237,26 +241,41 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
 
   const handleEmailTicket = async (ticket: LotteryTicket, pdfBlob: Blob) => {
     if (!ticket.customer_email) {
+      console.warn('⚠️ No customer email provided')
       showToast('Nessuna email specificata', 'warning')
       return
     }
 
+    console.log('📧 Starting email send process...')
+    console.log('📧 Email details:', {
+      to: ticket.customer_email,
+      ticketNumber: ticket.ticket_number,
+      organizationId: organizationId,
+      pdfSize: pdfBlob.size
+    })
+
     try {
       // Convert PDF to base64
+      console.log('📄 Converting PDF to base64...')
       const reader = new FileReader()
       const pdfBase64Promise = new Promise<string>((resolve, reject) => {
         reader.onload = () => {
           const result = reader.result as string
           const base64 = result.split(',')[1] // Remove data:application/pdf;base64,
+          console.log('✅ PDF converted to base64, length:', base64.length)
           resolve(base64)
         }
-        reader.onerror = reject
+        reader.onerror = (err) => {
+          console.error('❌ FileReader error:', err)
+          reject(err)
+        }
       })
       reader.readAsDataURL(pdfBlob)
 
       const pdfBase64 = await pdfBase64Promise
 
       // Call Supabase Edge Function
+      console.log('📤 Calling Supabase Edge Function: send-lottery-ticket-email')
       const { data, error } = await supabase.functions.invoke('send-lottery-ticket-email', {
         body: {
           to: ticket.customer_email,
@@ -270,16 +289,16 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
       })
 
       if (error) {
-        console.error('Email error:', error)
-        showToast('Errore invio email', 'error')
+        console.error('❌ Supabase Edge Function error:', error)
+        showToast(`Errore invio email: ${error.message}`, 'error')
         return
       }
 
-      console.log('✅ Email sent successfully:', data)
+      console.log('✅ Email sent successfully via Edge Function:', data)
       showToast(`Email inviata a ${ticket.customer_email}`, 'success')
-    } catch (error) {
-      console.error('Failed to send email:', error)
-      showToast('Errore invio email', 'error')
+    } catch (error: any) {
+      console.error('❌ Failed to send email:', error)
+      showToast(`Errore invio email: ${error.message || 'Errore sconosciuto'}`, 'error')
       throw error
     }
   }

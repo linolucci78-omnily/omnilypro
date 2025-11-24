@@ -167,21 +167,34 @@ export class LotteryPdfService {
     pdf.line(margin + 5, currentY, pageWidth - margin - 5, currentY)
     currentY += 5
 
-    // Customer Info
+    // Customer Info - CENTERED
     pdf.setTextColor(50, 50, 50)
     pdf.setFontSize(9)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Cliente:', pageWidth / 2, currentY, { align: 'center' })
+    currentY += 5
 
-    pdf.text('Cliente:', margin + 5, currentY)
     pdf.setFont('helvetica', 'bold')
     const nameLines = pdf.splitTextToSize(ticketData.customerName, pageWidth - margin * 3)
-    pdf.text(nameLines, margin + 5, currentY + 4)
-    currentY += 4 + (nameLines.length * 4)
+    nameLines.forEach(line => {
+      pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 4
+    })
 
     if (ticketData.customerPhone) {
       pdf.setFont('helvetica', 'normal')
-      pdf.text(`📞 ${ticketData.customerPhone}`, margin + 5, currentY)
+      pdf.text(`📞 ${ticketData.customerPhone}`, pageWidth / 2, currentY, { align: 'center' })
       currentY += 4
+    }
+
+    if (ticketData.customerEmail) {
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(8)
+      const emailLines = pdf.splitTextToSize(ticketData.customerEmail, pageWidth - margin * 3)
+      emailLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 3.5
+      })
     }
 
     // Fortune Message
