@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { X, Ticket, User, Mail, Phone, Sparkles, Printer, Check, Loader, AlertCircle, Plus, Trophy, Calendar, DollarSign } from 'lucide-react'
+import { X, Ticket, User, Mail, Phone, Sparkles, Printer, Check, Loader, AlertCircle, Plus, Trophy, Calendar, DollarSign, Download, Send } from 'lucide-react'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../../services/lotteryService'
 import { ZCSPrintService } from '../../services/printService'
+import { LotteryPdfService } from '../../services/lotteryPdfService'
 import { supabase } from '../../lib/supabase'
 import Toast from '../UI/Toast'
 import './LotteryTicketSaleInline.css'
@@ -166,7 +167,63 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
       setSoldTicket(ticket)
       onTicketSold?.(ticket)
 
-      // Auto print
+      // Generate PDF ticket
+      try {
+        const orgData = await supabase
+          .from('organizations')
+          .select('name, address, phone, vat_number')
+          .eq('id', organizationId)
+          .single()
+
+        const pdfBlob = await LotteryPdfService.generateTicketPDF({
+          eventName: selectedEvent.name,
+          ticketNumber: ticket.ticket_number,
+          customerName: ticket.customer_name,
+          customerEmail: ticket.customer_email || undefined,
+          customerPhone: ticket.customer_phone || undefined,
+          fortuneMessage: ticket.fortune_message || undefined,
+          prizeName: selectedEvent.prize_name || undefined,
+          prizeValue: selectedEvent.prize_value || undefined,
+          extractionDate: selectedEvent.extraction_date,
+          pricePaid: ticket.price_paid,
+          purchasedByStaff: ticket.purchased_by_staff_name || undefined,
+          createdAt: ticket.created_at,
+          qrCodeData: ticket.qr_code_data,
+          organizationName: orgData.data?.name,
+          brandColors: selectedEvent.brand_colors
+        })
+
+        console.log('✅ PDF generated successfully')
+
+        // Send email if customer provided email
+        if (ticket.customer_email && ticket.customer_email.trim()) {
+          console.log('📧 Attempting to send email to:', ticket.customer_email)
+          try {
+            await handleEmailTicket(ticket, pdfBlob)
+            console.log('✅ Email sent successfully')
+          } catch (emailError) {
+            console.error('❌ Email error:', emailError)
+            showToast('Biglietto creato ma errore invio email', 'warning')
+          }
+        } else {
+          console.log('ℹ️ No email provided, skipping email send')
+        }
+
+        // Auto-download PDF
+        const url = URL.createObjectURL(pdfBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `biglietto-${ticket.ticket_number}.pdf`
+        link.click()
+        URL.revokeObjectURL(url)
+
+        showToast('Biglietto PDF generato con successo!', 'success')
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError)
+        showToast('Biglietto creato ma errore generazione PDF', 'warning')
+      }
+
+      // Auto print thermal backup
       if (printerService) {
         await handlePrintTicket(ticket)
       }
@@ -175,6 +232,145 @@ export const LotteryTicketSaleInline: React.FC<LotteryTicketSaleInlineProps> = (
       showToast(`Errore: ${error.message}`, 'error')
     } finally {
       setSelling(false)
+    }
+  }
+
+  const handleEmailTicket = async (ticket: LotteryTicket, pdfBlob: Blob) => {
+    if (!ticket.customer_email) {
+      console.warn('⚠️ No customer email provided')
+      showToast('Nessuna email specificata', 'warning')
+      return
+    }
+
+    console.log('📧 Starting email send process...')
+    console.log('📧 Email details:', {
+      to: ticket.customer_email,
+      ticketNumber: ticket.ticket_number,
+      organizationId: organizationId,
+      pdfSize: pdfBlob.size
+    })
+
+    try {
+      // Convert PDF to base64
+      console.log('📄 Converting PDF to base64...')
+      const reader = new FileReader()
+      const pdfBase64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string
+          const base64 = result.split(',')[1]
+          console.log('✅ PDF converted to base64, length:', base64.length)
+          resolve(base64)
+        }
+        reader.onerror = (err) => {
+          console.error('❌ FileReader error:', err)
+          reject(err)
+        }
+      })
+      reader.readAsDataURL(pdfBlob)
+
+      const pdfBase64 = await pdfBase64Promise
+
+      // Call Supabase Edge Function
+      console.log('📤 Calling Supabase Edge Function: send-lottery-ticket-email')
+      const { data, error } = await supabase.functions.invoke('send-lottery-ticket-email', {
+        body: {
+          to: ticket.customer_email,
+          ticketNumber: ticket.ticket_number,
+          customerName: ticket.customer_name,
+          eventName: selectedEvent?.name || 'Lotteria',
+          extractionDate: selectedEvent?.extraction_date || new Date().toISOString(),
+          pdfBase64: pdfBase64,
+          organizationId: organizationId
+        }
+      })
+
+      if (error) {
+        console.error('❌ Supabase Edge Function error:', error)
+        showToast(`Errore invio email: ${error.message}`, 'error')
+        return
+      }
+
+      console.log('✅ Email sent successfully via Edge Function:', data)
+      showToast(`Email inviata a ${ticket.customer_email}`, 'success')
+    } catch (error: any) {
+      console.error('❌ Failed to send email:', error)
+      showToast(`Errore invio email: ${error.message || 'Errore sconosciuto'}`, 'error')
+      throw error
+    }
+  }
+
+  const handleDownloadPDF = async (ticket: LotteryTicket) => {
+    if (!selectedEvent) return
+
+    try {
+      const orgData = await supabase
+        .from('organizations')
+        .select('name, address, phone, vat_number')
+        .eq('id', organizationId)
+        .single()
+
+      await LotteryPdfService.downloadTicket({
+        eventName: selectedEvent.name,
+        ticketNumber: ticket.ticket_number,
+        customerName: ticket.customer_name,
+        customerEmail: ticket.customer_email || undefined,
+        customerPhone: ticket.customer_phone || undefined,
+        fortuneMessage: ticket.fortune_message || undefined,
+        prizeName: selectedEvent.prize_name || undefined,
+        prizeValue: selectedEvent.prize_value || undefined,
+        extractionDate: selectedEvent.extraction_date,
+        pricePaid: ticket.price_paid,
+        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
+        createdAt: ticket.created_at,
+        qrCodeData: ticket.qr_code_data,
+        organizationName: orgData.data?.name,
+        brandColors: selectedEvent.brand_colors
+      })
+
+      showToast('Download PDF avviato', 'success')
+    } catch (error) {
+      console.error('Download error:', error)
+      showToast('Errore download PDF', 'error')
+    }
+  }
+
+  const handleResendEmail = async (ticket: LotteryTicket) => {
+    if (!ticket.customer_email) {
+      showToast('Nessuna email specificata', 'warning')
+      return
+    }
+
+    if (!selectedEvent) return
+
+    try {
+      const orgData = await supabase
+        .from('organizations')
+        .select('name, address, phone, vat_number')
+        .eq('id', organizationId)
+        .single()
+
+      const pdfBlob = await LotteryPdfService.generateTicketPDF({
+        eventName: selectedEvent.name,
+        ticketNumber: ticket.ticket_number,
+        customerName: ticket.customer_name,
+        customerEmail: ticket.customer_email || undefined,
+        customerPhone: ticket.customer_phone || undefined,
+        fortuneMessage: ticket.fortune_message || undefined,
+        prizeName: selectedEvent.prize_name || undefined,
+        prizeValue: selectedEvent.prize_value || undefined,
+        extractionDate: selectedEvent.extraction_date,
+        pricePaid: ticket.price_paid,
+        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
+        createdAt: ticket.created_at,
+        qrCodeData: ticket.qr_code_data,
+        organizationName: orgData.data?.name,
+        brandColors: selectedEvent.brand_colors
+      })
+
+      await handleEmailTicket(ticket, pdfBlob)
+    } catch (error) {
+      console.error('Resend email error:', error)
+      showToast('Errore reinvio email', 'error')
     }
   }
 
