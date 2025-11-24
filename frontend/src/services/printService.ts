@@ -356,14 +356,14 @@ export class ZCSPrintService {
       // Call Android bridge to print image
       return new Promise((resolve) => {
         // Set timeout to show logs if no response
-        const timeout = setTimeout(() => {
+        const timeout = window.setTimeout(() => {
           const allLogs = debugLogs.join('\n')
           alert(`⏱️ TIMEOUT - No response from printer after 10s\n\n${allLogs}\n\n⚠️ Last step: Waiting for Android response...`)
           resolve(false)
         }, 10000)
 
         (window as any).omnilyLotteryImagePrintHandler = (result: any) => {
-          clearTimeout(timeout)
+          window.clearTimeout(timeout)
 
           if (result.success) {
             addLog('✅ Step 9: SUCCESS - Image printed!')
