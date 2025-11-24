@@ -136,14 +136,14 @@ body {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.stat-value {
+.stat-card .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
   color: #8B4513;
   margin-bottom: 0.5rem;
 }
 
-.stat-label {
+.stat-card .stat-label {
   font-size: 1rem;
   color: #64748b;
   text-transform: uppercase;
@@ -670,14 +670,14 @@ body.admin-page {
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.stat-number {
+.stat-item .stat-number {
   font-size: 2rem;
   font-weight: 700;
   color: #ef4444;
   margin-bottom: 0.5rem;
 }
 
-.stat-label {
+.stat-item .stat-label {
   color: #64748b;
   font-size: 0.9rem;
   font-weight: 500;
