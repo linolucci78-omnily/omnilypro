@@ -342,6 +342,7 @@ export class ZCSPrintService {
       if (this.config && this.config.storeName) {
         const storeName = String(this.config.storeName || '').trim()
         if (storeName) {
+          lines.push('')
           wrapText(storeName.toUpperCase(), WIDTH).forEach(line => {
             lines.push(this.centerText(line, WIDTH))
           })
@@ -365,72 +366,112 @@ export class ZCSPrintService {
         }
 
         lines.push(this.centerText('================================', WIDTH))
-        lines.push('')
       }
 
-      // Header - Event name (centered, uppercase)
-      lines.push(this.centerText('--- BIGLIETTO LOTTERIA ---', WIDTH))
-      wrapText(ticketData.eventName.toUpperCase(), WIDTH).forEach(line => {
-        lines.push(this.centerText(line, WIDTH))
+      // Header - BIGLIETTO LOTTERIA with decorative stars
+      lines.push('')
+      lines.push(this.centerText('********************************', WIDTH))
+      lines.push(this.centerText('*                              *', WIDTH))
+      lines.push(this.centerText('*   BIGLIETTO DELLA LOTTERIA   *', WIDTH))
+      lines.push(this.centerText('*                              *', WIDTH))
+      lines.push(this.centerText('********************************', WIDTH))
+      lines.push('')
+
+      // Event name (centered, uppercase, in box)
+      wrapText(ticketData.eventName.toUpperCase(), WIDTH - 4).forEach((line, idx) => {
+        if (idx === 0) {
+          lines.push(this.centerText(`*** ${line} ***`, WIDTH))
+        } else {
+          lines.push(this.centerText(line, WIDTH))
+        }
       })
+      lines.push('')
       lines.push(this.centerText('================================', WIDTH))
 
-      // Ticket number (large, centered in box)
-      lines.push(this.centerText('BIGLIETTO N.', WIDTH))
-      lines.push(this.centerText(ticketData.ticketNumber, WIDTH))
-      lines.push(this.centerText('--------------------------------', WIDTH))
+      // Ticket number (large, centered in double box)
+      lines.push('')
+      lines.push(this.centerText('+----------------------------+', WIDTH))
+      lines.push(this.centerText('|      BIGLIETTO N.          |', WIDTH))
+      lines.push(this.centerText('|                            |', WIDTH))
+      lines.push(this.centerText(`|   ${ticketData.ticketNumber.padStart(22, ' ').padEnd(24, ' ')}  |`, WIDTH))
+      lines.push(this.centerText('|                            |', WIDTH))
+      lines.push(this.centerText('+----------------------------+', WIDTH))
+      lines.push('')
 
-      // Prize (if exists) - centered
+      // Prize (if exists) - centered with trophy
       if (ticketData.prizeName) {
+        lines.push(this.centerText('--------------------------------', WIDTH))
         lines.push(this.centerText('PREMIO IN PALIO', WIDTH))
-        wrapText(ticketData.prizeName, WIDTH).forEach(line => {
+        lines.push(this.centerText('--------------------------------', WIDTH))
+        wrapText(ticketData.prizeName, WIDTH - 2).forEach(line => {
           lines.push(this.centerText(line, WIDTH))
         })
         if (ticketData.prizeValue) {
-          lines.push(this.centerText(`VALORE: EUR ${ticketData.prizeValue.toFixed(2)}`, WIDTH))
+          lines.push('')
+          lines.push(this.centerText(`** EUR ${ticketData.prizeValue.toFixed(2)} **`, WIDTH))
         }
         lines.push(this.centerText('--------------------------------', WIDTH))
+        lines.push('')
       }
 
-      // Customer info (left aligned)
-      lines.push(`Cliente: ${ticketData.customerName}`)
+      // Customer info section with box
+      lines.push(this.centerText('INTESTATO A:', WIDTH))
+      lines.push(this.centerText('--------------------------------', WIDTH))
+      wrapText(ticketData.customerName, WIDTH - 2).forEach(line => {
+        lines.push(` ${line}`)
+      })
+
       if (ticketData.customerPhone) {
-        lines.push(`Tel: ${ticketData.customerPhone}`)
+        lines.push(` Tel: ${ticketData.customerPhone}`)
       }
+
       if (ticketData.customerEmail) {
-        // Wrap email if too long
-        const emailLines = wrapText(ticketData.customerEmail, WIDTH)
+        const emailLines = wrapText(ticketData.customerEmail, WIDTH - 7)
         emailLines.forEach((line, i) => {
-          lines.push(i === 0 ? `Email: ${line}` : `       ${line}`)
+          lines.push(i === 0 ? ` Email: ${line}` : `        ${line}`)
         })
       }
+      lines.push(this.centerText('--------------------------------', WIDTH))
 
-      // Fortune message (centered, wrapped)
+      // Fortune message (centered, in decorative box)
       if (ticketData.fortuneMessage) {
-        lines.push(this.centerText('- - - - - - - - - - - - - - - -', WIDTH))
-        wrapText(ticketData.fortuneMessage, WIDTH - 2).forEach(line => {
+        lines.push('')
+        lines.push(this.centerText('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', WIDTH))
+        wrapText(`"${ticketData.fortuneMessage}"`, WIDTH - 4).forEach(line => {
           lines.push(this.centerText(line, WIDTH))
         })
-        lines.push(this.centerText('- - - - - - - - - - - - - - - -', WIDTH))
+        lines.push(this.centerText('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', WIDTH))
+        lines.push('')
       }
 
-      // Extraction date (centered, bold effect with spacing)
+      // Extraction date (prominent, with calendar icon)
       lines.push('')
-      lines.push(this.centerText('ESTRAZIONE', WIDTH))
-      lines.push(this.centerText(extractionDateShort, WIDTH))
+      lines.push(this.centerText('********************************', WIDTH))
+      lines.push(this.centerText('DATA ESTRAZIONE', WIDTH))
+      lines.push(this.centerText('********************************', WIDTH))
+      const extractionLines = wrapText(extractionDateShort, WIDTH - 2)
+      extractionLines.forEach(line => {
+        lines.push(this.centerText(line, WIDTH))
+      })
+      lines.push(this.centerText('********************************', WIDTH))
       lines.push('')
 
-      // Purchase info (left aligned, compact)
-      lines.push(`Acquisto: ${createdAtShort}`)
+      // Purchase info footer
+      lines.push(this.centerText('- - - - - - - - - - - - - - - -', WIDTH))
+      lines.push(`Acquistato: ${createdAtShort}`)
       const priceText = ticketData.pricePaid === 0 ? 'OMAGGIO' : `EUR ${ticketData.pricePaid.toFixed(2)}`
       lines.push(`Prezzo: ${priceText}`)
       if (ticketData.purchasedByStaff) {
-        lines.push(`Staff: ${ticketData.purchasedByStaff}`)
+        wrapText(ticketData.purchasedByStaff, WIDTH - 7).forEach((line, i) => {
+          lines.push(i === 0 ? `Staff: ${line}` : `       ${line}`)
+        })
       }
+      lines.push(this.centerText('- - - - - - - - - - - - - - - -', WIDTH))
 
-      // QR code instruction
+      // QR code instruction with icon
       lines.push('')
-      lines.push(this.centerText('Scansiona QR per validare', WIDTH))
+      lines.push(this.centerText('QR CODE PER VERIFICA:', WIDTH))
+      lines.push(this.centerText('Scansiona sotto', WIDTH))
 
       const headerText = lines.join('\n')
 
