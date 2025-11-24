@@ -29,9 +29,12 @@ import {
   Mail,
   Phone,
   User,
-  Printer
+  Printer,
+  Download,
+  Send
 } from 'lucide-react'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../services/lotteryService'
+import { LotteryPdfService } from '../services/lotteryPdfService'
 import { ZCSPrintService } from '../services/printService'
 import { supabase } from '../lib/supabase'
 import { LotteryTicketSaleInline } from './POS/LotteryTicketSaleInline'
@@ -429,6 +432,110 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
     } catch (error: any) {
       console.error('Errore stampa:', error)
       showToast(`Errore durante la stampa: ${error.message}`, 'error')
+    }
+  }
+
+  const handleDownloadPDF = async (ticket: LotteryTicket, event: LotteryEvent) => {
+    try {
+      const orgData = await supabase
+        .from('organizations')
+        .select('name, address, phone, vat_number')
+        .eq('id', organizationId)
+        .single()
+
+      await LotteryPdfService.downloadTicket({
+        eventName: event.name,
+        ticketNumber: ticket.ticket_number,
+        customerName: ticket.customer_name,
+        customerEmail: ticket.customer_email || undefined,
+        customerPhone: ticket.customer_phone || undefined,
+        fortuneMessage: ticket.fortune_message || undefined,
+        prizeName: event.prize_name || undefined,
+        prizeValue: event.prize_value || undefined,
+        extractionDate: event.extraction_date,
+        pricePaid: ticket.price_paid,
+        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
+        createdAt: ticket.created_at,
+        qrCodeData: ticket.qr_code_data,
+        organizationName: orgData.data?.name,
+        brandColors: event.brand_colors
+      })
+
+      showToast('Download PDF avviato', 'success')
+    } catch (error: any) {
+      console.error('Download error:', error)
+      showToast(`Errore download PDF: ${error.message}`, 'error')
+    }
+  }
+
+  const handleSendEmail = async (ticket: LotteryTicket, event: LotteryEvent) => {
+    if (!ticket.customer_email) {
+      showToast('Nessuna email associata a questo biglietto', 'warning')
+      return
+    }
+
+    try {
+      const orgData = await supabase
+        .from('organizations')
+        .select('name, address, phone, vat_number')
+        .eq('id', organizationId)
+        .single()
+
+      // Generate PDF
+      const pdfBlob = await LotteryPdfService.generateTicketPDF({
+        eventName: event.name,
+        ticketNumber: ticket.ticket_number,
+        customerName: ticket.customer_name,
+        customerEmail: ticket.customer_email || undefined,
+        customerPhone: ticket.customer_phone || undefined,
+        fortuneMessage: ticket.fortune_message || undefined,
+        prizeName: event.prize_name || undefined,
+        prizeValue: event.prize_value || undefined,
+        extractionDate: event.extraction_date,
+        pricePaid: ticket.price_paid,
+        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
+        createdAt: ticket.created_at,
+        qrCodeData: ticket.qr_code_data,
+        organizationName: orgData.data?.name,
+        brandColors: event.brand_colors
+      })
+
+      // Convert PDF to base64
+      const reader = new FileReader()
+      const pdfBase64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string
+          const base64 = result.split(',')[1]
+          resolve(base64)
+        }
+        reader.onerror = reject
+      })
+      reader.readAsDataURL(pdfBlob)
+      const pdfBase64 = await pdfBase64Promise
+
+      // Send email
+      const { data, error } = await supabase.functions.invoke('send-lottery-ticket-email', {
+        body: {
+          to: ticket.customer_email,
+          ticketNumber: ticket.ticket_number,
+          customerName: ticket.customer_name,
+          eventName: event.name,
+          extractionDate: event.extraction_date,
+          pdfBase64: pdfBase64,
+          organizationId: organizationId
+        }
+      })
+
+      if (error) {
+        console.error('Email error:', error)
+        showToast(`Errore invio email: ${error.message}`, 'error')
+        return
+      }
+
+      showToast(`Email inviata a ${ticket.customer_email}`, 'success')
+    } catch (error: any) {
+      console.error('Send email error:', error)
+      showToast(`Errore invio email: ${error.message}`, 'error')
     }
   }
 
@@ -1102,9 +1209,27 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
                           </div>
                           <div className="ticket-actions">
                             <button
+                              onClick={() => currentEvent && handleDownloadPDF(ticket, currentEvent)}
+                              className="ticket-print-btn"
+                              title="Scarica PDF"
+                              disabled={!currentEvent}
+                            >
+                              <Download size={16} />
+                            </button>
+                            {ticket.customer_email && (
+                              <button
+                                onClick={() => currentEvent && handleSendEmail(ticket, currentEvent)}
+                                className="ticket-print-btn"
+                                title="Invia Email"
+                                disabled={!currentEvent}
+                              >
+                                <Send size={16} />
+                              </button>
+                            )}
+                            <button
                               onClick={() => currentEvent && handlePrintTicket(ticket, currentEvent)}
                               className="ticket-print-btn"
-                              title="Stampa biglietto"
+                              title="Stampa Termica"
                               disabled={!currentEvent}
                             >
                               <Printer size={16} />
