@@ -254,22 +254,8 @@ interface ThemeSelectorProps {
 }
 
 export const LotteryThemeRenderer: React.FC<ThemeSelectorProps> = ({ theme, colors, eventName }) => {
-  const musicPlayerRef = useRef<ThemeMusicPlayer | null>(null)
-
-  useEffect(() => {
-    // Initialize music player
-    musicPlayerRef.current = new ThemeMusicPlayer()
-
-    // Start playing theme music
-    musicPlayerRef.current.play(theme)
-
-    // Cleanup on unmount
-    return () => {
-      if (musicPlayerRef.current) {
-        musicPlayerRef.current.cleanup()
-      }
-    }
-  }, [theme])
+  // Theme music disabled - using real audio files instead
+  // const musicPlayerRef = useRef<ThemeMusicPlayer | null>(null)
 
   switch (theme) {
     case 'casino':

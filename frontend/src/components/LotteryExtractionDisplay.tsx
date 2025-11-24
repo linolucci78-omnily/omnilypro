@@ -29,12 +29,20 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
   const [customMessage, setCustomMessage] = useState<string | null>(null)
   const [currentPrize, setCurrentPrize] = useState<{ rank: number; name: string; value?: number } | null>(null)
+  const [isActivated, setIsActivated] = useState(false)
 
   const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const musicIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const countdownMusicRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Audio players for real sound files
+  const idleMusicRef = useRef<HTMLAudioElement | null>(null)
+  const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
+  const heartbeatAudioRef = useRef<HTMLAudioElement | null>(null)
+  const celebrationAudioRef = useRef<HTMLAudioElement | null>(null)
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // Get brand colors from event
   const colors = event.brand_colors || {
@@ -43,274 +51,248 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     accent: '#f39c12'
   }
 
-  // Initialize Web Audio
-  useEffect(() => {
-    const initAudio = async () => {
-      try {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
-        console.log('🔊 AudioContext created, state:', audioContextRef.current.state)
+  // Function to activate display and resume audio
+  const handleActivateDisplay = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
 
-        // Try to resume immediately (might need user interaction)
-        if (audioContextRef.current.state === 'suspended') {
-          await audioContextRef.current.resume()
-          console.log('✅ AudioContext resumed on init')
-        }
-      } catch (err) {
-        console.error('❌ Failed to initialize AudioContext:', err)
-      }
-    }
+    console.log('⚡ Activating display...')
 
-    initAudio()
-
-    // Also try to resume on first user interaction
-    const resumeOnInteraction = async () => {
-      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-        console.log('🔊 User interaction detected, resuming audio...')
+    // Resume AudioContext
+    if (audioContextRef.current) {
+      if (audioContextRef.current.state === 'suspended') {
         try {
           await audioContextRef.current.resume()
-          console.log('✅ AudioContext resumed')
+          console.log('✅ AudioContext resumed on activation')
         } catch (err) {
           console.error('❌ Failed to resume AudioContext:', err)
         }
       }
+    } else {
+      // Create if not exists
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+        console.log('🔊 AudioContext created on activation, state:', audioContextRef.current.state)
+        await audioContextRef.current.resume()
+      } catch (err) {
+        console.error('❌ Failed to create AudioContext:', err)
+      }
     }
 
-    // Try aggressive resume strategies
-    document.addEventListener('click', resumeOnInteraction, { once: true })
-    document.addEventListener('touchstart', resumeOnInteraction, { once: true })
-    document.addEventListener('keydown', resumeOnInteraction, { once: true })
-    document.addEventListener('mousemove', resumeOnInteraction, { once: true })
+    setIsActivated(true)
+    console.log('✅ Display activated and ready!')
+  }
 
-    // Try to auto-resume after a short delay (in case window opens with focus)
-    const autoResumeTimeout = setTimeout(async () => {
-      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-        console.log('🔊 Attempting auto-resume after delay...')
-        try {
-          await audioContextRef.current.resume()
-          console.log('✅ AudioContext auto-resumed')
-        } catch (err) {
-          console.log('⚠️ Auto-resume failed, waiting for user interaction')
-        }
-      }
-    }, 500)
+  // Initialize Audio Players and AudioContext
+  useEffect(() => {
+    // Initialize audio players for real sound files
+    idleMusicRef.current = new Audio('/sounds/idle-music.mp3')
+    idleMusicRef.current.loop = true
+    idleMusicRef.current.volume = 0.3
+
+    countdownAudioRef.current = new Audio('/sounds/countdown.mp3')
+    countdownAudioRef.current.volume = 0.6
+    // Log countdown duration when loaded
+    countdownAudioRef.current.addEventListener('loadedmetadata', () => {
+      console.log('⏱️ Countdown duration:', countdownAudioRef.current?.duration, 'seconds')
+    })
+
+    heartbeatAudioRef.current = new Audio('/sounds/heartbeat.mp3')
+    heartbeatAudioRef.current.volume = 0.7
+    // Not used anymore - using cinematic Web Audio API heartbeat instead
+
+    celebrationAudioRef.current = new Audio('/sounds/celebration.mp3')
+    celebrationAudioRef.current.volume = 0.8
+
+    notificationAudioRef.current = new Audio('/sounds/notification.mp3')
+    notificationAudioRef.current.volume = 0.5
+
+    console.log('🎵 Audio players initialized')
+
+    // Pre-create AudioContext (will be resumed on user activation)
+    try {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      console.log('🔊 AudioContext pre-created, state:', audioContextRef.current.state)
+    } catch (err) {
+      console.error('❌ Failed to create AudioContext:', err)
+    }
 
     return () => {
-      document.removeEventListener('click', resumeOnInteraction)
-      document.removeEventListener('touchstart', resumeOnInteraction)
-      document.removeEventListener('keydown', resumeOnInteraction)
-      document.removeEventListener('mousemove', resumeOnInteraction)
-      clearTimeout(autoResumeTimeout)
       audioContextRef.current?.close()
+      // Stop and cleanup audio players
+      idleMusicRef.current?.pause()
+      countdownAudioRef.current?.pause()
+      heartbeatAudioRef.current?.pause()
+      celebrationAudioRef.current?.pause()
+      notificationAudioRef.current?.pause()
     }
   }, [])
 
-  // Heartbeat sound effect using Web Audio API
-  const playHeartbeat = async (intensity: number = 1) => {
+  // Cinematic heartbeat sound with Web Audio API
+  const playCinematicHeartbeat = (intensity: number = 1) => {
     if (!audioContextRef.current) return
 
     const ctx = audioContextRef.current
-
-    // Ensure audio is running
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume()
-      } catch (err) {
-        return // Silently fail if can't resume
-      }
-    }
-
     const now = ctx.currentTime
 
-    // First beat (BOOM)
+    // First thump (THUB)
     const osc1 = ctx.createOscillator()
     const gain1 = ctx.createGain()
-    osc1.connect(gain1)
+    const filter1 = ctx.createBiquadFilter()
+
+    osc1.connect(filter1)
+    filter1.connect(gain1)
     gain1.connect(ctx.destination)
 
-    osc1.frequency.setValueAtTime(80, now)
+    // Deep bass frequency
+    osc1.type = 'sine'
+    osc1.frequency.setValueAtTime(55 * intensity, now)
     osc1.frequency.exponentialRampToValueAtTime(40, now + 0.1)
 
-    gain1.gain.setValueAtTime(0.3 * intensity, now)
-    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.1)
+    // Filter for bass punch
+    filter1.type = 'lowpass'
+    filter1.frequency.setValueAtTime(200, now)
+    filter1.Q.setValueAtTime(1, now)
+
+    // Volume envelope - strong attack, quick decay
+    gain1.gain.setValueAtTime(0, now)
+    gain1.gain.exponentialRampToValueAtTime(0.15 * intensity, now + 0.01)
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15)
 
     osc1.start(now)
-    osc1.stop(now + 0.1)
+    osc1.stop(now + 0.15)
 
-    // Second beat (boom)
+    // Second thump (DUB) - slightly higher and softer
     setTimeout(() => {
       const osc2 = ctx.createOscillator()
       const gain2 = ctx.createGain()
-      osc2.connect(gain2)
+      const filter2 = ctx.createBiquadFilter()
+
+      osc2.connect(filter2)
+      filter2.connect(gain2)
       gain2.connect(ctx.destination)
 
-      osc2.frequency.setValueAtTime(70, now + 0.15)
-      osc2.frequency.exponentialRampToValueAtTime(35, now + 0.25)
+      osc2.type = 'sine'
+      osc2.frequency.setValueAtTime(65 * intensity, now + 0.12)
+      osc2.frequency.exponentialRampToValueAtTime(45, now + 0.22)
 
-      gain2.gain.setValueAtTime(0.2 * intensity, now + 0.15)
-      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25)
+      filter2.type = 'lowpass'
+      filter2.frequency.setValueAtTime(180, now + 0.12)
+      filter2.Q.setValueAtTime(1, now + 0.12)
 
-      osc2.start(now + 0.15)
+      gain2.gain.setValueAtTime(0, now + 0.12)
+      gain2.gain.exponentialRampToValueAtTime(0.1 * intensity, now + 0.13)
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25)
+
+      osc2.start(now + 0.12)
       osc2.stop(now + 0.25)
-    }, 150)
+    }, 120)
+
+    // Add subtle white noise for tension
+    if (intensity > 1.2) {
+      const bufferSize = ctx.sampleRate * 0.3
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.02 * (intensity - 1)
+      }
+
+      const noise = ctx.createBufferSource()
+      const noiseGain = ctx.createGain()
+      const noiseFilter = ctx.createBiquadFilter()
+
+      noise.buffer = buffer
+      noise.connect(noiseFilter)
+      noiseFilter.connect(noiseGain)
+      noiseGain.connect(ctx.destination)
+
+      noiseFilter.type = 'bandpass'
+      noiseFilter.frequency.setValueAtTime(1000, now)
+
+      noiseGain.gain.setValueAtTime(0, now)
+      noiseGain.gain.linearRampToValueAtTime(0.03, now + 0.1)
+      noiseGain.gain.linearRampToValueAtTime(0, now + 0.3)
+
+      noise.start(now)
+    }
   }
 
-  // Victory music - musica trionfale di vittoria
+  // Play celebration sound from audio file
   const playCelebration = async () => {
-    if (!audioContextRef.current) return
+    if (!celebrationAudioRef.current) return
 
-    const ctx = audioContextRef.current
-
-    // Ensure audio is running
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume()
-      } catch (err) {
-        return
-      }
+    try {
+      // Pause first if already playing
+      celebrationAudioRef.current.pause()
+      celebrationAudioRef.current.currentTime = 0
+      await celebrationAudioRef.current.play()
+      console.log('🎉 Playing celebration sound')
+    } catch (err) {
+      console.error('Failed to play celebration:', err)
     }
-
-    const now = ctx.currentTime
-
-    // FANFARE INIZIALE - Accordo trionfale C major
-    const chord1 = [523.25, 659.25, 783.99, 1046.50] // C major
-    chord1.forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.type = 'triangle'
-
-      osc.frequency.setValueAtTime(freq, now)
-      gain.gain.setValueAtTime(0, now)
-      gain.gain.linearRampToValueAtTime(0.2, now + 0.1)
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8)
-
-      osc.start(now + i * 0.03)
-      osc.stop(now + 0.8)
-    })
-
-    // SECONDO ACCORDO - G major (dopo 0.4s)
-    const chord2 = [392.00, 493.88, 587.33, 783.99] // G major
-    chord2.forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.type = 'triangle'
-
-      osc.frequency.setValueAtTime(freq, now + 0.4)
-      gain.gain.setValueAtTime(0, now + 0.4)
-      gain.gain.linearRampToValueAtTime(0.18, now + 0.5)
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2)
-
-      osc.start(now + 0.4 + i * 0.03)
-      osc.stop(now + 1.2)
-    })
-
-    // TERZO ACCORDO FINALE - C major ottava alta (dopo 0.8s)
-    const chord3 = [1046.50, 1318.51, 1567.98, 2093.00] // C major high
-    chord3.forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.type = 'triangle'
-
-      osc.frequency.setValueAtTime(freq, now + 0.8)
-      gain.gain.setValueAtTime(0, now + 0.8)
-      gain.gain.linearRampToValueAtTime(0.25, now + 0.9)
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 2.5)
-
-      osc.start(now + 0.8 + i * 0.03)
-      osc.stop(now + 2.5)
-    })
-
-    // MELODIA VITTORIOSA - note ascendenti (inizia dopo 1.2s)
-    const victoryMelody = [
-      { freq: 523.25, time: 1.2, duration: 0.2 }, // C
-      { freq: 587.33, time: 1.4, duration: 0.2 }, // D
-      { freq: 659.25, time: 1.6, duration: 0.2 }, // E
-      { freq: 783.99, time: 1.8, duration: 0.3 }, // G
-      { freq: 1046.50, time: 2.1, duration: 0.5 } // C high - finale!
-    ]
-
-    victoryMelody.forEach(note => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.type = 'sine'
-
-      osc.frequency.setValueAtTime(note.freq, now + note.time)
-      gain.gain.setValueAtTime(0.15, now + note.time)
-      gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + note.duration)
-
-      osc.start(now + note.time)
-      osc.stop(now + note.time + note.duration)
-    })
   }
 
-  // Countdown buildup music - tensione crescente
-  const playCountdownMusic = async (intensity: number) => {
-    if (!audioContextRef.current) return
+  // Notification sound - suono di notifica elegante per messaggi
+  // Play notification sound from audio file
+  const playNotificationSound = async () => {
+    if (!notificationAudioRef.current) return
 
-    const ctx = audioContextRef.current
-
-    // Ensure audio is running
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume()
-      } catch (err) {
-        return
-      }
+    try {
+      // Pause first if already playing
+      notificationAudioRef.current.pause()
+      notificationAudioRef.current.currentTime = 0
+      await notificationAudioRef.current.play()
+      console.log('🔔 Playing notification sound')
+    } catch (err) {
+      console.error('Failed to play notification:', err)
     }
-
-    const now = ctx.currentTime
-
-    // Suono di tensione crescente (frequenze basse che crescono)
-    const baseFreq = 80 + (intensity * 30) // Da 80Hz a 380Hz
-
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-
-    osc.type = 'sawtooth'
-    osc.frequency.setValueAtTime(baseFreq, now)
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.2, now + 0.5)
-
-    gain.gain.setValueAtTime(0.1 * intensity, now)
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5)
-
-    osc.start(now)
-    osc.stop(now + 0.5)
   }
 
-  // Spinning music - ritmo pulsante
+  // Play countdown sound from audio file
+  const playCountdownMusic = async () => {
+    if (!countdownAudioRef.current) return
+
+    try {
+      // Pause first if already playing
+      countdownAudioRef.current.pause()
+      countdownAudioRef.current.currentTime = 0
+      await countdownAudioRef.current.play()
+      console.log('⏳ Playing countdown sound')
+    } catch (err) {
+      console.error('Failed to play countdown:', err)
+    }
+  }
+
+  // Spinning music - beat ritmico (SYNTH - kept as requested)
   const playSpinningBeat = async () => {
-    if (!audioContextRef.current) return
+    if (!audioContextRef.current) {
+      console.error('❌ AudioContext is null for spinning beat!')
+      return
+    }
 
     const ctx = audioContextRef.current
 
-    // Ensure audio is running
     if (ctx.state === 'suspended') {
+      console.log('🔊 Resuming AudioContext for spinning beat...')
       try {
         await ctx.resume()
+        console.log('✅ AudioContext resumed, state:', ctx.state)
       } catch (err) {
+        console.error('❌ Failed to resume AudioContext:', err)
         return
       }
     }
 
     const now = ctx.currentTime
 
-    // Beat ritmico con frequenze medie
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.connect(gain)
     gain.connect(ctx.destination)
 
     osc.type = 'square'
-    osc.frequency.setValueAtTime(220, now) // A3
+    osc.frequency.setValueAtTime(220, now)
 
     gain.gain.setValueAtTime(0.08, now)
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
@@ -318,7 +300,6 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     osc.start(now)
     osc.stop(now + 0.15)
 
-    // Secondo beat armonico
     setTimeout(() => {
       const osc2 = ctx.createOscillator()
       const gain2 = ctx.createGain()
@@ -326,7 +307,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
       gain2.connect(ctx.destination)
 
       osc2.type = 'sine'
-      osc2.frequency.setValueAtTime(330, now + 0.1) // E4
+      osc2.frequency.setValueAtTime(330, now + 0.1)
 
       gain2.gain.setValueAtTime(0.05, now + 0.1)
       gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.2)
@@ -336,139 +317,78 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     }, 100)
   }
 
-  // Notification sound - suono di notifica elegante per messaggi
-  const playNotificationSound = async () => {
-    if (!audioContextRef.current) {
-      console.warn('❌ AudioContext not initialized')
-      return
-    }
-
-    const ctx = audioContextRef.current
-
-    // Resume AudioContext if suspended (browser policy)
-    if (ctx.state === 'suspended') {
-      console.log('🔊 Resuming suspended AudioContext...')
-      try {
-        await ctx.resume()
-        console.log('✅ AudioContext resumed')
-      } catch (err) {
-        console.error('❌ Failed to resume AudioContext:', err)
-        return
-      }
-    }
-
-    console.log('🔔 Playing notification sound, AudioContext state:', ctx.state)
-    const now = ctx.currentTime
-
-    // Prima nota - C5 (523 Hz)
-    const osc1 = ctx.createOscillator()
-    const gain1 = ctx.createGain()
-    osc1.connect(gain1)
-    gain1.connect(ctx.destination)
-    osc1.type = 'sine'
-
-    osc1.frequency.setValueAtTime(523.25, now)
-    gain1.gain.setValueAtTime(0.3, now)
-    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
-
-    osc1.start(now)
-    osc1.stop(now + 0.15)
-
-    // Seconda nota - E5 (659 Hz) - dopo 0.1s
-    setTimeout(() => {
-      const osc2 = ctx.createOscillator()
-      const gain2 = ctx.createGain()
-      osc2.connect(gain2)
-      gain2.connect(ctx.destination)
-      osc2.type = 'sine'
-
-      osc2.frequency.setValueAtTime(659.25, now + 0.1)
-      gain2.gain.setValueAtTime(0.25, now + 0.1)
-      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25)
-
-      osc2.start(now + 0.1)
-      osc2.stop(now + 0.25)
-    }, 100)
-
-    // Terza nota - G5 (784 Hz) - dopo 0.2s
-    setTimeout(() => {
-      const osc3 = ctx.createOscillator()
-      const gain3 = ctx.createGain()
-      osc3.connect(gain3)
-      gain3.connect(ctx.destination)
-      osc3.type = 'sine'
-
-      osc3.frequency.setValueAtTime(783.99, now + 0.2)
-      gain3.gain.setValueAtTime(0.3, now + 0.2)
-      gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
-
-      osc3.start(now + 0.2)
-      osc3.stop(now + 0.4)
-    }, 200)
-  }
-
-  // Countdown music - tensione crescente
+  // Countdown music - play once when countdown starts
   useEffect(() => {
     if (extractionPhase === 'countdown') {
-      let intensity = 0
-
-      countdownMusicRef.current = setInterval(() => {
-        intensity += 0.1 // Intensità crescente
-        playCountdownMusic(Math.min(intensity, 1))
-      }, 500) // Ogni 0.5 secondi
-
-      return () => {
-        if (countdownMusicRef.current) {
-          clearInterval(countdownMusicRef.current)
-        }
-      }
+      playCountdownMusic()
     }
   }, [extractionPhase])
+
+  // Idle background music - plays when display is in idle state AND activated
+  useEffect(() => {
+    if (extractionPhase === 'idle' && isActivated && idleMusicRef.current) {
+      console.log('🎵 Starting idle background music')
+      idleMusicRef.current.currentTime = 0
+      idleMusicRef.current.play().catch(err => {
+        console.error('Failed to play idle music:', err)
+      })
+    } else if ((extractionPhase !== 'idle' || !isActivated) && idleMusicRef.current) {
+      console.log('🔇 Stopping idle background music')
+      idleMusicRef.current.pause()
+      idleMusicRef.current.currentTime = 0
+    }
+  }, [extractionPhase, isActivated])
 
   // Spinning music - beat ritmico
   useEffect(() => {
     if (extractionPhase === 'spinning') {
+      console.log('🎵 Starting spinning beat interval...')
       musicIntervalRef.current = setInterval(() => {
         playSpinningBeat()
-      }, 300) // Beat ogni 300ms
+      }, 300)
 
       return () => {
         if (musicIntervalRef.current) {
+          console.log('🔇 Stopping spinning beat interval')
           clearInterval(musicIntervalRef.current)
         }
       }
     }
   }, [extractionPhase])
 
-  // Start heartbeat sound during tense phases
+  // Start cinematic heartbeat during tense phases
   useEffect(() => {
     const startHeartbeat = async () => {
       if (extractionPhase === 'slowing' || extractionPhase === 'locked') {
+        console.log('💓 Starting cinematic heartbeat for phase:', extractionPhase)
+
         // Stop spinning music
         if (musicIntervalRef.current) {
           clearInterval(musicIntervalRef.current)
         }
 
-        // Ensure audio is running before starting interval
-        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-          try {
-            await audioContextRef.current.resume()
-            console.log('✅ AudioContext resumed for heartbeat')
-          } catch (err) {
-            console.error('❌ Failed to resume AudioContext for heartbeat:', err)
-          }
-        }
+        // Intensity based on phase
+        const baseIntensity = extractionPhase === 'locked' ? 1.5 : 1.0
+        const interval = extractionPhase === 'locked' ? 400 : 800 // Faster in locked phase
 
-        // Faster heartbeat as tension builds
-        const interval = extractionPhase === 'locked' ? 350 : 800 // Heartbeat più veloce nella fase locked!
-        const intensity = extractionPhase === 'locked' ? 2.0 : 1 // Intensità massima nella fase locked!
-
+        // Start heartbeat loop with increasing intensity
+        let beatCount = 0
         heartbeatIntervalRef.current = setInterval(() => {
-          playHeartbeat(intensity)
+          beatCount++
+          // Intensity increases over time, capped at 2.0
+          const intensity = Math.min(baseIntensity + (beatCount * 0.05), 2.0)
+          playCinematicHeartbeat(intensity)
         }, interval)
 
         // Play first heartbeat immediately
-        playHeartbeat(intensity)
+        playCinematicHeartbeat(baseIntensity)
+      } else {
+        // Stop heartbeat when not in slowing/locked phase
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current)
+          heartbeatIntervalRef.current = null
+          console.log('🔇 Stopped cinematic heartbeat')
+        }
       }
     }
 
@@ -477,6 +397,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     return () => {
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current)
+        heartbeatIntervalRef.current = null
       }
     }
   }, [extractionPhase])
@@ -525,7 +446,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
       return
     }
 
-    // 0. COUNTDOWN PHASE - 10 secondi di attesa!
+    // 0. COUNTDOWN PHASE - 10 secondi sincronizzati con audio!
     setExtractionPhase('countdown')
     setCountdownValue(10)
 
@@ -546,13 +467,10 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
     setExtractionPhase('spinning')
     setCurrentWinner(null)
 
-    // Select winner
+    // Select winner FIRST (decided from the start, not changed later)
     const randomIndex = Math.floor(Math.random() * availableTickets.length)
     const winner = availableTickets[randomIndex]
-
-    // Find a "fake" loser to stop on briefly (The Tease)
-    let teaseTicket = availableTickets[(randomIndex + 1) % availableTickets.length]
-    const teaseNumber = availableTickets.length === 1 ? '999-999' : teaseTicket.ticket_number
+    console.log(`🎯 Vincitore selezionato (casuale): ${winner.ticket_number} - ${winner.customer_name}`)
 
     // SEQUENTIAL SPIN - mostra tutti i biglietti in sequenza come una ruota
     let currentIndex = 0
@@ -595,19 +513,19 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
       }
       // FASE 3: SUSPENSE FINALE - stop e attesa drammatica
       else if (rotations >= minRotations) {
-        // STOP! Suspense massima - nessun numero visibile!
-        setExtractionDisplay('') // Schermo nero
+        // STOP IMMEDIATO! Cancella subito qualsiasi numero visibile
+        setExtractionDisplay('***-***') // Placeholder generico senza numeri specifici
         setExtractionPhase('locked')
         setCurrentWinner(null) // NON mostrare ancora il vincitore!
-        console.log('🎯 LOCKED! Suspense massima... vincitore nascosto:', winner.ticket_number)
+        console.log('🔒 LOCKED! Suspense massima... il vincitore sarà rivelato tra poco')
 
-        // SUSPENSE MASSIMA - aspetta 8 secondi prima di RIVELARE TUTTO
+        // SUSPENSE MASSIMA - aspetta 8 secondi prima di RIVELARE IL VINCITORE
         setTimeout(() => {
           // BOOM! ORA rivela TUTTO insieme: numero + nome + premio!
           setExtractionDisplay(winner.ticket_number)
           setCurrentWinner(winner)
           setExtractionPhase('celebrating')
-          console.log('🎉 CELEBRATING! Rivelando vincitore:', winner.customer_name, winner.ticket_number)
+          console.log('🎉 CELEBRATING! Vincitore rivelato:', winner.customer_name, winner.ticket_number)
 
           // Notify parent component
           if (onComplete) {
@@ -622,7 +540,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
       animationRef.current = setTimeout(spinLoop, speed)
     }
 
-    console.log(`🎰 Iniziando spin con ${availableTickets.length} biglietti, vincitore: ${winner.ticket_number}`)
+    console.log(`🎰 Iniziando spin con ${availableTickets.length} biglietti disponibili`)
     spinLoop()
   }
 
@@ -864,7 +782,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
             </div>
 
             {/* Prize Info - Show if prize is selected */}
-            {currentPrize && (
+            {currentPrize && extractionPhase !== 'celebrating' && (
               <div className="prize-info-banner">
                 <div className="prize-rank-emoji">
                   {currentPrize.rank === 1 ? '🥇' : currentPrize.rank === 2 ? '🥈' : currentPrize.rank === 3 ? '🥉' : '🎁'}
@@ -1019,31 +937,6 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
                   </div>
                 )}
 
-                {/* Show currentPrize if available, otherwise fallback to event.prize_name */}
-                {(currentPrize || event.prize_name) && (
-                  <div className="prize-info">
-                    <Crown className="w-6 h-6" style={{ color: colors.accent }} />
-                    <div>
-                      <div className="prize-label">
-                        {currentPrize ? (
-                          currentPrize.rank === 1 ? '1° PREMIO' :
-                          currentPrize.rank === 2 ? '2° PREMIO' :
-                          currentPrize.rank === 3 ? '3° PREMIO' :
-                          `${currentPrize.rank}° PREMIO`
-                        ) : 'Premio'}
-                      </div>
-                      <div className="prize-name" style={{ color: colors.accent }}>
-                        {currentPrize ? currentPrize.name : event.prize_name}
-                      </div>
-                      {(currentPrize?.value || event.prize_value) && (
-                        <div className="prize-value">
-                          Valore: €{(currentPrize?.value || event.prize_value)?.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 <button
                   onClick={closeOverlay}
                   className="close-button"
@@ -1096,11 +989,40 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
 
       {/* Idle State - Waiting Screen */}
       {extractionPhase === 'idle' && (
-        <LotteryThemeRenderer
-          theme={event.theme || 'casino'}
-          colors={colors}
-          eventName={event.name}
-        />
+        <>
+          <LotteryThemeRenderer
+            theme={event.theme || 'casino'}
+            colors={colors}
+            eventName={event.name}
+          />
+
+          {/* Power-On Button Overlay */}
+          {!isActivated && (
+            <div
+              className="power-on-overlay"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="power-on-container">
+                <button
+                  className="power-on-button"
+                  onClick={handleActivateDisplay}
+                  style={{
+                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+                    boxShadow: `0 0 40px ${colors.primary}66, 0 0 80px ${colors.primary}33`
+                  }}
+                >
+                  <Power size={64} strokeWidth={2.5} />
+                </button>
+                <div className="power-on-text" style={{ color: colors.accent }}>
+                  Tocca per attivare il display
+                </div>
+                <div className="power-on-subtext">
+                  Premi il pulsante per abilitare audio e controllo remoto
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

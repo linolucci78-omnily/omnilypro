@@ -339,21 +339,31 @@ export class ZCSPrintService {
       const lines: string[] = []
 
       // Organization Header (if available)
-      if (this.config.storeName) {
-        wrapText(this.config.storeName.toUpperCase(), WIDTH).forEach(line => {
-          lines.push(this.centerText(line, WIDTH))
-        })
-        if (this.config.storeAddress) {
-          wrapText(this.config.storeAddress, WIDTH).forEach(line => {
+      if (this.config && this.config.storeName) {
+        const storeName = String(this.config.storeName || '').trim()
+        if (storeName) {
+          wrapText(storeName.toUpperCase(), WIDTH).forEach(line => {
             lines.push(this.centerText(line, WIDTH))
           })
         }
-        if (this.config.storePhone) {
-          lines.push(this.centerText(`Tel: ${this.config.storePhone}`, WIDTH))
+
+        const storeAddress = String(this.config.storeAddress || '').trim()
+        if (storeAddress) {
+          wrapText(storeAddress, WIDTH).forEach(line => {
+            lines.push(this.centerText(line, WIDTH))
+          })
         }
-        if (this.config.storeVat) {
-          lines.push(this.centerText(`P.IVA: ${this.config.storeVat}`, WIDTH))
+
+        const storePhone = String(this.config.storePhone || '').trim()
+        if (storePhone) {
+          lines.push(this.centerText(`Tel: ${storePhone}`, WIDTH))
         }
+
+        const storeTax = String(this.config.storeTax || '').trim()
+        if (storeTax) {
+          lines.push(this.centerText(`P.IVA: ${storeTax}`, WIDTH))
+        }
+
         lines.push(this.centerText('================================', WIDTH))
         lines.push('')
       }
