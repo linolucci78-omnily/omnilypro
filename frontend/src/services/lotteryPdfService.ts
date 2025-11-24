@@ -92,7 +92,7 @@ export class LotteryPdfService {
     pdf.setTextColor(255, 255, 255)
     pdf.setFontSize(16)
     pdf.setFont('helvetica', 'bold')
-    pdf.text('🎫 BIGLIETTO LOTTERIA', pageWidth / 2, 20, { align: 'center' })
+    pdf.text('BIGLIETTO LOTTERIA', pageWidth / 2, 20, { align: 'center' })
 
     // Event Name
     pdf.setFontSize(14)
@@ -135,11 +135,11 @@ export class LotteryPdfService {
     if (ticketData.prizeName) {
       currentY += 5
 
-      // Prize trophy icon (using emoji/text)
+      // Prize trophy icon (using text)
       pdf.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b)
       pdf.setFontSize(12)
       pdf.setFont('helvetica', 'bold')
-      pdf.text('🏆 PREMIO IN PALIO', pageWidth / 2, currentY, { align: 'center' })
+      pdf.text('PREMIO IN PALIO', pageWidth / 2, currentY, { align: 'center' })
 
       currentY += 6
 
@@ -183,7 +183,7 @@ export class LotteryPdfService {
 
     if (ticketData.customerPhone) {
       pdf.setFont('helvetica', 'normal')
-      pdf.text(`📞 ${ticketData.customerPhone}`, pageWidth / 2, currentY, { align: 'center' })
+      pdf.text(`Tel: ${ticketData.customerPhone}`, pageWidth / 2, currentY, { align: 'center' })
       currentY += 4
     }
 
@@ -229,7 +229,7 @@ export class LotteryPdfService {
     pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
     pdf.setFontSize(9)
     pdf.setFont('helvetica', 'bold')
-    pdf.text('📅 ESTRAZIONE', pageWidth / 2, currentY, { align: 'center' })
+    pdf.text('DATA ESTRAZIONE', pageWidth / 2, currentY, { align: 'center' })
 
     currentY += 5
 
