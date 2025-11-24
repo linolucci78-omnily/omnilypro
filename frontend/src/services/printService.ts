@@ -376,10 +376,20 @@ export class ZCSPrintService {
         // Try different methods on Android bridge
         if ((window as any).OmnilyPOS.printBitmap) {
           addLog('📤 Step 9: Calling printBitmap()...')
-          ;(window as any).OmnilyPOS.printBitmap(
-            pngBase64,
-            'omnilyLotteryImagePrintHandler'
-          )
+          addLog(`📤 Step 9.1: Base64 length: ${pngBase64.length}`)
+          addLog(`📤 Step 9.2: Callback name: omnilyLotteryImagePrintHandler`)
+
+          try {
+            addLog('📤 Step 9.3: Executing bridge call...')
+            ;(window as any).OmnilyPOS.printBitmap(
+              pngBase64,
+              'omnilyLotteryImagePrintHandler'
+            )
+            addLog('✅ Step 9.4: Bridge call executed (no exception)')
+          } catch (err) {
+            addLog(`❌ Step 9.4: Exception during bridge call: ${err}`)
+            throw err
+          }
         } else if ((window as any).OmnilyPOS.printImage) {
           addLog('📤 Step 9: Calling printImage()...')
           ;(window as any).OmnilyPOS.printImage(
