@@ -299,8 +299,13 @@ export class ZCSPrintService {
       const pdfjsLib = await import('pdfjs-dist')
       addLog('✅ PDF.js library loaded')
 
-      // Set worker source
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+      // Set worker source - use local worker from node_modules
+      // For Vite: import the worker as a URL
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/build/pdf.worker.min.mjs',
+        import.meta.url
+      ).href
+      addLog('✅ PDF.js worker configured')
 
       // Convert PDF blob to ArrayBuffer
       const arrayBuffer = await pdfBlob.arrayBuffer()
