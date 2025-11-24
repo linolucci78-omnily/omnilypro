@@ -29,11 +29,11 @@ export class LotteryPdfService {
    * Generate professional lottery ticket PDF
    */
   static async generateTicketPDF(ticketData: LotteryTicketData): Promise<Blob> {
-    // Create PDF - A4 format for now, can be customized
+    // Create PDF - Receipt format (58mm x ~200mm) - perfect for mobile and thermal printers!
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a6' // 105 x 148 mm - perfect ticket size!
+      format: [58, 200] // 58mm width (thermal printer), 200mm height
     })
 
     // Colors
@@ -57,10 +57,10 @@ export class LotteryPdfService {
     const secondaryRgb = hexToRgb(colors.secondary)
     const accentRgb = hexToRgb(colors.accent)
 
-    // Page dimensions
-    const pageWidth = 105
-    const pageHeight = 148
-    const margin = 8
+    // Page dimensions - Receipt format
+    const pageWidth = 58
+    const pageHeight = 200
+    const margin = 4
 
     // Background gradient effect with rectangles
     pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
@@ -81,24 +81,32 @@ export class LotteryPdfService {
     // Organization Name
     if (ticketData.organizationName) {
       pdf.setTextColor(255, 255, 255)
-      pdf.setFontSize(10)
+      pdf.setFontSize(8)
       pdf.setFont('helvetica', 'bold')
-      pdf.text(ticketData.organizationName.toUpperCase(), pageWidth / 2, margin + 5, {
-        align: 'center'
+      const orgLines = pdf.splitTextToSize(ticketData.organizationName.toUpperCase(), pageWidth - margin * 2)
+      orgLines.forEach((line, idx) => {
+        pdf.text(line, pageWidth / 2, margin + 5 + (idx * 3), {
+          align: 'center'
+        })
       })
     }
 
     // Title - BIGLIETTO LOTTERIA
     pdf.setTextColor(255, 255, 255)
-    pdf.setFontSize(16)
+    pdf.setFontSize(11)
     pdf.setFont('helvetica', 'bold')
-    pdf.text('BIGLIETTO LOTTERIA', pageWidth / 2, 20, { align: 'center' })
+    pdf.text('BIGLIETTO', pageWidth / 2, 18, { align: 'center' })
+    pdf.text('LOTTERIA', pageWidth / 2, 23, { align: 'center' })
 
     // Event Name
-    pdf.setFontSize(14)
+    pdf.setFontSize(9)
     pdf.setFont('helvetica', 'bold')
     const eventNameLines = pdf.splitTextToSize(ticketData.eventName.toUpperCase(), pageWidth - margin * 2)
-    pdf.text(eventNameLines, pageWidth / 2, 35, { align: 'center' })
+    let eventY = 30
+    eventNameLines.forEach(line => {
+      pdf.text(line, pageWidth / 2, eventY, { align: 'center' })
+      eventY += 4
+    })
 
     // White background for content
     let currentY = 50
@@ -114,18 +122,18 @@ export class LotteryPdfService {
 
     // Ticket Number - BIG and BOLD
     pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
-    pdf.setFontSize(10)
+    pdf.setFontSize(8)
     pdf.setFont('helvetica', 'bold')
     pdf.text('BIGLIETTO N.', pageWidth / 2, currentY, { align: 'center' })
 
-    currentY += 8
+    currentY += 6
 
     // Ticket number in box
     pdf.setFillColor(accentRgb.r, accentRgb.g, accentRgb.b)
-    pdf.roundedRect(margin + 10, currentY - 6, pageWidth - margin * 2 - 20, 12, 2, 2, 'F')
+    pdf.roundedRect(margin + 2, currentY - 5, pageWidth - margin * 2 - 4, 10, 2, 2, 'F')
 
     pdf.setTextColor(255, 255, 255)
-    pdf.setFontSize(18)
+    pdf.setFontSize(14)
     pdf.setFont('courier', 'bold')
     pdf.text(ticketData.ticketNumber, pageWidth / 2, currentY, { align: 'center' })
 
@@ -137,26 +145,27 @@ export class LotteryPdfService {
 
       // Prize trophy icon (using text)
       pdf.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b)
-      pdf.setFontSize(12)
+      pdf.setFontSize(8)
       pdf.setFont('helvetica', 'bold')
       pdf.text('PREMIO IN PALIO', pageWidth / 2, currentY, { align: 'center' })
 
-      currentY += 6
+      currentY += 5
 
       pdf.setTextColor(0, 0, 0)
-      pdf.setFontSize(10)
+      pdf.setFontSize(8)
       pdf.setFont('helvetica', 'bold')
-      const prizeLines = pdf.splitTextToSize(ticketData.prizeName, pageWidth - margin * 4)
-      pdf.text(prizeLines, pageWidth / 2, currentY, { align: 'center' })
-
-      currentY += prizeLines.length * 5
+      const prizeLines = pdf.splitTextToSize(ticketData.prizeName, pageWidth - margin * 2)
+      prizeLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 4
+      })
 
       if (ticketData.prizeValue) {
         pdf.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b)
-        pdf.setFontSize(12)
+        pdf.setFontSize(10)
         pdf.setFont('helvetica', 'bold')
         pdf.text(`€ ${ticketData.prizeValue.toFixed(2)}`, pageWidth / 2, currentY, { align: 'center' })
-        currentY += 6
+        currentY += 5
       }
     }
 
@@ -169,31 +178,33 @@ export class LotteryPdfService {
 
     // Customer Info - CENTERED
     pdf.setTextColor(50, 50, 50)
-    pdf.setFontSize(9)
+    pdf.setFontSize(7)
     pdf.setFont('helvetica', 'bold')
     pdf.text('Cliente:', pageWidth / 2, currentY, { align: 'center' })
-    currentY += 5
+    currentY += 4
 
+    pdf.setFontSize(8)
     pdf.setFont('helvetica', 'bold')
-    const nameLines = pdf.splitTextToSize(ticketData.customerName, pageWidth - margin * 3)
+    const nameLines = pdf.splitTextToSize(ticketData.customerName, pageWidth - margin * 2)
     nameLines.forEach(line => {
       pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
-      currentY += 4
+      currentY += 3.5
     })
 
     if (ticketData.customerPhone) {
+      pdf.setFontSize(7)
       pdf.setFont('helvetica', 'normal')
       pdf.text(`Tel: ${ticketData.customerPhone}`, pageWidth / 2, currentY, { align: 'center' })
-      currentY += 4
+      currentY += 3.5
     }
 
     if (ticketData.customerEmail) {
       pdf.setFont('helvetica', 'normal')
-      pdf.setFontSize(8)
-      const emailLines = pdf.splitTextToSize(ticketData.customerEmail, pageWidth - margin * 3)
+      pdf.setFontSize(6)
+      const emailLines = pdf.splitTextToSize(ticketData.customerEmail, pageWidth - margin * 2)
       emailLines.forEach(line => {
         pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
-        currentY += 3.5
+        currentY += 3
       })
     }
 
@@ -210,10 +221,13 @@ export class LotteryPdfService {
       pdf.roundedRect(margin + 3, currentY - 3, pageWidth - margin * 2 - 6, 12, 2, 2, 'S')
 
       pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
-      pdf.setFontSize(8)
+      pdf.setFontSize(7)
       pdf.setFont('helvetica', 'italic')
-      const fortuneLines = pdf.splitTextToSize(`"${ticketData.fortuneMessage}"`, pageWidth - margin * 3)
-      pdf.text(fortuneLines, pageWidth / 2, currentY, { align: 'center' })
+      const fortuneLines = pdf.splitTextToSize(`"${ticketData.fortuneMessage}"`, pageWidth - margin * 2)
+      fortuneLines.forEach((line, idx) => {
+        pdf.text(line, pageWidth / 2, currentY + (idx * 3), { align: 'center' })
+      })
+      currentY += fortuneLines.length * 3
 
       currentY += 12
     }
@@ -227,11 +241,11 @@ export class LotteryPdfService {
 
     // Extraction Date
     pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
-    pdf.setFontSize(9)
+    pdf.setFontSize(7)
     pdf.setFont('helvetica', 'bold')
     pdf.text('DATA ESTRAZIONE', pageWidth / 2, currentY, { align: 'center' })
 
-    currentY += 5
+    currentY += 4
 
     const extractionDate = new Date(ticketData.extractionDate)
     const extractionStr = extractionDate.toLocaleDateString('it-IT', {
@@ -243,9 +257,13 @@ export class LotteryPdfService {
     })
 
     pdf.setTextColor(0, 0, 0)
-    pdf.setFontSize(9)
+    pdf.setFontSize(7)
     pdf.setFont('helvetica', 'bold')
-    pdf.text(extractionStr, pageWidth / 2, currentY, { align: 'center' })
+    const extractionLines = pdf.splitTextToSize(extractionStr, pageWidth - margin * 2)
+    extractionLines.forEach(line => {
+      pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 3.5
+    })
 
     // QR Code - Generate and add
     try {
@@ -258,24 +276,26 @@ export class LotteryPdfService {
         }
       })
 
-      const qrSize = 25
+      const qrSize = 20
       const qrX = (pageWidth - qrSize) / 2
-      const qrY = pageHeight - margin - qrSize - 10
+      const qrY = currentY + 5
 
       pdf.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize)
 
       // QR Code label
       pdf.setTextColor(100, 100, 100)
-      pdf.setFontSize(7)
+      pdf.setFontSize(6)
       pdf.setFont('helvetica', 'normal')
-      pdf.text('Scansiona per verificare', pageWidth / 2, qrY + qrSize + 4, { align: 'center' })
+      pdf.text('Scansiona per verificare', pageWidth / 2, qrY + qrSize + 3, { align: 'center' })
+
+      currentY = qrY + qrSize + 6
     } catch (err) {
       console.error('Error generating QR code:', err)
     }
 
     // Footer - Purchase info
     pdf.setTextColor(120, 120, 120)
-    pdf.setFontSize(7)
+    pdf.setFontSize(6)
     pdf.setFont('helvetica', 'normal')
     const createdDate = new Date(ticketData.createdAt)
     const createdStr = createdDate.toLocaleString('it-IT', {
@@ -285,7 +305,7 @@ export class LotteryPdfService {
       hour: '2-digit',
       minute: '2-digit'
     })
-    pdf.text(`Acquistato: ${createdStr}`, pageWidth / 2, pageHeight - margin - 2, { align: 'center' })
+    pdf.text(`Acquistato: ${createdStr}`, pageWidth / 2, currentY, { align: 'center' })
 
     // Return PDF as Blob
     return pdf.output('blob')
