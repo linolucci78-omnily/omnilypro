@@ -355,32 +355,25 @@ export class ZCSPrintService {
 
       // Call Android bridge to print image
       return new Promise((resolve) => {
-        // Set timeout to show logs if no response
-        let timeoutFired = false
-        const timeout = globalThis.setTimeout(() => {
-          timeoutFired = true
-          const allLogs = debugLogs.join('\n')
-          alert(`⏱️ TIMEOUT - No response from printer after 10s\n\n${allLogs}\n\n⚠️ Last step: Waiting for Android response...`)
-          resolve(false)
-        }, 10000)
+        addLog('🔄 Step 9: Setting up callback handler...')
 
         (window as any).omnilyLotteryImagePrintHandler = (result: any) => {
-          if (!timeoutFired) {
-            globalThis.clearTimeout(timeout)
-          }
+          addLog('✅ Step 10: Callback received!')
 
           if (result.success) {
-            addLog('✅ Step 9: SUCCESS - Image printed!')
+            addLog('✅ Step 11: SUCCESS - Image printed!')
             const allLogs = debugLogs.join('\n')
             alert(`✅ STAMPA COMPLETATA!\n\n${allLogs}`)
             resolve(true)
           } else {
-            addLog(`❌ Step 9: FAILED - ${result.error || 'Unknown error'}`)
+            addLog(`❌ Step 11: FAILED - ${result.error || 'Unknown error'}`)
             const allLogs = debugLogs.join('\n')
             alert(`❌ ERRORE STAMPA\n\n${allLogs}`)
             resolve(false)
           }
         }
+
+        addLog('✅ Step 9.1: Callback registered')
 
         // Try different methods on Android bridge
         console.log('🔍 DEBUG: About to check printBitmap')
