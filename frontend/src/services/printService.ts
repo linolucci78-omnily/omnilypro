@@ -396,7 +396,9 @@ export class ZCSPrintService {
           addLog('❌ Step 9: NO image print method found!')
           addLog(`Available: ${availableMethods.join(', ')}`)
           const allLogs = debugLogs.join('\n')
-          alert(`❌ METODO STAMPA NON DISPONIBILE\n\n${allLogs}\n\n💡 Serve implementare printBitmap, printImage o printPNG in Android`)
+          console.log('⚠️ Image printing not available, showing logs')
+          console.log(allLogs)
+          // Don't show alert, just fail silently and let the caller handle fallback
           resolve(false)
         }
       })

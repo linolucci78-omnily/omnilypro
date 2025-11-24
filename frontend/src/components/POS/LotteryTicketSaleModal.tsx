@@ -379,26 +379,31 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
   }
 
   const handlePrintTicketImage = async (ticket: LotteryTicket, pdfBlob: Blob) => {
-    if (!printerService) {
-      console.warn('Cannot print: missing printer service')
+    if (!printerService || !selectedEvent) {
+      console.warn('Cannot print: missing printer service or event')
       showToast('Stampante non disponibile', 'warning')
       return
     }
 
     try {
-      console.log('🖼️ Printing PDF as image on thermal printer...')
+      console.log('🖼️ Attempting to print PDF as image on thermal printer...')
       const success = await printerService.printLotteryTicketImage(pdfBlob)
 
       if (success) {
         console.log('✅ Biglietto stampato come immagine con successo!')
         showToast('Biglietto stampato con successo!', 'success')
       } else {
-        console.error('❌ Errore stampa biglietto immagine')
-        showToast('Errore durante la stampa del biglietto', 'error')
+        // Fallback to ASCII text printing if image printing not supported
+        console.warn('⚠️ Image printing not available, falling back to text printing')
+        showToast('Stampa immagine non disponibile, uso formato testo', 'info')
+        await handlePrintTicket(ticket)
       }
     } catch (error) {
       console.error('❌ Print image error:', error)
-      showToast('Errore durante la stampa del biglietto', 'error')
+      // Fallback to ASCII text printing on error
+      console.warn('⚠️ Image printing failed, falling back to text printing')
+      showToast('Errore stampa immagine, uso formato testo', 'warning')
+      await handlePrintTicket(ticket)
     }
   }
 
