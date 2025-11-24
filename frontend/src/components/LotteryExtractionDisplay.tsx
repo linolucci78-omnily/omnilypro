@@ -30,6 +30,7 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
   const [customMessage, setCustomMessage] = useState<string | null>(null)
   const [currentPrize, setCurrentPrize] = useState<{ rank: number; name: string; value?: number } | null>(null)
   const [isActivated, setIsActivated] = useState(false)
+  const [heartbeatPulse, setHeartbeatPulse] = useState(false)
 
   const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -131,6 +132,10 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
   // Cinematic heartbeat sound with Web Audio API
   const playCinematicHeartbeat = (intensity: number = 1) => {
     if (!audioContextRef.current) return
+
+    // Trigger visual pulse
+    setHeartbeatPulse(true)
+    setTimeout(() => setHeartbeatPulse(false), 300)
 
     const ctx = audioContextRef.current
     const now = ctx.currentTime
@@ -841,6 +846,38 @@ export const LotteryExtractionDisplay: React.FC<LotteryExtractionDisplayProps> =
 
               return (
                 <div className="locked-container">
+                  {/* SVG Battito Cardiaco Animato */}
+                  {(extractionPhase === 'slowing' || extractionPhase === 'locked') && (
+                    <div className={`heartbeat-overlay ${heartbeatPulse ? 'pulse' : ''}`}>
+                      <svg viewBox="0 0 200 200" className="heartbeat-svg">
+                        <defs>
+                          <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style={{ stopColor: colors.primary, stopOpacity: 0.3 }} />
+                            <stop offset="50%" style={{ stopColor: colors.accent, stopOpacity: 0.2 }} />
+                            <stop offset="100%" style={{ stopColor: colors.secondary, stopOpacity: 0.3 }} />
+                          </linearGradient>
+                        </defs>
+                        {/* Cuore anatomico stilizzato */}
+                        <path
+                          d="M100,170 C75,160 20,130 20,85 C20,60 40,45 60,45 C75,45 90,55 100,70 C110,55 125,45 140,45 C160,45 180,60 180,85 C180,130 125,160 100,170 Z"
+                          fill="url(#heartGradient)"
+                          stroke={colors.accent}
+                          strokeWidth="2"
+                          className="heart-shape"
+                        />
+                        {/* Linea ECG dentro il cuore */}
+                        <path
+                          d="M 40,100 L 60,100 L 65,85 L 70,115 L 75,95 L 80,105 L 160,105"
+                          fill="none"
+                          stroke={colors.accent}
+                          strokeWidth="2.5"
+                          className="ecg-line"
+                          opacity="0.6"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
                   {/* Particelle luminose animate */}
                   <div className="light-particles">
                     {[...Array(20)].map((_, i) => (
