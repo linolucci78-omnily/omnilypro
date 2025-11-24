@@ -353,70 +353,32 @@ export class ZCSPrintService {
       addLog(`📋 Step 8.1: printBitmap exists? ${hasPrintBitmap}`)
       addLog(`📋 Step 8.2: typeof printBitmap = ${typeof (window as any).OmnilyPOS?.printBitmap}`)
 
-      // Call Android bridge to print image
+      // Call Android bridge to print image - SIMPLIFIED
+      addLog('Step 9: Setting up callback')
+
       return new Promise((resolve) => {
-        addLog('🔄 Step 9: Setting up callback handler...')
+        const w = window as any
 
-        (window as any).omnilyLotteryImagePrintHandler = (result: any) => {
-          addLog('✅ Step 10: Callback received!')
+        w.omnilyLotteryImagePrintHandler = function(result: any) {
+          addLog('Step 10: Callback received')
 
-          if (result.success) {
-            addLog('✅ Step 11: SUCCESS - Image printed!')
-            const allLogs = debugLogs.join('\n')
-            alert(`✅ STAMPA COMPLETATA!\n\n${allLogs}`)
+          if (result && result.success) {
+            addLog('Step 11: SUCCESS!')
             resolve(true)
           } else {
-            addLog(`❌ Step 11: FAILED - ${result.error || 'Unknown error'}`)
-            const allLogs = debugLogs.join('\n')
-            alert(`❌ ERRORE STAMPA\n\n${allLogs}`)
+            addLog('Step 11: FAILED')
             resolve(false)
           }
         }
 
-        addLog('✅ Step 9.1: Callback registered')
+        addLog('Step 9.1: Calling printBitmap')
 
-        // Try different methods on Android bridge
-        console.log('🔍 DEBUG: About to check printBitmap')
-        console.log('🔍 DEBUG: typeof OmnilyPOS.printBitmap =', typeof (window as any).OmnilyPOS?.printBitmap)
-        addLog('🔍 Step 9: Checking if printBitmap method exists...')
-        if ((window as any).OmnilyPOS.printBitmap) {
-          console.log('✅ DEBUG: Inside printBitmap if block!')
-          addLog('📤 Step 9.1: printBitmap found! Preparing call...')
-          addLog(`📤 Step 9.2: Base64 length: ${pngBase64.length}`)
-          addLog(`📤 Step 9.3: Callback name: omnilyLotteryImagePrintHandler`)
-
-          try {
-            console.log('🔧 DEBUG: About to call printBitmap with', pngBase64.length, 'chars')
-            addLog('📤 Step 9.4: Executing bridge call...')
-            ;(window as any).OmnilyPOS.printBitmap(
-              pngBase64,
-              'omnilyLotteryImagePrintHandler'
-            )
-            console.log('✅ DEBUG: printBitmap called successfully!')
-            addLog('✅ Step 9.5: Bridge call executed (no exception)')
-          } catch (err) {
-            addLog(`❌ Step 9.4: Exception during bridge call: ${err}`)
-            throw err
-          }
-        } else if ((window as any).OmnilyPOS.printImage) {
-          addLog('📤 Step 9: Calling printImage()...')
-          ;(window as any).OmnilyPOS.printImage(
-            pngBase64,
-            'omnilyLotteryImagePrintHandler'
-          )
-        } else if ((window as any).OmnilyPOS.printPNG) {
-          addLog('📤 Step 9: Calling printPNG()...')
-          ;(window as any).OmnilyPOS.printPNG(
-            pngBase64,
-            'omnilyLotteryImagePrintHandler'
-          )
+        const bridge = w.OmnilyPOS
+        if (bridge && bridge.printBitmap) {
+          bridge.printBitmap(pngBase64, 'omnilyLotteryImagePrintHandler')
+          addLog('Step 9.2: printBitmap called')
         } else {
-          addLog('❌ Step 9: NO image print method found!')
-          addLog(`Available: ${availableMethods.join(', ')}`)
-          const allLogs = debugLogs.join('\n')
-          console.log('⚠️ Image printing not available, showing logs')
-          console.log(allLogs)
-          // Don't show alert, just fail silently and let the caller handle fallback
+          addLog('Step 9.2: printBitmap not found')
           resolve(false)
         }
       })
