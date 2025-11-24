@@ -1118,7 +1118,7 @@ public class MainActivityFinal extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAvailableMethods() {
-            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAppVersion,getAvailableMethods";
+            String methods = "readNFCCard,readNFCCardAsync,readNFCCardSync,readQRCode,readQRCodeAsync,cancelQRScanner,showToast,beep,registerNFCResultCallback,unregisterNFCResultCallback,stopNFCReading,updateCustomerDisplay,inputAmount,inputAmountAsync,printReceipt,printText,printQRCode,printBarcode,printBitmap,cutPaper,initPrinter,testPrinter,getNetworkInfo,getBridgeVersion,getAppVersion,getAvailableMethods";
             Log.d(TAG, "getAvailableMethods called - returning: " + methods);
             return methods;
         }
@@ -1497,6 +1497,99 @@ public class MainActivityFinal extends AppCompatActivity {
                         runJsCallback(callbackName, result.toString());
                     } catch (Exception jsonE) {
                         Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void printBitmap(String base64Image, String callbackName) {
+            Log.d(TAG, "printBitmap called with callback: " + callbackName);
+            Log.d(TAG, "Image data length: " + (base64Image != null ? base64Image.length() : 0));
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error creating JSON response", e);
+                }
+                return;
+            }
+
+            runOnUiThread(() -> {
+                try {
+                    Log.d(TAG, "Converting base64 to bitmap...");
+
+                    // Remove data:image prefix if present
+                    String base64Data = base64Image;
+                    if (base64Image.contains(",")) {
+                        base64Data = base64Image.substring(base64Image.indexOf(",") + 1);
+                    }
+
+                    // Decode base64 string to bitmap
+                    byte[] decodedBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+                    Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+
+                    if (bitmap == null) {
+                        Log.e(TAG, "Failed to decode bitmap from base64");
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Failed to decode image");
+                        runJsCallback(callbackName, result.toString());
+                        return;
+                    }
+
+                    Log.d(TAG, "Bitmap decoded successfully. Size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+
+                    // Scale bitmap to fit thermal printer (58mm = max 384 pixels width)
+                    int maxWidth = 384; // Maximum width for 58mm thermal printer
+                    if (bitmap.getWidth() > maxWidth) {
+                        Log.d(TAG, "Scaling bitmap to fit printer width...");
+                        float scale = (float) maxWidth / bitmap.getWidth();
+                        int newHeight = (int) (bitmap.getHeight() * scale);
+                        bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
+                        Log.d(TAG, "Bitmap scaled to: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+                    }
+
+                    // Print the bitmap
+                    Log.d(TAG, "Printing bitmap...");
+                    mPrinter.setPrintAppendBitmap(bitmap, Layout.Alignment.ALIGN_CENTER);
+
+                    // Add some paper feed after the image
+                    PrnStrFormat format = new PrnStrFormat();
+                    format.setTextSize(24);
+                    format.setAli(Layout.Alignment.ALIGN_NORMAL);
+                    mPrinter.setPrintAppendString("\n\n\n\n\n", format);
+
+                    // Start printing
+                    int printStatus = mPrinter.setPrintStart();
+
+                    JSONObject result = new JSONObject();
+                    if (printStatus == SdkResult.SDK_OK) {
+                        result.put("success", true);
+                        result.put("message", "Bitmap printed successfully");
+                        Log.d(TAG, "Bitmap printed successfully");
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Print start failed with status: " + printStatus);
+                        Log.e(TAG, "Print start failed with status: " + printStatus);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error printing bitmap", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Print error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (JSONException je) {
+                        Log.e(TAG, "Error creating error JSON", je);
                     }
                 }
             });

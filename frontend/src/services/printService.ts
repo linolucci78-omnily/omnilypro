@@ -346,7 +346,12 @@ export class ZCSPrintService {
 
       // Check available Android methods
       const availableMethods = Object.keys((window as any).OmnilyPOS || {})
-      addLog(`📋 Step 8: Android bridge methods: ${availableMethods.join(', ')}`)
+      addLog(`📋 Step 8: Android bridge has ${availableMethods.length} methods`)
+
+      // Check if printBitmap exists
+      const hasPrintBitmap = typeof (window as any).OmnilyPOS?.printBitmap === 'function'
+      addLog(`📋 Step 8.1: printBitmap exists? ${hasPrintBitmap}`)
+      addLog(`📋 Step 8.2: typeof printBitmap = ${typeof (window as any).OmnilyPOS?.printBitmap}`)
 
       // Call Android bridge to print image
       return new Promise((resolve) => {
