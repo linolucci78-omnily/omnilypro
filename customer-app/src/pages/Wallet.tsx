@@ -58,7 +58,7 @@ export default function Wallet() {
         const certificates = await giftCertificatesService.getCustomerGiftCertificates(
           organization.id,
           customer.email,
-          customer.phone
+          customer.phone || undefined
         )
 
         // Converti i gift certificates in GiftCard format

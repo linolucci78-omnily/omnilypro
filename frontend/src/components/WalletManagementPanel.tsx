@@ -11,10 +11,13 @@ import {
   Phone,
   Mail,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Printer
 } from 'lucide-react'
 import { walletService } from '../services/walletService'
 import type { CustomerWallet, WalletTransaction } from '../services/walletService'
+import { createPrintService } from '../services/printService'
+import { supabase } from '../lib/supabase'
 import Toast from './Toast'
 import './WalletManagementPanel.css'
 
@@ -39,6 +42,7 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
   const [transactions, setTransactions] = useState<WalletTransaction[]>([])
   const [showTopUpModal, setShowTopUpModal] = useState(false)
   const [topUpAmount, setTopUpAmount] = useState('')
+  const [printReceipt, setPrintReceipt] = useState(true) // Toggle stampa ricevuta
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   useEffect(() => {
@@ -48,10 +52,14 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
   const loadWallets = async () => {
     setLoading(true)
     try {
+      console.log('🔍 Loading wallets for organization:', organizationId)
       const data = await walletService.getOrganizationWallets(organizationId)
+      console.log('✅ Wallets loaded:', data.length, 'wallets')
+      console.log('📊 Wallet data:', data)
       setWallets(data)
     } catch (error) {
-      console.error('Error loading wallets:', error)
+      console.error('❌ Error loading wallets:', error)
+      setToast({ message: 'Errore caricamento wallet', type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -69,6 +77,71 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
   const handleWalletClick = async (wallet: any) => {
     setSelectedWallet(wallet)
     await loadTransactions(wallet.id)
+  }
+
+  const printTopUpReceipt = async (customer: any, amount: number, newBalance: number, transaction: any) => {
+    try {
+      console.log('🖨️ Avvio stampa ricevuta ricarica wallet...')
+
+      // Carica configurazione stampante dall'organizzazione
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('print_config, name, vat_number, address, city, zip_code, country')
+        .eq('id', organizationId)
+        .single()
+
+      if (!org) {
+        console.error('❌ Organizzazione non trovata')
+        return
+      }
+
+      const printConfig = org.print_config || {}
+      const printService = createPrintService(printConfig)
+      const initialized = await printService.initialize()
+
+      if (!initialized) {
+        console.error('❌ Errore inizializzazione stampante')
+        return
+      }
+
+      // Prepara dati ricevuta
+      const receiptData = {
+        type: 'wallet_topup',
+        organization: {
+          name: org.name || 'OmnilyPro',
+          vat_number: org.vat_number || '',
+          address: org.address || '',
+          city: org.city || '',
+          zip_code: org.zip_code || '',
+          country: org.country || 'Italia'
+        },
+        customer: {
+          name: customer?.name || 'Cliente',
+          email: customer?.email || '',
+          phone: customer?.phone || ''
+        },
+        topup: {
+          amount: amount,
+          previous_balance: newBalance - amount,
+          new_balance: newBalance,
+          transaction_id: transaction?.id || '',
+          timestamp: new Date().toISOString(),
+          payment_method: 'Carta di Credito'
+        },
+        timestamp: new Date().toISOString(),
+        receipt_number: `WLT-${Date.now()}`
+      }
+
+      const printed = await printService.printReceiptOptimized(receiptData)
+
+      if (printed) {
+        console.log('✅ Ricevuta ricarica wallet stampata con successo!')
+      } else {
+        console.error('❌ Errore durante la stampa della ricevuta')
+      }
+    } catch (error) {
+      console.error('❌ Errore stampa ricevuta:', error)
+    }
   }
 
   const handleTopUp = async () => {
@@ -91,6 +164,12 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
 
       if (result.success) {
         setToast({ message: `Ricarica di €${amount.toFixed(2)} completata!`, type: 'success' })
+
+        // Stampa ricevuta se richiesto
+        if (printReceipt) {
+          await printTopUpReceipt(selectedWallet.customer, amount, result.newBalance || selectedWallet.balance, result.transaction)
+        }
+
         setShowTopUpModal(false)
         setTopUpAmount('')
         await loadWallets()
@@ -171,7 +250,21 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
             ) : filteredWallets.length === 0 ? (
               <div className="wallet-empty">
                 <Wallet size={48} style={{ opacity: 0.3 }} />
-                <p>Nessun wallet trovato</p>
+                {searchTerm ? (
+                  <>
+                    <p>Nessun wallet trovato per "{searchTerm}"</p>
+                    <small style={{ color: '#6b7280', marginTop: '0.5rem' }}>
+                      Prova a cercare con email o telefono
+                    </small>
+                  </>
+                ) : (
+                  <>
+                    <p>Nessun wallet disponibile</p>
+                    <small style={{ color: '#6b7280', marginTop: '0.5rem' }}>
+                      I wallet vengono creati automaticamente alla registrazione dei clienti
+                    </small>
+                  </>
+                )}
               </div>
             ) : (
               filteredWallets.map((wallet) => (
@@ -341,6 +434,56 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
                     €{amount}
                   </button>
                 ))}
+              </div>
+
+              {/* Toggle Stampa Ricevuta */}
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <button
+                    onClick={() => setPrintReceipt(!printReceipt)}
+                    style={{
+                      width: '52px',
+                      height: '26px',
+                      borderRadius: '13px',
+                      position: 'relative',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      backgroundColor: printReceipt ? '#10b981' : '#4b5563',
+                      padding: 0,
+                      outline: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: printReceipt ? 'flex-start' : 'flex-end',
+                      paddingLeft: printReceipt ? '3px' : '0',
+                      paddingRight: printReceipt ? '0' : '3px'
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '3px',
+                      left: printReceipt ? '28px' : '3px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      backgroundColor: 'white',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Printer size={11} color={printReceipt ? '#10b981' : '#6b7280'} strokeWidth={2.5} />
+                    </div>
+                  </button>
+                  <span style={{
+                    fontSize: '0.875rem',
+                    color: printReceipt ? '#10b981' : '#6b7280',
+                    fontWeight: '500'
+                  }}>
+                    {printReceipt ? '✓ Stampa ricevuta' : 'Solo digitale'}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="modal-footer">
