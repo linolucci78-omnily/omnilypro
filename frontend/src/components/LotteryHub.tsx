@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Ticket, TrendingUp, Trophy, Users, DollarSign, Play, Calendar, Plus, ExternalLink, Radio, ArrowLeft, BarChart3 } from 'lucide-react'
+import { Ticket, TrendingUp, Trophy, Users, DollarSign, Play, Calendar, Plus, ExternalLink, Radio, ArrowLeft, BarChart3, Scan } from 'lucide-react'
 import { lotteryService, LotteryEvent } from '../services/lotteryService'
 import { supabase } from '../lib/supabase'
 import LotteryManagement from './LotteryManagement'
 import { LotteryRemoteControlModal } from './LotteryRemoteControlModal'
+import LotteryTicketVerifier from './LotteryTicketVerifier'
 import './LotteryHub.css'
 
 interface LotteryHubProps {
@@ -27,6 +28,7 @@ const LotteryHub: React.FC<LotteryHubProps> = ({
   const [events, setEvents] = useState<LotteryEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [showRemoteControl, setShowRemoteControl] = useState(false)
+  const [showVerifier, setShowVerifier] = useState(false)
   const [stats, setStats] = useState({
     totalEvents: 0,
     activeEvents: 0,
@@ -226,6 +228,15 @@ const LotteryHub: React.FC<LotteryHubProps> = ({
 
           <button
             className="lottery-action-card lottery-action-secondary"
+            onClick={() => setShowVerifier(true)}
+          >
+            <Scan size={32} />
+            <h3>Verifica Biglietto</h3>
+            <p>Scansiona QR code per verificare autenticità</p>
+          </button>
+
+          <button
+            className="lottery-action-card lottery-action-secondary"
             onClick={() => {
               // Apri primo evento attivo in display mode
               const activeEvent = events.find(e => e.status === 'active')
@@ -325,6 +336,67 @@ const LotteryHub: React.FC<LotteryHubProps> = ({
         primaryColor={primaryColor}
         secondaryColor={secondaryColor}
       />
+
+      {/* Ticket Verifier Modal */}
+      {showVerifier && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setShowVerifier(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowVerifier(false)}
+              style={{
+                position: 'absolute',
+                top: '15px',
+                right: '15px',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                zIndex: 10
+              }}
+            >
+              ×
+            </button>
+            <LotteryTicketVerifier
+              organizationId={organizationId}
+              primaryColor={primaryColor}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -72,14 +72,11 @@
    ============================================ */
 
 .customer-card-tier-badge {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 2px 28px;
+  padding: 6px 28px;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
@@ -90,6 +87,7 @@
   border: 1px solid var(--tier-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 12px 0;
 }
 
 .customer-card-animated:hover .customer-card-tier-badge {

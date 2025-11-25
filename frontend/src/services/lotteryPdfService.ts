@@ -17,6 +17,11 @@ interface LotteryTicketData {
   qrCodeData: string
   organizationName?: string
   organizationLogo?: string
+  organizationAddress?: string
+  organizationPhone?: string
+  organizationEmail?: string
+  organizationVAT?: string
+  organizationWebsite?: string
   brandColors?: {
     primary: string
     secondary: string
@@ -62,54 +67,72 @@ export class LotteryPdfService {
     const pageHeight = 200
     const margin = 4
 
-    // Background gradient effect with rectangles
-    pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
-    pdf.rect(0, 0, pageWidth, 30, 'F')
+    // Classic header with organization info
+    let headerY = margin + 3
 
-    pdf.setFillColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b)
-    pdf.rect(0, 30, pageWidth, 15, 'F')
-
-    // Organization Logo (if provided)
+    // Organization Logo (if provided) - centered
     if (ticketData.organizationLogo) {
       try {
-        pdf.addImage(ticketData.organizationLogo, 'PNG', margin, margin, 20, 20)
+        const logoSize = 16
+        const logoX = (pageWidth - logoSize) / 2
+        pdf.addImage(ticketData.organizationLogo, 'PNG', logoX, headerY, logoSize, logoSize)
+        headerY += logoSize + 3
       } catch (err) {
         console.warn('Could not add organization logo:', err)
       }
     }
 
-    // Organization Name
+    // Organization Name - classic serif font
     if (ticketData.organizationName) {
-      pdf.setTextColor(255, 255, 255)
+      pdf.setTextColor(0, 0, 0)
       pdf.setFontSize(8)
-      pdf.setFont('helvetica', 'bold')
+      pdf.setFont('times', 'bold')
       const orgLines = pdf.splitTextToSize(ticketData.organizationName.toUpperCase(), pageWidth - margin * 2)
-      orgLines.forEach((line, idx) => {
-        pdf.text(line, pageWidth / 2, margin + 5 + (idx * 3), {
-          align: 'center'
-        })
+      orgLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, headerY, { align: 'center' })
+        headerY += 3.5
       })
+      headerY += 2
     }
 
-    // Title - BIGLIETTO LOTTERIA
-    pdf.setTextColor(255, 255, 255)
-    pdf.setFontSize(11)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('BIGLIETTO', pageWidth / 2, 18, { align: 'center' })
-    pdf.text('LOTTERIA', pageWidth / 2, 23, { align: 'center' })
+    // Decorative line separator
+    pdf.setDrawColor(0, 0, 0)
+    pdf.setLineWidth(0.8)
+    pdf.line(margin + 6, headerY, pageWidth - margin - 6, headerY)
+    headerY += 1
+    pdf.setLineWidth(0.3)
+    pdf.line(margin + 6, headerY, pageWidth - margin - 6, headerY)
+    headerY += 5
 
-    // Event Name
-    pdf.setFontSize(9)
-    pdf.setFont('helvetica', 'bold')
+    // Title - BIGLIETTO LOTTERIA (classic style)
+    pdf.setTextColor(0, 0, 0)
+    pdf.setFontSize(10)
+    pdf.setFont('times', 'bold')
+    pdf.text('BIGLIETTO LOTTERIA', pageWidth / 2, headerY, { align: 'center' })
+    headerY += 5
+
+    // Event Name - classic style
+    pdf.setFontSize(8)
+    pdf.setFont('times', 'bold')
     const eventNameLines = pdf.splitTextToSize(ticketData.eventName.toUpperCase(), pageWidth - margin * 2)
-    let eventY = 30
     eventNameLines.forEach(line => {
-      pdf.text(line, pageWidth / 2, eventY, { align: 'center' })
-      eventY += 4
+      pdf.text(line, pageWidth / 2, headerY, { align: 'center' })
+      headerY += 3.5
     })
 
-    // White background for content
-    let currentY = 50
+    // Bottom decorative line
+    headerY += 2
+    pdf.setDrawColor(0, 0, 0)
+    pdf.setLineWidth(0.8)
+    pdf.line(margin + 6, headerY, pageWidth - margin - 6, headerY)
+    headerY += 1
+    pdf.setLineWidth(0.3)
+    pdf.line(margin + 6, headerY, pageWidth - margin - 6, headerY)
+
+    headerY += 5
+
+    // White background for content - starts after dynamic header
+    let currentY = headerY
     pdf.setFillColor(255, 255, 255)
     pdf.rect(margin, currentY, pageWidth - margin * 2, pageHeight - currentY - margin, 'F')
 
@@ -222,42 +245,31 @@ export class LotteryPdfService {
     pdf.line(margin + 8, currentY, pageWidth - margin - 8, currentY)
     currentY += 5
 
-    // Fortune Message
+    // Fortune Message - Classic italic style
     if (ticketData.fortuneMessage) {
+      pdf.setTextColor(60, 60, 60)
+      pdf.setFontSize(7)
+      pdf.setFont('times', 'italic')
+      const fortuneLines = pdf.splitTextToSize(`"${ticketData.fortuneMessage}"`, pageWidth - margin * 2 - 8)
+      fortuneLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 3
+      })
+
       currentY += 3
 
-      // Box with fortune
-      pdf.setFillColor(255, 250, 240)
-      pdf.roundedRect(margin + 3, currentY - 3, pageWidth - margin * 2 - 6, 12, 2, 2, 'F')
-
-      pdf.setDrawColor(accentRgb.r, accentRgb.g, accentRgb.b)
+      // Separator line
+      pdf.setDrawColor(0, 0, 0)
       pdf.setLineWidth(0.3)
-      pdf.roundedRect(margin + 3, currentY - 3, pageWidth - margin * 2 - 6, 12, 2, 2, 'S')
-
-      pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
-      pdf.setFontSize(7)
-      pdf.setFont('helvetica', 'italic')
-      const fortuneLines = pdf.splitTextToSize(`"${ticketData.fortuneMessage}"`, pageWidth - margin * 2)
-      fortuneLines.forEach((line, idx) => {
-        pdf.text(line, pageWidth / 2, currentY + (idx * 3), { align: 'center' })
-      })
-      currentY += fortuneLines.length * 3
-
-      currentY += 12
+      pdf.line(margin + 8, currentY, pageWidth - margin - 8, currentY)
+      currentY += 5
     }
 
-    // Divider
-    currentY += 3
-    pdf.setDrawColor(200, 200, 200)
-    pdf.setLineWidth(0.3)
-    pdf.line(margin + 5, currentY, pageWidth - margin - 5, currentY)
-    currentY += 5
-
-    // Extraction Date
-    pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
+    // Extraction Date - Classic style
+    pdf.setTextColor(0, 0, 0)
     pdf.setFontSize(7)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('DATA ESTRAZIONE', pageWidth / 2, currentY, { align: 'center' })
+    pdf.setFont('times', 'normal')
+    pdf.text('Estrazione:', pageWidth / 2, currentY, { align: 'center' })
 
     currentY += 4
 
@@ -270,19 +282,26 @@ export class LotteryPdfService {
       minute: '2-digit'
     })
 
-    pdf.setTextColor(0, 0, 0)
-    pdf.setFontSize(7)
-    pdf.setFont('helvetica', 'bold')
-    const extractionLines = pdf.splitTextToSize(extractionStr, pageWidth - margin * 2)
+    pdf.setFontSize(7.5)
+    pdf.setFont('times', 'bold')
+    const extractionLines = pdf.splitTextToSize(extractionStr, pageWidth - margin * 2 - 8)
     extractionLines.forEach(line => {
       pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
       currentY += 3.5
     })
 
-    // QR Code - Generate and add with HIGH QUALITY for sharp scanning
+    currentY += 2
+
+    // Separator line
+    pdf.setDrawColor(0, 0, 0)
+    pdf.setLineWidth(0.3)
+    pdf.line(margin + 8, currentY, pageWidth - margin - 8, currentY)
+    currentY += 5
+
+    // QR Code - HIGH QUALITY with simple classic border
     try {
       const qrCodeDataUrl = await QRCode.toDataURL(ticketData.qrCodeData, {
-        width: 600,  // MOLTO PIÙ ALTA RISOLUZIONE per nitidezza
+        width: 600,  // ALTA RISOLUZIONE per scansione nitida
         margin: 2,
         errorCorrectionLevel: 'H',  // Massima correzione errori
         color: {
@@ -291,61 +310,100 @@ export class LotteryPdfService {
         }
       })
 
-      const qrSize = 25  // Più grande per migliore scansione
+      const qrSize = 28  // Grande per scansione facile
       const qrX = (pageWidth - qrSize) / 2
-      const qrY = currentY + 5
+      const qrY = currentY + 3
 
-      // Decorative frame around QR code
-      const frameSize = qrSize + 4
-      const frameX = (pageWidth - frameSize) / 2
-
-      // Light background for QR
-      pdf.setFillColor(250, 250, 250)
-      pdf.roundedRect(frameX, qrY - 2, frameSize, frameSize, 2, 2, 'F')
-
-      // Double border around QR
-      pdf.setDrawColor(accentRgb.r, accentRgb.g, accentRgb.b)
-      pdf.setLineWidth(0.8)
-      pdf.roundedRect(frameX, qrY - 2, frameSize, frameSize, 2, 2, 'S')
-
-      pdf.setLineWidth(0.3)
-      pdf.roundedRect(frameX + 1, qrY - 1, frameSize - 2, frameSize - 2, 1.5, 1.5, 'S')
+      // Simple black border around QR (classic style)
+      pdf.setDrawColor(0, 0, 0)
+      pdf.setLineWidth(0.5)
+      pdf.rect(qrX - 1, qrY - 1, qrSize + 2, qrSize + 2, 'S')
 
       // Add QR code - ALTA QUALITÀ
       pdf.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize)
 
-      // Decorative corners
-      pdf.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b)
-      pdf.setFontSize(6)
-      pdf.text('◢', frameX + 1, qrY - 1, { align: 'left' })
-      pdf.text('◣', frameX + frameSize - 1, qrY - 1, { align: 'right' })
-
       // QR Code label
-      pdf.setTextColor(100, 100, 100)
+      pdf.setTextColor(80, 80, 80)
       pdf.setFontSize(6)
-      pdf.setFont('helvetica', 'normal')
-      pdf.text('Scansiona per verificare', pageWidth / 2, qrY + qrSize + 5, { align: 'center' })
+      pdf.setFont('times', 'italic')
+      pdf.text('Codice di verifica', pageWidth / 2, qrY + qrSize + 4, { align: 'center' })
 
       currentY = qrY + qrSize + 8
     } catch (err) {
       console.error('Error generating QR code:', err)
     }
 
-    // Footer - Purchase info with decorative elements
+    // Footer - Organization info and purchase details
     currentY += 2
 
-    // Top decorative line
-    pdf.setTextColor(200, 200, 200)
-    pdf.setFontSize(8)
-    pdf.setFont('helvetica', 'normal')
-    const dotsFooter = '• • • • • • • • • • • • • •'
-    pdf.text(dotsFooter, pageWidth / 2, currentY, { align: 'center' })
+    // Separator line
+    pdf.setDrawColor(0, 0, 0)
+    pdf.setLineWidth(0.3)
+    pdf.line(margin + 8, currentY, pageWidth - margin - 8, currentY)
 
     currentY += 4
 
-    pdf.setTextColor(120, 120, 120)
+    // Organization details in footer
+    pdf.setTextColor(80, 80, 80)
     pdf.setFontSize(6)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont('times', 'bold')
+
+    if (ticketData.organizationName) {
+      const orgNameLines = pdf.splitTextToSize(ticketData.organizationName.toUpperCase(), pageWidth - margin * 2 - 6)
+      orgNameLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 2.5
+      })
+      currentY += 1
+    }
+
+    pdf.setFont('times', 'normal')
+    pdf.setFontSize(5.5)
+
+    if (ticketData.organizationAddress) {
+      const addressLines = pdf.splitTextToSize(ticketData.organizationAddress, pageWidth - margin * 2 - 6)
+      addressLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 2.5
+      })
+    }
+
+    if (ticketData.organizationPhone) {
+      pdf.text(`Tel. ${ticketData.organizationPhone}`, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 2.5
+    }
+
+    if (ticketData.organizationEmail) {
+      const emailLines = pdf.splitTextToSize(ticketData.organizationEmail, pageWidth - margin * 2 - 6)
+      emailLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 2.5
+      })
+    }
+
+    if (ticketData.organizationWebsite) {
+      const websiteLines = pdf.splitTextToSize(ticketData.organizationWebsite, pageWidth - margin * 2 - 6)
+      websiteLines.forEach(line => {
+        pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
+        currentY += 2.5
+      })
+    }
+
+    if (ticketData.organizationVAT) {
+      pdf.text(`P.IVA: ${ticketData.organizationVAT}`, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 2.5
+    }
+
+    // Separator before ticket emission info
+    currentY += 2
+    pdf.setLineWidth(0.2)
+    pdf.line(margin + 10, currentY, pageWidth - margin - 10, currentY)
+    currentY += 3
+
+    // Ticket emission info
+    pdf.setTextColor(100, 100, 100)
+    pdf.setFontSize(5.5)
+    pdf.setFont('times', 'italic')
     const createdDate = new Date(ticketData.createdAt)
     const createdStr = createdDate.toLocaleString('it-IT', {
       day: '2-digit',
@@ -354,22 +412,14 @@ export class LotteryPdfService {
       hour: '2-digit',
       minute: '2-digit'
     })
-    pdf.text(`Acquistato: ${createdStr}`, pageWidth / 2, currentY, { align: 'center' })
+    pdf.text(`Emesso il ${createdStr}`, pageWidth / 2, currentY, { align: 'center' })
 
     // Staff info if available
     if (ticketData.purchasedByStaff) {
-      currentY += 3
-      pdf.setFontSize(5.5)
-      pdf.text(`Staff: ${ticketData.purchasedByStaff}`, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 2.5
+      pdf.setFontSize(5)
+      pdf.text(`Operatore: ${ticketData.purchasedByStaff}`, pageWidth / 2, currentY, { align: 'center' })
     }
-
-    currentY += 4
-
-    // Bottom decorative stars
-    pdf.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b)
-    pdf.setFontSize(7)
-    const starsFooter = '★  ★  ★'
-    pdf.text(starsFooter, pageWidth / 2, currentY, { align: 'center' })
 
     // Return PDF as Blob
     return pdf.output('blob')

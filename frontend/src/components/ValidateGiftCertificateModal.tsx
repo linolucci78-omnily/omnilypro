@@ -34,6 +34,8 @@ interface ValidateGiftCertificateModalProps {
   organizationId: string;
   organizationName: string;
   printService?: any; // ZCSPrintService instance
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
 const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> = ({
@@ -43,7 +45,9 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
   onRedeem,
   organizationId,
   organizationName,
-  printService
+  printService,
+  primaryColor = '#dc2626',
+  secondaryColor = '#ef4444'
 }) => {
   const [code, setCode] = useState('');
   const [isValidating, setIsValidating] = useState(false);
@@ -307,7 +311,14 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
 
       <div className="validate-gc-panel open">
         {/* Header */}
-        <div className="modal-header">
+        <div
+          className="modal-header"
+          style={{
+            background: `linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 50%, ${primaryColor} 100%)`,
+            '--primary-color': primaryColor,
+            '--secondary-color': secondaryColor
+          } as React.CSSProperties}
+        >
           <div className="modal-header-content">
             <QrCode size={24} />
             <h2>Valida Gift Certificate</h2>
@@ -319,6 +330,7 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
 
         {/* Body */}
         <div className="modal-body">
+          <div className="validate-gc-body-inner">
 
           {/* Input Section */}
           <div className="input-section">
@@ -474,37 +486,34 @@ const ValidateGiftCertificateModal: React.FC<ValidateGiftCertificateModalProps> 
           )}
         </div>
 
-        {/* Footer */}
-        <div className="modal-footer">
-          <button
-            onClick={onClose}
-            className="btn-secondary"
-            disabled={isValidating}
-          >
-            Chiudi
-          </button>
+        {/* Footer - Only show if there are action buttons */}
+        {(validationResult?.gift_certificate && printService) || (validationResult?.can_redeem && onRedeem) ? (
+          <div className="modal-footer">
+            <div className="validate-gc-footer-inner">
+              {validationResult?.gift_certificate && printService && (
+                <button
+                  onClick={handlePrintVoucher}
+                  className="btn-secondary"
+                  disabled={isValidating}
+                >
+                  <Printer size={18} />
+                  Stampa Voucher
+                </button>
+              )}
 
-          {validationResult?.gift_certificate && printService && (
-            <button
-              onClick={handlePrintVoucher}
-              className="btn-secondary"
-              disabled={isValidating}
-            >
-              <Printer size={18} />
-              Stampa Voucher
-            </button>
-          )}
-
-          {validationResult?.can_redeem && onRedeem && (
-            <button
-              onClick={handleRedeemClick}
-              className="btn-primary"
-              disabled={isValidating}
-            >
-              <DollarSign size={18} />
-              Procedi al Riscatto
-            </button>
-          )}
+              {validationResult?.can_redeem && onRedeem && (
+                <button
+                  onClick={handleRedeemClick}
+                  className="btn-primary"
+                  disabled={isValidating}
+                >
+                  <DollarSign size={18} />
+                  Procedi al Riscatto
+                </button>
+              )}
+            </div>
+          </div>
+        ) : null}
         </div>
       </div>
     </>

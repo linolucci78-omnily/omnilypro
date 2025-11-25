@@ -11,6 +11,7 @@ import Rewards from './pages/Rewards'
 import Coupons from './pages/Coupons'
 import Profile from './pages/Profile'
 import Wallet from './pages/Wallet'
+import WalletTransactions from './pages/WalletTransactions'
 import Settings from './pages/Settings'
 import AccountDetails from './pages/AccountDetails'
 import { getCookie } from './utils/cookies'
@@ -208,6 +209,7 @@ function App() {
           <Route path="coupons" element={<Coupons />} />
           <Route path="profile" element={<Profile />} />
           <Route path="wallet" element={<Wallet />} />
+          <Route path="wallet/transactions" element={<WalletTransactions />} />
           <Route path="settings" element={<Settings />} />
           <Route path="account" element={<AccountDetails />} />
           <Route path="*" element={<Navigate to="login" replace />} />

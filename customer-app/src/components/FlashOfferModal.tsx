@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Copy, Sparkles, Clock, Save } from 'lucide-react'
+import { Copy, Sparkles, Clock, Save, ArrowLeft } from 'lucide-react'
 
 interface FlashOfferModalProps {
   offer: {
@@ -45,35 +45,39 @@ export default function FlashOfferModal({ offer, onClose, onSave }: FlashOfferMo
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-end justify-center z-[100]"
+      className="fixed inset-0 bg-white flex items-center justify-center z-[9999] overflow-y-auto"
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-t-3xl w-full max-w-md pb-6 animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header gradient - SOLO icona sparkle grande */}
-        <div className="relative bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-t-3xl pt-8 pb-12 overflow-hidden">
-          {/* Close button */}
+      <div className="w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+        {/* Header con back button */}
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <X className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <ArrowLeft className="w-6 h-6 text-gray-900" strokeWidth={2.5} />
           </button>
-
-          {/* Grande icona sparkle al centro */}
-          <div className="flex justify-center">
-            <Sparkles className="w-24 h-24 text-yellow-300" fill="currentColor" strokeWidth={1.5} />
-          </div>
-
-          {/* Decorative circles */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+          <h2 className="text-xl font-black text-gray-900">
+            Flash Offer
+          </h2>
+          <div className="w-10"></div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 pt-4">
+        <div className="space-y-6">
+          {/* Header gradient con icona sparkle */}
+          <div className="relative bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-3xl pt-10 pb-12 overflow-hidden shadow-2xl">
+            {/* Grande icona sparkle al centro */}
+            <div className="flex justify-center">
+              <Sparkles className="w-32 h-32 text-yellow-300 animate-pulse" fill="currentColor" strokeWidth={1.5} />
+            </div>
+
+            {/* Decorative circles */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-4">
           {/* Badge Flash e Timer */}
           <div className="flex items-center gap-3 mb-4">
             <div className="px-4 py-2 bg-yellow-100 rounded-full">
@@ -132,6 +136,7 @@ export default function FlashOfferModal({ offer, onClose, onSave }: FlashOfferMo
           <p className="text-gray-400 text-xs text-center leading-relaxed">
             Salvando l'offerta, il timer di {formatTimeLeft(timeLeft)} continuerà a scorrere nel tuo portafoglio.
           </p>
+          </div>
         </div>
       </div>
     </div>

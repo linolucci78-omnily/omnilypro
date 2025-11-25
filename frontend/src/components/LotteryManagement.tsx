@@ -31,8 +31,10 @@ import {
   User,
   Printer,
   Download,
-  Send
+  Send,
+  Scan
 } from 'lucide-react'
+import LotteryTicketVerifier from './LotteryTicketVerifier'
 import { lotteryService, LotteryEvent, LotteryTicket } from '../services/lotteryService'
 import { LotteryPdfService } from '../services/lotteryPdfService'
 import { ZCSPrintService } from '../services/printService'
@@ -87,6 +89,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
   const [eventTickets, setEventTickets] = useState<LotteryTicket[]>([])
   const [loadingTickets, setLoadingTickets] = useState(false)
   const [ticketSearchTerm, setTicketSearchTerm] = useState('')
+  const [showVerifier, setShowVerifier] = useState(false)
 
   // Toast notifications
   const [toast, setToast] = useState<{
@@ -387,7 +390,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
       // Generate PDF first
       const orgData = await supabase
         .from('organizations')
-        .select('name, address, phone, vat_number')
+        .select('name, address, phone, partita_iva, email, website')
         .eq('id', organizationId)
         .single()
 
@@ -406,6 +409,11 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         createdAt: ticket.created_at,
         qrCodeData: ticket.qr_code_data,
         organizationName: orgData.data?.name,
+        organizationAddress: orgData.data?.address,
+        organizationPhone: orgData.data?.phone,
+        organizationEmail: orgData.data?.email,
+        organizationVAT: orgData.data?.partita_iva,
+        organizationWebsite: orgData.data?.website,
         brandColors: event.brand_colors
       })
 
@@ -447,7 +455,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
     try {
       const orgData = await supabase
         .from('organizations')
-        .select('name, address, phone, vat_number')
+        .select('name, address, phone, partita_iva, email, website')
         .eq('id', organizationId)
         .single()
 
@@ -466,6 +474,11 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         createdAt: ticket.created_at,
         qrCodeData: ticket.qr_code_data,
         organizationName: orgData.data?.name,
+        organizationAddress: orgData.data?.address,
+        organizationPhone: orgData.data?.phone,
+        organizationEmail: orgData.data?.email,
+        organizationVAT: orgData.data?.partita_iva,
+        organizationWebsite: orgData.data?.website,
         brandColors: event.brand_colors
       })
 
@@ -485,7 +498,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
     try {
       const orgData = await supabase
         .from('organizations')
-        .select('name, address, phone, vat_number')
+        .select('name, address, phone, partita_iva, email, website')
         .eq('id', organizationId)
         .single()
 
@@ -505,6 +518,11 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         createdAt: ticket.created_at,
         qrCodeData: ticket.qr_code_data,
         organizationName: orgData.data?.name,
+        organizationAddress: orgData.data?.address,
+        organizationPhone: orgData.data?.phone,
+        organizationEmail: orgData.data?.email,
+        organizationVAT: orgData.data?.partita_iva,
+        organizationWebsite: orgData.data?.website,
         brandColors: event.brand_colors
       })
 
@@ -650,6 +668,14 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         </div>
         <div className="header-actions">
           <button
+            onClick={() => setShowVerifier(!showVerifier)}
+            className="btn-secondary"
+            style={{ backgroundColor: showVerifier ? primaryColor : undefined }}
+          >
+            <Scan size={20} />
+            Verifica Biglietto
+          </button>
+          <button
             onClick={handleOpenTicketSale}
             className="btn-secondary"
           >
@@ -665,6 +691,14 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Ticket Verifier */}
+      {showVerifier && (
+        <LotteryTicketVerifier
+          organizationId={organizationId}
+          primaryColor={primaryColor}
+        />
+      )}
 
       {/* Inline Form */}
       {showForm && (

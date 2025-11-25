@@ -5,6 +5,8 @@ export interface Reward {
   organization_id: string
   name: string
   description: string | null
+  type: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
+  value: number | string
   points_required: number
   image_url: string | null
   required_tier: string | null

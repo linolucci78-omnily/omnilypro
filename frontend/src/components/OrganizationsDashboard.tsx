@@ -7,7 +7,7 @@ import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 // REMOVED: useGamingNotifications - using console.log instead for stability
 // import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -18,6 +18,7 @@ import CardManagementFullPage from './CardManagementFullPage'
 import CardStatisticsPage from './CardStatisticsPage'
 import OperatorNFCManagementFullPage from './OperatorNFCManagementFullPage'
 import LotteryHub from './LotteryHub'
+import WalletHub from './WalletHub'
 import StaffActivityLogs from './StaffActivityLogs'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
@@ -32,6 +33,7 @@ import AnalyticsDashboard from './AnalyticsDashboard'
 import GiftCertificatesPanel from './GiftCertificatesPanel'
 import GiftCertificatesHub from './GiftCertificatesHub'
 import GiftCertificatesStatsModal from './GiftCertificatesStatsModal'
+import CouponsHub from './CouponsHub'
 import SubscriptionsPanel from './SubscriptionsPanel'
 import SubscriptionsHub from './SubscriptionsHub'
 import SubscriptionStatsModal from './SubscriptionStatsModal'
@@ -2413,6 +2415,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'referral', icon: Share2, label: 'Sistema Referral', feature: null },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
+      { id: 'wallet', icon: Wallet, label: 'Wallet', feature: null },
+      { id: 'coupons', icon: Ticket, label: 'Coupons', feature: null },
       { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: null },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: null },
@@ -2498,6 +2502,20 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
             <LotteryHub
               organizationId={currentOrganization.id}
+              primaryColor={previewColors.primary || currentOrganization.brand_colors?.primary || '#dc2626'}
+              secondaryColor={previewColors.secondary || currentOrganization.brand_colors?.secondary || '#b91c1c'}
+              staffId={user?.id}
+              staffName={user?.email}
+            />
+          </div>
+        ) : null
+
+      case 'wallet':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <WalletHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
               primaryColor={previewColors.primary || currentOrganization.brand_colors?.primary || '#dc2626'}
               secondaryColor={previewColors.secondary || currentOrganization.brand_colors?.secondary || '#b91c1c'}
               staffId={user?.id}
@@ -3182,6 +3200,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         ) : null
 
+      case 'coupons':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <CouponsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+            />
+          </div>
+        ) : null
+
       case 'gift-certificates-old':
         return (
           <div className="section-content">
@@ -3831,6 +3861,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationId={currentOrganization?.id || ''}
         organizationName={currentOrganization?.name || ''}
         printService={printService}
+        primaryColor={currentOrganization?.primary_color}
+        secondaryColor={currentOrganization?.secondary_color}
       />
 
       {/* Gift Certificates Stats Modal */}

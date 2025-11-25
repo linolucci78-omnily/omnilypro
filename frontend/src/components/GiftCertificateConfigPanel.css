@@ -1,0 +1,543 @@
+/* ===================================================================
+   GIFT CERTIFICATE CONFIG PANEL - Two Panel Design with Live Preview
+   =================================================================== */
+
+/* Overlay */
+.gift-config-overlay {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Panel Container */
+.gift-config-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+/* Header */
+.gift-config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 2px solid #f3f4f6;
+  background: white;
+  flex-shrink: 0;
+}
+
+.gift-config-back-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #111827;
+}
+
+.gift-config-back-btn:hover {
+  background: #f3f4f6;
+}
+
+.gift-config-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #111827;
+  margin: 0;
+}
+
+/* Content - Two Panel Layout */
+.gift-config-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===================================================================
+   LEFT PANEL - Form
+   =================================================================== */
+
+.gift-config-form-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid #f3f4f6;
+  background: white;
+  max-width: 600px;
+}
+
+.gift-config-form-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+/* Form Groups */
+.gift-form-group {
+  margin-bottom: 32px;
+}
+
+.gift-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.gift-form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.gift-form-input:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+.gift-form-input.error {
+  border-color: #ef4444;
+}
+
+.gift-form-input:disabled {
+  background: #f9fafb;
+  cursor: not-allowed;
+}
+
+.gift-form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  background: white;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.gift-form-textarea:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+.gift-form-textarea.error {
+  border-color: #ef4444;
+}
+
+.gift-char-count {
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.gift-form-error {
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.gift-form-error-box {
+  padding: 16px;
+  background: #fef2f2;
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+/* Input with Icon */
+.gift-input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.gift-input-with-icon svg {
+  position: absolute;
+  left: 14px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.gift-input-with-icon .gift-form-input {
+  padding-left: 42px;
+}
+
+/* Preset Amount Buttons */
+.gift-preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gift-preset-btn {
+  padding: 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gift-preset-btn:hover:not(:disabled) {
+  border-color: #dc2626;
+  background: #fef2f2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+.gift-preset-btn.active {
+  border-color: #dc2626;
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.gift-preset-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Color Selection Grid */
+.gift-color-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.gift-color-btn {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.gift-color-btn:hover:not(:disabled) {
+  border-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gift-color-btn.active {
+  border-color: #dc2626;
+  border-width: 3px;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.2);
+}
+
+.gift-color-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.gift-color-preview {
+  width: 100%;
+  height: 60px;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gift-color-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* Actions */
+.gift-config-actions {
+  padding: 24px 32px;
+  border-top: 2px solid #f3f4f6;
+  display: flex;
+  gap: 16px;
+  background: white;
+  flex-shrink: 0;
+}
+
+.gift-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.gift-btn-cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.gift-btn-cancel:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.gift-btn-save {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+}
+
+.gift-btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
+}
+
+.gift-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ===================================================================
+   RIGHT PANEL - Live Preview
+   =================================================================== */
+
+.gift-config-preview-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gift-preview-header {
+  padding: 24px 32px;
+  background: white;
+  border-bottom: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  color: #111827;
+  flex-shrink: 0;
+}
+
+.gift-preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+/* Preview Card Container */
+.gift-preview-card-container {
+  max-width: 480px;
+  margin: 0 auto 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+/* Preview Card - Matches Customer App Exactly */
+.gift-preview-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: left;
+  transition: all 0.3s;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  cursor: default;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gift-preview-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Gift Icon */
+.gift-preview-icon {
+  margin-bottom: 32px;
+  color: white;
+}
+
+/* Code */
+.gift-preview-code {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
+  word-break: break-all;
+  color: white;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* Amount */
+.gift-preview-amount {
+  font-size: 32px;
+  font-weight: 900;
+  color: white;
+  margin: 0;
+}
+
+/* Recipient Badge */
+.gift-preview-recipient {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  margin-top: 12px;
+}
+
+.gift-preview-recipient p {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Personal Message Preview */
+.gift-preview-message {
+  max-width: 480px;
+  margin: 0 auto 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.gift-preview-message h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gift-preview-message p {
+  margin: 0;
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Preview Info */
+.gift-preview-info {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.gift-preview-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.gift-preview-info p:first-child {
+  color: #111827;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.gift-preview-validity {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fef3c7;
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ===================================================================
+   RESPONSIVE
+   =================================================================== */
+
+@media (max-width: 1200px) {
+  .gift-config-content {
+    flex-direction: column;
+  }
+
+  .gift-config-form-panel {
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 2px solid #f3f4f6;
+  }
+
+  .gift-config-preview-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .gift-config-header {
+    padding: 16px 20px;
+  }
+
+  .gift-config-title {
+    font-size: 20px;
+  }
+
+  .gift-config-form-scroll {
+    padding: 20px;
+  }
+
+  .gift-form-group {
+    margin-bottom: 24px;
+  }
+
+  .gift-preset-amounts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gift-color-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gift-config-actions {
+    padding: 16px 20px;
+    flex-direction: column;
+  }
+}

@@ -1,19 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrganization } from '../contexts/OrganizationContext'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Send, Gift, Share2, Copy } from 'lucide-react'
+import { ArrowLeft, Plus, Send, Gift, Share2, Copy, History } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import BottomNav from '../components/Layout/BottomNav'
 import ChatButton from '../components/ChatButton'
+import { giftCertificatesService, type GiftCertificate } from '../services/giftCertificatesService'
+import { walletService, type WalletTransaction } from '../services/walletService'
+import { Toast } from '../components/Toast'
+import TopUpWalletModal from '../components/TopUpWalletModal'
 
 interface GiftCard {
-  id: number
+  id: string
   code: string
   amount: number
+  balance: number
   color: string
   from?: string
-  used?: boolean
+  status: string
+  issuedAt: string
 }
 
 export default function Wallet() {
@@ -23,51 +29,125 @@ export default function Wallet() {
   const { slug } = useParams()
   const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null)
   const [copiedCode, setCopiedCode] = useState(false)
+  const [giftCards, setGiftCards] = useState<GiftCard[]>([])
+  const [loading, setLoading] = useState(true)
+  const [walletBalance, setWalletBalance] = useState(0)
+  const [walletId, setWalletId] = useState<string | null>(null)
+  const [redeeming, setRedeeming] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [showTopUpModal, setShowTopUpModal] = useState(false)
 
   if (!customer) {
     navigate(`/${slug}/login`)
     return null
   }
 
-  // Mock gift cards (in produzione verranno da database)
-  const [giftCards, setGiftCards] = useState<GiftCard[]>([
-    {
-      id: 1,
-      code: 'BDAY-LUCE-24',
-      amount: 25.00,
-      color: 'from-purple-500 to-purple-600',
-      from: 'Marco',
-      used: false
-    },
-    {
-      id: 2,
-      code: 'COFFEE-TIME',
-      amount: 10.00,
-      color: 'from-pink-500 to-pink-600',
-      from: 'Sofia',
-      used: false
-    }
-  ])
+  // Carica wallet balance e gift certificates
+  useEffect(() => {
+    const loadWalletData = async () => {
+      if (!organization?.id || !customer?.id) return
 
-  const [walletBalance, setWalletBalance] = useState(15.50)
+      setLoading(true)
+      try {
+        // Carica wallet balance
+        const wallet = await walletService.getOrCreateWallet(organization.id, customer.id)
+        setWalletBalance(wallet.balance)
+        setWalletId(wallet.id)
+
+        // Carica gift certificates
+        const certificates = await giftCertificatesService.getCustomerGiftCertificates(
+          organization.id,
+          customer.email,
+          customer.phone
+        )
+
+        // Converti i gift certificates in GiftCard format
+        const cards: GiftCard[] = certificates.map((cert, index) => ({
+          id: cert.id,
+          code: cert.code,
+          amount: cert.original_amount,
+          balance: cert.current_balance,
+          color: getColorForIndex(index),
+          from: cert.recipient_name || undefined,
+          status: cert.status,
+          issuedAt: cert.issued_at
+        }))
+
+        setGiftCards(cards)
+      } catch (error) {
+        console.error('Error loading wallet data:', error)
+        setToast({ message: 'Errore caricamento dati wallet', type: 'error' })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadWalletData()
+  }, [organization?.id, customer?.id, customer?.email, customer?.phone])
+
+  // Helper per assegnare colori diversi alle gift cards
+  const getColorForIndex = (index: number): string => {
+    const colors = [
+      'from-purple-500 to-purple-600',
+      'from-pink-500 to-pink-600',
+      'from-blue-500 to-blue-600',
+      'from-green-500 to-green-600',
+      'from-orange-500 to-orange-600',
+      'from-red-500 to-red-600'
+    ]
+    return colors[index % colors.length]
+  }
 
   // Controlla se l'organizzazione ha il wallet abilitato
   const hasWalletEnabled = organization?.wallet_enabled || false
 
-  const handleRedeemCard = () => {
-    if (!selectedCard || !hasWalletEnabled) return
+  const handleRedeemCard = async () => {
+    if (!selectedCard || !hasWalletEnabled || !organization?.id || !customer?.id) return
 
-    // Aggiungi il valore al wallet
-    setWalletBalance(prev => prev + selectedCard.amount)
-
-    // Segna la gift card come usata
-    setGiftCards(prev =>
-      prev.map(card =>
-        card.id === selectedCard.id ? { ...card, used: true } : card
+    setRedeeming(true)
+    try {
+      // Riscatta il gift certificate nel wallet
+      const result = await walletService.redeemGiftCertificate(
+        organization.id,
+        customer.id,
+        selectedCard.code
       )
-    )
 
-    setSelectedCard(null)
+      if (result.success) {
+        // Aggiorna il saldo wallet
+        if (result.newBalance !== undefined) {
+          setWalletBalance(result.newBalance)
+        }
+
+        // Segna la gift card come usata nello state locale
+        setGiftCards(prev =>
+          prev.map(card =>
+            card.id === selectedCard.id
+              ? { ...card, status: 'fully_used', balance: 0 }
+              : card
+          )
+        )
+
+        setToast({
+          message: `€${selectedCard.balance.toFixed(2)} aggiunti al wallet!`,
+          type: 'success'
+        })
+        setSelectedCard(null)
+      } else {
+        setToast({
+          message: result.error || 'Errore durante il riscatto',
+          type: 'error'
+        })
+      }
+    } catch (error: any) {
+      console.error('Error redeeming card:', error)
+      setToast({
+        message: 'Errore imprevisto durante il riscatto',
+        type: 'error'
+      })
+    } finally {
+      setRedeeming(false)
+    }
   }
 
   const handleCopyCode = (code: string) => {
@@ -79,6 +159,30 @@ export default function Wallet() {
   const handleShareCard = () => {
     // TODO: Implement share logic
     setSelectedCard(null)
+  }
+
+  const handleTopUp = async (amount: number, paymentMethod: string) => {
+    if (!organization?.id || !customer?.id) return
+
+    const result = await walletService.topUpWallet(
+      organization.id,
+      customer.id,
+      amount,
+      paymentMethod
+    )
+
+    if (result.success && result.newBalance !== undefined) {
+      setWalletBalance(result.newBalance)
+      setToast({
+        message: `€${amount.toFixed(2)} aggiunti al wallet!`,
+        type: 'success'
+      })
+    } else {
+      setToast({
+        message: result.error || 'Errore durante la ricarica',
+        type: 'error'
+      })
+    }
   }
 
   return (
@@ -110,12 +214,22 @@ export default function Wallet() {
           </div>
 
           {/* Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 py-4 bg-white text-gray-900 rounded-2xl font-bold text-base hover:bg-gray-100 transition-colors">
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              onClick={() => setShowTopUpModal(true)}
+              className="flex items-center justify-center gap-2 py-3.5 bg-white text-gray-900 rounded-2xl font-bold text-sm hover:bg-gray-100 transition-colors"
+            >
               <Plus className="w-5 h-5" strokeWidth={2.5} />
               Ricarica
             </button>
-            <button className="flex items-center justify-center gap-2 py-4 bg-gray-700 text-white rounded-2xl font-bold text-base hover:bg-gray-600 transition-colors">
+            <button
+              onClick={() => navigate(`/${slug}/wallet/transactions`)}
+              className="flex items-center justify-center gap-2 py-3.5 bg-gray-700 text-white rounded-2xl font-bold text-sm hover:bg-gray-600 transition-colors"
+            >
+              <History className="w-5 h-5" strokeWidth={2.5} />
+              Storico
+            </button>
+            <button className="flex items-center justify-center gap-2 py-3.5 bg-gray-700 text-white rounded-2xl font-bold text-sm hover:bg-gray-600 transition-colors opacity-50 cursor-not-allowed" disabled>
               <Send className="w-5 h-5" strokeWidth={2.5} />
               Invia
             </button>
@@ -128,43 +242,64 @@ export default function Wallet() {
             Gift Card Digitali
           </h2>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Caricamento gift certificates...</p>
+            </div>
+          )}
+
           {/* Gift Cards Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {giftCards.map((card) => (
-              <button
-                key={card.id}
-                onClick={() => !card.used && setSelectedCard(card)}
-                disabled={card.used}
-                className={`relative rounded-2xl p-6 text-left transition-all shadow-lg ${
-                  card.used
-                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 opacity-60 cursor-not-allowed'
-                    : `bg-gradient-to-br ${card.color} hover:scale-105`
-                }`}
-              >
-                {/* Gift Icon */}
-                <div className="mb-8">
-                  <Gift className={`w-10 h-10 ${card.used ? 'text-gray-500' : 'text-white'}`} strokeWidth={2} />
+          {!loading && giftCards.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {giftCards.map((card) => {
+                const isUsed = card.status === 'fully_used'
+                return (
+                  <button
+                    key={card.id}
+                    onClick={() => !isUsed && setSelectedCard(card)}
+                    disabled={isUsed}
+                    className={`relative rounded-2xl p-6 text-left transition-all shadow-lg ${
+                      isUsed
+                        ? 'bg-gradient-to-br from-gray-300 to-gray-400 opacity-60 cursor-not-allowed'
+                        : `bg-gradient-to-br ${card.color} hover:scale-105`
+                    }`}
+                  >
+                    {/* Gift Icon */}
+                    <div className="mb-8">
+                      <Gift className={`w-10 h-10 ${isUsed ? 'text-gray-500' : 'text-white'}`} strokeWidth={2} />
                 </div>
 
-                {/* Code */}
-                <p className={`font-bold text-base mb-2 break-words ${card.used ? 'text-gray-600' : 'text-white'}`}>
-                  {card.code}
-                </p>
+                    {/* Code */}
+                    <p className={`font-bold text-base mb-2 break-words ${isUsed ? 'text-gray-600' : 'text-white'}`}>
+                      {card.code}
+                    </p>
 
-                {/* Amount */}
-                <p className={`text-2xl font-black ${card.used ? 'text-gray-600' : 'text-white'}`}>
-                  €{card.amount.toFixed(2)}
-                </p>
+                    {/* Balance */}
+                    <p className={`text-2xl font-black ${isUsed ? 'text-gray-600' : 'text-white'}`}>
+                      €{card.balance.toFixed(2)}
+                    </p>
 
-                {/* Used Badge */}
-                {card.used && (
-                  <div className="absolute top-3 right-3 px-3 py-1 bg-gray-600 rounded-lg">
-                    <span className="text-white text-xs font-bold uppercase">Usato</span>
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
+                    {/* Used Badge */}
+                    {isUsed && (
+                      <div className="absolute top-3 right-3 px-3 py-1 bg-gray-600 rounded-lg">
+                        <span className="text-white text-xs font-bold uppercase">Usato</span>
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && giftCards.length === 0 && (
+            <div className="text-center py-8">
+              <Gift className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-semibold">Nessun gift certificate trovato</p>
+              <p className="text-gray-400 text-sm mt-2">I tuoi gift certificates appariranno qui</p>
+            </div>
+          )}
 
           {/* Add New Card Button */}
           <button className="w-full py-6 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center gap-2 text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors">
@@ -180,22 +315,29 @@ export default function Wallet() {
       {/* Gift Card Details Modal */}
       {selectedCard && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-end justify-center z-[100]"
+          className="fixed inset-0 bg-white flex items-center justify-center z-[9999] overflow-y-auto"
           onClick={() => setSelectedCard(null)}
         >
           <div
-            className="bg-white rounded-t-3xl w-full max-w-md pb-6 animate-slide-up"
+            className="w-full max-w-md p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="pt-4 pb-3 px-6 border-b border-gray-100">
-              <h2 className="text-xl font-black text-gray-900 text-center">
-                Dettagli Gift Card
+            {/* Header con pulsante back */}
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-6 h-6 text-gray-900" strokeWidth={2.5} />
+              </button>
+              <h2 className="text-xl font-black text-gray-900">
+                Dettagli Gift Certificate
               </h2>
+              <div className="w-10"></div> {/* Spacer per centrare il titolo */}
             </div>
 
             {/* Content */}
-            <div className="px-6 pt-4 space-y-4">
+            <div className="space-y-6">
               {/* Card Preview */}
               <div className={`bg-gradient-to-br ${selectedCard.color} rounded-2xl p-6 text-center shadow-lg`}>
                 <div className="flex justify-center mb-4">
@@ -203,8 +345,13 @@ export default function Wallet() {
                 </div>
 
                 <p className="text-white text-4xl font-black mb-3">
-                  €{selectedCard.amount.toFixed(2)}
+                  €{selectedCard.balance.toFixed(2)}
                 </p>
+                {selectedCard.balance !== selectedCard.amount && (
+                  <p className="text-white/80 text-sm mb-2">
+                    Valore originale: €{selectedCard.amount.toFixed(2)}
+                  </p>
+                )}
 
                 <p className="text-white text-lg font-bold tracking-wider mb-4">
                   {selectedCard.code}
@@ -224,10 +371,20 @@ export default function Wallet() {
                 <>
                   <button
                     onClick={handleRedeemCard}
-                    className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
+                    disabled={redeeming}
+                    className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Plus className="w-5 h-5" strokeWidth={2.5} />
-                    Riscatta nel Wallet
+                    {redeeming ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Riscatto in corso...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-5 h-5" strokeWidth={2.5} />
+                        Riscatta nel Wallet
+                      </>
+                    )}
                   </button>
 
                   <button
@@ -279,18 +436,27 @@ export default function Wallet() {
                   </button>
                 </>
               )}
-
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedCard(null)}
-                className="w-full py-3 text-gray-500 font-semibold text-sm hover:text-gray-700 transition-colors"
-              >
-                Chiudi
-              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Top Up Modal */}
+      <TopUpWalletModal
+        isOpen={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        onTopUp={handleTopUp}
+        currentBalance={walletBalance}
+      />
 
       <BottomNav />
     </div>

@@ -71,7 +71,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
         // Fetch organization data
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
-          .select('name, address, phone, vat_number')
+          .select('name, address, phone, partita_iva')
           .eq('id', organizationId)
           .single()
 
@@ -83,7 +83,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
           storeName: orgData?.name || 'Lottery System',
           storeAddress: orgData?.address || '',
           storePhone: orgData?.phone || '',
-          storeVat: orgData?.vat_number || '',
+          storeVat: orgData?.partita_iva || '',
           storeTax: '',
           paperWidth: 384,
           fontSizeNormal: 24,
@@ -98,7 +98,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
             name: orgData?.name,
             address: orgData?.address,
             phone: orgData?.phone,
-            vat: orgData?.vat_number
+            vat: orgData?.partita_iva
           })
           setPrinterService(printer)
         } else {
@@ -174,7 +174,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
       try {
         const orgData = await supabase
           .from('organizations')
-          .select('name, address, phone, vat_number')
+          .select('name, address, phone, partita_iva, email, website')
           .eq('id', organizationId)
           .single()
 
@@ -193,10 +193,13 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
           createdAt: ticket.created_at,
           qrCodeData: ticket.qr_code_data,
           organizationName: orgData.data?.name,
+          organizationAddress: orgData.data?.address,
+          organizationPhone: orgData.data?.phone,
+          organizationEmail: orgData.data?.email,
+          organizationVAT: orgData.data?.partita_iva,
+          organizationWebsite: orgData.data?.website,
           brandColors: selectedEvent.brand_colors
         })
-
-        console.log('✅ PDF generated successfully')
 
         // Send email if customer provided email
         if (ticket.customer_email && ticket.customer_email.trim()) {
@@ -309,7 +312,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
     try {
       const orgData = await supabase
         .from('organizations')
-        .select('name, address, phone, vat_number')
+        .select('name, address, phone, partita_iva, email, website')
         .eq('id', organizationId)
         .single()
 
@@ -328,6 +331,11 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
         createdAt: ticket.created_at,
         qrCodeData: ticket.qr_code_data,
         organizationName: orgData.data?.name,
+        organizationAddress: orgData.data?.address,
+        organizationPhone: orgData.data?.phone,
+        organizationEmail: orgData.data?.email,
+        organizationVAT: orgData.data?.partita_iva,
+        organizationWebsite: orgData.data?.website,
         brandColors: selectedEvent.brand_colors
       })
 
@@ -349,7 +357,7 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
     try {
       const orgData = await supabase
         .from('organizations')
-        .select('name, address, phone, vat_number')
+        .select('name, address, phone, partita_iva, email, website')
         .eq('id', organizationId)
         .single()
 
@@ -368,6 +376,11 @@ export const LotteryTicketSaleModal: React.FC<LotteryTicketSaleModalProps> = ({
         createdAt: ticket.created_at,
         qrCodeData: ticket.qr_code_data,
         organizationName: orgData.data?.name,
+        organizationAddress: orgData.data?.address,
+        organizationPhone: orgData.data?.phone,
+        organizationEmail: orgData.data?.email,
+        organizationVAT: orgData.data?.partita_iva,
+        organizationWebsite: orgData.data?.website,
         brandColors: selectedEvent.brand_colors
       })
 

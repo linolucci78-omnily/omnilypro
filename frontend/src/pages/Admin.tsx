@@ -21,6 +21,7 @@ import {
 import { organizationsApi } from '../lib/supabase'
 import type { Organization } from '../lib/supabase'
 import PageLoader from '../components/UI/PageLoader'
+import EditOrganizationModal from '../components/EditOrganizationModal'
 import './Admin.css'
 
 const Admin: React.FC = () => {
@@ -29,6 +30,8 @@ const Admin: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
   const [selectedOrgs, setSelectedOrgs] = useState<string[]>([])
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null)
 
   useEffect(() => {
     loadOrganizations()
@@ -72,6 +75,35 @@ const Admin: React.FC = () => {
         ? [] 
         : filteredOrganizations.map(org => org.id)
     )
+  }
+
+  const handleEditOrganization = (org: Organization) => {
+    setSelectedOrganization(org)
+    setShowEditModal(true)
+  }
+
+  const handleSaveOrganization = async (id: string, data: Partial<Organization>) => {
+    await organizationsApi.update(id, data)
+    await loadOrganizations()
+  }
+
+  const handleDeleteOrganization = async (org: Organization) => {
+    const confirmMessage = `⚠️ ATTENZIONE ⚠️\n\nSei sicuro di voler eliminare "${org.name}"?\n\nQuesta azione:\n• Eliminerà TUTTI i dati dell'azienda\n• Eliminerà tutti i clienti associati\n• Eliminerà tutte le transazioni\n• È IRREVERSIBILE\n\nDigita "${org.name}" per confermare:`
+
+    const confirmation = window.prompt(confirmMessage)
+
+    if (confirmation === org.name) {
+      try {
+        await organizationsApi.delete(org.id)
+        await loadOrganizations()
+        alert(`✅ Azienda "${org.name}" eliminata con successo`)
+      } catch (error) {
+        console.error('Error deleting organization:', error)
+        alert('❌ Errore durante l\'eliminazione dell\'azienda')
+      }
+    } else if (confirmation !== null) {
+      alert('❌ Nome azienda non corretto. Eliminazione annullata.')
+    }
   }
 
   const handleDeleteSelected = async () => {
@@ -357,16 +389,30 @@ const Admin: React.FC = () => {
                       >
                         <Monitor size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        title="Visualizza Dettagli"
+                      >
                         <Eye size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleEditOrganization(org)}
+                        title="Modifica Azienda"
+                      >
                         <Edit size={16} />
                       </button>
-                      <button className="action-btn danger">
+                      <button
+                        className="action-btn danger"
+                        onClick={() => handleDeleteOrganization(org)}
+                        title="Elimina Azienda"
+                      >
                         <Trash2 size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        title="Altre Azioni"
+                      >
                         <MoreVertical size={16} />
                       </button>
                     </div>
@@ -401,6 +447,17 @@ const Admin: React.FC = () => {
           <button className="btn-secondary">Successivo</button>
         </div>
       </div>
+
+      {/* Edit Organization Modal */}
+      <EditOrganizationModal
+        isOpen={showEditModal}
+        organization={selectedOrganization}
+        onClose={() => {
+          setShowEditModal(false)
+          setSelectedOrganization(null)
+        }}
+        onSave={handleSaveOrganization}
+      />
     </div>
   )
 }

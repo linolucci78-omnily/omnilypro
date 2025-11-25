@@ -528,115 +528,126 @@ export default function Rewards() {
 
       {/* Modal Conferma Riscatto */}
       {showConfirmModal && selectedReward && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 z-40"
-            onClick={() => setShowConfirmModal(false)}
-          ></div>
+        <div
+          className="fixed inset-0 bg-white flex items-center justify-center z-[9999] overflow-y-auto"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div className="w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            {/* Header con back button */}
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </button>
+              <h2 className="text-xl font-black text-gray-900">
+                Conferma Riscatto
+              </h2>
+              <div className="w-10"></div>
+            </div>
 
-          {/* Modal */}
-          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-3xl shadow-2xl z-50 max-w-md mx-auto">
-            <div className="p-8">
+            <div className="space-y-6">
               {/* Immagine del premio */}
-              <div className="relative w-full h-48 rounded-2xl overflow-hidden mb-6">
+              <div className="relative w-full h-64 rounded-2xl overflow-hidden shadow-lg">
                 <img
                   src={selectedReward.image}
                   alt={selectedReward.name}
                   className="w-full h-full object-cover"
                 />
-                {/* X button */}
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  className="absolute top-3 right-3 w-10 h-10 bg-gray-800/80 rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
-                >
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
 
               {/* Titolo */}
-              <h2 className="text-2xl font-black text-gray-900 text-center mb-2">
+              <h2 className="text-2xl font-black text-gray-900 text-center">
                 {selectedReward.name}
               </h2>
-              <p className="text-gray-600 text-center mb-6">
+              <p className="text-gray-600 text-center">
                 Vuoi davvero spendere <span className="text-red-600 font-bold">{selectedReward.points} punti</span> per questo premio?
               </p>
 
               {/* Pulsanti */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setShowConfirmModal(false)}
-                  className="py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold text-base hover:bg-gray-200 transition-colors"
+                  className="py-4 bg-gray-100 text-gray-700 rounded-xl font-bold text-base hover:bg-gray-200 transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleConfirmRedeem}
-                  className="py-3 bg-red-600 text-white rounded-xl font-semibold text-base hover:bg-red-700 transition-colors"
+                  className="py-4 bg-red-600 text-white rounded-xl font-bold text-base hover:bg-red-700 transition-colors"
                 >
                   Conferma
                 </button>
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Modal Riscatto con QR Code */}
       {showRedeemModal && selectedReward && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/70 z-[9999]"
-            onClick={() => setShowRedeemModal(false)}
-          ></div>
+        <div
+          className="fixed inset-0 bg-white flex items-center justify-center z-[9999] overflow-y-auto"
+          onClick={() => setShowRedeemModal(false)}
+        >
+          <div className="w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            {/* Header con back button */}
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => setShowRedeemModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </button>
+              <h2 className="text-xl font-black text-gray-900">
+                Premio Riscattato
+              </h2>
+              <div className="w-10"></div>
+            </div>
 
-          {/* Modal */}
-          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl z-[10000] max-w-sm mx-auto">
-            <div className="p-6">
+            <div className="space-y-6">
               {/* Icona trofeo con animazione */}
-              <div className="flex justify-center mb-4">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
-                  <Trophy className="w-10 h-10 text-green-600" strokeWidth={2.5} />
+              <div className="flex justify-center">
+                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+                  <Trophy className="w-12 h-12 text-green-600" strokeWidth={2.5} />
                 </div>
               </div>
 
               {/* Titolo */}
-              <h2 className="text-2xl font-black text-gray-900 text-center mb-2">
-                Congratulazioni!
-              </h2>
-              <p className="text-gray-600 text-center text-sm mb-5">
-                Mostra questo QR in cassa
-              </p>
+              <div>
+                <h3 className="text-3xl font-black text-gray-900 text-center mb-2">
+                  Congratulazioni!
+                </h3>
+                <p className="text-gray-600 text-center">
+                  Mostra questo QR in cassa per ritirare il tuo premio
+                </p>
+              </div>
 
               {/* QR Code */}
-              <div className="bg-pink-50 rounded-xl p-4 border-2 border-dashed border-pink-300 mb-4">
-                <div className="flex justify-center">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-dashed border-green-300 shadow-lg">
+                <div className="flex justify-center bg-white rounded-xl p-4">
                   <QRCodeSVG
                     value={JSON.stringify({ redemptionId: redemptionId || selectedReward.id, type: 'use_reward' })}
-                    size={220}
+                    size={240}
                     level="H"
                     includeMargin={false}
                   />
                 </div>
               </div>
 
-              <p className="text-gray-600 text-center text-sm mb-4">
-                <span className="font-bold">{selectedReward.name}</span>
-              </p>
-
-              {/* Pulsante chiudi */}
-              <button
-                onClick={() => setShowRedeemModal(false)}
-                className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold text-sm hover:bg-gray-800 transition-colors"
-              >
-                Chiudi
-              </button>
+              <div className="text-center">
+                <p className="text-gray-900 font-bold text-lg">
+                  {selectedReward.name}
+                </p>
+              </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Modal Successo Riscatto */}

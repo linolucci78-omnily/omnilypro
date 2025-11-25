@@ -103,6 +103,8 @@ const GiftCertificatesHub: React.FC<GiftCertificatesHubProps> = ({
           organizationId={organizationId}
           organizationName={organizationName}
           printService={printService}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       </div>
     )
@@ -421,6 +423,8 @@ const GiftCertificatesHub: React.FC<GiftCertificatesHubProps> = ({
           organizationId={organizationId}
           organizationName={organizationName}
           printService={printService}
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
         />
       )}
     </div>

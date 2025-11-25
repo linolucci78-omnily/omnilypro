@@ -27,7 +27,9 @@ import {
   MdLanguage,
   MdShare,
   MdNotificationsActive,
-  MdConfirmationNumber
+  MdConfirmationNumber,
+  MdLocalOffer,
+  MdAccountBalanceWallet
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -95,6 +97,8 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'rewards', icon: MdCardGiftcard, label: 'Premi', feature: 'rewards' },
     { id: 'referral', icon: MdShare, label: 'Sistema Referral', feature: null },
     { id: 'gift-certificates', icon: MdCardGiftcard, label: 'Gift Certificates', feature: null },
+    { id: 'wallet', icon: MdAccountBalanceWallet, label: 'Wallet', feature: null },
+    { id: 'coupons', icon: MdLocalOffer, label: 'Coupons', feature: null },
     { id: 'subscriptions', icon: MdCardGiftcard, label: 'Membership', feature: null },
     { id: 'categories', icon: MdCategory, label: 'Categorie', feature: 'categories' },
     { id: 'marketing-campaigns', icon: MdEmail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
@@ -129,6 +133,8 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       'rewards': '#10b981',
       'referral': '#8b5cf6',
       'gift-certificates': '#ec4899',
+      'wallet': '#10b981',
+      'coupons': '#f59e0b',
       'subscriptions': '#06b6d4',
       'categories': '#8b5cf6',
       'marketing-campaigns': '#f59e0b',

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Copy, Share2, Users, Trophy } from 'lucide-react'
+import { Copy, Share2, Users, Trophy, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrganization } from '../contexts/OrganizationContext'
 
@@ -53,33 +53,36 @@ export default function InviteFriendsModal({ onClose }: InviteFriendsModalProps)
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-end justify-center z-[100] p-0"
+      className="fixed inset-0 bg-white flex items-center justify-center z-[9999] overflow-y-auto"
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-t-3xl w-full max-w-lg shadow-2xl animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: '90vh', overflowY: 'auto' }}
-      >
-        {/* Header con Gradiente */}
-        <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-rose-600 px-6 pt-8 pb-6 rounded-t-3xl">
-          {/* Close Button */}
+      <div className="w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+        {/* Header con back button */}
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <ArrowLeft className="w-6 h-6 text-gray-900" strokeWidth={2.5} />
           </button>
+          <h2 className="text-xl font-black text-gray-900">
+            Invita Amici
+          </h2>
+          <div className="w-10"></div>
+        </div>
 
-          {/* Titolo */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-black text-white mb-1">
-              Team {organization.name}
-            </h2>
-            <p className="text-red-50 text-sm">
-              Invita amici, guadagna {organization.points_name}!
-            </p>
-          </div>
+        <div className="space-y-6">
+          {/* Header con Gradiente */}
+          <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-rose-600 px-6 py-8 rounded-3xl shadow-2xl">
+            {/* Titolo */}
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-black text-white mb-1">
+                Team {organization.name}
+              </h3>
+              <p className="text-red-50 text-sm">
+                Invita amici, guadagna {organization.points_name}!
+              </p>
+            </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 gap-3">
@@ -217,6 +220,7 @@ export default function InviteFriendsModal({ onClose }: InviteFriendsModalProps)
                 )
               })}
             </div>
+          </div>
           </div>
 
           {/* Bottone Share */}

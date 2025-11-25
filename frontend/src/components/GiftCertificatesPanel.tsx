@@ -28,7 +28,7 @@ import './GiftCertificatesPanel.css';
 import { giftCertificatesService } from '../services/giftCertificatesService';
 import { createPrintService } from '../services/printService';
 import type { GiftCertificate, GiftCertificateStats, CreateGiftCertificateRequest } from '../types/giftCertificate';
-import IssueGiftCertificateModal from './IssueGiftCertificateModal';
+import GiftCertificateConfigPanel from './GiftCertificateConfigPanel';
 import ValidateGiftCertificateModal from './ValidateGiftCertificateModal';
 import RedeemGiftCertificateModal from './RedeemGiftCertificateModal';
 import GiftCertificateDetailsModal from './GiftCertificateDetailsModal';
@@ -40,6 +40,8 @@ interface GiftCertificatesPanelProps {
   organizationId: string;
   organizationName: string;
   printService?: any; // ZCSPrintService instance
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
 
@@ -48,7 +50,9 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
   onClose,
   organizationId,
   organizationName,
-  printService
+  printService,
+  primaryColor = '#dc2626',
+  secondaryColor = '#ef4444'
 }) => {
   // Debug logging for print service
   useEffect(() => {
@@ -431,8 +435,10 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
           </button>
         </div>
 
-        {/* Quick Stats */}
-        <div className="gift-certificates-quick-stats">
+        {/* Inner Container with max-width and margins */}
+        <div className="gift-certificates-panel-inner">
+          {/* Quick Stats */}
+          <div className="gift-certificates-quick-stats">
           <div className="gift-certificates-stat-item">
             <div className="gift-certificates-stat-icon">
               <CreditCard size={24} />
@@ -598,17 +604,19 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
             ))
           )}
         </div>
+        </div>
       </div>
 
       {/* Modals */}
-      <IssueGiftCertificateModal
+      <GiftCertificateConfigPanel
         isOpen={showIssueModal}
         onClose={() => setShowIssueModal(false)}
-        onIssue={handleIssueGiftCertificate}
+        onSave={handleIssueGiftCertificate}
         organizationId={organizationId}
         organizationName={organizationName}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         presetAmounts={[25, 50, 100, 150, 200, 500]}
-        printService={printService}
       />
 
       <ValidateGiftCertificateModal
@@ -619,6 +627,8 @@ const GiftCertificatesPanel: React.FC<GiftCertificatesPanelProps> = ({
         organizationId={organizationId}
         organizationName={organizationName}
         printService={printService}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
       />
 
       <RedeemGiftCertificateModal
