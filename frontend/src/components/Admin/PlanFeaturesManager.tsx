@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Plus, Trash2, Edit2, Save, X, Clock, CheckCircle, XCircle, AlertCircle, Users, Target, ShoppingCart, Smartphone, Gamepad2, Settings, TrendingUp } from 'lucide-react';
+import { Crown, Plus, Trash2, Edit2, Save, X, Clock, CheckCircle, XCircle, AlertCircle, Users, Target, ShoppingCart, Smartphone, Gamepad2, Settings, TrendingUp, Wallet } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import {
   PlanType,
@@ -184,6 +184,10 @@ const PlanFeaturesManager: React.FC = () => {
     // Commerce
     if (['coupons', 'giftCertificates', 'lottery'].includes(featureName)) {
       return <ShoppingCart size={14} />;
+    }
+    // Crypto & Wallet
+    if (['omnyWallet', 'cryptoPayments'].includes(featureName)) {
+      return <Wallet size={14} />;
     }
     // Dashboard Sections
     if (['loyaltyTiers', 'rewards', 'categories', 'marketingCampaigns', 'teamManagement',

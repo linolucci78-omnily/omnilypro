@@ -247,6 +247,12 @@ const SubscriptionFeaturesManagerV2: React.FC = () => {
                     {features.giftCertificates ? '✅' : '❌'} Gift Certificates
                   </div>
                   <div className="feature-item">
+                    {features.omnyWallet ? '✅' : '❌'} OmnyWallet
+                  </div>
+                  <div className="feature-item">
+                    {features.cryptoPayments ? '✅' : '❌'} Crypto Payments
+                  </div>
+                  <div className="feature-item">
                     {features.marketingCampaigns ? '✅' : '❌'} Marketing
                   </div>
                   <div className="feature-item">

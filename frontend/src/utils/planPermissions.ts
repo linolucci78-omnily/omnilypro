@@ -58,6 +58,10 @@ export interface PlanFeatures {
   giftCertificates: boolean
   lottery: boolean
 
+  // Crypto & Wallet Features
+  omnyWallet: boolean          // OmnyWallet integration
+  cryptoPayments: boolean      // Accept crypto payments
+
   // Advanced Features
   advancedAnalytics: boolean
   apiAccess: boolean
@@ -102,6 +106,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     giftCertificates: false,   // ❌ Solo Pro+
     lottery: false,            // ❌ Solo Pro+
 
+    // Crypto & Wallet Features
+    omnyWallet: false,         // ❌ Solo Pro+
+    cryptoPayments: false,     // ❌ Solo Pro+
+
     // Advanced Features
     advancedAnalytics: false,
     apiAccess: false,
@@ -144,6 +152,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     coupons: true,             // ✅ Basic+
     giftCertificates: false,   // ❌ Solo Pro+
     lottery: false,            // ❌ Solo Pro+
+
+    // Crypto & Wallet Features
+    omnyWallet: false,         // ❌ Solo Pro+
+    cryptoPayments: false,     // ❌ Solo Pro+
 
     // Advanced Features
     advancedAnalytics: false,
@@ -188,6 +200,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     giftCertificates: true,    // ✅ Pro+
     lottery: true,             // ✅ Pro+
 
+    // Crypto & Wallet Features
+    omnyWallet: true,          // ✅ Pro+ exclusive
+    cryptoPayments: true,      // ✅ Pro+ exclusive
+
     // Advanced Features
     advancedAnalytics: true,
     apiAccess: true,
@@ -230,6 +246,10 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     coupons: true,             // ✅ Enterprise
     giftCertificates: true,    // ✅ Enterprise
     lottery: true,             // ✅ Enterprise
+
+    // Crypto & Wallet Features - All Available
+    omnyWallet: true,          // ✅ Enterprise
+    cryptoPayments: true,      // ✅ Enterprise
 
     // Advanced Features - All Available
     advancedAnalytics: true,
