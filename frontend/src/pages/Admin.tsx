@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Building2, 
-  Users, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Plus, 
+import {
+  Building2,
+  Users,
+  User,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
   Search,
   Filter,
   Download,
@@ -261,6 +262,7 @@ const Admin: React.FC = () => {
                 <th>POS</th>
                 <th>Piano</th>
                 <th>Utenti</th>
+                <th>Clienti</th>
                 <th>Ricavi</th>
                 <th>Stato</th>
                 <th>Creata</th>
@@ -354,6 +356,13 @@ const Admin: React.FC = () => {
                     <div className="users-count">
                       <Users size={12} />
                       <span>{org.user_count || 0}</span>
+                    </div>
+                  </td>
+
+                  <td style={{ textAlign: 'center' }}>
+                    <div className="users-count">
+                      <User size={12} />
+                      <span>{org.customer_count || 0}</span>
                     </div>
                   </td>
 

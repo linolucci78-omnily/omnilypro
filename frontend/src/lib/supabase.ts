@@ -34,7 +34,8 @@ export interface Organization {
   is_active: boolean
   pos_enabled: boolean
   pos_model?: string
-  user_count?: number          // Numero utenti dell'organizzazione
+  user_count?: number          // Numero utenti dell'organizzazione (staff/team)
+  customer_count?: number      // Numero clienti dell'organizzazione
   monthly_revenue?: number     // Ricavi mensili
 
   // Wizard configuration data
@@ -385,21 +386,23 @@ export interface TicketMessage {
 export const organizationsApi = {
   // Get all organizations
   async getAll(): Promise<Organization[]> {
-    // Get organizations with user count
+    // Get organizations with user count and customer count
     const { data, error } = await supabase
       .from('organizations')
       .select(`
         *,
-        organization_users(count)
+        organization_users(count),
+        customers(count)
       `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    // Transform data to include user_count
+    // Transform data to include user_count and customer_count
     const organizations = (data || []).map(org => ({
       ...org,
-      user_count: org.organization_users?.[0]?.count || 0
+      user_count: org.organization_users?.[0]?.count || 0,
+      customer_count: org.customers?.[0]?.count || 0
     }))
 
     return organizations
