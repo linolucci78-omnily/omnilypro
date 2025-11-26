@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, Mail, Lock, Shield, AlertCircle } from 'lucide-react'
+import { X, Mail, Lock, Shield, AlertCircle, User, Phone } from 'lucide-react'
 import { usersService } from '../../services/usersService'
 import type { CreateUserInput, UserRole } from '../../services/usersService'
 import './CreateUserModal.css'
@@ -16,7 +16,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
   const [formData, setFormData] = useState<CreateUserInput>({
     email: '',
     password: '',
-    role: 'sales_agent'
+    role: 'sales_agent',
+    first_name: '',
+    last_name: '',
+    phone: ''
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -45,7 +48,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
       setFormData({
         email: '',
         password: '',
-        role: 'sales_agent'
+        role: 'sales_agent',
+        first_name: '',
+        last_name: '',
+        phone: ''
       })
 
       onSuccess()
@@ -86,7 +92,46 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
           )}
 
           <div className="modal-form-content">
-            {/* Email */}
+            {/* Informazioni Personali */}
+            <div className="form-section">
+              <h3>Informazioni Personali</h3>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="first_name">
+                    <User size={16} />
+                    Nome
+                  </label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    placeholder="Mario"
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="last_name">
+                    <User size={16} />
+                    Cognome
+                  </label>
+                  <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    placeholder="Rossi"
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Contatti */}
             <div className="form-section">
               <h3>Informazioni Account</h3>
 
@@ -103,6 +148,22 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
                   onChange={handleChange}
                   required
                   placeholder="utente@esempio.com"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="phone">
+                  <Phone size={16} />
+                  Telefono
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+39 333 1234567"
                   autoComplete="off"
                 />
               </div>

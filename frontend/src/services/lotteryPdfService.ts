@@ -34,11 +34,11 @@ export class LotteryPdfService {
    * Generate professional lottery ticket PDF
    */
   static async generateTicketPDF(ticketData: LotteryTicketData): Promise<Blob> {
-    // Create PDF - Receipt format (58mm x ~200mm) - perfect for mobile and thermal printers!
+    // Create PDF - Receipt format (58mm x ~220mm) - perfect for mobile and thermal printers!
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [58, 200] // 58mm width (thermal printer), 200mm height
+      format: [58, 220] // 58mm width (thermal printer), 220mm height (più spazio per footer)
     })
 
     // Colors
@@ -64,7 +64,7 @@ export class LotteryPdfService {
 
     // Page dimensions - Receipt format
     const pageWidth = 58
-    const pageHeight = 200
+    const pageHeight = 220 // Aumentato per dare più spazio ai dati aziendali
     const margin = 4
 
     // Classic header with organization info
@@ -358,26 +358,26 @@ export class LotteryPdfService {
     }
 
     pdf.setFont('times', 'normal')
-    pdf.setFontSize(5.5)
+    pdf.setFontSize(7) // Aumentato da 5.5 a 7 per migliore leggibilità
 
     if (ticketData.organizationAddress) {
       const addressLines = pdf.splitTextToSize(ticketData.organizationAddress, pageWidth - margin * 2 - 6)
       addressLines.forEach(line => {
         pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
-        currentY += 2.5
+        currentY += 3.5 // Aumentato da 2.5 a 3.5 per più spazio
       })
     }
 
     if (ticketData.organizationPhone) {
       pdf.text(`Tel. ${ticketData.organizationPhone}`, pageWidth / 2, currentY, { align: 'center' })
-      currentY += 2.5
+      currentY += 3.5 // Aumentato da 2.5 a 3.5 per più spazio
     }
 
     if (ticketData.organizationEmail) {
       const emailLines = pdf.splitTextToSize(ticketData.organizationEmail, pageWidth - margin * 2 - 6)
       emailLines.forEach(line => {
         pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
-        currentY += 2.5
+        currentY += 3.5 // Aumentato da 2.5 a 3.5 per più spazio
       })
     }
 
@@ -385,13 +385,13 @@ export class LotteryPdfService {
       const websiteLines = pdf.splitTextToSize(ticketData.organizationWebsite, pageWidth - margin * 2 - 6)
       websiteLines.forEach(line => {
         pdf.text(line, pageWidth / 2, currentY, { align: 'center' })
-        currentY += 2.5
+        currentY += 3.5 // Aumentato da 2.5 a 3.5 per più spazio
       })
     }
 
     if (ticketData.organizationVAT) {
       pdf.text(`P.IVA: ${ticketData.organizationVAT}`, pageWidth / 2, currentY, { align: 'center' })
-      currentY += 2.5
+      currentY += 3.5 // Aumentato da 2.5 a 3.5 per più spazio
     }
 
     // Separator before ticket emission info

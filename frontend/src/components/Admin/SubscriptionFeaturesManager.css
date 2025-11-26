@@ -420,3 +420,100 @@
     justify-content: center;
   }
 }
+
+/* V2 Additions */
+.stat-price {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.price-cell {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.features-count {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.count-badge {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+.limits-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.limit-item {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.features-details-panel {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.features-details-panel h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.feature-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.feature-card.enabled {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.feature-card.disabled {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  opacity: 0.6;
+}
+
+.feature-card span {
+  font-weight: 500;
+}

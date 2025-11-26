@@ -1,0 +1,129 @@
+/* ===== CONNECT METAMASK BUTTON ===== */
+
+.btn-connect-metamask {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #f6851b, #e2761b);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(246, 133, 27, 0.3);
+}
+
+.btn-connect-metamask:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(246, 133, 27, 0.4);
+}
+
+.btn-connect-metamask:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Connected State */
+.metamask-connected {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.connected-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #10b981;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.address-display {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: #475569;
+    background: #f8fafc;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.btn-disconnect {
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-disconnect:hover {
+    background: #dc2626;
+}
+
+/* MetaMask Not Installed */
+.metamask-not-installed {
+    background: white;
+    border: 2px dashed #e5e7eb;
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.metamask-not-installed h3 {
+    margin: 1rem 0 0.5rem 0;
+    color: #1e293b;
+}
+
+.metamask-not-installed p {
+    margin: 0 0 1.5rem 0;
+}
+
+.btn-install-metamask {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #f6851b, #e2761b);
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+.btn-install-metamask:hover {
+    transform: translateY(-2px);
+}

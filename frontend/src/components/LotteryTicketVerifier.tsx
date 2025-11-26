@@ -9,7 +9,8 @@ import {
   Trophy,
   DollarSign,
   Ticket,
-  QrCode
+  QrCode,
+  Scan
 } from 'lucide-react'
 import { lotteryService, LotteryTicket } from '../services/lotteryService'
 

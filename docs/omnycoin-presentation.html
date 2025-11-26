@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmnyCoin - Digital Loyalty Token</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+  <!-- Google Fonts - Professional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .swiper {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .swiper-slide {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+    }
+
+    /* Professional color palette */
+    .bg-navy {
+      background: #0f172a;
+    }
+
+    .bg-navy-light {
+      background: #1e293b;
+    }
+
+    .text-navy {
+      color: #0f172a;
+    }
+
+    .border-navy {
+      border-color: #334155;
+    }
+
+    .accent-blue {
+      color: #3b82f6;
+    }
+
+    .bg-accent-blue {
+      background: #3b82f6;
+    }
+
+    /* Subtle animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+
+    /* Custom Swiper Navigation - Professional */
+    .swiper-button-next,
+    .swiper-button-prev {
+      color: #64748b !important;
+      background: white;
+      width: 44px !important;
+      height: 44px !important;
+      border-radius: 50%;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+      background: #f8fafc;
+      color: #0f172a !important;
+    }
+
+    .swiper-button-next:after,
+    .swiper-button-prev:after {
+      font-size: 18px !important;
+      font-weight: bold;
+    }
+
+    .swiper-pagination-bullet {
+      background: #cbd5e1 !important;
+      opacity: 1 !important;
+      width: 8px;
+      height: 8px;
+    }
+
+    .swiper-pagination-bullet-active {
+      background: #0f172a !important;
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    /* Professional table */
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .data-table th {
+      background: #f8fafc;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .data-table td {
+      padding: 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Metric card */
+    .metric-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 24px;
+      transition: all 0.2s;
+    }
+
+    .metric-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* Chart container */
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Swiper Container -->
+  <div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+
+      <!-- SLIDE 1: Cover -->
+      <div class="swiper-slide bg-navy">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="grid grid-cols-2 gap-16 items-center">
+            <!-- Left: Content -->
+            <div class="text-white">
+              <div class="text-sm font-semibold text-blue-400 mb-4 tracking-wide uppercase fade-in-up">
+                Blockchain-Based Loyalty System
+              </div>
+              <h1 class="text-6xl font-black mb-6 leading-tight fade-in-up delay-100">
+                OmnyCoin
+              </h1>
+              <p class="text-xl text-slate-300 mb-8 leading-relaxed fade-in-up delay-200">
+                Un sistema di loyalty basato su token ERC-20 che elimina le commissioni tradizionali e crea valore reale per merchant e clienti.
+              </p>
+
+              <div class="flex items-center gap-6 mb-12 fade-in-up delay-300">
+                <div>
+                  <div class="text-3xl font-bold">€0.001</div>
+                  <div class="text-slate-400 text-sm">Costo per transazione</div>
+                </div>
+                <div class="w-px h-12 bg-slate-700"></div>
+                <div>
+                  <div class="text-3xl font-bold">3 sec</div>
+                  <div class="text-slate-400 text-sm">Tempo di settlement</div>
+                </div>
+                <div class="w-px h-12 bg-slate-700"></div>
+                <div>
+                  <div class="text-3xl font-bold">100%</div>
+                  <div class="text-slate-400 text-sm">Trasparenza on-chain</div>
+                </div>
+              </div>
+
+              <div class="text-slate-500 text-sm mono fade-in-up delay-400">
+                Contract: 0xe62CCDc664993336bB400B725Fb9C0A8Cd1895f4
+              </div>
+            </div>
+
+            <!-- Right: Visual -->
+            <div class="fade-in-up delay-200">
+              <div class="bg-slate-800 border border-slate-700 rounded-2xl p-12">
+                <div class="text-center mb-8">
+                  <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-500 rounded-full mb-4">
+                    <span class="text-4xl font-black text-white">Ø</span>
+                  </div>
+                  <div class="text-2xl font-bold text-white mb-2">OMNYCOIN</div>
+                  <div class="text-slate-400 text-sm">ERC-20 Token • Polygon Network</div>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="flex justify-between py-3 border-t border-slate-700">
+                    <span class="text-slate-400">Standard</span>
+                    <span class="text-white font-semibold">ERC-20</span>
+                  </div>
+                  <div class="flex justify-between py-3 border-t border-slate-700">
+                    <span class="text-slate-400">Network</span>
+                    <span class="text-white font-semibold">Polygon</span>
+                  </div>
+                  <div class="flex justify-between py-3 border-t border-slate-700">
+                    <span class="text-slate-400">Valore</span>
+                    <span class="text-white font-semibold">1 OMNY = 1 EUR</span>
+                  </div>
+                  <div class="flex justify-between py-3 border-t border-slate-700">
+                    <span class="text-slate-400">Scadenza</span>
+                    <span class="text-white font-semibold">Nessuna</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: Problem Analysis -->
+      <div class="swiper-slide">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <h2 class="text-4xl font-bold text-navy mb-3">Analisi del Mercato</h2>
+            <p class="text-lg text-slate-600">Le criticità dei sistemi di loyalty tradizionali</p>
+          </div>
+
+          <!-- Comparison Table -->
+          <table class="data-table mb-8">
+            <thead>
+              <tr>
+                <th>Parametro</th>
+                <th>Sistemi Tradizionali</th>
+                <th>OmnyCoin</th>
+                <th>Miglioramento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-semibold text-navy">Commissioni per transazione</td>
+                <td class="text-red-600 font-semibold">2.5% (€0.025 su €1)</td>
+                <td class="text-green-600 font-semibold">€0.0002</td>
+                <td class="font-bold text-navy">-99.2%</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-navy">Tempo di settlement</td>
+                <td class="text-slate-600">3-5 giorni lavorativi</td>
+                <td class="text-slate-600">~3 secondi</td>
+                <td class="font-bold text-navy">99.998% più veloce</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-navy">Trasferibilità</td>
+                <td class="text-slate-600">Bloccati nel sistema</td>
+                <td class="text-slate-600">Completamente trasferibile</td>
+                <td class="font-bold text-navy">100% liquid</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-navy">Scadenza punti</td>
+                <td class="text-slate-600">12-24 mesi</td>
+                <td class="text-slate-600">Nessuna scadenza</td>
+                <td class="font-bold text-navy">Valore perpetuo</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-navy">Trasparenza</td>
+                <td class="text-slate-600">Database privato</td>
+                <td class="text-slate-600">Blockchain pubblica</td>
+                <td class="font-bold text-navy">100% verificabile</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Key Insights -->
+          <div class="grid grid-cols-3 gap-6">
+            <div class="metric-card">
+              <div class="text-sm text-slate-500 mb-2 uppercase tracking-wide font-semibold">Mercato EU</div>
+              <div class="text-3xl font-bold text-navy mb-1">€48 Mld</div>
+              <div class="text-sm text-slate-600">Punti fedeltà non riscattati annualmente</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="text-sm text-slate-500 mb-2 uppercase tracking-wide font-semibold">Redemption Rate</div>
+              <div class="text-3xl font-bold text-navy mb-1">33%</div>
+              <div class="text-sm text-slate-600">Solo 1 su 3 punti viene effettivamente utilizzato</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="text-sm text-slate-500 mb-2 uppercase tracking-wide font-semibold">Costo Merchant</div>
+              <div class="text-3xl font-bold text-navy mb-1">€1,250</div>
+              <div class="text-sm text-slate-600">Commissioni medie mensili per 50K transazioni</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: Technical Architecture -->
+      <div class="swiper-slide bg-slate-50">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <h2 class="text-4xl font-bold text-navy mb-3">Architettura Tecnica</h2>
+            <p class="text-lg text-slate-600">Sistema multi-tenant su blockchain Polygon</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8">
+            <!-- Left: Architecture Diagram -->
+            <div>
+              <div class="bg-white border-2 border-slate-200 rounded-xl p-8">
+                <!-- Super Admin Layer -->
+                <div class="mb-6 pb-6 border-b-2 border-slate-200">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-navy rounded flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-bold text-navy">Super Admin</div>
+                      <div class="text-xs text-slate-500">OMNILY Platform</div>
+                    </div>
+                  </div>
+                  <div class="text-sm text-slate-600 pl-13">
+                    Wallet principale per gestione liquidità e distribuzione token
+                  </div>
+                </div>
+
+                <!-- Organization Layer -->
+                <div class="mb-6 pb-6 border-b-2 border-slate-200">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-bold text-navy">Organization Wallets</div>
+                      <div class="text-xs text-slate-500">Merchant Accounts</div>
+                    </div>
+                  </div>
+                  <div class="text-sm text-slate-600 pl-13 mb-3">
+                    Wallet dedicato per ogni organizzazione/merchant
+                  </div>
+                  <div class="pl-13 space-y-2">
+                    <div class="text-xs bg-slate-100 px-3 py-2 rounded mono">
+                      org_123: 0xABCD...1234
+                    </div>
+                    <div class="text-xs bg-slate-100 px-3 py-2 rounded mono">
+                      org_456: 0xEFGH...5678
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Customer Layer -->
+                <div>
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-green-500 rounded flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-bold text-navy">Customer Wallets</div>
+                      <div class="text-xs text-slate-500">End Users</div>
+                    </div>
+                  </div>
+                  <div class="text-sm text-slate-600 pl-13 mb-3">
+                    Wallet auto-generato per ogni cliente
+                  </div>
+                  <div class="pl-13 space-y-2">
+                    <div class="text-xs bg-slate-100 px-3 py-2 rounded mono">
+                      customer_789: 0xIJKL...9012
+                    </div>
+                    <div class="text-xs bg-slate-100 px-3 py-2 rounded mono">
+                      customer_012: 0xMNOP...3456
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Technical Specs -->
+            <div>
+              <div class="bg-white border-2 border-slate-200 rounded-xl p-8 mb-6">
+                <h3 class="font-bold text-navy mb-4">Specifiche Tecniche</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="text-sm text-slate-500 mb-1">Blockchain</div>
+                    <div class="font-semibold text-navy">Polygon (Layer 2)</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-slate-500 mb-1">Token Standard</div>
+                    <div class="font-semibold text-navy">ERC-20</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-slate-500 mb-1">Smart Contract</div>
+                    <div class="font-mono text-xs text-navy break-all">0xe62CCDc664993336bB400B725Fb9C0A8Cd1895f4</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-slate-500 mb-1">Gas Cost (avg)</div>
+                    <div class="font-semibold text-navy">~€0.0002 per transfer</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-slate-500 mb-1">Confirmation Time</div>
+                    <div class="font-semibold text-navy">~3 secondi</div>
+                  </div>
+                  <div>
+                    <div class="text-sm text-slate-500 mb-1">Libreria Web3</div>
+                    <div class="font-semibold text-navy">ethers.js v6</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white border-2 border-slate-200 rounded-xl p-8">
+                <h3 class="font-bold text-navy mb-4">Sicurezza</h3>
+                <div class="space-y-3">
+                  <div class="flex items-start gap-3">
+                    <div class="w-5 h-5 bg-green-100 rounded flex-shrink-0 mt-0.5">
+                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div class="text-sm text-slate-600">Row Level Security su Supabase</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-5 h-5 bg-green-100 rounded flex-shrink-0 mt-0.5">
+                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div class="text-sm text-slate-600">Private key storage criptato</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-5 h-5 bg-green-100 rounded flex-shrink-0 mt-0.5">
+                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div class="text-sm text-slate-600">Transazioni verificabili on-chain</div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-5 h-5 bg-green-100 rounded flex-shrink-0 mt-0.5">
+                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div class="text-sm text-slate-600">Multi-tenant data isolation</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: Business Model -->
+      <div class="swiper-slide">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <h2 class="text-4xl font-bold text-navy mb-3">Modello Operativo</h2>
+            <p class="text-lg text-slate-600">Flusso di valore e meccanismo di reward/redemption</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-12">
+            <!-- Left: Flow -->
+            <div>
+              <h3 class="font-bold text-navy mb-6 text-xl">Ciclo Operativo</h3>
+
+              <div class="space-y-4">
+                <!-- Step 1 -->
+                <div class="bg-white border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                    <div class="font-bold text-navy">Acquisto OMNY</div>
+                  </div>
+                  <p class="text-sm text-slate-600 ml-11">
+                    Merchant acquista OmnyCoin tramite dashboard OMNILY PRO con carta di credito o bonifico bancario.
+                  </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm">2</div>
+                    <div class="font-bold text-navy">Reward Automatico</div>
+                  </div>
+                  <p class="text-sm text-slate-600 ml-11">
+                    Ad ogni acquisto del cliente, viene automaticamente trasferito OMNY al wallet del cliente (1 EUR = 1 OMNY).
+                  </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white border-l-4 border-purple-500 p-6 rounded-r-lg">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-sm">3</div>
+                    <div class="font-bold text-navy">Redemption</div>
+                  </div>
+                  <p class="text-sm text-slate-600 ml-11">
+                    Cliente riscatta OMNY per sconti immediati al POS (10 OMNY = 1 EUR di sconto).
+                  </p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-white border-l-4 border-orange-500 p-6 rounded-r-lg">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-sm">4</div>
+                    <div class="font-bold text-navy">Retention Loop</div>
+                  </div>
+                  <p class="text-sm text-slate-600 ml-11">
+                    Cliente accumula valore reale, aumenta frequenza visite e lifetime value.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Economics -->
+            <div>
+              <h3 class="font-bold text-navy mb-6 text-xl">Analisi Economica</h3>
+
+              <!-- Cost Comparison Chart Container -->
+              <div class="bg-white border-2 border-slate-200 rounded-xl p-6 mb-6">
+                <h4 class="font-semibold text-navy mb-4">Confronto Costi Mensili (50K transazioni)</h4>
+                <div class="chart-container">
+                  <canvas id="costChart"></canvas>
+                </div>
+              </div>
+
+              <!-- ROI Metrics -->
+              <div class="grid grid-cols-2 gap-4">
+                <div class="metric-card bg-gradient-to-br from-blue-50 to-blue-100">
+                  <div class="text-xs text-blue-600 mb-1 uppercase tracking-wide font-semibold">Risparmio Annuale</div>
+                  <div class="text-2xl font-bold text-navy">€14,880</div>
+                </div>
+
+                <div class="metric-card bg-gradient-to-br from-green-50 to-green-100">
+                  <div class="text-xs text-green-600 mb-1 uppercase tracking-wide font-semibold">Riduzione Costi</div>
+                  <div class="text-2xl font-bold text-navy">99.2%</div>
+                </div>
+
+                <div class="metric-card bg-gradient-to-br from-purple-50 to-purple-100">
+                  <div class="text-xs text-purple-600 mb-1 uppercase tracking-wide font-semibold">Tempo Setup</div>
+                  <div class="text-2xl font-bold text-navy">< 1 ora</div>
+                </div>
+
+                <div class="metric-card bg-gradient-to-br from-orange-50 to-orange-100">
+                  <div class="text-xs text-orange-600 mb-1 uppercase tracking-wide font-semibold">Break-even</div>
+                  <div class="text-2xl font-bold text-navy">Immediato</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: Impact & Results -->
+      <div class="swiper-slide bg-navy">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-12">
+            <h2 class="text-4xl font-bold text-white mb-3">Risultati Attesi</h2>
+            <p class="text-lg text-slate-300">Metriche di performance e KPI previsionali</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-8 mb-12">
+            <!-- Metric 1 -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
+              <div class="text-blue-400 text-sm font-semibold uppercase tracking-wide mb-3">Customer Retention</div>
+              <div class="text-5xl font-bold text-white mb-2">+35%</div>
+              <p class="text-slate-400 text-sm">Aumento della retention rate entro 6 mesi dall'implementazione</p>
+            </div>
+
+            <!-- Metric 2 -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
+              <div class="text-green-400 text-sm font-semibold uppercase tracking-wide mb-3">Average Order Value</div>
+              <div class="text-5xl font-bold text-white mb-2">+28%</div>
+              <p class="text-slate-400 text-sm">Incremento valore medio ordine grazie a incentivi OMNY</p>
+            </div>
+
+            <!-- Metric 3 -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
+              <div class="text-purple-400 text-sm font-semibold uppercase tracking-wide mb-3">Visit Frequency</div>
+              <div class="text-5xl font-bold text-white mb-2">+42%</div>
+              <p class="text-slate-400 text-sm">Aumento frequenza visite per accumulare e spendere OMNY</p>
+            </div>
+          </div>
+
+          <!-- Adoption Curve Chart -->
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
+            <h3 class="font-bold text-white mb-6 text-xl">Curva di Adozione Prevista (12 mesi)</h3>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="adoptionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Bottom CTA -->
+          <div class="mt-12 text-center">
+            <div class="inline-block bg-slate-800 border border-slate-700 rounded-2xl p-8">
+              <p class="text-slate-300 mb-4 text-lg">Implementazione disponibile per organizzazioni OMNILY PRO</p>
+              <div class="flex items-center justify-center gap-8 text-sm text-slate-400">
+                <div>Setup: < 1 ora</div>
+                <div class="w-px h-4 bg-slate-600"></div>
+                <div>Costi: Zero upfront</div>
+                <div class="w-px h-4 bg-slate-600"></div>
+                <div>Support: Dedicato 24/7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+
+    <!-- Pagination -->
+    <div class="swiper-pagination"></div>
+
+    <!-- Slide Counter -->
+    <div style="position: fixed; bottom: 20px; left: 20px; color: #94a3b8; font-size: 12px; z-index: 100;">
+      <span class="current-slide">1</span> / <span class="total-slides">5</span>
+    </div>
+  </div>
+
+  <!-- Swiper JS -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <!-- Initialize -->
+  <script>
+    // Initialize Swiper
+    const swiper = new Swiper('.mySwiper', {
+      direction: 'horizontal',
+      loop: false,
+      speed: 600,
+      effect: 'slide',
+
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+
+      keyboard: {
+        enabled: true,
+      },
+
+      mousewheel: {
+        enabled: true,
+        forceToAxis: true,
+      },
+
+      on: {
+        slideChange: function () {
+          document.querySelector('.current-slide').textContent = this.activeIndex + 1;
+        }
+      }
+    });
+
+    // Set total slides
+    document.querySelector('.total-slides').textContent = swiper.slides.length;
+
+    // Create Cost Comparison Chart
+    const costCtx = document.getElementById('costChart');
+    if (costCtx) {
+      new Chart(costCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Sistema Tradizionale', 'OmnyCoin'],
+          datasets: [{
+            label: 'Costo Mensile (€)',
+            data: [1250, 10],
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.8)',
+              'rgba(34, 197, 94, 0.8)'
+            ],
+            borderColor: [
+              'rgb(239, 68, 68)',
+              'rgb(34, 197, 94)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '€' + value;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Create Adoption Curve Chart
+    const adoptionCtx = document.getElementById('adoptionChart');
+    if (adoptionCtx) {
+      new Chart(adoptionCtx, {
+        type: 'line',
+        data: {
+          labels: ['Mese 1', 'Mese 2', 'Mese 3', 'Mese 4', 'Mese 5', 'Mese 6', 'Mese 7', 'Mese 8', 'Mese 9', 'Mese 10', 'Mese 11', 'Mese 12'],
+          datasets: [{
+            label: 'Utenti Attivi (%)',
+            data: [5, 12, 22, 35, 48, 58, 67, 74, 79, 84, 88, 91],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                },
+                color: '#cbd5e1'
+              },
+              grid: {
+                color: '#334155'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#cbd5e1'
+              },
+              grid: {
+                color: '#334155'
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

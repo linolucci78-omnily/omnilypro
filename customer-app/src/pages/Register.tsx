@@ -168,6 +168,44 @@ export default function Register() {
             </p>
           </div>
 
+          <div style={{
+            padding: '0.75rem',
+            background: 'var(--gray-50)',
+            borderRadius: '0.5rem',
+            fontSize: '0.75rem',
+            color: 'var(--gray-700)',
+            lineHeight: '1.5'
+          }}>
+            Registrandoti accetti i nostri{' '}
+            <a
+              href="/privacy.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--primary)', textDecoration: 'underline' }}
+            >
+              Termini di Servizio e Privacy Policy
+            </a>
+            ,{' '}
+            <a
+              href="/cookie-policy.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--primary)', textDecoration: 'underline' }}
+            >
+              Cookie Policy
+            </a>
+            {' '}e{' '}
+            <a
+              href="/rights.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--primary)', textDecoration: 'underline' }}
+            >
+              Diritti degli Utenti
+            </a>
+            .
+          </div>
+
           {error && (
             <div style={{ padding: '0.75rem', background: '#fee2e2', color: '#991b1b', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
               {error}

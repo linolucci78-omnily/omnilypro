@@ -1,0 +1,180 @@
+/* ===== OMNY WALLET HUB - PREMIUM CRYPTO STYLE ===== */
+
+.omny-wallet-hub {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+    min-height: 100vh;
+}
+
+/* Header */
+.omny-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2.5rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.omny-header-content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.omny-icon {
+    /* background removed */
+    /* padding removed */
+    /* border-radius removed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.omny-header h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.omny-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.omny-badge-beta {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+/* Connect Section */
+.omny-connect-section {
+    margin-bottom: 2rem;
+}
+
+/* Balance Section */
+.omny-balance-section {
+    margin-bottom: 2rem;
+}
+
+/* Info Grid */
+.omny-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.omny-info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.omny-info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.info-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.omny-info-card h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: #1e293b;
+}
+
+.omny-info-card p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Info Box */
+.omny-info-box {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+.omny-info-box h4 {
+    margin: 0 0 1rem 0;
+    color: #1e293b;
+    font-size: 1.2rem;
+}
+
+.omny-info-box ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #475569;
+    line-height: 1.8;
+}
+
+/* Coming Soon */
+.omny-coming-soon {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.omny-coming-soon h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.omny-coming-soon p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .omny-wallet-hub {
+        padding: 1rem;
+    }
+
+    .omny-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .omny-header-content {
+        flex-direction: column;
+    }
+
+    .omny-info-grid {
+        grid-template-columns: 1fr;
+    }
+}

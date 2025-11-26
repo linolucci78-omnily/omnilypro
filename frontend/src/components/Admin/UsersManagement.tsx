@@ -267,6 +267,7 @@ const UsersManagement: React.FC = () => {
         <table className="users-table">
           <thead>
             <tr>
+              <th>Utente</th>
               <th>Email</th>
               <th>Ruolo</th>
               <th>Stato</th>
@@ -279,8 +280,26 @@ const UsersManagement: React.FC = () => {
             {users.map((user) => (
               <tr key={user.id}>
                 <td>
+                  <div className="user-info-cell">
+                    <div className="user-avatar-small">
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt={user.first_name || 'User'} />
+                      ) : (
+                        <Mail size={16} />
+                      )}
+                    </div>
+                    <div className="user-name-email">
+                      <div className="user-display-name">
+                        {user.first_name && user.last_name
+                          ? `${user.first_name} ${user.last_name}`
+                          : user.first_name || user.last_name || 'Nessun nome'}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
                   <div className="user-email-cell">
-                    <Mail size={16} />
+                    <Mail size={14} />
                     {user.email}
                   </div>
                 </td>

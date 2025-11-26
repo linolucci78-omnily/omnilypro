@@ -773,7 +773,8 @@
 
 .btn-icon {
   padding: 0.625rem;
-  border: none;
+  border: 2px solid #9ca3af !important;
+  background: #f3f4f6 !important;
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -783,6 +784,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  color: #374151 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
 }
 
 .lottery-management .btn-primary {
@@ -940,9 +943,11 @@
 }
 
 .btn-icon:hover:not(:disabled) {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  background: color-mix(in srgb, var(--primary-color) 5%, white);
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
 .btn-icon:disabled {

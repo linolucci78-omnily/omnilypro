@@ -13,6 +13,12 @@ export interface SystemUser {
   status: 'pending' | 'active' | 'suspended' // Stato account
   is_active: boolean // Campo per compatibilità
   temp_password?: string // Password temporanea per attivazione
+  first_name?: string // Nome utente
+  last_name?: string // Cognome utente
+  avatar_url?: string // URL foto profilo
+  phone?: string // Telefono
+  bio?: string // Bio esecutiva (per founder profile)
+  founder_id?: string // Founder ID univoco permanente (formato: FD-XXXX-XX)
   created_at: string
   updated_at: string
   last_sign_in_at?: string
@@ -22,11 +28,20 @@ export interface CreateUserInput {
   email: string
   password: string
   role: UserRole
+  first_name?: string
+  last_name?: string
+  phone?: string
 }
 
 export interface UpdateUserInput {
   role?: UserRole
   is_active?: boolean
+  first_name?: string
+  last_name?: string
+  avatar_url?: string
+  phone?: string
+  bio?: string
+  // founder_id è read-only, non può essere modificato manualmente
 }
 
 export class UsersService {
@@ -110,6 +125,9 @@ export class UsersService {
           id: tempId, // ID temporaneo
           email: userData.email,
           role: userData.role,
+          first_name: userData.first_name || null,
+          last_name: userData.last_name || null,
+          phone: userData.phone || null,
           is_active: false, // INATTIVO finché non viene attivato
           temp_password: userData.password // Password temporanea per attivazione
         })

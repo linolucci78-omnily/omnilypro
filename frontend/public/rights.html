@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diritti degli Utenti - OMNILY PRO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #1f1f1f;
+            background: #ffffff;
+            padding: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 300;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        h2 {
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 500;
+            margin: 50px 0 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        h3 {
+            color: #374151;
+            font-size: 20px;
+            font-weight: 500;
+            margin: 30px 0 15px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: #4b5563;
+            font-size: 16px;
+        }
+
+        ul, ol {
+            margin: 20px 0 20px 40px;
+            color: #4b5563;
+        }
+
+        li {
+            margin-bottom: 10px;
+            line-height: 1.7;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-left: 3px solid #3b82f6;
+            padding: 24px;
+            margin: 30px 0;
+            border-radius: 0;
+        }
+
+        .right-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .right-card h3 {
+            color: #0f172a;
+            margin-top: 0;
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .how-to {
+            background: #fefce8;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 3px solid #eab308;
+        }
+
+        .how-to p:last-child {
+            margin-bottom: 0;
+        }
+
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .steps li {
+            counter-increment: step;
+            margin-bottom: 16px;
+            padding-left: 45px;
+            position: relative;
+        }
+
+        .steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #3b82f6;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 16px;
+            text-align: left;
+            font-weight: 500;
+            border-bottom: 2px solid #e5e7eb;
+            color: #111827;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+            font-size: 15px;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        .footer {
+            background: #f9fafb;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 60px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 8px 0;
+        }
+
+        .footer a {
+            color: #6b7280;
+            margin: 0 12px;
+        }
+
+        .footer a:hover {
+            color: #111827;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .warning {
+            background: #fef2f2;
+            border-left: 3px solid #ef4444;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Diritti degli Utenti</h1>
+        <p class="subtitle">Controllo completo sui dati personali ai sensi del GDPR</p>
+    </div>
+
+    <div class="container">
+        <div class="info-box">
+            <p><strong>Regolamento Europeo GDPR (2016/679):</strong> Il GDPR garantisce agli utenti diritti sostanziali sui propri dati personali. Questa pagina illustra i diritti disponibili e le modalità per esercitarli.</p>
+        </div>
+
+        <h2>Diritti Fondamentali</h2>
+
+        <div class="right-card">
+            <h3>1. Diritto di Accesso (Art. 15 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può richiedere informazioni complete sui dati personali in possesso di OMNILY PRO.</p>
+
+            <p><strong>Informazioni fornite:</strong></p>
+            <ul>
+                <li>Copia completa di tutti i dati personali</li>
+                <li>Finalità del trattamento</li>
+                <li>Categorie di destinatari dei dati</li>
+                <li>Periodo di conservazione previsto</li>
+            </ul>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <ol class="steps">
+                    <li>Accedere a Dashboard → Impostazioni → Privacy</li>
+                    <li>Selezionare "Scarica i Miei Dati"</li>
+                    <li>Ricevere file archivio (ZIP) contenente tutti i dati in formato JSON/CSV</li>
+                </ol>
+                <p><strong>Alternativa:</strong> Inviare email a <a href="mailto:privacy@omnilypro.com">privacy@omnilypro.com</a> con oggetto "Richiesta Accesso Dati"</p>
+                <p><strong>Tempistiche:</strong> Risposta entro 30 giorni</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>2. Diritto di Rettifica (Art. 16 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può richiedere la correzione di dati personali inesatti o l'integrazione di dati incompleti.</p>
+
+            <p><strong>Esempi di applicazione:</strong></p>
+            <ul>
+                <li>Correzione di indirizzi email errati</li>
+                <li>Aggiornamento di recapiti telefonici</li>
+                <li>Modifica di informazioni anagrafiche</li>
+            </ul>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <ol class="steps">
+                    <li>Accedere a Dashboard → Impostazioni → Profilo</li>
+                    <li>Modificare i campi da correggere</li>
+                    <li>Confermare con "Salva Modifiche"</li>
+                </ol>
+                <p><strong>Effetto:</strong> Immediato</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>3. Diritto alla Cancellazione - Diritto all'Oblio (Art. 17 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può richiedere la cancellazione definitiva di tutti i dati personali.</p>
+
+            <div class="warning">
+                <p><strong>Attenzione - Azione Irreversibile:</strong></p>
+                <p>La cancellazione comporta l'eliminazione di:</p>
+                <ul>
+                    <li>Account OMNILY PRO</li>
+                    <li>Saldo punti OMNY</li>
+                    <li>Storico transazioni</li>
+                    <li>Preferenze e configurazioni</li>
+                </ul>
+                <p><strong>Eccezioni:</strong></p>
+                <ul>
+                    <li>Dati di fatturazione (obbligo legale di conservazione: 10 anni)</li>
+                    <li>Dati necessari per contestazioni legali in corso</li>
+                    <li>Log di sicurezza per prevenzione frodi</li>
+                </ul>
+            </div>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <ol class="steps">
+                    <li>Accedere a Dashboard → Impostazioni → Privacy</li>
+                    <li>Individuare la sezione "Cancellazione Account"</li>
+                    <li>Selezionare "Elimina Account Permanentemente"</li>
+                    <li>Confermare digitando il nome dell'azienda</li>
+                    <li>Ricevere email di conferma eliminazione</li>
+                </ol>
+                <p><strong>Periodo di ripensamento:</strong> 7 giorni (possibilità di annullare la richiesta)</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>4. Diritto di Limitazione (Art. 18 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può richiedere la sospensione temporanea del trattamento dei dati personali.</p>
+
+            <p><strong>Casi di applicazione:</strong></p>
+            <ul>
+                <li>Contestazione dell'esattezza dei dati (durante la verifica)</li>
+                <li>Necessità di conservare i dati senza utilizzarli</li>
+                <li>Opposizione al trattamento (durante la valutazione)</li>
+            </ul>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <p>Inviare email a <a href="mailto:privacy@omnilypro.com">privacy@omnilypro.com</a></p>
+                <ul>
+                    <li><strong>Oggetto:</strong> "Richiesta Limitazione Trattamento"</li>
+                    <li><strong>Contenuto:</strong> Motivazione della richiesta</li>
+                </ul>
+                <p><strong>Tempistiche:</strong> Risposta entro 30 giorni</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>5. Diritto alla Portabilità (Art. 20 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può ricevere i propri dati in formato strutturato e trasferirli ad altro fornitore di servizi.</p>
+
+            <p><strong>Dati forniti:</strong></p>
+            <ul>
+                <li>File in formato machine-readable (JSON o CSV)</li>
+                <li>Tutti i dati forniti dall'utente</li>
+                <li>Formato compatibile per importazione in altri sistemi</li>
+            </ul>
+
+            <p><strong>Esempio pratico:</strong> Esportare i dati da OMNILY PRO in formato CSV per importarli in un sistema alternativo di gestione loyalty.</p>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <ol class="steps">
+                    <li>Accedere a Dashboard → Impostazioni → Privacy</li>
+                    <li>Selezionare "Scarica Dati Portabili"</li>
+                    <li>Scegliere il formato desiderato: JSON o CSV</li>
+                    <li>Avviare il download del file ZIP</li>
+                </ol>
+                <p><strong>Tempistiche:</strong> Immediato</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>6. Diritto di Opposizione (Art. 21 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può opporsi a specifiche forme di trattamento dei dati personali.</p>
+
+            <p><strong>Trattamenti ai quali è possibile opporsi:</strong></p>
+            <ul>
+                <li>Comunicazioni email di marketing e newsletter</li>
+                <li>Profilazione per analisi comportamentali</li>
+                <li>Marketing diretto</li>
+            </ul>
+
+            <p><strong>Trattamenti non soggetti a opposizione:</strong></p>
+            <ul>
+                <li>Trattamenti necessari per l'erogazione del servizio</li>
+                <li>Trattamenti derivanti da obblighi legali (es. fatturazione)</li>
+            </ul>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <p><strong>Per comunicazioni marketing:</strong></p>
+                <ul>
+                    <li>Utilizzare il link "Unsubscribe" presente nelle email</li>
+                    <li>Oppure: Dashboard → Impostazioni → Notifiche → Disattivare email</li>
+                </ul>
+                <p><strong>Per analytics:</strong></p>
+                <ul>
+                    <li>Dashboard → Impostazioni → Cookie → Rifiutare Analytics</li>
+                </ul>
+                <p><strong>Effetto:</strong> Immediato</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>7. Diritto di Opposizione a Decisioni Automatizzate (Art. 22 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente ha diritto a non essere sottoposto a decisioni basate esclusivamente su trattamenti automatizzati che producano effetti giuridici.</p>
+
+            <p><strong>Esempio:</strong> Blocco automatico dell'account da parte di un algoritmo senza revisione umana.</p>
+
+            <div class="info-box">
+                <p><strong>Stato attuale su OMNILY PRO:</strong></p>
+                <p>OMNILY PRO non utilizza attualmente processi decisionali automatizzati con effetti legali. Tutte le decisioni rilevanti (esempio: sospensione account) sono soggette a revisione umana.</p>
+            </div>
+        </div>
+
+        <div class="right-card">
+            <h3>8. Diritto a Non Essere Profilato (Art. 22 GDPR)</h3>
+            <p><strong>Descrizione:</strong> L'utente può rifiutare analisi comportamentali finalizzate alla profilazione.</p>
+
+            <p><strong>Esempio di profilazione:</strong> Analisi degli acquisti per mostrare pubblicità mirata (es. "Acquisti frequenti di prodotti X → Pubblicità fornitore X").</p>
+
+            <div class="how-to">
+                <p><strong>Modalità di esercizio:</strong></p>
+                <p>Dashboard → Impostazioni → Privacy → Attivare "Non profilare i miei dati"</p>
+                <p><strong>Effetto:</strong> Immediato</p>
+                <p><strong>Costo:</strong> Gratuito</p>
+            </div>
+        </div>
+
+        <h2>Modalità di Esercizio dei Diritti</h2>
+
+        <div class="info-box">
+            <h3>Contatti del Titolare del Trattamento</h3>
+            <p><strong>OMNILY PRO</strong></p>
+            <p><strong>Email Privacy:</strong> <a href="mailto:privacy@omnilypro.com">privacy@omnilypro.com</a></p>
+            <p><strong>Oggetto Email:</strong> "Esercizio Diritti GDPR - [Tipo Diritto]"</p>
+            <p><strong>Sede:</strong> Roma, Italia</p>
+
+            <p style="margin-top: 24px;"><strong>Informazioni da includere nella richiesta:</strong></p>
+            <ol>
+                <li>Nome e cognome</li>
+                <li>Email associata all'account OMNILY PRO</li>
+                <li>Diritto che si intende esercitare</li>
+                <li>Motivazione (opzionale)</li>
+                <li>Documento di identità (se richiesto per verifica sicurezza)</li>
+            </ol>
+
+            <p style="margin-top: 24px;"><strong>Tempi di risposta:</strong></p>
+            <ul>
+                <li>Standard: Entro 30 giorni</li>
+                <li>Richieste complesse: Fino a 60 giorni (con comunicazione preventiva)</li>
+                <li>Casi urgenti: Entro 48 ore (solo per violazioni di sicurezza)</li>
+            </ul>
+
+            <p style="margin-top: 24px;"><strong>Costi:</strong></p>
+            <ul>
+                <li>Prima richiesta: Gratuita</li>
+                <li>Richieste ripetute manifestamente eccessive: Fino a 10 euro (costo amministrativo)</li>
+                <li>Richieste manifestamente infondate: Possibilità di rifiuto</li>
+            </ul>
+        </div>
+
+        <h2>Presentazione Reclami</h2>
+        <p>In caso di presunta violazione del GDPR, l'utente può:</p>
+
+        <h3>1. Contattare OMNILY PRO</h3>
+        <p>Email: <a href="mailto:privacy@omnilypro.com">privacy@omnilypro.com</a></p>
+        <p>OMNILY PRO si impegna a risolvere amichevolmente ogni contestazione.</p>
+
+        <h3>2. Presentare Reclamo al Garante Privacy</h3>
+        <div class="info-box">
+            <p><strong>Garante per la Protezione dei Dati Personali</strong></p>
+            <ul>
+                <li><strong>Sito web:</strong> <a href="https://www.garanteprivacy.it" target="_blank">garanteprivacy.it</a></li>
+                <li><strong>Email:</strong> <a href="mailto:garante@gpdp.it">garante@gpdp.it</a></li>
+                <li><strong>PEC:</strong> <a href="mailto:protocollo@pec.gpdp.it">protocollo@pec.gpdp.it</a></li>
+                <li><strong>Telefono:</strong> +39 06 69677 1</li>
+                <li><strong>Indirizzo:</strong> Piazza Venezia, 11 - 00186 Roma, Italia</li>
+                <li><strong>Modulo online:</strong> <a href="https://www.garanteprivacy.it/home/modulistica#reclami" target="_blank">Modulo Reclamo</a></li>
+            </ul>
+        </div>
+
+        <h2>Tabella Riepilogativa</h2>
+        <table>
+            <tr>
+                <th>Diritto</th>
+                <th>Risultato</th>
+                <th>Modalità</th>
+                <th>Tempistiche</th>
+            </tr>
+            <tr>
+                <td>Accesso</td>
+                <td>Copia completa dei dati</td>
+                <td>Dashboard o email</td>
+                <td>30 giorni</td>
+            </tr>
+            <tr>
+                <td>Rettifica</td>
+                <td>Correzione dati</td>
+                <td>Dashboard</td>
+                <td>Immediato</td>
+            </tr>
+            <tr>
+                <td>Cancellazione</td>
+                <td>Eliminazione account</td>
+                <td>Dashboard</td>
+                <td>7 giorni</td>
+            </tr>
+            <tr>
+                <td>Portabilità</td>
+                <td>Export JSON/CSV</td>
+                <td>Dashboard</td>
+                <td>Immediato</td>
+            </tr>
+            <tr>
+                <td>Opposizione</td>
+                <td>Blocco marketing</td>
+                <td>Link unsubscribe</td>
+                <td>Immediato</td>
+            </tr>
+            <tr>
+                <td>Limitazione</td>
+                <td>Sospensione trattamento</td>
+                <td>Email</td>
+                <td>30 giorni</td>
+            </tr>
+        </table>
+
+        <h2>Domande Frequenti</h2>
+
+        <h3>È possibile eliminare solo alcuni dati senza cancellare l'intero account?</h3>
+        <p>Sì. È possibile richiedere la cancellazione selettiva di specifici dati (esempio: numero di telefono). Contattare privacy@omnilypro.com specificando i dati da eliminare.</p>
+
+        <h3>È possibile recuperare l'account dopo la cancellazione?</h3>
+        <p>Sì, ma solo entro 7 giorni dalla richiesta (periodo di ripensamento). Dopo 7 giorni, la cancellazione diventa permanente e irreversibile.</p>
+
+        <h3>I dati esportati tramite portabilità sono leggibili?</h3>
+        <p>Sì. I dati sono forniti in formato JSON (per sviluppatori) o CSV (compatibile con Excel e altri fogli di calcolo).</p>
+
+        <h3>Quanto costa esercitare i diritti GDPR?</h3>
+        <p>La prima richiesta è sempre gratuita. Richieste ripetute manifestamente eccessive possono comportare un costo massimo di 10 euro.</p>
+
+        <h3>È necessario motivare la richiesta di cancellazione?</h3>
+        <p>No. L'utente può richiedere la cancellazione dell'account senza fornire alcuna motivazione.</p>
+
+        <h2>Contatti</h2>
+        <p>Per domande o assistenza:</p>
+        <p><strong>Email:</strong> <a href="mailto:privacy@omnilypro.com">privacy@omnilypro.com</a></p>
+        <p><strong>Tempo medio di risposta:</strong> 24-48 ore lavorative</p>
+    </div>
+
+    <div class="footer">
+        <p>OMNILY PRO - Diritti degli Utenti GDPR | Ultimo aggiornamento: 25 Novembre 2024</p>
+        <p>
+            <a href="/">Home</a>
+            <a href="/privacy.html">Privacy Policy</a>
+            <a href="/cookie-policy.html">Cookie Policy</a>
+        </p>
+    </div>
+</body>
+</html>

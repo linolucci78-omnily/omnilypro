@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMNILY PRO - Il Primo Loyalty Token d'Italia</title>
+    <meta name="description" content="Trasforma i punti fedeltà in criptovaluta reale. La prima piattaforma loyalty blockchain per negozi italiani.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        /* Waitlist Form */
+        .waitlist-form {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto 60px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .form-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .form-subtitle {
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="email"] {
+            flex: 1;
+            padding: 18px 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input[type="email"]::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        input[type="email"]:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        button {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+        }
+        
+        .success-message {
+            display: none;
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+        
+        .feature {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .feature p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.7;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="logo">
+                <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/moneyomily.png" 
+                     alt="OmnyCoin" 
+                     style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+            </div>
+            <h1>OMNILY PRO</h1>
+            <p class="subtitle">Il Primo Loyalty Token d'Italia 🇮🇹</p>
+            
+            <!-- Waitlist Form -->
+            <div class="waitlist-form">
+                <h2 class="form-title">Unisciti alla Rivoluzione</h2>
+                <p class="form-subtitle">Lancio Febbraio 2025 • Posti Limitati</p>
+                
+                <form id="waitlistForm">
+                    <div class="input-group">
+                        <input 
+                            type="email" 
+                            id="email" 
+                            placeholder="La tua email" 
+                            required
+                        >
+                        <button type="submit">Riservami un Posto</button>
+                    </div>
+                </form>
+                
+                <div class="success-message" id="successMessage">
+                    ✅ Perfetto! Sei nella lista. Ti contatteremo presto!
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features -->
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🪙</div>
+                <h3>OmnyCoin (OMNY)</h3>
+                <p>Punti fedeltà che sono vera criptovaluta. Trasferibili, scambiabili, per sempre tuoi.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🏪</div>
+                <h3>Per Negozianti</h3>
+                <p>POS Android tutto-in-uno. Accendi e funziona. Zero configurazione. €99/mese.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔗</div>
+                <h3>Network Effect</h3>
+                <p>Guadagna OMNY ovunque, spendili ovunque. Un solo wallet per tutti i negozi.</p>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div>
+                <div class="stat-number">1M</div>
+                <div class="stat-label">OMNY Supply</div>
+            </div>
+            <div>
+                <div class="stat-number">€99</div>
+                <div class="stat-label">Al Mese</div>
+            </div>
+            <div>
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Negozi Pilota</div>
+            </div>
+            <div>
+                <div class="stat-number">Q1 2025</div>
+                <div class="stat-label">Lancio</div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2024 OmnilyPro. Il Primo Loyalty Token d'Italia.</p>
+            <p style="margin-top: 10px;">
+                <a href="mailto:lino@omnilypro.app" style="color: #fff; opacity: 0.8;">Contatti</a> • 
+                <a href="#" style="color: #fff; opacity: 0.8;">Privacy</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // Handle form submission
+        document.getElementById('waitlistForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const button = e.target.querySelector('button');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Disable button
+            button.disabled = true;
+            button.textContent = 'Invio...';
+            
+            try {
+                // TODO: Replace with your actual endpoint
+                // For now, just simulate success
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Show success message
+                successMessage.classList.add('show');
+                e.target.reset();
+                
+                // Optional: Send to Google Sheets or Supabase
+                console.log('Email submitted:', email);
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = 'Riservami un Posto';
+                    successMessage.classList.remove('show');
+                }, 3000);
+                
+            } catch (error) {
+                alert('Errore! Riprova.');
+                button.disabled = false;
+                button.textContent = 'Riservami un Posto';
+            }
+        });
+    </script>
+</body>
+</html>

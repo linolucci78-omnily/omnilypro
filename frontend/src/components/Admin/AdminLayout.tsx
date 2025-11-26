@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { usersService, type SystemUser } from '../../services/usersService'
 import {
   Building2,
   Users,
@@ -35,7 +36,9 @@ import {
   Ticket,
   Download,
   Crown,
-  Presentation
+  Presentation,
+  ChevronDown,
+  Coins
 } from 'lucide-react'
 import './AdminLayout.css'
 
@@ -53,19 +56,52 @@ interface MenuGroup {
 }
 
 const AdminLayout = () => {
-  const { signOut, isSuperAdmin, userRole } = useAuth()
+  const { user, signOut, isSuperAdmin, userRole } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarClosed, setSidebarClosed] = useState(false)
-  
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<SystemUser | null>(null)
+
   // DEBUG LOG per POS
-  console.log('🏢 AdminLayout mounted:', { 
-    path: location.pathname, 
-    isSuperAdmin, 
+  console.log('🏢 AdminLayout mounted:', {
+    path: location.pathname,
+    isSuperAdmin,
     userRole,
     userAgent: navigator.userAgent
   });
+
+  // Load current user data - refresh on route change to pick up profile updates
+  useEffect(() => {
+    if (user) {
+      loadCurrentUser()
+    }
+  }, [user, location.pathname])
+
+  // Listen for profile updates and refresh user data
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      if (user) {
+        loadCurrentUser()
+      }
+    }
+
+    window.addEventListener('user-profile-updated', handleProfileUpdate)
+    return () => {
+      window.removeEventListener('user-profile-updated', handleProfileUpdate)
+    }
+  }, [user])
+
+  const loadCurrentUser = async () => {
+    try {
+      if (!user) return
+      const userData = await usersService.getUser(user.id)
+      setCurrentUser(userData)
+    } catch (error) {
+      console.error('Error loading current user:', error)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -78,9 +114,16 @@ const AdminLayout = () => {
 
   const menuItems: MenuGroup[] = [
     {
-      group: 'Dashboard',
+      group: 'Founder Dashboard',
       items: [
         { path: '/admin', icon: Home, label: 'Panoramica', exact: true },
+        { path: '/admin/system-overview', icon: Activity, label: 'Command Center' },
+        { path: '/admin/root-access', icon: Shield, label: 'Root Access Control' }
+      ]
+    },
+    {
+      group: 'Analytics',
+      items: [
         { path: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
         { path: '/admin/activity', icon: Activity, label: 'Log Attività' }
       ]
@@ -101,7 +144,8 @@ const AdminLayout = () => {
         { path: '/admin/inventory', icon: Package, label: 'Inventario' },
         { path: '/admin/subscriptions', icon: CreditCard, label: 'Abbonamenti' },
         { path: '/admin/memberships', icon: Ticket, label: 'Membership' },
-        { path: '/admin/gift-certificates', icon: Gift, label: 'Gift Certificates' }
+        { path: '/admin/gift-certificates', icon: Gift, label: 'Gift Certificates' },
+        { path: '/admin/omny', icon: Coins, label: 'OMNY Management' }
       ]
     },
     {
@@ -174,15 +218,28 @@ const AdminLayout = () => {
         </div>
 
         {/* User Info */}
-        <div className="admin-user-info">
+        <Link to="/admin/profile" className="admin-user-info">
           <div className="user-avatar">
-            <User size={20} />
+            {currentUser?.avatar_url ? (
+              <img src={currentUser.avatar_url} alt={currentUser.first_name || 'User'} />
+            ) : (
+              <User size={20} />
+            )}
           </div>
           <div className="user-details">
-            <div className="user-name">Super Admin</div>
-            <div className="user-role">Amministratore Sistema</div>
+            <div className="user-name">
+              {currentUser?.first_name && currentUser?.last_name
+                ? `${currentUser.first_name} ${currentUser.last_name}`
+                : currentUser?.first_name || currentUser?.last_name || user?.email || 'Admin'}
+            </div>
+            <div className="user-role">
+              {userRole === 'super_admin' ? 'Super Amministratore' :
+                userRole === 'sales_agent' ? 'Agente Vendite' :
+                  userRole === 'account_manager' ? 'Account Manager' :
+                    'Amministratore'}
+            </div>
           </div>
-        </div>
+        </Link>
 
         {/* Navigation Menu */}
         <nav className="admin-nav">
@@ -233,7 +290,7 @@ const AdminLayout = () => {
         <div className="admin-topbar">
           <div className="topbar-left">
             {!sidebarOpen && (
-              <button 
+              <button
                 className="mobile-menu-btn"
                 onClick={() => setSidebarOpen(true)}
               >
@@ -256,16 +313,76 @@ const AdminLayout = () => {
               <div className="status-indicator online"></div>
               <span>Sistema Online</span>
             </div>
-            
+
             <button className="notification-btn">
               <Bell size={18} />
               <span className="notification-badge">3</span>
             </button>
 
-            <div className="admin-profile">
-              <div className="profile-avatar">
-                <User size={18} />
-              </div>
+            <div className="admin-profile-dropdown">
+              <button
+                className="profile-trigger"
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              >
+                <div className="profile-avatar">
+                  {currentUser?.avatar_url ? (
+                    <img src={currentUser.avatar_url} alt={currentUser.first_name || 'User'} />
+                  ) : (
+                    <User size={18} />
+                  )}
+                </div>
+                <div className="profile-info">
+                  <div className="profile-name">
+                    {currentUser?.first_name && currentUser?.last_name
+                      ? `${currentUser.first_name} ${currentUser.last_name}`
+                      : currentUser?.first_name || currentUser?.last_name || user?.email || 'Admin'}
+                  </div>
+                  <div className="profile-role">
+                    {userRole === 'super_admin' ? 'Super Admin' :
+                      userRole === 'sales_agent' ? 'Vendite' :
+                        userRole === 'account_manager' ? 'Account' : 'Admin'}
+                  </div>
+                </div>
+                <ChevronDown size={16} />
+              </button>
+
+              {profileDropdownOpen && (
+                <>
+                  <div
+                    className="profile-dropdown-overlay"
+                    onClick={() => setProfileDropdownOpen(false)}
+                  />
+                  <div className="profile-dropdown-menu">
+                    <Link
+                      to="/admin/profile"
+                      className="dropdown-item"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      <User size={16} />
+                      Il Mio Profilo
+                    </Link>
+                    <Link
+                      to="/admin/settings"
+                      className="dropdown-item"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      <Settings size={16} />
+                      Impostazioni
+                    </Link>
+                    <div className="dropdown-divider" />
+                    <button
+                      className="dropdown-item danger"
+                      onClick={() => {
+                        setProfileDropdownOpen(false)
+                        handleLogout()
+                      }}
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -278,7 +395,7 @@ const AdminLayout = () => {
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
         />

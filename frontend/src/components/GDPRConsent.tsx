@@ -139,13 +139,13 @@ const GDPRConsent: React.FC<GDPRConsentProps> = ({
           <div className="gdpr-checkbox-text">
             <strong>Ho letto e accetto l'informativa sulla privacy *</strong>
             <p>
-              Acconsento al trattamento dei miei dati personali secondo quanto previsto dall'informativa sulla privacy 
+              Acconsento al trattamento dei miei dati personali secondo quanto previsto dall'informativa sulla privacy
               in conformità al Regolamento UE 2016/679 (GDPR).
             </p>
             <div className="privacy-links">
-              <a href="/privacy-policy" target="_blank">📄 Leggi l'informativa completa</a>
-              <a href="/cookie-policy" target="_blank">🍪 Policy sui Cookie</a>
-              <a href="/data-rights" target="_blank">⚖️ I tuoi diritti sui dati</a>
+              <a href="/privacy.html" target="_blank">📄 Leggi l'informativa completa</a>
+              <a href="/cookie-policy.html" target="_blank">🍪 Policy sui Cookie</a>
+              <a href="/rights.html" target="_blank">⚖️ I tuoi diritti sui dati</a>
             </div>
           </div>
         </label>
@@ -156,7 +156,7 @@ const GDPRConsent: React.FC<GDPRConsentProps> = ({
         <div className="consent-management">
           <div className="consent-header">
             <h4>Gestione Consensi Dettagliata</h4>
-            <button 
+            <button
               className="toggle-details"
               onClick={() => setShowDetails(!showDetails)}
             >
@@ -220,9 +220,9 @@ const GDPRConsent: React.FC<GDPRConsentProps> = ({
       <div className="gdpr-rights">
         <FileText size={16} />
         <div className="rights-text">
-          <strong>I tuoi diritti GDPR:</strong> Hai il diritto di accedere, rettificare, cancellare i tuoi dati, 
-          limitarne il trattamento, opporti al trattamento e richiedere la portabilità dei dati. 
-          <a href="/data-rights">Scopri di più</a>
+          <strong>I tuoi diritti GDPR:</strong> Hai il diritto di accedere, rettificare, cancellare i tuoi dati,
+          limitarne il trattamento, opporti al trattamento e richiedere la portabilità dei dati.
+          <a href="/rights.html">Scopri di più</a>
         </div>
       </div>
 

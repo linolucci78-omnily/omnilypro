@@ -498,56 +498,166 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
     try {
       const orgData = await supabase
         .from('organizations')
-        .select('name, address, phone, partita_iva, email, website')
+        .select('name, address, phone, partita_iva, email, website, primary_color')
         .eq('id', organizationId)
         .single()
 
-      // Generate PDF
-      const pdfBlob = await LotteryPdfService.generateTicketPDF({
-        eventName: event.name,
-        ticketNumber: ticket.ticket_number,
-        customerName: ticket.customer_name,
-        customerEmail: ticket.customer_email || undefined,
-        customerPhone: ticket.customer_phone || undefined,
-        fortuneMessage: ticket.fortune_message || undefined,
-        prizeName: event.prize_name || undefined,
-        prizeValue: event.prize_value || undefined,
-        extractionDate: event.extraction_date,
-        pricePaid: ticket.price_paid,
-        purchasedByStaff: ticket.purchased_by_staff_name || undefined,
-        createdAt: ticket.created_at,
-        qrCodeData: ticket.qr_code_data,
-        organizationName: orgData.data?.name,
-        organizationAddress: orgData.data?.address,
-        organizationPhone: orgData.data?.phone,
-        organizationEmail: orgData.data?.email,
-        organizationVAT: orgData.data?.partita_iva,
-        organizationWebsite: orgData.data?.website,
-        brandColors: event.brand_colors
-      })
+      if (!orgData.data) {
+        throw new Error('Dati organizzazione non trovati')
+      }
 
-      // Convert PDF to base64
-      const reader = new FileReader()
-      const pdfBase64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string
-          const base64 = result.split(',')[1]
-          resolve(base64)
+      const org = orgData.data
+      const primaryColor = org.primary_color || '#dc2626'
+
+      // Generate QR code as data URL
+      const QRCode = (await import('qrcode')).default
+      const qrCodeDataUrl = await QRCode.toDataURL(ticket.qr_code_data, {
+        width: 200,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
         }
-        reader.onerror = reject
       })
-      reader.readAsDataURL(pdfBlob)
-      const pdfBase64 = await pdfBase64Promise
 
-      // Send email
-      const { data, error } = await supabase.functions.invoke('send-lottery-ticket-email', {
+      // Format extraction date
+      const extractionDate = new Date(event.extraction_date).toLocaleDateString('it-IT', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+
+      // Create HTML email template
+      const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biglietto Lotteria - ${event.name}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 28px; font-weight: bold;">🎟️ Biglietto Lotteria</h1>
+              <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 18px; font-weight: 600;">${event.name}</p>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="padding: 30px 30px 20px 30px;">
+              <p style="margin: 0; font-size: 16px; color: #374151; line-height: 1.6;">
+                Gentile <strong>${ticket.customer_name}</strong>,
+              </p>
+              <p style="margin: 15px 0 0 0; font-size: 16px; color: #374151; line-height: 1.6;">
+                Grazie per aver acquistato un biglietto per la nostra lotteria! Di seguito trovi i dettagli del tuo biglietto.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Ticket Number -->
+          <tr>
+            <td style="padding: 0 30px;">
+              <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 20px; text-align: center; border: 2px dashed ${primaryColor};">
+                <p style="margin: 0; font-size: 14px; color: #92400e; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Numero Biglietto</p>
+                <p style="margin: 10px 0 0 0; font-size: 36px; color: #78350f; font-weight: bold; letter-spacing: 2px;">${ticket.ticket_number}</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- QR Code -->
+          <tr>
+            <td style="padding: 30px; text-align: center;">
+              <p style="margin: 0 0 15px 0; font-size: 14px; color: #6b7280; font-weight: 600;">Scansiona questo QR Code per verificare il biglietto</p>
+              <img src="${qrCodeDataUrl}" alt="QR Code Biglietto" style="width: 200px; height: 200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            </td>
+          </tr>
+
+          <!-- Details -->
+          <tr>
+            <td style="padding: 0 30px 30px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 12px; padding: 20px;">
+                <tr>
+                  <td style="padding: 10px 0;">
+                    <p style="margin: 0; font-size: 13px; color: #6b7280; font-weight: 600;">📅 Data Estrazione</p>
+                    <p style="margin: 5px 0 0 0; font-size: 15px; color: #111827; font-weight: 600;">${extractionDate}</p>
+                  </td>
+                </tr>
+                ${event.prize_name ? `
+                <tr>
+                  <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; font-size: 13px; color: #6b7280; font-weight: 600;">🏆 Premio in Palio</p>
+                    <p style="margin: 5px 0 0 0; font-size: 15px; color: #111827; font-weight: 600;">${event.prize_name}${event.prize_value ? ` - €${event.prize_value.toFixed(2)}` : ''}</p>
+                  </td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; font-size: 13px; color: #6b7280; font-weight: 600;">💰 Prezzo Pagato</p>
+                    <p style="margin: 5px 0 0 0; font-size: 15px; color: #111827; font-weight: 600;">€${ticket.price_paid.toFixed(2)}</p>
+                  </td>
+                </tr>
+                ${ticket.fortune_message ? `
+                <tr>
+                  <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; font-size: 13px; color: #6b7280; font-weight: 600;">🔮 Messaggio della Fortuna</p>
+                    <p style="margin: 5px 0 0 0; font-size: 15px; color: #111827; font-style: italic;">"${ticket.fortune_message}"</p>
+                  </td>
+                </tr>
+                ` : ''}
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 10px 0; font-size: 16px; color: #111827; font-weight: 600;">In bocca al lupo! 🍀</p>
+              <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
+                Conserva questo biglietto fino alla data dell'estrazione.<br>
+                Ti contatteremo se sarai il fortunato vincitore!
+              </p>
+            </td>
+          </tr>
+
+          <!-- Organization Info -->
+          <tr>
+            <td style="padding: 20px 30px; background-color: #1f2937; text-align: center;">
+              <p style="margin: 0 0 5px 0; font-size: 14px; color: white; font-weight: 600;">${org.name}</p>
+              ${org.address ? `<p style="margin: 0; font-size: 12px; color: #9ca3af;">${org.address}</p>` : ''}
+              <p style="margin: 5px 0 0 0; font-size: 12px; color: #9ca3af;">
+                ${org.phone ? `📞 ${org.phone}` : ''}
+                ${org.email ? ` • ✉️ ${org.email}` : ''}
+                ${org.website ? ` • 🌐 ${org.website}` : ''}
+              </p>
+              ${org.partita_iva ? `<p style="margin: 10px 0 0 0; font-size: 11px; color: #6b7280;">P.IVA: ${org.partita_iva}</p>` : ''}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `
+
+      // Send email using direct send mode
+      console.log('📧 Sending lottery ticket email via send-email function (direct mode)...')
+      const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           to: ticket.customer_email,
-          ticketNumber: ticket.ticket_number,
-          customerName: ticket.customer_name,
-          eventName: event.name,
-          extractionDate: event.extraction_date,
-          pdfBase64: pdfBase64,
+          subject: `🎟️ Biglietto Lotteria: ${event.name} - #${ticket.ticket_number}`,
+          html: htmlBody,
           organizationId: organizationId
         }
       })
@@ -558,6 +668,7 @@ const LotteryManagement: React.FC<LotteryManagementProps> = ({
         return
       }
 
+      console.log('✅ Email sent successfully:', data)
       showToast(`Email inviata a ${ticket.customer_email}`, 'success')
     } catch (error: any) {
       console.error('Send email error:', error)

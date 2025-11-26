@@ -236,6 +236,47 @@ const NewCustomerFullPage: React.FC<NewCustomerFullPageProps> = ({ onBack, onSav
           {/* Consensi Privacy */}
           <div className="form-section">
             <h2 className="section-title">Consensi Privacy</h2>
+
+            <div style={{
+              marginBottom: '1rem',
+              padding: '0.875rem',
+              background: '#f8fafc',
+              borderRadius: '0.5rem',
+              fontSize: '0.813rem',
+              color: '#475569',
+              lineHeight: '1.5',
+              border: '1px solid #e2e8f0'
+            }}>
+              Prima di procedere, assicurati che il cliente abbia letto e accettato:{' '}
+              <a
+                href="/privacy.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#dc2626', textDecoration: 'underline', fontWeight: 500 }}
+              >
+                Privacy Policy
+              </a>
+              ,{' '}
+              <a
+                href="/cookie-policy.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#dc2626', textDecoration: 'underline', fontWeight: 500 }}
+              >
+                Cookie Policy
+              </a>
+              {' '}e{' '}
+              <a
+                href="/rights.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#dc2626', textDecoration: 'underline', fontWeight: 500 }}
+              >
+                Diritti degli Utenti
+              </a>
+              .
+            </div>
+
             <div className="consent-grid">
               <label className="consent-label">
                 <input

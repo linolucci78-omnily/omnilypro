@@ -7,7 +7,7 @@ import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 // REMOVED: useGamingNotifications - using console.log instead for stability
 // import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet, Coins } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -19,6 +19,8 @@ import CardStatisticsPage from './CardStatisticsPage'
 import OperatorNFCManagementFullPage from './OperatorNFCManagementFullPage'
 import LotteryHub from './LotteryHub'
 import WalletHub from './WalletHub'
+import OrgOmnyPanel from './OmnyWallet/OrgOmnyPanel'
+import { FEATURES } from '../config/features'
 import StaffActivityLogs from './StaffActivityLogs'
 import LoyaltyTiersConfigPanel from './LoyaltyTiersConfigPanel'
 import AccountSettingsPanel from './AccountSettingsPanel'
@@ -63,7 +65,8 @@ import GamingSettings from './Gaming/GamingSettings'
 import GamingHubWrapper from './Gaming/GamingHubWrapper'
 import WebsiteHub from './WebsiteHub'
 import { ContactMessagesPanel } from './ContactMessagesPanel'
-import { hasAccess, getUpgradePlan, PlanType } from '../utils/planPermissions'
+import { hasAccessSync, getUpgradePlan, PlanType, getPlanFeaturesSync, PLAN_NAMES, fetchPlanOverrides } from '../utils/planPermissions'
+import UpgradeModal from './UI/UpgradeModal'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
 
@@ -132,7 +135,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [upgradeFeature, setUpgradeFeature] = useState('')
   const [requiredPlan, setRequiredPlan] = useState<PlanType>(PlanType.BASIC)
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
-  
+
   const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [nfcResult, setNfcResult] = useState<any>(null);
   const [qrStatus, setQrStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
@@ -142,6 +145,15 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     primary: string | null
     secondary: string | null
   }>({ primary: null, secondary: null })
+
+  // Pre-load plan feature overrides cache on mount
+  useEffect(() => {
+    fetchPlanOverrides().then(() => {
+      console.log('✅ Plan feature overrides cache loaded')
+    }).catch(err => {
+      console.error('❌ Error loading plan overrides:', err)
+    })
+  }, [])
 
   // Notifica il parent (POSDashboardWrapper) quando cambiano i previewColors
   useEffect(() => {
@@ -245,7 +257,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     message: '',
     confirmText: 'OK',
     cancelText: 'Chiudi',
-    onConfirm: () => {},
+    onConfirm: () => { },
     type: 'info' as 'warning' | 'danger' | 'info'
   })
 
@@ -1366,7 +1378,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     totalCustomers: 0
   })
 
-  const [chartData, setChartData] = useState<Array<{month: string, stamps: number, redemptions: number}>>([])
+  const [chartData, setChartData] = useState<Array<{ month: string, stamps: number, redemptions: number }>>([])
 
   // Load dashboard metrics
   useEffect(() => {
@@ -1739,7 +1751,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         } else {
           addMatrixLog(`⚠️ No system data in injected hardware info`);
         }
-        
+
         if (hardwareInfo.network) {
           setHardwareStatus(prev => ({
             ...prev,
@@ -1751,7 +1763,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }));
           addMatrixLog(`📡 Network: ${hardwareInfo.network.ip} (${hardwareInfo.network.type})`);
         }
-        
+
         if (hardwareInfo.printer) {
           setHardwareStatus(prev => ({
             ...prev,
@@ -1763,7 +1775,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }));
           addMatrixLog(`🖨️ Printer: ${hardwareInfo.printer.message || 'Available'}`);
         }
-        
+
         if (hardwareInfo.nfc) {
           setHardwareStatus(prev => ({
             ...prev,
@@ -1774,7 +1786,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }));
           addMatrixLog(`📱 NFC: ${hardwareInfo.nfc.message || 'Status checked'}`);
         }
-        
+
         if (hardwareInfo.emv) {
           setHardwareStatus(prev => ({
             ...prev,
@@ -1785,10 +1797,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           }));
           addMatrixLog(`💳 EMV: ${hardwareInfo.emv.message || 'Status checked'}`);
         }
-        
+
         addMatrixLog('✅ Hardware status aggiornato da dati Android iniettati');
         return; // Exit early - we got the data from Android injection
-        
+
       } catch (error) {
         addMatrixLog(`❌ Errore parsing dati Android: ${error}`);
         console.error('Error parsing injected hardware data:', error);
@@ -1798,10 +1810,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     // Fallback to bridge detection if no injected data
     if (typeof window !== 'undefined') {
       addMatrixLog(`🔍 Window.OmnilyPOS exists: ${!!(window as any).OmnilyPOS}`);
-      
+
       // List all available window properties related to bridge
-      const windowKeys = Object.keys(window).filter(key => 
-        key.toLowerCase().includes('omnily') || 
+      const windowKeys = Object.keys(window).filter(key =>
+        key.toLowerCase().includes('omnily') ||
         key.toLowerCase().includes('bridge') ||
         key.toLowerCase().includes('pos')
       );
@@ -1880,7 +1892,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   addMatrixLog('📡 Chiamata getNetworkInfo separata...');
                   const networkInfo = bridge.getNetworkInfo();
                   const netInfo = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
-                  
+
                   setHardwareStatus(prev => ({
                     ...prev,
                     network: {
@@ -2084,7 +2096,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             addMatrixLog('📡 Legacy fallback: richiesta info network...');
             const networkInfo = bridge.getNetworkInfo();
             const info = typeof networkInfo === 'string' ? JSON.parse(networkInfo) : networkInfo;
-            
+
             setHardwareStatus(prev => ({
               ...prev,
               network: {
@@ -2115,11 +2127,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     } else {
       // Bridge not available
       addMatrixLog('❌ Bridge OmnilyPOS non trovato in window object');
-      
+
       // Se siamo in modalità sviluppo o test, mostra dati di esempio
       if (isPOSMode || window.location.hostname === 'localhost' || window.location.hostname.includes('vercel')) {
         addMatrixLog('🧪 Modalità TEST: Caricamento dati hardware simulati...');
-        
+
         setHardwareStatus({
           bridge: { status: 'disconnected', message: 'Bridge Android non disponibile (Modalità TEST)', version: undefined },
           system: {
@@ -2133,13 +2145,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           network: { status: 'online', ip: '192.168.1.100', type: 'WiFi (Simulato)' },
           emv: { status: 'unavailable', message: 'Simulazione - Non disponibile' }
         });
-        
+
         addMatrixLog('📱 TEST: Bridge status simulato caricato');
         addMatrixLog('📡 TEST: Network status simulato (192.168.1.100)');
         addMatrixLog('🖨️ TEST: Printer status simulato (errore)');
         addMatrixLog('📱 TEST: NFC status simulato (non disponibile)');
         addMatrixLog('💳 TEST: EMV status simulato (non disponibile)');
-        
+
       } else {
         // Produzione senza bridge
         setHardwareStatus({
@@ -2155,7 +2167,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           network: { status: 'offline', ip: '', type: '' },
           emv: { status: 'unavailable', message: 'Non disponibile' }
         });
-        
+
         addMatrixLog('🚫 PROD: Hardware non disponibile - serve dispositivo POS');
       }
     }
@@ -2390,15 +2402,32 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }, [activeSection, monitorEnabled]); // Re-run when monitor is toggled
 
   // Function to check if user can access a section
-  // DISABILITATO - Tutte le sezioni sono accessibili senza limitazioni
-  const checkSectionAccess = (sectionId: string, featureName: string) => {
-    return true // Accesso sempre consentito - nessun blocco upgrade
+  const checkSectionAccess = (featureName: string | null): boolean => {
+    if (!featureName) return true // No feature requirement = always accessible
+    if (!currentOrganization) return false
+
+    const userPlan = currentOrganization.plan_type || 'free'
+    return hasAccessSync(userPlan, featureName as any)
   }
 
   // Handle section change with access control
-  const handleRestrictedSectionChange = (sectionId: string, featureName: string) => {
-    if (checkSectionAccess(sectionId, featureName)) {
+  const handleRestrictedSectionChange = (sectionId: string, featureName: string | null, featureLabel: string) => {
+    if (checkSectionAccess(featureName)) {
       handleSectionChange(sectionId)
+    } else {
+      // Show upgrade modal
+      const userPlan = (currentOrganization?.plan_type || 'free') as PlanType
+      const requiredPlanType = getUpgradePlan(userPlan, featureName as any) || PlanType.BASIC
+
+      setUpgradeFeature(featureLabel)
+      setRequiredPlan(requiredPlanType)
+      setShowUpgradePrompt(true)
+
+      console.log('🔒 Feature locked:', {
+        feature: featureLabel,
+        currentPlan: userPlan,
+        requiredPlan: requiredPlanType
+      })
     }
   }
 
@@ -2410,20 +2439,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'dashboard', icon: BarChart3, label: 'Dashboard', feature: null },
       { id: 'stamps', icon: Target, label: 'Tessere Punti', feature: null },
       { id: 'members', icon: Users, label: 'Clienti', feature: null },
-      { id: 'lottery', icon: TicketIcon, label: 'Lotterie', feature: null },
+      { id: 'lottery', icon: TicketIcon, label: 'Lotterie', feature: 'lottery' },
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
       { id: 'referral', icon: Share2, label: 'Sistema Referral', feature: null },
-      { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: null },
+      { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: 'giftCertificates' },
       { id: 'wallet', icon: Wallet, label: 'Wallet', feature: null },
-      { id: 'coupons', icon: Ticket, label: 'Coupons', feature: null },
-      { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: null },
+      { id: 'omny-wallet', icon: Coins, label: 'OMNY Wallet', feature: null },
+      { id: 'coupons', icon: Ticket, label: 'Coupons', feature: 'coupons' },
+      { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: 'notifications' },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
-      { id: 'categories', icon: Package, label: 'Categorie', feature: null },
-      { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: null },
+      { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
+      { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
       { id: 'team-management', icon: UserPlus, label: 'Gestione Team', feature: 'teamManagement' },
-      { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: null },
-      { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: null },
+      { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: 'posIntegration' },
+      { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
       { id: 'website', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
@@ -2431,9 +2461,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'support', icon: HelpCircle, label: 'Aiuto & Supporto', feature: null }
     ]
 
+    // Apply feature locking based on plan
     return allItems.map(item => ({
       ...item,
-      locked: false // Tutte le funzionalità sono sempre sbloccate
+      locked: item.feature ? !hasAccessSync(userPlan, item.feature as any) : false
     }))
   }
 
@@ -2524,6 +2555,17 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         ) : null
 
+      case 'omny-wallet':
+        return FEATURES.OMNY_WALLET && currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <OrgOmnyPanel
+              organizationId={currentOrganization.id}
+              primaryColor={previewColors.primary || currentOrganization.brand_colors?.primary || '#667eea'}
+              secondaryColor={previewColors.secondary || currentOrganization.brand_colors?.secondary || '#764ba2'}
+            />
+          </div>
+        ) : null
+
       case 'registration-wizard':
         return currentOrganization ? (
           <RegistrationWizard
@@ -2572,7 +2614,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <div className="stat-label">CLIENTI TOTALI</div>
                   </div>
                 </div>
-                
+
                 <div className="customer-stat-card male">
                   <div className="stat-icon">
                     <Users size={20} />
@@ -2582,7 +2624,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <div className="stat-label">MASCHI</div>
                   </div>
                 </div>
-                
+
                 <div className="customer-stat-card female">
                   <div className="stat-icon">
                     <Users size={20} />
@@ -2592,7 +2634,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <div className="stat-label">FEMMINE</div>
                   </div>
                 </div>
-                
+
                 <div className="customer-stat-card notifications">
                   <div className="stat-icon">
                     <Target size={20} />
@@ -3123,7 +3165,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             </div>
           </div>
         )
-      
+
       case 'settings':
         return currentOrganization ? (
           <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
@@ -3139,7 +3181,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             />
           </div>
         ) : null
-      
+
       case 'support':
         return currentOrganization ? (
           <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
@@ -3353,13 +3395,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         </div>
                       </div>
                       <div className="color-preview">
-                        <div 
-                          className="color-box" 
+                        <div
+                          className="color-box"
                           style={{ backgroundColor: org.primary_color }}
                           title={`Primary: ${org.primary_color}`}
                         />
-                        <div 
-                          className="color-box" 
+                        <div
+                          className="color-box"
                           style={{ backgroundColor: org.secondary_color }}
                           title={`Secondary: ${org.secondary_color}`}
                         />
@@ -3397,7 +3439,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         <div className="metric-label">Punti totali</div>
                       </div>
                     </div>
-                    
+
                     <div className="metric-card">
                       <div className="metric-icon offers">
                         <Gift size={24} />
@@ -3407,7 +3449,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         <div className="metric-label">Offerte totali</div>
                       </div>
                     </div>
-                    
+
                     <div className="metric-card">
                       <div className="metric-icon joins">
                         <TrendingUp size={24} />
@@ -3417,7 +3459,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                         <div className="metric-label">Iscrizioni totali</div>
                       </div>
                     </div>
-                    
+
                     <div className="metric-card">
                       <div className="metric-icon customers">
                         <Users size={24} />
@@ -3435,12 +3477,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               <div className="dashboard-right">
                 <div className="activity-section">
                   <h2 className="section-title">Attività <span className="subtitle">sempre</span></h2>
-                  
+
                   <div className="activity-tabs">
                     <button className="tab-btn active">Punti</button>
                     <button className="tab-btn">Riscatti</button>
                   </div>
-                  
+
                   <div className="chart-container">
                     <div className="chart-y-axis">
                       <div>1800</div>
@@ -3453,7 +3495,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     <div className="chart-bars">
                       {chartData.map((data, _index) => (
                         <div key={data.month} className="chart-bar-group">
-                          <div 
+                          <div
                             className="chart-bar stamps-bar"
                             style={{ height: `${(data.stamps / 1800) * 100}%` }}
                             title={`${data.month}: ${data.stamps} punti`}
@@ -3496,76 +3538,77 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         isPOSMode
           ? {} // In POS mode, eredita CSS variables da POSLayout (parent)
           : {
-              '--primary-color': getActiveColors().primary,
-              '--secondary-color': getActiveColors().secondary
-            } as React.CSSProperties
+            '--primary-color': getActiveColors().primary,
+            '--secondary-color': getActiveColors().secondary
+          } as React.CSSProperties
       }
     >
       {/* DEBUG: POS Mode Indicator */}
       {/* Sidebar - Hidden in POS mode */}
       {!isPOSMode && (
         <div className="sidebar">
-        <div className="sidebar-header">
-          {/* Logo Organizzazione */}
-          {currentOrganization?.logo_url ? (
-            <div className="org-logo">
-              <img src={currentOrganization.logo_url} alt={currentOrganization.name} />
-            </div>
-          ) : (
-            <>
-              {console.log('⚠️ Logo URL mancante per:', currentOrganization?.name, 'logo_url:', currentOrganization?.logo_url)}
-              <div className="logo">
-                <div className="logo-icon">O</div>
-                <span className="logo-text">OMNILY PRO</span>
+          <div className="sidebar-header">
+            {/* Logo Organizzazione */}
+            {currentOrganization?.logo_url ? (
+              <div className="org-logo">
+                <img src={currentOrganization.logo_url} alt={currentOrganization.name} />
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                {console.log('⚠️ Logo URL mancante per:', currentOrganization?.name, 'logo_url:', currentOrganization?.logo_url)}
+                <div className="logo">
+                  <div className="logo-icon">O</div>
+                  <span className="logo-text">OMNILY PRO</span>
+                </div>
+              </>
+            )}
 
-          {/* Nome Organizzazione */}
-          <div className="org-name">{currentOrganization?.name || 'OMNILY PRO'}</div>
+            {/* Nome Organizzazione */}
+            <div className="org-name">{currentOrganization?.name || 'OMNILY PRO'}</div>
 
-          {/* Operatore Loggato */}
-          <div className="operator-info">
-            <div className="operator-label">Operatore</div>
-            <div className="operator-name">{user?.email || 'Admin'}</div>
+            {/* Operatore Loggato */}
+            <div className="operator-info">
+              <div className="operator-label">Operatore</div>
+              <div className="operator-name">{user?.email || 'Admin'}</div>
+            </div>
           </div>
-        </div>
 
-        <nav className="sidebar-nav">
-          {sidebarItems.map(item => {
-            const IconComponent = item.icon
-            const isLocked = (item as any).locked
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (isLocked) {
-                    handleRestrictedSectionChange(item.id, item.label)
-                  } else {
-                    handleSectionChange(item.id)
-                  }
-                }}
-                className={`nav-item ${activeSection === item.id ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
-                disabled={isLocked && activeSection === item.id}
-              >
-                <IconComponent size={20} />
-                <span>{item.label}</span>
-                {isLocked && <Lock size={16} className="lock-icon" />}
-              </button>
-            )
-          })}
-        </nav>
+          <nav className="sidebar-nav">
+            {sidebarItems.map(item => {
+              const IconComponent = item.icon
+              const isLocked = (item as any).locked
+              const feature = (item as any).feature
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    if (isLocked) {
+                      handleRestrictedSectionChange(item.id, feature, item.label)
+                    } else {
+                      handleSectionChange(item.id)
+                    }
+                  }}
+                  className={`nav-item ${activeSection === item.id ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                  disabled={isLocked && activeSection === item.id}
+                >
+                  <IconComponent size={20} />
+                  <span>{item.label}</span>
+                  {isLocked && <Lock size={16} className="lock-icon" />}
+                </button>
+              )
+            })}
+          </nav>
 
-        <div className="sidebar-footer">
-          <button className="btn-logout-sidebar" onClick={() => {
-            localStorage.removeItem('supabase.auth.token');
-            window.location.href = '/login';
-          }}>
-            <LogOut size={20} />
-            <span>Logout</span>
-          </button>
-          <div className="version">Version 0.1.0 (48)</div>
-        </div>
+          <div className="sidebar-footer">
+            <button className="btn-logout-sidebar" onClick={() => {
+              localStorage.removeItem('supabase.auth.token');
+              window.location.href = '/login';
+            }}>
+              <LogOut size={20} />
+              <span>Logout</span>
+            </button>
+            <div className="version">Version 0.1.0 (48)</div>
+          </div>
         </div>
       )}
 
@@ -3934,8 +3977,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                 justifyContent: 'center',
                 transition: 'background 0.2s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}>
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}>
                 <X size={24} color="white" />
               </button>
             </div>
@@ -3981,8 +4024,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     borderRadius: '8px',
                     transition: 'background 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'white'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                     <Package size={18} />
                     1. Sistema Membership
                   </a>
@@ -4058,7 +4101,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     borderRadius: '8px',
                     border: '2px solid #e2e8f0'
                   }}>
-                    <strong style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)' }}>Cos'è una Membership?</strong><br/>
+                    <strong style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)' }}>Cos'è una Membership?</strong><br />
                     È come un abbonamento in palestra: il cliente paga una volta e può usare i tuoi servizi per un periodo di tempo (es. 30 giorni), con un numero massimo di volte al giorno o in totale.
                   </p>
 
@@ -4072,9 +4115,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     borderRadius: '8px',
                     border: '2px solid #bfdbfe'
                   }}>
-                    <strong style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)' }}>Esempio pratico:</strong><br/>
-                    • Palestra: "Abbonamento Mensile 50€" → 1 ingresso/giorno per 30 giorni<br/>
-                    • Bar: "Colazione Mensile 30€" → 1 colazione/giorno per 30 giorni<br/>
+                    <strong style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)' }}>Esempio pratico:</strong><br />
+                    • Palestra: "Abbonamento Mensile 50€" → 1 ingresso/giorno per 30 giorni<br />
+                    • Bar: "Colazione Mensile 30€" → 1 colazione/giorno per 30 giorni<br />
                     • Parrucchiere: "Pacchetto 10 Tagli 100€" → 10 tagli senza scadenza
                   </p>
 
@@ -4116,39 +4159,39 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       </p>
                       <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: '1.8' }}>
                         <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
-                          <strong>Nome Template:</strong><br/>
+                          <strong>Nome Template:</strong><br />
                           Dai un nome chiaro. Es: "Abbonamento Mensile Palestra", "Colazioni 30 Giorni", "Pacchetto 10 Tagli"
                         </div>
 
                         <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
-                          <strong>Descrizione:</strong><br/>
+                          <strong>Descrizione:</strong><br />
                           Spiega cosa include. Es: "Accesso illimitato alla palestra per 30 giorni, max 1 ingresso al giorno"
                         </div>
 
                         <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
-                          <strong>Prezzo:</strong><br/>
+                          <strong>Prezzo:</strong><br />
                           Quanto costa. Es: 50 (il sistema aggiunge automaticamente €)
                         </div>
 
                         <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #3b82f6' }}>
-                          <strong>Durata:</strong><br/>
-                          Quanto tempo dura. Scegli il numero e il periodo (giorni/mesi/anni)<br/>
+                          <strong>Durata:</strong><br />
+                          Quanto tempo dura. Scegli il numero e il periodo (giorni/mesi/anni)<br />
                           Es: 30 giorni, oppure 1 mese, oppure 1 anno
                         </div>
 
                         <div style={{ marginBottom: '0.75rem', paddingLeft: '1rem', borderLeft: '3px solid #10b981', background: '#f0fdf4', padding: '0.5rem', borderRadius: '4px' }}>
-                          <strong>Limite Giornaliero (OPZIONALE):</strong><br/>
-                          Quante volte al giorno può usarlo il cliente?<br/>
-                          • Lascia vuoto = illimitato<br/>
-                          • Metti 1 = solo una volta al giorno<br/>
+                          <strong>Limite Giornaliero (OPZIONALE):</strong><br />
+                          Quante volte al giorno può usarlo il cliente?<br />
+                          • Lascia vuoto = illimitato<br />
+                          • Metti 1 = solo una volta al giorno<br />
                           • Metti 2 = massimo 2 volte al giorno
                         </div>
 
                         <div style={{ paddingLeft: '1rem', borderLeft: '3px solid #10b981', background: '#f0fdf4', padding: '0.5rem', borderRadius: '4px' }}>
-                          <strong>Limite Totale (OPZIONALE):</strong><br/>
-                          Quante volte IN TOTALE può usarlo?<br/>
-                          • Lascia vuoto = illimitato<br/>
-                          • Metti 10 = solo 10 volte in tutto<br/>
+                          <strong>Limite Totale (OPZIONALE):</strong><br />
+                          Quante volte IN TOTALE può usarlo?<br />
+                          • Lascia vuoto = illimitato<br />
+                          • Metti 10 = solo 10 volte in tutto<br />
                           • Metti 20 = massimo 20 volte in tutto
                         </div>
                       </div>
@@ -4569,33 +4612,33 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                       <X size={18} />
                     </button>
                   </div>
-                {emailSubject && emailMessage ? (
-                  <iframe
-                    srcDoc={emailPreviewHtml}
-                    style={{
-                      width: '100%',
-                      height: '500px',
-                      border: 'none',
-                      borderRadius: '8px',
-                      background: 'white'
-                    }}
-                    title="Email Preview"
-                  />
-                ) : (
-                  <div style={{
-                    height: '300px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#9ca3af',
-                    fontSize: '14px',
-                    textAlign: 'center',
-                    padding: '20px'
-                  }}>
-                    Compila oggetto e messaggio per vedere l'anteprima
-                  </div>
-                )}
-              </div>
+                  {emailSubject && emailMessage ? (
+                    <iframe
+                      srcDoc={emailPreviewHtml}
+                      style={{
+                        width: '100%',
+                        height: '500px',
+                        border: 'none',
+                        borderRadius: '8px',
+                        background: 'white'
+                      }}
+                      title="Email Preview"
+                    />
+                  ) : (
+                    <div style={{
+                      height: '300px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9ca3af',
+                      fontSize: '14px',
+                      textAlign: 'center',
+                      padding: '20px'
+                    }}>
+                      Compila oggetto e messaggio per vedere l'anteprima
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -4657,42 +4700,42 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                     Mostra Anteprima
                   </button>
                 )}
-              <button
-                onClick={handleSendEmail}
-                disabled={sendingEmail || !emailSubject || !emailMessage}
-                style={{
-                  padding: '10px 20px',
-                  border: 'none',
-                  background: sendingEmail || !emailSubject || !emailMessage ? '#9ca3af' : getActiveColors().primary,
-                  color: 'white',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: sendingEmail || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                {sendingEmail ? (
-                  <>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid white',
-                      borderTopColor: 'transparent',
-                      borderRadius: '50%',
-                      animation: 'spin 0.6s linear infinite'
-                    }} />
-                    Invio in corso...
-                  </>
-                ) : (
-                  <>
-                    <Mail size={16} />
-                    Invia Email
-                  </>
-                )}
-              </button>
+                <button
+                  onClick={handleSendEmail}
+                  disabled={sendingEmail || !emailSubject || !emailMessage}
+                  style={{
+                    padding: '10px 20px',
+                    border: 'none',
+                    background: sendingEmail || !emailSubject || !emailMessage ? '#9ca3af' : getActiveColors().primary,
+                    color: 'white',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: sendingEmail || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {sendingEmail ? (
+                    <>
+                      <div style={{
+                        width: '16px',
+                        height: '16px',
+                        border: '2px solid white',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 0.6s linear infinite'
+                      }} />
+                      Invio in corso...
+                    </>
+                  ) : (
+                    <>
+                      <Mail size={16} />
+                      Invia Email
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -4928,6 +4971,21 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        currentPlan={(currentOrganization?.plan_type || 'free') as PlanType}
+        requiredPlan={requiredPlan}
+        featureName={upgradeFeature}
+        onUpgrade={(plan) => {
+          console.log('🚀 User requested upgrade to:', plan)
+          // TODO: Integrate Stripe checkout
+          setShowUpgradePrompt(false)
+          alert(`L'upgrade a ${PLAN_NAMES[plan]} sarà disponibile presto con l'integrazione Stripe!`)
+        }}
+      />
 
       {/* Confirm Modal */}
       <ConfirmModal

@@ -9,6 +9,50 @@
   box-sizing: border-box;
 }
 
+/* User Info Cell with Avatar */
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--omnily-primary) 0%, var(--omnily-secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.user-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-name-email {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.user-display-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.user-email-small {
+  font-size: 12px;
+  color: #64748b;
+}
+
 /* Header */
 .users-header {
   display: flex;

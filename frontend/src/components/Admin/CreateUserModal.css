@@ -161,6 +161,18 @@
   font-style: italic;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Role Info Card */
 .role-info-card {
   margin-top: 1.5rem;

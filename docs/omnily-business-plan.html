@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OMNILY PRO - Business Plan 2025-2027</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .swiper {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .swiper-slide {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+    }
+
+    .bg-navy {
+      background: #0f172a;
+    }
+
+    .text-navy {
+      color: #0f172a;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+
+    .swiper-button-next,
+    .swiper-button-prev {
+      color: #64748b !important;
+      background: white;
+      width: 44px !important;
+      height: 44px !important;
+      border-radius: 50%;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+      background: #f8fafc;
+      color: #0f172a !important;
+    }
+
+    .swiper-button-next:after,
+    .swiper-button-prev:after {
+      font-size: 18px !important;
+      font-weight: bold;
+    }
+
+    .swiper-pagination-bullet {
+      background: #cbd5e1 !important;
+      opacity: 1 !important;
+      width: 8px;
+      height: 8px;
+    }
+
+    .swiper-pagination-bullet-active {
+      background: #0f172a !important;
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .data-table th {
+      background: #f8fafc;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .metric-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .metric-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 280px;
+      margin: 15px 0;
+    }
+
+    .section-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+
+      <!-- SLIDE 1: Cover -->
+      <div class="swiper-slide bg-navy">
+        <div class="max-w-6xl mx-auto px-16 w-full text-center">
+          <div class="mb-8 fade-in-up">
+            <div class="inline-block bg-blue-500 px-6 py-2 rounded-full text-white text-sm font-bold uppercase tracking-wide mb-6">
+              Business Plan 2025-2027
+            </div>
+          </div>
+
+          <h1 class="text-7xl font-black text-white mb-6 leading-tight fade-in-up delay-100">
+            OMNILY PRO
+          </h1>
+
+          <p class="text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed fade-in-up delay-200">
+            Piattaforma Multi-Tenant per Loyalty Management con Blockchain Integration
+          </p>
+
+          <div class="grid grid-cols-4 gap-8 max-w-4xl mx-auto fade-in-up delay-300">
+            <div>
+              <div class="text-4xl font-bold text-white mb-2">€5.2M</div>
+              <div class="text-slate-400 text-sm">Revenue Target Y3</div>
+            </div>
+            <div>
+              <div class="text-4xl font-bold text-white mb-2">500+</div>
+              <div class="text-slate-400 text-sm">Target Organizations</div>
+            </div>
+            <div>
+              <div class="text-4xl font-bold text-white mb-2">15K+</div>
+              <div class="text-slate-400 text-sm">End Customers</div>
+            </div>
+            <div>
+              <div class="text-4xl font-bold text-white mb-2">€2.8M</div>
+              <div class="text-slate-400 text-sm">Funding Required</div>
+            </div>
+          </div>
+
+          <div class="mt-16 text-slate-500 text-sm fade-in-up delay-400">
+            <div>Documento Confidenziale</div>
+            <div class="mt-2">© 2025 OMNILY PRO • Tutti i diritti riservati</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: Executive Summary -->
+      <div class="swiper-slide">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-blue-100 text-blue-700">Executive Summary</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">Sintesi Esecutiva</h2>
+            <p class="text-lg text-slate-600">Visione strategica e value proposition</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-12">
+            <!-- Left: Overview -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">La Nostra Missione</h3>
+              <p class="text-slate-700 mb-6 leading-relaxed">
+                OMNILY PRO è una <strong>piattaforma SaaS multi-tenant</strong> che rivoluziona il loyalty management per PMI e catene retail attraverso l'integrazione di tecnologia blockchain (OmnyCoin) per eliminare i costi delle commissioni tradizionali.
+              </p>
+
+              <div class="bg-slate-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-6">
+                <h4 class="font-bold text-navy mb-3">Value Proposition Unica</h4>
+                <ul class="space-y-2 text-sm text-slate-700">
+                  <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>99.2% riduzione costi</strong> vs sistemi tradizionali (€0.0002 vs €0.025 per transazione)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Multi-tenant architecture</strong> per scalabilità illimitata</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Integrazione POS Android</strong> nativa con hardware ZCS</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>OmnyCoin (ERC-20)</strong> - primo loyalty token su Polygon</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Customer App PWA</strong> installabile senza store</span>
+                  </li>
+                </ul>
+              </div>
+
+              <h3 class="font-bold text-navy mb-4 text-xl">Target Market</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="metric-card">
+                  <div class="text-2xl font-bold text-navy mb-1">€12.4 Mld</div>
+                  <div class="text-xs text-slate-600">Mercato Loyalty EU (TAM)</div>
+                </div>
+                <div class="metric-card">
+                  <div class="text-2xl font-bold text-navy mb-1">€1.8 Mld</div>
+                  <div class="text-xs text-slate-600">PMI Italia (SAM)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Key Metrics & Timeline -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Proiezioni Finanziarie 3 Anni</h3>
+
+              <div class="space-y-3 mb-8">
+                <!-- Year 1 -->
+                <div class="bg-white border-2 border-slate-200 rounded-xl p-5">
+                  <div class="flex justify-between items-center mb-3">
+                    <div>
+                      <div class="text-sm text-slate-500 font-semibold">Anno 1 (2025)</div>
+                      <div class="text-2xl font-bold text-navy">€420K</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm text-slate-500">Organizations</div>
+                      <div class="text-xl font-bold text-blue-500">50</div>
+                    </div>
+                  </div>
+                  <div class="flex gap-3 text-xs">
+                    <div class="flex-1 bg-slate-100 px-2 py-1 rounded">
+                      <div class="text-slate-500">MRR</div>
+                      <div class="font-semibold">€35K</div>
+                    </div>
+                    <div class="flex-1 bg-slate-100 px-2 py-1 rounded">
+                      <div class="text-slate-500">Customers</div>
+                      <div class="font-semibold">2.5K</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Year 2 -->
+                <div class="bg-white border-2 border-blue-200 rounded-xl p-5">
+                  <div class="flex justify-between items-center mb-3">
+                    <div>
+                      <div class="text-sm text-slate-500 font-semibold">Anno 2 (2026)</div>
+                      <div class="text-2xl font-bold text-navy">€1.8M</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm text-slate-500">Organizations</div>
+                      <div class="text-xl font-bold text-blue-500">200</div>
+                    </div>
+                  </div>
+                  <div class="flex gap-3 text-xs">
+                    <div class="flex-1 bg-blue-50 px-2 py-1 rounded">
+                      <div class="text-slate-500">MRR</div>
+                      <div class="font-semibold">€150K</div>
+                    </div>
+                    <div class="flex-1 bg-blue-50 px-2 py-1 rounded">
+                      <div class="text-slate-500">Customers</div>
+                      <div class="font-semibold">8K</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Year 3 -->
+                <div class="bg-white border-2 border-green-200 rounded-xl p-5">
+                  <div class="flex justify-between items-center mb-3">
+                    <div>
+                      <div class="text-sm text-slate-500 font-semibold">Anno 3 (2027)</div>
+                      <div class="text-2xl font-bold text-navy">€5.2M</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm text-slate-500">Organizations</div>
+                      <div class="text-xl font-bold text-green-500">500</div>
+                    </div>
+                  </div>
+                  <div class="flex gap-3 text-xs">
+                    <div class="flex-1 bg-green-50 px-2 py-1 rounded">
+                      <div class="text-slate-500">MRR</div>
+                      <div class="font-semibold">€433K</div>
+                    </div>
+                    <div class="flex-1 bg-green-50 px-2 py-1 rounded">
+                      <div class="text-slate-500">Customers</div>
+                      <div class="font-semibold">15K</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="font-bold text-navy mb-4 text-xl">Investment Ask</h3>
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
+                <div class="text-3xl font-bold text-navy mb-2">€2.8M Seed Round</div>
+                <div class="text-sm text-slate-700 mb-4">18 mesi runway • Equity 15-20%</div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Sviluppo Prodotto</span>
+                    <span class="font-semibold">€800K</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Sales & Marketing</span>
+                    <span class="font-semibold">€1.2M</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Operations & Team</span>
+                    <span class="font-semibold">€600K</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Legal & Infrastructure</span>
+                    <span class="font-semibold">€200K</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: Market Analysis -->
+      <div class="swiper-slide bg-slate-50">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-purple-100 text-purple-700">Market Analysis</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">Analisi di Mercato</h2>
+            <p class="text-lg text-slate-600">TAM, SAM, SOM e opportunità di crescita</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- Market Size -->
+            <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+              <h3 class="font-bold text-navy mb-4">Market Size (Bottom-Up)</h3>
+
+              <div class="space-y-4">
+                <div class="pb-4 border-b border-slate-200">
+                  <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm font-semibold text-slate-700">TAM - Total Addressable Market</div>
+                    <div class="text-2xl font-bold text-navy">€12.4 Mld</div>
+                  </div>
+                  <p class="text-xs text-slate-600">Loyalty programs EU (fonte: McKinsey 2024)</p>
+                </div>
+
+                <div class="pb-4 border-b border-slate-200">
+                  <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm font-semibold text-slate-700">SAM - Serviceable Available Market</div>
+                    <div class="text-2xl font-bold text-blue-600">€1.8 Mld</div>
+                  </div>
+                  <p class="text-xs text-slate-600">PMI Italia Retail & F&B (45K aziende × €40K/anno avg)</p>
+                </div>
+
+                <div>
+                  <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm font-semibold text-slate-700">SOM - Serviceable Obtainable Market</div>
+                    <div class="text-2xl font-bold text-green-600">€90M</div>
+                  </div>
+                  <p class="text-xs text-slate-600">Target Y3: 5% SAM penetration (2,250 organizations)</p>
+                </div>
+              </div>
+
+              <div class="mt-6 bg-slate-50 p-4 rounded-lg">
+                <div class="text-xs text-slate-600 mb-2">Conservative Penetration</div>
+                <div class="flex items-center gap-3">
+                  <div class="flex-1 bg-slate-200 h-3 rounded-full overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-green-500 h-full rounded-full" style="width: 5%"></div>
+                  </div>
+                  <div class="text-sm font-bold text-navy">5%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Market Trends -->
+            <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+              <h3 class="font-bold text-navy mb-4">Trend di Mercato</h3>
+
+              <div class="space-y-3">
+                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                  <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-navy text-sm mb-1">Crescita Loyalty Programs</div>
+                    <div class="text-xs text-slate-600">CAGR 14.2% (2024-2029) - fonte: Statista</div>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                  <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-navy text-sm mb-1">Blockchain Adoption</div>
+                    <div class="text-xs text-slate-600">+287% progetti blockchain loyalty (2023 vs 2021)</div>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                  <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-navy text-sm mb-1">Mobile-First Commerce</div>
+                    <div class="text-xs text-slate-600">78% consumatori preferiscono app mobile per loyalty</div>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
+                  <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-navy text-sm mb-1">POS Integrati</div>
+                    <div class="text-xs text-slate-600">€2.4 Mld mercato POS Italia, 62% ancora non integrato</div>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
+                  <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-navy text-sm mb-1">Pain Point: Costi Elevati</div>
+                    <div class="text-xs text-slate-600">84% merchant insoddisfatti delle commissioni attuali</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Segmentation -->
+          <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+            <h3 class="font-bold text-navy mb-4">Segmentazione Clienti Target</h3>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Segmento</th>
+                  <th>Dimensione</th>
+                  <th>Pain Points</th>
+                  <th>ARPU/anno</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold text-navy">Ristoranti & Bar</td>
+                  <td>18,500 (IT)</td>
+                  <td class="text-sm">Retention bassa, no fidelizzazione, costi alti</td>
+                  <td class="font-semibold">€1,200</td>
+                  <td><span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">HIGH</span></td>
+                </tr>
+                <tr>
+                  <td class="font-semibold text-navy">Retail Fashion</td>
+                  <td>12,300 (IT)</td>
+                  <td class="text-sm">Competizione online, loyalty fisico-digitale gap</td>
+                  <td class="font-semibold">€1,800</td>
+                  <td><span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">HIGH</span></td>
+                </tr>
+                <tr>
+                  <td class="font-semibold text-navy">Supermercati Locali</td>
+                  <td>8,700 (IT)</td>
+                  <td class="text-sm">Competizione GDO, margini stretti, no tech</td>
+                  <td class="font-semibold">€2,400</td>
+                  <td><span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">MED</span></td>
+                </tr>
+                <tr>
+                  <td class="font-semibold text-navy">Parrucchieri & Beauty</td>
+                  <td>5,500 (IT)</td>
+                  <td class="text-sm">Gestione appuntamenti, retention clienti VIP</td>
+                  <td class="font-semibold">€960</td>
+                  <td><span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">MED</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: Competitive Landscape -->
+      <div class="swiper-slide">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-red-100 text-red-700">Competitive Analysis</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">Panorama Competitivo</h2>
+            <p class="text-lg text-slate-600">Positioning e vantaggi competitivi</p>
+          </div>
+
+          <!-- Competitive Matrix -->
+          <div class="mb-8">
+            <h3 class="font-bold text-navy mb-4 text-xl">Matrice Competitiva</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>OMNILY PRO</th>
+                  <th>Shopify Loyalty</th>
+                  <th>Yoyo Wallet</th>
+                  <th>LoyaltyLion</th>
+                  <th>Fidelize</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Commissioni/tx</td>
+                  <td class="text-green-600 font-bold">€0.0002</td>
+                  <td class="text-red-600">2.5%</td>
+                  <td class="text-red-600">1.8%</td>
+                  <td class="text-red-600">2.2%</td>
+                  <td class="text-red-600">€0.015</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Blockchain</td>
+                  <td class="text-green-600 font-bold">✓ OmnyCoin</td>
+                  <td class="text-slate-400">✗</td>
+                  <td class="text-slate-400">✗</td>
+                  <td class="text-slate-400">✗</td>
+                  <td class="text-slate-400">✗</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">POS Nativo</td>
+                  <td class="text-green-600 font-bold">✓ Android</td>
+                  <td class="text-orange-600">⚠ Solo Shopify</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-slate-400">✗</td>
+                  <td class="text-orange-600">⚠ Parziale</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Multi-Tenant</td>
+                  <td class="text-green-600 font-bold">✓ Full</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-orange-600">⚠ Limited</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-slate-400">✗</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Gift Certificates</td>
+                  <td class="text-green-600 font-bold">✓ Blockchain</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-slate-400">✗</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Coupons & Promo</td>
+                  <td class="text-green-600 font-bold">✓ Advanced</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-orange-600">⚠ Basic</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Tier System</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-slate-400">✗</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                  <td class="text-green-600 font-bold">✓</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Customer App</td>
+                  <td class="text-green-600 font-bold">✓ PWA</td>
+                  <td class="text-orange-600">⚠ Web only</td>
+                  <td class="text-green-600 font-bold">✓ Native</td>
+                  <td class="text-orange-600">⚠ Web only</td>
+                  <td class="text-green-600 font-bold">✓ Native</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Setup Time</td>
+                  <td class="text-green-600 font-bold">< 1h</td>
+                  <td>2-3 giorni</td>
+                  <td>1-2 giorni</td>
+                  <td>2-4 giorni</td>
+                  <td>1 giorno</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Pricing Start</td>
+                  <td class="text-green-600 font-bold">€49/mese</td>
+                  <td>€79/mese</td>
+                  <td>€120/mese</td>
+                  <td>€99/mese</td>
+                  <td>€89/mese</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Competitive Advantages -->
+          <div class="grid grid-cols-3 gap-6">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
+              <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <h4 class="font-bold text-navy mb-2">Vantaggio #1: Costi</h4>
+              <p class="text-sm text-slate-700">
+                <strong>99.2% meno costoso</strong> grazie a blockchain. ROI immediato per merchant vs tutti i competitor.
+              </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-6">
+              <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+              </div>
+              <h4 class="font-bold text-navy mb-2">Vantaggio #2: Integrazione</h4>
+              <p class="text-sm text-slate-700">
+                <strong>Unico con POS nativo</strong> Android + Customer App PWA. Esperienza end-to-end completa.
+              </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-6">
+              <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h4 class="font-bold text-navy mb-2">Vantaggio #3: Token Value</h4>
+              <p class="text-sm text-slate-700">
+                <strong>OmnyCoin è trasferibile</strong>. Valore reale per clienti, non punti finti. Network effect virale.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: Product Overview -->
+      <div class="swiper-slide bg-slate-50">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-green-100 text-green-700">Product</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">OMNILY PRO Ecosystem</h2>
+            <p class="text-lg text-slate-600">Architettura prodotto e componenti principali</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-6 mb-8">
+            <!-- Component 1: Dashboard -->
+            <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-bold text-navy">Dashboard Web</div>
+                  <div class="text-xs text-slate-500">React + TypeScript</div>
+                </div>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-700">
+                <li class="flex items-start gap-2">
+                  <span class="text-blue-500 mt-0.5">•</span>
+                  <span>Analytics real-time</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-blue-500 mt-0.5">•</span>
+                  <span>Customer management</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-blue-500 mt-0.5">•</span>
+                  <span>Campaign creator</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-blue-500 mt-0.5">•</span>
+                  <span>Tier & rewards config</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-blue-500 mt-0.5">•</span>
+                  <span>OmnyCoin wallet</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Component 2: POS App -->
+            <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-bold text-navy">POS Android</div>
+                  <div class="text-xs text-slate-500">Java + Kotlin</div>
+                </div>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-700">
+                <li class="flex items-start gap-2">
+                  <span class="text-green-500 mt-0.5">•</span>
+                  <span>QR code scanner</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-green-500 mt-0.5">•</span>
+                  <span>Offline mode</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-green-500 mt-0.5">•</span>
+                  <span>Receipt printer (ZCS)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-green-500 mt-0.5">•</span>
+                  <span>Reward issuance</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-green-500 mt-0.5">•</span>
+                  <span>Coupon redemption</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Component 3: Customer App -->
+            <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-bold text-navy">Customer App</div>
+                  <div class="text-xs text-slate-500">PWA Installabile</div>
+                </div>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-700">
+                <li class="flex items-start gap-2">
+                  <span class="text-purple-500 mt-0.5">•</span>
+                  <span>Digital card + QR</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-purple-500 mt-0.5">•</span>
+                  <span>Points balance</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-purple-500 mt-0.5">•</span>
+                  <span>Available coupons</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-purple-500 mt-0.5">•</span>
+                  <span>OmnyCoin wallet</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-purple-500 mt-0.5">•</span>
+                  <span>Push notifications</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- OmnyCoin Integration -->
+          <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                <span class="text-3xl font-black text-white">Ø</span>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold text-navy">OmnyCoin Integration</h3>
+                <p class="text-slate-600">ERC-20 Token su Polygon Network</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-6">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-navy mb-1">1:1</div>
+                <div class="text-sm text-slate-600">EUR Parity</div>
+                <div class="text-xs text-slate-500 mt-1">1 EUR speso = 1 OMNY</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-navy mb-1">10:1</div>
+                <div class="text-sm text-slate-600">Redemption Rate</div>
+                <div class="text-xs text-slate-500 mt-1">10 OMNY = 1 EUR sconto</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-navy mb-1">€0.0002</div>
+                <div class="text-sm text-slate-600">Gas Fee</div>
+                <div class="text-xs text-slate-500 mt-1">Costo per transfer</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-navy mb-1">~3s</div>
+                <div class="text-sm text-slate-600">Settlement</div>
+                <div class="text-xs text-slate-500 mt-1">Tempo di conferma</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: Business Model & Revenue -->
+      <div class="swiper-slide">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-yellow-100 text-yellow-700">Business Model</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">Modello di Business & Revenue Streams</h2>
+            <p class="text-lg text-slate-600">Come generiamo ricavi scalabili</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- Revenue Streams -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Revenue Streams</h3>
+
+              <div class="space-y-4">
+                <!-- Stream 1 -->
+                <div class="bg-white border-l-4 border-blue-500 p-5 rounded-r-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">SaaS Subscription (MRR)</div>
+                    <div class="text-xl font-bold text-blue-600">70%</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-3">Abbonamento mensile ricorrente per accesso piattaforma</p>
+                  <div class="flex gap-3 text-xs">
+                    <div class="bg-blue-50 px-3 py-1 rounded">
+                      <span class="text-slate-600">Starter: </span>
+                      <span class="font-bold">€49/mese</span>
+                    </div>
+                    <div class="bg-blue-50 px-3 py-1 rounded">
+                      <span class="text-slate-600">Pro: </span>
+                      <span class="font-bold">€99/mese</span>
+                    </div>
+                    <div class="bg-blue-50 px-3 py-1 rounded">
+                      <span class="text-slate-600">Enterprise: </span>
+                      <span class="font-bold">€299/mese</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stream 2 -->
+                <div class="bg-white border-l-4 border-green-500 p-5 rounded-r-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">Transaction Fees (Minimal)</div>
+                    <div class="text-xl font-bold text-green-600">15%</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-3">Micro-commissione su transazioni high-volume</p>
+                  <div class="flex gap-3 text-xs">
+                    <div class="bg-green-50 px-3 py-1 rounded">
+                      <span class="text-slate-600">Fee: </span>
+                      <span class="font-bold">€0.001/tx</span>
+                    </div>
+                    <div class="bg-green-50 px-3 py-1 rounded">
+                      <span class="text-slate-600">Solo > 10K tx/mese</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stream 3 -->
+                <div class="bg-white border-l-4 border-purple-500 p-5 rounded-r-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">Premium Features</div>
+                    <div class="text-xl font-bold text-purple-600">10%</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-3">Add-ons e moduli avanzati</p>
+                  <div class="flex gap-3 text-xs">
+                    <div class="bg-purple-50 px-3 py-1 rounded">
+                      <span class="font-bold">API Access, White-label, Advanced Analytics</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stream 4 -->
+                <div class="bg-white border-l-4 border-orange-500 p-5 rounded-r-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">OmnyCoin Liquidity Spread</div>
+                    <div class="text-xl font-bold text-orange-600">5%</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-3">Spread su acquisto/vendita OMNY da merchant</p>
+                  <div class="flex gap-3 text-xs">
+                    <div class="bg-orange-50 px-3 py-1 rounded">
+                      <span class="text-slate-600">Spread: </span>
+                      <span class="font-bold">0.5-1%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pricing Tiers -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Pricing Tiers</h3>
+
+              <div class="space-y-4">
+                <!-- Starter -->
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 rounded-xl p-5">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <div class="text-sm text-slate-500 font-semibold uppercase">Starter</div>
+                      <div class="text-3xl font-bold text-navy">€49<span class="text-lg text-slate-500">/mese</span></div>
+                    </div>
+                    <div class="px-3 py-1 bg-slate-200 rounded-full text-xs font-bold text-slate-700">TARGET: 60%</div>
+                  </div>
+                  <ul class="space-y-1 text-sm text-slate-700">
+                    <li>✓ Fino a 500 clienti</li>
+                    <li>✓ Dashboard web</li>
+                    <li>✓ Customer app PWA</li>
+                    <li>✓ Basic rewards</li>
+                    <li>✓ Email support</li>
+                  </ul>
+                </div>
+
+                <!-- Pro -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-5">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <div class="text-sm text-blue-600 font-semibold uppercase">Pro (Most Popular)</div>
+                      <div class="text-3xl font-bold text-navy">€99<span class="text-lg text-slate-500">/mese</span></div>
+                    </div>
+                    <div class="px-3 py-1 bg-blue-200 rounded-full text-xs font-bold text-blue-700">TARGET: 30%</div>
+                  </div>
+                  <ul class="space-y-1 text-sm text-slate-700">
+                    <li>✓ Fino a 2,000 clienti</li>
+                    <li>✓ POS Android integration</li>
+                    <li>✓ OmnyCoin enabled</li>
+                    <li>✓ Tier system</li>
+                    <li>✓ Advanced analytics</li>
+                    <li>✓ Priority support</li>
+                  </ul>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300 rounded-xl p-5">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <div class="text-sm text-purple-600 font-semibold uppercase">Enterprise</div>
+                      <div class="text-3xl font-bold text-navy">€299<span class="text-lg text-slate-500">/mese</span></div>
+                    </div>
+                    <div class="px-3 py-1 bg-purple-200 rounded-full text-xs font-bold text-purple-700">TARGET: 10%</div>
+                  </div>
+                  <ul class="space-y-1 text-sm text-slate-700">
+                    <li>✓ Clienti illimitati</li>
+                    <li>✓ Multi-location support</li>
+                    <li>✓ White-label options</li>
+                    <li>✓ API access</li>
+                    <li>✓ Custom integrations</li>
+                    <li>✓ Dedicated account manager</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unit Economics -->
+          <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+            <h3 class="font-bold text-navy mb-4 text-xl">Unit Economics</h3>
+
+            <div class="grid grid-cols-5 gap-4 text-center">
+              <div>
+                <div class="text-sm text-slate-500 mb-1">ARPU (Average)</div>
+                <div class="text-2xl font-bold text-navy">€85</div>
+                <div class="text-xs text-slate-500 mt-1">per mese</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500 mb-1">CAC</div>
+                <div class="text-2xl font-bold text-navy">€420</div>
+                <div class="text-xs text-slate-500 mt-1">per cliente</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500 mb-1">LTV</div>
+                <div class="text-2xl font-bold text-navy">€3,060</div>
+                <div class="text-xs text-slate-500 mt-1">36 mesi avg</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500 mb-1">LTV/CAC Ratio</div>
+                <div class="text-2xl font-bold text-green-600">7.3x</div>
+                <div class="text-xs text-slate-500 mt-1">Excellent</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500 mb-1">Payback Period</div>
+                <div class="text-2xl font-bold text-navy">5 mesi</div>
+                <div class="text-xs text-slate-500 mt-1">Very fast</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 7: Financial Projections -->
+      <div class="swiper-slide bg-navy">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-green-400 text-green-900">Financial Projections</span>
+            <h2 class="text-4xl font-bold text-white mt-3 mb-3">Proiezioni Finanziarie 2025-2027</h2>
+            <p class="text-lg text-slate-300">Revenue, costs e path to profitability</p>
+          </div>
+
+          <!-- Revenue Chart -->
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">
+            <h3 class="font-bold text-white mb-4 text-xl">Revenue Growth Projection</h3>
+            <div class="chart-container" style="height: 280px;">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Detailed P&L -->
+          <div class="grid grid-cols-2 gap-8">
+            <!-- P&L Table -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+              <h3 class="font-bold text-white mb-4">Profit & Loss (Summary)</h3>
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-600">
+                    <th class="text-left text-slate-400 py-2 font-semibold">Metric</th>
+                    <th class="text-right text-slate-400 py-2 font-semibold">Y1 (2025)</th>
+                    <th class="text-right text-slate-400 py-2 font-semibold">Y2 (2026)</th>
+                    <th class="text-right text-slate-400 py-2 font-semibold">Y3 (2027)</th>
+                  </tr>
+                </thead>
+                <tbody class="text-white">
+                  <tr class="border-b border-slate-700">
+                    <td class="py-2 font-semibold">Revenue</td>
+                    <td class="text-right">€420K</td>
+                    <td class="text-right">€1.8M</td>
+                    <td class="text-right">€5.2M</td>
+                  </tr>
+                  <tr class="border-b border-slate-700">
+                    <td class="py-2 text-slate-400">COGS</td>
+                    <td class="text-right text-slate-400">€84K</td>
+                    <td class="text-right text-slate-400">€324K</td>
+                    <td class="text-right text-slate-400">€832K</td>
+                  </tr>
+                  <tr class="border-b border-slate-700">
+                    <td class="py-2 font-semibold">Gross Profit</td>
+                    <td class="text-right text-green-400">€336K</td>
+                    <td class="text-right text-green-400">€1.48M</td>
+                    <td class="text-right text-green-400">€4.37M</td>
+                  </tr>
+                  <tr class="border-b border-slate-700">
+                    <td class="py-2 text-slate-400">Gross Margin</td>
+                    <td class="text-right text-slate-400">80%</td>
+                    <td class="text-right text-slate-400">82%</td>
+                    <td class="text-right text-slate-400">84%</td>
+                  </tr>
+                  <tr class="border-b border-slate-700">
+                    <td class="py-2 text-slate-400">OpEx</td>
+                    <td class="text-right text-slate-400">€1.1M</td>
+                    <td class="text-right text-slate-400">€1.6M</td>
+                    <td class="text-right text-slate-400">€2.4M</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-bold">EBITDA</td>
+                    <td class="text-right text-red-400">-€764K</td>
+                    <td class="text-right text-yellow-400">-€120K</td>
+                    <td class="text-right text-green-400">+€1.97M</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="space-y-4">
+              <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div class="text-sm text-slate-400 mb-2">Organizations (Cumulative)</div>
+                <div class="flex items-end gap-4">
+                  <div>
+                    <div class="text-xs text-slate-500">Y1</div>
+                    <div class="text-2xl font-bold text-white">50</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Y2</div>
+                    <div class="text-3xl font-bold text-white">200</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Y3</div>
+                    <div class="text-4xl font-bold text-green-400">500</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div class="text-sm text-slate-400 mb-2">End Customers (Total)</div>
+                <div class="flex items-end gap-4">
+                  <div>
+                    <div class="text-xs text-slate-500">Y1</div>
+                    <div class="text-2xl font-bold text-white">2.5K</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Y2</div>
+                    <div class="text-3xl font-bold text-white">8K</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Y3</div>
+                    <div class="text-4xl font-bold text-green-400">15K</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div class="text-sm text-slate-400 mb-2">Cash Burn Rate</div>
+                <div class="flex items-end gap-4">
+                  <div>
+                    <div class="text-xs text-slate-500">Y1</div>
+                    <div class="text-xl font-bold text-red-400">€64K/mo</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Y2</div>
+                    <div class="text-xl font-bold text-yellow-400">€10K/mo</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Y3</div>
+                    <div class="text-2xl font-bold text-green-400">+€164K/mo</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-br from-green-900 to-green-800 border-2 border-green-600 rounded-xl p-5">
+                <div class="text-sm text-green-200 mb-2 font-semibold">Breakeven Point</div>
+                <div class="text-4xl font-bold text-white mb-1">Q2 2027</div>
+                <div class="text-sm text-green-200">24 mesi dalla seed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 8: Go-to-Market Strategy -->
+      <div class="swiper-slide">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-orange-100 text-orange-700">Go-to-Market</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">Strategia Go-to-Market</h2>
+            <p class="text-lg text-slate-600">Customer acquisition, canali e partnership</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- Acquisition Channels -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Canali di Acquisizione</h3>
+
+              <div class="space-y-3">
+                <div class="bg-white border-2 border-blue-200 p-4 rounded-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">Direct Sales (B2B)</div>
+                    <div class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">40% target</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-2">Team sales diretto per catene e enterprise</p>
+                  <div class="text-xs text-slate-500">CAC: €800 • LTV: €7,200 • ROI: 9x</div>
+                </div>
+
+                <div class="bg-white border-2 border-green-200 p-4 rounded-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">Partnerships (Resellers)</div>
+                    <div class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">30% target</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-2">POS vendors (ZCS, Ingenico), software house</p>
+                  <div class="text-xs text-slate-500">CAC: €250 • LTV: €3,600 • ROI: 14x</div>
+                </div>
+
+                <div class="bg-white border-2 border-purple-200 p-4 rounded-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">Digital Marketing</div>
+                    <div class="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded">20% target</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-2">Google Ads, LinkedIn, content marketing, SEO</p>
+                  <div class="text-xs text-slate-500">CAC: €350 • LTV: €2,400 • ROI: 6.8x</div>
+                </div>
+
+                <div class="bg-white border-2 border-orange-200 p-4 rounded-xl">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-bold text-navy">Referral Program</div>
+                    <div class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded">10% target</div>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-2">Incentivi per merchant existing che portano nuovi clienti</p>
+                  <div class="text-xs text-slate-500">CAC: €120 • LTV: €2,400 • ROI: 20x</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Launch Timeline -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Launch Roadmap (18 mesi)</h3>
+
+              <div class="space-y-3">
+                <!-- Phase 1 -->
+                <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-blue-500 p-4 rounded-r-xl">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">Q1</div>
+                    <div class="font-bold text-navy">Beta Launch</div>
+                  </div>
+                  <ul class="text-sm text-slate-700 space-y-1 ml-10">
+                    <li>• 10 pilot customers (free)</li>
+                    <li>• Product feedback loop</li>
+                    <li>• Case studies creation</li>
+                  </ul>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="bg-gradient-to-r from-green-50 to-white border-l-4 border-green-500 p-4 rounded-r-xl">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">Q2</div>
+                    <div class="font-bold text-navy">Public Launch</div>
+                  </div>
+                  <ul class="text-sm text-slate-700 space-y-1 ml-10">
+                    <li>• Marketing campaign</li>
+                    <li>• Sales team hiring (3 SDRs)</li>
+                    <li>• First partnerships signed</li>
+                  </ul>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="bg-gradient-to-r from-purple-50 to-white border-l-4 border-purple-500 p-4 rounded-r-xl">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">Q3</div>
+                    <div class="font-bold text-navy">Scale & Optimize</div>
+                  </div>
+                  <ul class="text-sm text-slate-700 space-y-1 ml-10">
+                    <li>• 100+ organizations milestone</li>
+                    <li>• OmnyCoin liquidity pool</li>
+                    <li>• Enterprise tier launch</li>
+                  </ul>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-500 p-4 rounded-r-xl">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">Q4</div>
+                    <div class="font-bold text-navy">Geographic Expansion</div>
+                  </div>
+                  <ul class="text-sm text-slate-700 space-y-1 ml-10">
+                    <li>• Launch Spain & France</li>
+                    <li>• International partnerships</li>
+                    <li>• 200+ organizations target</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Partnerships -->
+          <div class="bg-white border-2 border-slate-200 rounded-xl p-6">
+            <h3 class="font-bold text-navy mb-4 text-xl">Partnership Strategiche (Target)</h3>
+
+            <div class="grid grid-cols-4 gap-6">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div class="font-bold text-navy mb-1">POS Vendors</div>
+                <div class="text-xs text-slate-600">ZCS, Ingenico, PAX</div>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                </div>
+                <div class="font-bold text-navy mb-1">Trade Associations</div>
+                <div class="text-xs text-slate-600">Confcommercio, FIPE</div>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div class="font-bold text-navy mb-1">Payment Providers</div>
+                <div class="text-xs text-slate-600">Stripe, Nexi, SIA</div>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div class="font-bold text-navy mb-1">Software Houses</div>
+                <div class="text-xs text-slate-600">Gestionale integration</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 9: Team & Execution -->
+      <div class="swiper-slide bg-slate-50">
+        <div class="max-w-6xl mx-auto px-16 w-full">
+          <div class="mb-8">
+            <span class="section-badge bg-indigo-100 text-indigo-700">Team & Execution</span>
+            <h2 class="text-4xl font-bold text-navy mt-3 mb-3">Team & Piano Esecutivo</h2>
+            <p class="text-lg text-slate-600">Hiring plan e milestones critiche</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- Hiring Plan -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Team Evolution (18 mesi)</h3>
+
+              <div class="bg-white border-2 border-slate-200 rounded-xl p-6 mb-6">
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+                    <div>
+                      <div class="font-bold text-navy">Current (M0)</div>
+                      <div class="text-sm text-slate-600">Founders + 2 Developers</div>
+                    </div>
+                    <div class="text-2xl font-bold text-navy">4 people</div>
+                  </div>
+
+                  <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+                    <div>
+                      <div class="font-bold text-navy">M6 (Post-Funding)</div>
+                      <div class="text-sm text-slate-600">+ Sales, Marketing, Support</div>
+                    </div>
+                    <div class="text-2xl font-bold text-blue-600">12 people</div>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <div class="font-bold text-navy">M18 (Scale Phase)</div>
+                      <div class="text-sm text-slate-600">Full team operativo</div>
+                    </div>
+                    <div class="text-2xl font-bold text-green-600">25 people</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Roles Priority -->
+              <div class="space-y-3">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg">
+                  <div class="font-bold text-navy text-sm mb-1">Q1 Hires (Immediate)</div>
+                  <div class="text-xs text-slate-700">• CTO • Lead Backend Dev • UX Designer</div>
+                </div>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-r-lg">
+                  <div class="font-bold text-navy text-sm mb-1">Q2 Hires</div>
+                  <div class="text-xs text-slate-700">• 3x SDRs • Marketing Manager • Customer Success</div>
+                </div>
+
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-3 rounded-r-lg">
+                  <div class="font-bold text-navy text-sm mb-1">Q3-Q4 Hires</div>
+                  <div class="text-xs text-slate-700">• Account Executives • Data Analyst • DevOps • Support Team</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Milestones -->
+            <div>
+              <h3 class="font-bold text-navy mb-4 text-xl">Milestones Critiche</h3>
+
+              <div class="space-y-3">
+                <!-- Milestone 1 -->
+                <div class="bg-white border-2 border-blue-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">M3</div>
+                      <div class="font-bold text-navy text-sm">Beta Program Complete</div>
+                    </div>
+                    <div class="text-xs text-blue-600 font-bold">Q1 2025</div>
+                  </div>
+                  <div class="text-xs text-slate-600">10 pilot merchants, 500 end customers, NPS > 8.5</div>
+                </div>
+
+                <!-- Milestone 2 -->
+                <div class="bg-white border-2 border-green-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">M6</div>
+                      <div class="font-bold text-navy text-sm">Product-Market Fit</div>
+                    </div>
+                    <div class="text-xs text-green-600 font-bold">Q2 2025</div>
+                  </div>
+                  <div class="text-xs text-slate-600">50 paying customers, €35K MRR, <5% churn</div>
+                </div>
+
+                <!-- Milestone 3 -->
+                <div class="bg-white border-2 border-purple-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">M9</div>
+                      <div class="font-bold text-navy text-sm">OmnyCoin Launch</div>
+                    </div>
+                    <div class="text-xs text-purple-600 font-bold">Q3 2025</div>
+                  </div>
+                  <div class="text-xs text-slate-600">50K OMNY in circulation, 20+ orgs using blockchain</div>
+                </div>
+
+                <!-- Milestone 4 -->
+                <div class="bg-white border-2 border-orange-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">M12</div>
+                      <div class="font-bold text-navy text-sm">Scale Milestone</div>
+                    </div>
+                    <div class="text-xs text-orange-600 font-bold">Q4 2025</div>
+                  </div>
+                  <div class="text-xs text-slate-600">100+ organizations, €100K MRR, first international customers</div>
+                </div>
+
+                <!-- Milestone 5 -->
+                <div class="bg-white border-2 border-red-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">M18</div>
+                      <div class="font-bold text-navy text-sm">Series A Ready</div>
+                    </div>
+                    <div class="text-xs text-red-600 font-bold">Q2 2026</div>
+                  </div>
+                  <div class="text-xs text-slate-600">200+ organizations, €150K MRR, EBITDA breakeven in sight</div>
+                </div>
+              </div>
+
+              <!-- Risk Mitigation -->
+              <div class="mt-6 bg-white border-2 border-slate-200 rounded-xl p-5">
+                <h4 class="font-bold text-navy mb-3 text-sm">Key Risks & Mitigation</h4>
+                <div class="space-y-2 text-xs">
+                  <div class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                      <span class="font-semibold text-slate-700">Crypto regulation: </span>
+                      <span class="text-slate-600">Compliance EU MiCA, legal opinion secured</span>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                      <span class="font-semibold text-slate-700">Product complexity: </span>
+                      <span class="text-slate-600">MVP già funzionante, beta test ongoing</span>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                      <span class="font-semibold text-slate-700">Customer education: </span>
+                      <span class="text-slate-600">UI nasconde complessità, onboarding guidato</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 10: Closing & Call to Action -->
+      <div class="swiper-slide bg-navy">
+        <div class="max-w-6xl mx-auto px-16 w-full text-center">
+          <div class="mb-12">
+            <h2 class="text-5xl font-black text-white mb-6 leading-tight">
+              Il Futuro del Loyalty<br/>Inizia Ora
+            </h2>
+            <p class="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+              OMNILY PRO + OmnyCoin rappresentano una <strong>discontinuità tecnologica</strong> nel mercato loyalty da €12.4 Mld.
+            </p>
+          </div>
+
+          <!-- The Ask -->
+          <div class="bg-gradient-to-br from-blue-600 to-purple-700 rounded-3xl p-12 mb-12 border-4 border-blue-400">
+            <div class="text-blue-100 text-sm font-bold uppercase tracking-wide mb-4">Investment Opportunity</div>
+            <div class="text-6xl font-black text-white mb-4">€2.8M Seed Round</div>
+            <div class="text-xl text-blue-100 mb-6">15-20% Equity • 18 mesi runway • Q1 2025</div>
+
+            <div class="flex justify-center gap-8 mb-8">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-white mb-1">7.3x</div>
+                <div class="text-sm text-blue-200">LTV/CAC Ratio</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-white mb-1">€5.2M</div>
+                <div class="text-sm text-blue-200">Revenue Y3</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-white mb-1">Q2 2027</div>
+                <div class="text-sm text-blue-200">EBITDA Breakeven</div>
+              </div>
+            </div>
+
+            <div class="inline-block bg-white px-8 py-4 rounded-full">
+              <div class="text-navy font-bold">Contact: founders@omnilypro.com</div>
+            </div>
+          </div>
+
+          <!-- Why Now -->
+          <div class="grid grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+              <div class="text-4xl font-bold text-green-400 mb-2">Market</div>
+              <div class="text-sm text-slate-300">Timing perfetto: blockchain mainstream, loyalty inefficiente</div>
+            </div>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+              <div class="text-4xl font-bold text-blue-400 mb-2">Tech</div>
+              <div class="text-sm text-slate-300">Stack moderno, MVP funzionante, traction iniziale</div>
+            </div>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+              <div class="text-4xl font-bold text-purple-400 mb-2">Team</div>
+              <div class="text-sm text-slate-300">Domain expertise, tech proficiency, execution capability</div>
+            </div>
+          </div>
+
+          <div class="mt-16 text-slate-500 text-sm">
+            <div>OMNILY PRO Business Plan 2025-2027</div>
+            <div class="mt-2">© 2025 OMNILY PRO • Confidential</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+
+    <!-- Pagination -->
+    <div class="swiper-pagination"></div>
+
+    <!-- Slide Counter -->
+    <div style="position: fixed; bottom: 20px; left: 20px; color: #94a3b8; font-size: 12px; z-index: 100;">
+      <span class="current-slide">1</span> / <span class="total-slides">10</span>
+    </div>
+  </div>
+
+  <!-- Swiper JS -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <!-- Initialize -->
+  <script>
+    // Initialize Swiper
+    const swiper = new Swiper('.mySwiper', {
+      direction: 'horizontal',
+      loop: false,
+      speed: 600,
+      effect: 'slide',
+
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+
+      keyboard: {
+        enabled: true,
+      },
+
+      mousewheel: {
+        enabled: true,
+        forceToAxis: true,
+      },
+
+      on: {
+        slideChange: function () {
+          document.querySelector('.current-slide').textContent = this.activeIndex + 1;
+        }
+      }
+    });
+
+    // Set total slides
+    document.querySelector('.total-slides').textContent = swiper.slides.length;
+
+    // Create Revenue Growth Chart
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+      new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+          labels: ['2025 (Y1)', '2026 (Y2)', '2027 (Y3)'],
+          datasets: [
+            {
+              label: 'Revenue',
+              data: [420, 1800, 5200],
+              backgroundColor: 'rgba(59, 130, 246, 0.8)',
+              borderColor: 'rgb(59, 130, 246)',
+              borderWidth: 2
+            },
+            {
+              label: 'EBITDA',
+              data: [-764, -120, 1970],
+              backgroundColor: function(context) {
+                const value = context.parsed.y;
+                return value < 0 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(34, 197, 94, 0.8)';
+              },
+              borderColor: function(context) {
+                const value = context.parsed.y;
+                return value < 0 ? 'rgb(239, 68, 68)' : 'rgb(34, 197, 94)';
+              },
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#cbd5e1'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: {
+                callback: function(value) {
+                  return '€' + (value >= 1000 ? (value/1000).toFixed(1) + 'M' : value + 'K');
+                },
+                color: '#cbd5e1'
+              },
+              grid: {
+                color: '#334155'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#cbd5e1'
+              },
+              grid: {
+                color: '#334155'
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

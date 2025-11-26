@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { auditService } from '../services/auditService'
 
 interface AuthContextType {
   user: User | null
@@ -216,11 +217,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    if (error) throw error
+
+    if (error) {
+      // Log failed login attempt
+      await auditService.logLoginFailed(email, error.message)
+      throw error
+    }
+
+    // Log successful login
+    if (data.user) {
+      // Get user's organization
+      const { data: orgData } = await supabase
+        .from('organization_users')
+        .select('org_id')
+        .eq('user_id', data.user.id)
+        .limit(1)
+        .single()
+
+      await auditService.logLogin(
+        data.user.id,
+        orgData?.org_id,
+        { email: data.user.email }
+      )
+    }
   }
 
   const signUp = async (email: string, password: string) => {
@@ -246,6 +269,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signOut = async () => {
+    // Log logout before signing out
+    if (user) {
+      // Get user's organization
+      const { data: orgData } = await supabase
+        .from('organization_users')
+        .select('org_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .single()
+
+      await auditService.logLogout(user.id, orgData?.org_id)
+    }
+
     // Pulisci demo user se presente
     localStorage.removeItem('pos-demo-user')
 

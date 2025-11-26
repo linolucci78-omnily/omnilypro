@@ -32,6 +32,7 @@ import CRMLeadsDashboard from './components/Admin/CRMLeadsDashboard'
 import DemoRequestsDashboard from './components/Admin/DemoRequestsDashboard'
 import PendingCustomers from './components/Admin/PendingCustomers'
 import UsersManagement from './components/Admin/UsersManagement'
+import ProfileSettings from './components/Admin/ProfileSettings'
 import ActivityLogDashboard from './components/Admin/ActivityLogDashboard'
 import NotificationsDashboard from './components/Admin/NotificationsDashboard'
 import EmailTemplatesDashboard from './components/Admin/EmailTemplatesDashboard'
@@ -40,7 +41,8 @@ import SupportDashboard from './components/Admin/SupportDashboard'
 import BrandingDashboard from './components/Admin/BrandingDashboard'
 import AdminGiftCertificatesDashboard from './components/Admin/AdminGiftCertificatesDashboard'
 import AdminMembershipsDashboard from './components/Admin/AdminMembershipsDashboard'
-import SubscriptionFeaturesManager from './components/Admin/SubscriptionFeaturesManager'
+import SubscriptionFeaturesManager from './components/Admin/SubscriptionFeaturesManagerV2'
+import PlanFeaturesManager from './components/Admin/PlanFeaturesManager'
 import WebsiteManager from './components/Admin/WebsiteManager'
 import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
@@ -72,6 +74,10 @@ import WebsiteContentEditor from './components/POS/WebsiteContentEditor'
 import ReceiptLayoutEditorPage from './pages/ReceiptLayoutEditorPage'
 import GamingTest from './pages/GamingTest'
 import LotteryDisplayPage from './pages/LotteryDisplayPage'
+import OmnyWalletTestPage from './pages/OmnyWalletTestPage'
+import AdminOmnyDashboard from './components/Admin/Omny/AdminOmnyDashboard'
+import SystemOverview from './components/Admin/SystemOverview'
+import RootAccessControl from './components/Admin/RootAccessControl'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -98,7 +104,7 @@ function App() {
   })
 
   // Check if we should redirect to /pos from hash
-  const shouldRedirectToPOS = typeof window !== 'undefined' && 
+  const shouldRedirectToPOS = typeof window !== 'undefined' &&
     window.location.hash === '#/pos' && isPOSMode
 
   // Handle hash-based routing for POS
@@ -221,64 +227,71 @@ function App() {
         <AuthProvider>
           <ToastProvider>
             <div className="App">
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/landing-test" element={<LandingTest />} />
-              <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
-              {/* ...tutte le altre route originali... */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/update-password" element={<UpdatePassword />} />
-              <Route path="/strapi-test" element={<StrapiTest />} />
-              <Route path="/test" element={<div style={{padding: '2rem', textAlign: 'center'}}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
-              <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
-              <Route path="/device-setup" element={<DeviceSetup />} />
-              <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
-              <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
-              <Route path="/gaming-test" element={<GamingTest />} />
-              <Route path="/lottery/display/:eventId" element={<LotteryDisplayPage />} />
-              <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
-                <Route index element={<AdminDashboard />} />
-                <Route path="organizations" element={<Admin />} />
-                <Route path="business-owners" element={<BusinessOwners />} />
-                <Route path="pending-customers" element={<PendingCustomers />} />
-                <Route path="users" element={<UsersManagement />} />
-                <Route path="crm" element={<CRMLeadsDashboard />} />
-                <Route path="demo-requests" element={<DemoRequestsDashboard />} />
-                <Route path="contracts" element={<ContractsDashboard />} />
-                <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
-                <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
-                <Route path="mdm" element={<MDMDashboard />} />
-                <Route path="inventory" element={<InventoryDashboard />} />
-                <Route path="subscriptions" element={<BillingDashboard />} />
-                <Route path="security" element={<SecurityDashboard />} />
-                <Route path="settings" element={<SystemSettings />} />
-                <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
-                <Route path="analytics" element={<AnalyticsDashboard />} />
-                <Route path="activity" element={<ActivityLogDashboard />} />
-                <Route path="notifications" element={<NotificationsDashboard />} />
-                <Route path="emails" element={<EmailTemplatesDashboard />} />
-                <Route path="database" element={<DatabaseDashboard />} />
-                <Route path="support" element={<SupportDashboard />} />
-                <Route path="branding" element={<BrandingDashboard />} />
-                <Route path="websites" element={<WebsiteManager />} />
-                <Route path="websites-v2" element={<WebsiteManagerV2 />} />
-                <Route path="domains" element={<SubdomainManagementHub />} />
-                <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
-                <Route path="memberships" element={<AdminMembershipsDashboard />} />
-                <Route path="docs" element={<DocumentationDashboard />} />
-                <Route path="downloads" element={<Downloads />} />
-              </Route>
-              <Route path="/sign/:signatureId" element={
-                <React.Suspense fallback={<div>Caricamento...</div>}>
-                  <ContractSignature />
-                </React.Suspense>
-              } />
-              <Route path="/customer-display" element={<CustomerDisplay />} />
-              <Route path="/sites/:subdomain" element={<PublicSite />} />
-              <Route path="/w/:slug" element={<PublicWebsite />} />
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/landing-test" element={<LandingTest />} />
+                <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
+                {/* ...tutte le altre route originali... */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/update-password" element={<UpdatePassword />} />
+                <Route path="/strapi-test" element={<StrapiTest />} />
+                <Route path="/test" element={<div style={{ padding: '2rem', textAlign: 'center' }}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
+                <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
+                <Route path="/device-setup" element={<DeviceSetup />} />
+                <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
+                <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
+                <Route path="/gaming-test" element={<GamingTest />} />
+                <Route path="/omny-wallet-test" element={<OmnyWalletTestPage />} />
+                <Route path="/lottery/display/:eventId" element={<LotteryDisplayPage />} />
+                <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="organizations" element={<Admin />} />
+                  <Route path="business-owners" element={<BusinessOwners />} />
+                  <Route path="pending-customers" element={<PendingCustomers />} />
+                  <Route path="users" element={<UsersManagement />} />
+                  <Route path="profile" element={<ProfileSettings />} />
+                  <Route path="system-overview" element={<SystemOverview />} />
+                  <Route path="root-access" element={<RootAccessControl />} />
+                  <Route path="crm" element={<CRMLeadsDashboard />} />
+                  <Route path="demo-requests" element={<DemoRequestsDashboard />} />
+                  <Route path="contracts" element={<ContractsDashboard />} />
+                  <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
+                  <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
+                  <Route path="mdm" element={<MDMDashboard />} />
+                  <Route path="inventory" element={<InventoryDashboard />} />
+                  <Route path="subscriptions" element={<BillingDashboard />} />
+                  <Route path="security" element={<SecurityDashboard />} />
+                  <Route path="settings" element={<SystemSettings />} />
+                  <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
+                  <Route path="plan-features" element={<PlanFeaturesManager />} />
+                  <Route path="analytics" element={<AnalyticsDashboard />} />
+                  <Route path="activity" element={<ActivityLogDashboard />} />
+                  <Route path="notifications" element={<NotificationsDashboard />} />
+                  <Route path="emails" element={<EmailTemplatesDashboard />} />
+                  <Route path="database" element={<DatabaseDashboard />} />
+                  <Route path="support" element={<SupportDashboard />} />
+                  <Route path="branding" element={<BrandingDashboard />} />
+                  <Route path="websites" element={<WebsiteManager />} />
+                  <Route path="websites-v2" element={<WebsiteManagerV2 />} />
+                  <Route path="domains" element={<SubdomainManagementHub />} />
+                  <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
+                  <Route path="memberships" element={<AdminMembershipsDashboard />} />
+                  <Route path="docs" element={<DocumentationDashboard />} />
+                  <Route path="downloads" element={<Downloads />} />
+                  <Route path="omny" element={<AdminOmnyDashboard />} />
+                  <Route path="omny-wallet" element={<OmnyWalletTestPage />} />
+                </Route>
+                <Route path="/sign/:signatureId" element={
+                  <React.Suspense fallback={<div>Caricamento...</div>}>
+                    <ContractSignature />
+                  </React.Suspense>
+                } />
+                <Route path="/customer-display" element={<CustomerDisplay />} />
+                <Route path="/sites/:subdomain" element={<PublicSite />} />
+                <Route path="/w/:slug" element={<PublicWebsite />} />
               </Routes>
             </div>
           </ToastProvider>
