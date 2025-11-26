@@ -34,6 +34,8 @@ export interface Organization {
   is_active: boolean
   pos_enabled: boolean
   pos_model?: string
+  user_count?: number          // Numero utenti dell'organizzazione
+  monthly_revenue?: number     // Ricavi mensili
 
   // Wizard configuration data
   partita_iva?: string
@@ -383,13 +385,24 @@ export interface TicketMessage {
 export const organizationsApi = {
   // Get all organizations
   async getAll(): Promise<Organization[]> {
+    // Get organizations with user count
     const { data, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select(`
+        *,
+        organization_users(count)
+      `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    // Transform data to include user_count
+    const organizations = (data || []).map(org => ({
+      ...org,
+      user_count: org.organization_users?.[0]?.count || 0
+    }))
+
+    return organizations
   },
 
   // Get organization by ID

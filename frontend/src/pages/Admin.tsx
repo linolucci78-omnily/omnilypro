@@ -353,14 +353,14 @@ const Admin: React.FC = () => {
                   <td style={{ textAlign: 'center' }}>
                     <div className="users-count">
                       <Users size={12} />
-                      <span>{Math.floor(Math.random() * 8) + 1}</span>
+                      <span>{org.user_count || 0}</span>
                     </div>
                   </td>
-                  
+
                   <td style={{ textAlign: 'right' }}>
                     <div className="revenue-info">
                       <span className="revenue-amount">
-                        €{(Math.random() * 2000 + 500).toFixed(0)}
+                        €{org.monthly_revenue ? org.monthly_revenue.toFixed(0) : '0'}
                       </span>
                       <span className="revenue-period">/mese</span>
                     </div>
