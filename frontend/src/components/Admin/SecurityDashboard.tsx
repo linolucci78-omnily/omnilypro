@@ -139,47 +139,39 @@ const SecurityDashboard: React.FC = () => {
 
       setEvents(securityEvents)
 
-      // Generate mock security alerts based on events
-      const mockAlerts: SecurityAlert[] = [
-        {
-          id: 'alert_1',
-          title: 'Tentativi di accesso sospetti',
-          description: 'Rilevati multipli tentativi di login falliti dallo stesso IP',
-          severity: 'high',
-          status: 'active',
-          affected_users: 3,
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'alert_2',
-          title: 'Accesso da posizione non riconosciuta',
-          description: 'Login da un paese mai utilizzato prima',
-          severity: 'medium',
-          status: 'investigating',
-          affected_users: 1,
-          created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'alert_3',
-          title: 'Picco di accessi ai dati',
-          description: 'Volume di accessi ai dati superior alla norma',
-          severity: 'low',
-          status: 'resolved',
-          affected_users: 0,
-          created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          resolved_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-        }
-      ]
+      // Load REAL security alerts from database
+      const { data: alertsData, error: alertsError } = await supabase
+        .from('security_alerts')
+        .select('*')
+        .gte('created_at', startTime.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(50)
 
-      setAlerts(mockAlerts)
+      if (alertsError) {
+        console.error('Error loading security alerts:', alertsError)
+        setAlerts([]) // Empty array if error
+      } else {
+        const realAlerts: SecurityAlert[] = (alertsData || []).map((alert: any) => ({
+          id: alert.id,
+          title: alert.title,
+          description: alert.description,
+          severity: alert.severity,
+          status: alert.status,
+          affected_users: alert.affected_users || 0,
+          created_at: alert.created_at,
+          resolved_at: alert.resolved_at
+        }))
+        setAlerts(realAlerts)
+      }
 
-      // Calculate security stats
+      // Calculate security stats from REAL data
+      const realAlerts = alertsData || []
       const securityStats: SecurityStats = {
         totalEvents: securityEvents.length,
-        criticalAlerts: mockAlerts.filter(a => a.severity === 'critical' && a.status === 'active').length,
+        criticalAlerts: realAlerts.filter((a: any) => a.severity === 'critical' && a.status === 'active').length,
         failedLogins: securityEvents.filter(e => e.event_type === 'failed_login').length,
         activeUsers: new Set(securityEvents.filter(e => e.event_type === 'login').map(e => e.user_id)).size,
-        blockedIPs: 0, // Would come from firewall/security service
+        blockedIPs: realAlerts.filter((a: any) => a.status === 'active' && a.alert_type === 'multiple_failed_logins').length,
         dataAccesses: securityEvents.filter(e => e.event_type === 'data_access').length
       }
 
