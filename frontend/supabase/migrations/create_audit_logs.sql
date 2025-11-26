@@ -31,26 +31,18 @@ CREATE POLICY "Super admin can view all audit logs"
   ON audit_logs
   FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM organization_users
-      WHERE organization_users.user_id = auth.uid()
-      AND organization_users.role = 'super_admin'
+    -- Check if user is super admin using organization_users table
+    auth.uid() IN (
+      SELECT user_id FROM organization_users WHERE role = 'super_admin'
     )
   );
 
--- Admin possono vedere log della loro organizzazione
-DROP POLICY IF EXISTS "Admin can view organization audit logs" ON audit_logs;
-CREATE POLICY "Admin can view organization audit logs"
+-- Tutti possono vedere i propri log
+DROP POLICY IF EXISTS "Users can view own audit logs" ON audit_logs;
+CREATE POLICY "Users can view own audit logs"
   ON audit_logs
   FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM organization_users
-      WHERE organization_users.user_id = auth.uid()
-      AND organization_users.organization_id = audit_logs.organization_id
-      AND organization_users.role IN ('super_admin', 'admin')
-    )
-  );
+  USING (user_id = auth.uid());
 
 -- Sistema può inserire log (via service_role)
 DROP POLICY IF EXISTS "System can insert audit logs" ON audit_logs;
