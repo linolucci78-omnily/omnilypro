@@ -335,6 +335,142 @@ const ActivityLogDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Stats Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '1rem',
+        marginBottom: '1.5rem'
+      }}>
+        {/* Total Events */}
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white'
+          }}>
+            <Activity size={24} />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>
+              {filteredActivities.length}
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+              Eventi Totali
+            </div>
+          </div>
+        </div>
+
+        {/* Security Events */}
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: '#fef3c7',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#92400e'
+          }}>
+            <Shield size={24} />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>
+              {activities.filter(a => a.category === 'security').length}
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+              Eventi Sicurezza
+            </div>
+          </div>
+        </div>
+
+        {/* Critical Alerts */}
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: '#fee2e2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#991b1b'
+          }}>
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>
+              {activities.filter(a => a.severity === 'high' || a.severity === 'critical').length}
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+              Alert Critici
+            </div>
+          </div>
+        </div>
+
+        {/* Active Users */}
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: '#dbeafe',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#1e40af'
+          }}>
+            <User size={24} />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>
+              {new Set(activities.map(a => a.user_id)).size}
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+              Utenti Attivi
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="activity-log-filters">
         <div className="filter-group">
