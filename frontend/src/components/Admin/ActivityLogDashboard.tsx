@@ -24,6 +24,7 @@ import {
 import { supabase } from '../../lib/supabase'
 import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
+import './ActivityLogDashboard.css'
 
 interface ActivityLog {
   id: string
@@ -299,241 +300,167 @@ const ActivityLogDashboard: React.FC = () => {
   }
 
   return (
-    <div className="admin-dashboard">
-      <div className="dashboard-header">
-        <div className="header-content">
-          <div className="header-title">
-            <Activity size={32} />
-            <div>
-              <h1>Log Attività</h1>
-              <p>Audit trail completo del sistema - {filteredActivities.length} eventi</p>
-            </div>
+    <div className="activity-log-dashboard">
+      {/* Header */}
+      <div className="activity-log-header">
+        <div className="activity-log-title">
+          <Activity size={28} />
+          <div>
+            <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Log Attività</h1>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+              Audit trail completo del sistema
+            </p>
           </div>
-          <div className="header-actions">
-            <button
-              className="btn-secondary"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter size={16} />
-              Filtri
-            </button>
-            <button className="btn-primary" onClick={exportLogs}>
-              <Download size={16} />
-              Esporta CSV
-            </button>
+        </div>
+        <div className="activity-log-stats">
+          <div className="stat-badge">
+            <div className="stat-badge-value">{filteredActivities.length}</div>
+            <div className="stat-badge-label">Eventi</div>
           </div>
+          <button className="btn-primary" onClick={exportLogs} style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1.25rem',
+            background: 'var(--omnily-primary, #7c3aed)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}>
+            <Download size={16} />
+            Esporta CSV
+          </button>
         </div>
       </div>
 
       {/* Filters */}
-      {showFilters && (
-        <div className="dashboard-section">
-          <div className="filter-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem',
-            padding: '1rem',
-            backgroundColor: '#f8fafc',
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0'
-          }}>
-            <div className="filter-group">
-              <label>Categoria</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="form-select"
-              >
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label>Gravità</label>
-              <select
-                value={selectedSeverity}
-                onChange={(e) => setSelectedSeverity(e.target.value)}
-                className="form-select"
-              >
-                {severityLevels.map(level => (
-                  <option key={level.value} value={level.value}>{level.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label>Periodo</label>
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="form-select"
-              >
-                <option value="1h">Ultima ora</option>
-                <option value="24h">Ultime 24 ore</option>
-                <option value="7d">Ultimi 7 giorni</option>
-                <option value="30d">Ultimi 30 giorni</option>
-                <option value="all">Tutti</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label>Cerca</label>
-              <div className="search-input">
-                <Search size={16} />
-                <input
-                  type="text"
-                  placeholder="Cerca utente, azione, dettagli..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="form-input"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Quick Stats */}
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <div className="stat-icon security">
-            <Shield size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">
-              {activities.filter(a => a.category === 'security').length}
-            </div>
-            <div className="stat-label">Eventi Sicurezza</div>
-          </div>
+      <div className="activity-log-filters">
+        <div className="filter-group">
+          <label>Periodo</label>
+          <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="filter-select">
+            <option value="1h">Ultima ora</option>
+            <option value="24h">Ultime 24 ore</option>
+            <option value="7d">Ultimi 7 giorni</option>
+            <option value="30d">Ultimi 30 giorni</option>
+            <option value="all">Tutti</option>
+          </select>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon warning">
-            <AlertTriangle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">
-              {activities.filter(a => a.severity === 'high' || a.severity === 'critical').length}
-            </div>
-            <div className="stat-label">Alert Critici</div>
-          </div>
+        <div className="filter-group">
+          <label>Categoria</label>
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="filter-select">
+            {categories.map(cat => (
+              <option key={cat.value} value={cat.value}>{cat.label}</option>
+            ))}
+          </select>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon success">
-            <User size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">
-              {new Set(activities.map(a => a.user_id)).size}
-            </div>
-            <div className="stat-label">Utenti Attivi</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon info">
-            <Clock size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">
-              {activities.filter(a => {
-                const now = new Date()
-                const activityTime = new Date(a.timestamp)
-                return (now.getTime() - activityTime.getTime()) < (24 * 60 * 60 * 1000)
-              }).length}
-            </div>
-            <div className="stat-label">Ultime 24h</div>
-          </div>
+        <div className="filter-group">
+          <label>Gravità</label>
+          <select value={selectedSeverity} onChange={(e) => setSelectedSeverity(e.target.value)} className="filter-select">
+            {severityLevels.map(level => (
+              <option key={level.value} value={level.value}>{level.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Activity Timeline */}
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h2>Timeline Attività</h2>
-          <span className="result-count">{filteredActivities.length} eventi</span>
+      {/* Error State */}
+      {error && (
+        <div className="error-state">
+          <h3><AlertTriangle size={20} />Errore caricamento log</h3>
+          <p>{error}</p>
         </div>
+      )}
 
-        <div className="activity-timeline">
-          {filteredActivities.map((activity) => (
-            <div key={activity.id} className="timeline-item">
-              <div className="timeline-marker" style={{
-                backgroundColor: getSeverityColor(activity.severity)
-              }}>
-                {getActionIcon(activity.action, activity.category)}
-              </div>
+      {/* Activity Table */}
+      <div className="activity-log-table-container">
+        <table className="activity-log-table">
+          <thead>
+            <tr>
+              <th>Data/Ora</th>
+              <th>Utente</th>
+              <th>Azione</th>
+              <th>Categoria</th>
+              <th>Gravità</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredActivities.map((activity) => {
+              const date = new Date(activity.timestamp)
+              const initials = activity.user_name
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase()
 
-              <div className="timeline-content">
-                <div className="timeline-header">
-                  <div className="timeline-title">
-                    <span className="action-type">{activity.action}</span>
-                    {activity.organization_name && (
-                      <span className="organization-badge">
-                        <Building2 size={12} />
-                        {activity.organization_name}
-                      </span>
-                    )}
-                    <span
-                      className="severity-badge"
-                      style={{ backgroundColor: getSeverityColor(activity.severity) }}
-                    >
-                      {activity.severity.toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="timeline-meta">
-                    <span className="timestamp">
-                      <Clock size={12} />
-                      {formatTimestamp(activity.timestamp)}
-                    </span>
-                    <span className="user-info">
-                      <User size={12} />
-                      {activity.user_name}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="timeline-details">
-                  <p className="activity-description">{activity.details}</p>
-
-                  <div className="activity-metadata">
-                    <div className="metadata-grid">
-                      <div className="metadata-item">
-                        <span className="label">IP:</span>
-                        <span className="value">{activity.ip_address}</span>
+              return (
+                <tr key={activity.id}>
+                  {/* Timestamp */}
+                  <td>
+                    <div className="log-timestamp">
+                      <div className="log-date">
+                        {date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </div>
-                      <div className="metadata-item">
-                        <span className="label">Categoria:</span>
-                        <span className="value">{activity.category}</span>
+                      <div className="log-time">
+                        {date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <div className="metadata-item">
-                        <span className="label">Esito:</span>
-                        <span className={`value ${activity.success ? 'success' : 'error'}`}>
-                          {activity.success ? 'Successo' : 'Fallito'}
-                        </span>
-                      </div>
-                      {activity.resource_id && (
-                        <div className="metadata-item">
-                          <span className="label">Risorsa:</span>
-                          <span className="value">{activity.resource_id}</span>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                  </td>
 
-        {filteredActivities.length === 0 && (
+                  {/* User */}
+                  <td>
+                    <div className="log-user">
+                      <div className="user-avatar">{initials}</div>
+                      <div className="user-info">
+                        <div className="user-name">{activity.user_name}</div>
+                        <div className="user-email">{activity.user_email}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Action */}
+                  <td>
+                    <div className="log-action">
+                      <div className="action-type">{activity.action}</div>
+                      <div className="action-details">{activity.details}</div>
+                    </div>
+                  </td>
+
+                  {/* Category */}
+                  <td>
+                    <div className={`log-category category-${activity.category}`}>
+                      {getActionIcon(activity.action, activity.category)}
+                      {activity.category}
+                    </div>
+                  </td>
+
+                  {/* Severity */}
+                  <td>
+                    <div className={`severity-badge severity-${activity.severity}`}>
+                      {activity.severity}
+                    </div>
+                  </td>
+
+                  {/* IP Address */}
+                  <td>
+                    <div className="log-ip">{activity.ip_address}</div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+
+        {filteredActivities.length === 0 && !error && (
           <div className="empty-state">
-            <Activity size={48} />
+            <Activity size={64} />
             <h3>Nessuna attività trovata</h3>
-            <p>Non ci sono eventi che corrispondono ai filtri selezionati.</p>
+            <p>Non ci sono eventi registrati nel periodo selezionato</p>
           </div>
         )}
       </div>
