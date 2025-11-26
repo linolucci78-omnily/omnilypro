@@ -21,6 +21,7 @@ import {
   Factory,
   Database
 } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 import PageLoader from '../UI/PageLoader'
 import './AdminLayout.css'
 
@@ -54,117 +55,119 @@ const ActivityLogDashboard: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState('all')
   const [dateRange, setDateRange] = useState('24h')
   const [showFilters, setShowFilters] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock data for demonstration
-  const mockActivities: ActivityLog[] = [
-    {
-      id: '1',
-      timestamp: '2025-01-15T10:30:00Z',
-      user_id: 'user1',
-      user_name: 'Admin User',
-      user_email: 'admin@omnily.com',
-      action: 'CREATE_SUBSCRIPTION',
-      resource_type: 'subscription',
-      resource_id: 'sub_123',
-      details: 'Created new subscription for TechCorp - Pro Plan (€99/month)',
-      ip_address: '192.168.1.100',
-      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      severity: 'medium',
-      category: 'billing',
-      organization_id: 'org1',
-      organization_name: 'TechCorp',
-      success: true,
-      metadata: { plan: 'pro', amount: 99 }
-    },
-    {
-      id: '2',
-      timestamp: '2025-01-15T10:25:00Z',
-      user_id: 'user2',
-      user_name: 'Support Agent',
-      user_email: 'support@omnily.com',
-      action: 'LOGIN_FAILED',
-      resource_type: 'auth',
-      details: 'Failed login attempt - incorrect password',
-      ip_address: '10.0.0.50',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      severity: 'high',
-      category: 'security',
-      success: false,
-      metadata: { attempts: 3 }
-    },
-    {
-      id: '3',
-      timestamp: '2025-01-15T10:20:00Z',
-      user_id: 'user1',
-      user_name: 'Admin User',
-      user_email: 'admin@omnily.com',
-      action: 'UPDATE_HARDWARE_ORDER',
-      resource_type: 'hardware_order',
-      resource_id: 'hw_456',
-      details: 'Updated hardware order status to SHIPPED - 5x Z108 terminals',
-      ip_address: '192.168.1.100',
-      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      severity: 'low',
-      category: 'inventory',
-      organization_id: 'org2',
-      organization_name: 'RetailMax',
-      success: true,
-      metadata: { quantity: 5, status: 'shipped' }
-    },
-    {
-      id: '4',
-      timestamp: '2025-01-15T10:15:00Z',
-      user_id: 'user3',
-      user_name: 'System Bot',
-      user_email: 'system@omnily.com',
-      action: 'BACKUP_COMPLETED',
-      resource_type: 'system',
-      details: 'Daily database backup completed successfully (2.3GB)',
-      ip_address: '127.0.0.1',
-      user_agent: 'System/1.0',
-      severity: 'low',
-      category: 'system',
-      success: true,
-      metadata: { size: '2.3GB', duration: '45s' }
-    },
-    {
-      id: '5',
-      timestamp: '2025-01-15T10:10:00Z',
-      user_id: 'user1',
-      user_name: 'Admin User',
-      user_email: 'admin@omnily.com',
-      action: 'DELETE_ORGANIZATION',
-      resource_type: 'organization',
-      resource_id: 'org3',
-      details: 'Deleted organization: TestCompany (inactive for 90+ days)',
-      ip_address: '192.168.1.100',
-      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      severity: 'critical',
-      category: 'admin',
-      organization_name: 'TestCompany',
-      success: true,
-      metadata: { reason: 'inactive_90_days' }
-    },
-    {
-      id: '6',
-      timestamp: '2025-01-15T10:05:00Z',
-      user_id: 'user4',
-      user_name: 'Business Owner',
-      user_email: 'owner@techcorp.com',
-      action: 'CREATE_REWARD',
-      resource_type: 'reward',
-      resource_id: 'reward_789',
-      details: 'Created new reward: 10% Discount Coffee (100 points)',
-      ip_address: '203.0.113.45',
-      user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0)',
-      severity: 'low',
-      category: 'loyalty',
-      organization_id: 'org1',
-      organization_name: 'TechCorp',
-      success: true,
-      metadata: { points: 100, discount: 10 }
+  // Load REAL activity logs from database
+  const loadActivityLogs = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Calculate time range
+      const now = new Date()
+      const timeRangeMap: Record<string, number> = {
+        '1h': 60 * 60 * 1000,
+        '24h': 24 * 60 * 60 * 1000,
+        '7d': 7 * 24 * 60 * 60 * 1000,
+        '30d': 30 * 24 * 60 * 60 * 1000,
+        'all': 365 * 24 * 60 * 60 * 1000 // 1 year
+      }
+      const startTime = new Date(now.getTime() - timeRangeMap[dateRange])
+
+      // Fetch real audit logs from database
+      const { data: logsData, error: logsError } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .gte('created_at', startTime.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(500)
+
+      if (logsError) throw logsError
+
+      // Transform audit_logs to ActivityLog format
+      const realActivities: ActivityLog[] = (logsData || []).map((log: any) => {
+        const metadata = log.metadata || {}
+
+        return {
+          id: log.id,
+          timestamp: log.created_at,
+          user_id: log.user_id || 'system',
+          user_name: metadata.user_name || metadata.email || 'Sistema',
+          user_email: metadata.email || 'system@omnily.com',
+          action: log.action,
+          resource_type: extractResourceType(log.action),
+          resource_id: metadata.resource_id,
+          details: generateDetails(log.action, metadata),
+          ip_address: metadata.ip_address || 'N/A',
+          user_agent: metadata.user_agent || 'N/A',
+          severity: determineSeverity(log.action),
+          category: categorizeAction(log.action),
+          organization_id: log.organization_id,
+          organization_name: metadata.organization_name,
+          success: !log.action.includes('failed') && !log.action.includes('error'),
+          metadata: metadata
+        }
+      })
+
+      setActivities(realActivities)
+      setFilteredActivities(realActivities)
+
+    } catch (err) {
+      console.error('[ActivityLog] Error loading logs:', err)
+      setError(err instanceof Error ? err.message : 'Errore caricamento log')
+      setActivities([])
+      setFilteredActivities([])
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  // Helper functions
+  const extractResourceType = (action: string): string => {
+    if (action.includes('user')) return 'user'
+    if (action.includes('organization')) return 'organization'
+    if (action.includes('subscription') || action.includes('billing')) return 'subscription'
+    if (action.includes('hardware') || action.includes('printer')) return 'hardware'
+    if (action.includes('plan')) return 'plan'
+    if (action.includes('login') || action.includes('auth')) return 'auth'
+    return 'system'
+  }
+
+  const generateDetails = (action: string, metadata: any): string => {
+    // Generate human-readable details from action and metadata
+    const actionMap: Record<string, string> = {
+      'user.login': `Login effettuato da ${metadata.ip_address || 'IP sconosciuto'}`,
+      'user.logout': 'Logout effettuato',
+      'user.login_failed': `Tentativo di login fallito - ${metadata.reason || 'password errata'}`,
+      'user.created': `Nuovo utente creato: ${metadata.email || ''}`,
+      'user.updated': `Utente aggiornato: ${metadata.email || ''}`,
+      'user.deleted': `Utente eliminato: ${metadata.email || ''}`,
+      'organization.created': `Nuova organizzazione creata: ${metadata.organization_name || ''}`,
+      'organization.updated': `Organizzazione aggiornata: ${metadata.organization_name || ''}`,
+      'subscription.created': `Subscription creato - Piano: ${metadata.plan || 'N/A'}`,
+      'subscription.updated': `Subscription aggiornato - Piano: ${metadata.plan || 'N/A'}`,
+      'plan.changed': `Piano modificato da ${metadata.old_plan || 'N/A'} a ${metadata.new_plan || 'N/A'}`,
+    }
+
+    return actionMap[action] || `${action} - ${JSON.stringify(metadata).substring(0, 100)}`
+  }
+
+  const determineSeverity = (action: string): 'low' | 'medium' | 'high' | 'critical' => {
+    if (action.includes('failed') || action.includes('error') || action.includes('deleted')) return 'high'
+    if (action.includes('login') || action.includes('created') || action.includes('updated')) return 'medium'
+    return 'low'
+  }
+
+  const categorizeAction = (action: string): string => {
+    if (action.includes('login') || action.includes('auth')) return 'security'
+    if (action.includes('subscription') || action.includes('billing') || action.includes('plan')) return 'billing'
+    if (action.includes('user')) return 'users'
+    if (action.includes('organization')) return 'organizations'
+    if (action.includes('hardware') || action.includes('printer')) return 'hardware'
+    return 'system'
+  }
+
+  // ✅ REMOVED ALL MOCK DATA - Now loading 100% REAL data from audit_logs table
 
   const categories = [
     { value: 'all', label: 'Tutte le Categorie' },
@@ -185,15 +188,9 @@ const ActivityLogDashboard: React.FC = () => {
   ]
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setActivities(mockActivities)
-      setFilteredActivities(mockActivities)
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
+    // Load REAL data from database when component mounts or dateRange changes
+    loadActivityLogs()
+  }, [dateRange])
 
   useEffect(() => {
     let filtered = activities
