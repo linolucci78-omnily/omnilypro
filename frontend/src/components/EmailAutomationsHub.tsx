@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { Mail, Send, ArrowLeft, Eye, Palette, Smartphone, Trophy, Settings, TrendingUp, Users, Gift, Award, Cake, CheckCircle, Clock, BarChart3 } from 'lucide-react'
+import { Mail, Send, ArrowLeft, Eye, Palette, Smartphone, Trophy, Settings, TrendingUp, Users, Gift, Award, Cake, CheckCircle, Clock, BarChart3, UserCheck, PartyPopper, MessageSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import EmailAutomationsPanel from './EmailAutomationsPanel'
+import WinbackDashboard from './Campaigns/WinbackDashboard'
+import AnniversaryDashboard from './Campaigns/AnniversaryDashboard'
+import ReviewDashboard from './Campaigns/ReviewDashboard'
 import './EmailAutomationsHub.css'
 
 interface EmailAutomation {
   id: string
   organization_id: string
-  automation_type: 'welcome' | 'tier_upgrade' | 'birthday' | 'special_event'
+  automation_type: 'welcome' | 'tier_upgrade' | 'birthday' | 'special_event' | 'winback' | 'anniversary' | 'review_request'
   name: string
   description: string | null
   enabled: boolean
@@ -30,7 +33,7 @@ interface EmailAutomationsHubProps {
   secondaryColor: string
 }
 
-type ViewType = 'hub' | 'manage'
+type ViewType = 'hub' | 'manage' | 'winback'
 
 const EmailAutomationsHub: React.FC<EmailAutomationsHubProps> = ({
   organizationId,
@@ -127,6 +130,66 @@ const EmailAutomationsHub: React.FC<EmailAutomationsHubProps> = ({
           organizationId={organizationId}
           organizationName={organizationName}
           fullpage={true}
+        />
+      </div>
+    )
+  }
+
+  // Vista Win-back
+  if (activeView === 'winback') {
+    return (
+      <div>
+        <button
+          className="back-button"
+          onClick={() => setActiveView('hub')}
+          style={{ color: primaryColor }}
+        >
+          <ArrowLeft size={20} />
+          <span>Torna a Email Automations</span>
+        </button>
+        <WinbackDashboard
+          organizationId={organizationId}
+          organizationName={organizationName}
+        />
+      </div>
+    )
+  }
+
+  // Vista Anniversary
+  if (activeView === 'anniversary') {
+    return (
+      <div>
+        <button
+          className="back-button"
+          onClick={() => setActiveView('hub')}
+          style={{ color: primaryColor }}
+        >
+          <ArrowLeft size={20} />
+          <span>Torna a Email Automations</span>
+        </button>
+        <AnniversaryDashboard
+          organizationId={organizationId}
+          organizationName={organizationName}
+        />
+      </div>
+    )
+  }
+
+  // Vista Review Request
+  if (activeView === 'review_request') {
+    return (
+      <div>
+        <button
+          className="back-button"
+          onClick={() => setActiveView('hub')}
+          style={{ color: primaryColor }}
+        >
+          <ArrowLeft size={20} />
+          <span>Torna a Email Automations</span>
+        </button>
+        <ReviewDashboard
+          organizationId={organizationId}
+          organizationName={organizationName}
         />
       </div>
     )
@@ -411,6 +474,70 @@ const EmailAutomationsHub: React.FC<EmailAutomationsHubProps> = ({
               <li><Award size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Upgrade livello fedeltà</li>
               <li><Cake size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Auguri di compleanno</li>
               <li><Gift size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Eventi speciali</li>
+            </ul>
+          </div>
+          <div className="email-automations-hub-card-arrow">→</div>
+        </div>
+
+        {/* Card: Win-back Campaigns */}
+        <div
+          className="email-automations-hub-card email-automations-hub-card-winback"
+          onClick={() => setActiveView('winback')}
+        >
+          <div className="email-automations-hub-card-icon">
+            <UserCheck size={32} />
+          </div>
+          <div className="email-automations-hub-card-content">
+            <h3>🎯 Campagne Win-back</h3>
+            <p>Riattiva clienti inattivi con email automatiche personalizzate</p>
+            <ul className="email-automations-hub-card-features">
+              <li><Users size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Identifica clienti inattivi</li>
+              <li><Gift size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Offri bonus punti</li>
+              <li><TrendingUp size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Traccia ritorni</li>
+              <li><Clock size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Automazione giornaliera</li>
+            </ul>
+          </div>
+          <div className="email-automations-hub-card-arrow">→</div>
+        </div>
+
+        {/* Card: Anniversary Campaign */}
+        <div
+          className="email-automations-hub-card email-automations-hub-card-secondary"
+          onClick={() => setActiveView('anniversary')}
+        >
+          <div className="email-automations-hub-card-icon">
+            <PartyPopper size={32} />
+          </div>
+          <div className="email-automations-hub-card-content">
+            <h3>🎉 Campagne Anniversario</h3>
+            <p>Celebra i traguardi di fedeltà dei tuoi clienti con email speciali</p>
+            <ul className="email-automations-hub-card-features">
+              <li><Cake size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Anniversari iscrizione</li>
+              <li><Gift size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Bonus punti crescenti</li>
+              <li><BarChart3 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Recap personalizzato</li>
+              <li><Award size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Celebra la fedeltà</li>
+            </ul>
+          </div>
+          <div className="email-automations-hub-card-arrow">→</div>
+        </div>
+
+        {/* Card: Review Request Campaign */}
+        <div
+          className="email-automations-hub-card email-automations-hub-card-primary"
+          onClick={() => setActiveView('review_request')}
+          style={{ borderColor: '#f59e0b' }}
+        >
+          <div className="email-automations-hub-card-icon" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+            <MessageSquare size={32} />
+          </div>
+          <div className="email-automations-hub-card-content">
+            <h3>⭐ Campagne Recensioni</h3>
+            <p>Raccogli feedback e aumenta il social proof con recensioni automatiche</p>
+            <ul className="email-automations-hub-card-features">
+              <li><Mail size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Email post-acquisto</li>
+              <li><Gift size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Incentivi punti bonus</li>
+              <li><TrendingUp size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Tracking rating medio</li>
+              <li><Award size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Boost reputazione</li>
             </ul>
           </div>
           <div className="email-automations-hub-card-arrow">→</div>

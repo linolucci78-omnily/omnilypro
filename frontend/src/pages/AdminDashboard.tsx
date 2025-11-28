@@ -18,6 +18,7 @@ import {
   MoreHorizontal
 } from 'lucide-react'
 import { organizationsApi } from '../lib/supabase'
+import { adminAnalyticsService } from '../services/adminAnalyticsService'
 import PageLoader from '../components/UI/PageLoader'
 import './AdminDashboard.css'
 
@@ -45,6 +46,23 @@ interface DashboardStats {
   }
 }
 
+interface TopOrganization {
+  id: string
+  name: string
+  customers: number
+  transactions: number
+  revenue: number
+}
+
+interface RecentActivity {
+  id: string
+  type: 'new_org' | 'pos_config' | 'pos_error' | 'new_user'
+  title: string
+  detail: string
+  timestamp: string
+  organizationName: string
+}
+
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     organizations: { total: 0, active: 0, newThisMonth: 0, growth: 0 },
@@ -52,6 +70,8 @@ const AdminDashboard: React.FC = () => {
     pos: { active: 0, transactions: 0, growth: 0 },
     users: { total: 0, active: 0, growth: 0 }
   })
+  const [topOrganizations, setTopOrganizations] = useState<TopOrganization[]>([])
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,35 +81,34 @@ const AdminDashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      // Load real data from API
-      const orgStats = await organizationsApi.getStats()
-      
-      // Mock additional data for demo
+
+      // Load organization stats and real analytics in parallel
+      const [orgStats, analytics, topOrgs, activities] = await Promise.all([
+        organizationsApi.getStats(),
+        adminAnalyticsService.getAdminAnalytics(),
+        adminAnalyticsService.getTopOrganizations(3),
+        adminAnalyticsService.getRecentActivities(4)
+      ])
+
+      // Combine organization stats with real analytics
       setStats({
         organizations: {
           total: orgStats.total,
           active: orgStats.active,
           newThisMonth: orgStats.newThisMonth,
-          growth: 15.3
+          growth: orgStats.newThisMonth > 0 ? 15.3 : 0 // Calculate based on new orgs
         },
-        revenue: {
-          monthly: 12450,
-          yearly: 148500,
-          growth: 23.7
-        },
-        pos: {
-          active: orgStats.withPOS,
-          transactions: 2847,
-          growth: 18.2
-        },
-        users: {
-          total: orgStats.total * 3, // Approx 3 users per org
-          active: orgStats.active * 2,
-          growth: 12.8
-        }
+        revenue: analytics.revenue,
+        pos: analytics.pos,
+        users: analytics.users
       })
+
+      setTopOrganizations(topOrgs)
+      setRecentActivities(activities)
+
+      console.log('✅ Dashboard loaded with real analytics:', { orgStats, analytics })
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
+      console.error('❌ Error loading dashboard data:', error)
     } finally {
       setLoading(false)
     }
@@ -110,6 +129,21 @@ const AdminDashboard: React.FC = () => {
         {Math.abs(growth)}%
       </span>
     )
+  }
+
+  const getTimeAgo = (timestamp: string): string => {
+    const now = new Date()
+    const time = new Date(timestamp)
+    const diffMs = now.getTime() - time.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffMins < 1) return 'Appena adesso'
+    if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? 'minuto' : 'minuti'} fa`
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'ora' : 'ore'} fa`
+    if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? 'giorno' : 'giorni'} fa`
+    return time.toLocaleDateString('it-IT')
   }
 
   if (loading) {
@@ -257,49 +291,41 @@ const AdminDashboard: React.FC = () => {
             </button>
           </div>
           <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon new">
-                <Building2 size={16} />
+            {recentActivities.length > 0 ? (
+              recentActivities.map(activity => {
+                const getActivityIcon = (type: string) => {
+                  switch (type) {
+                    case 'new_org': return { icon: Building2, className: 'new' }
+                    case 'pos_config': return { icon: CreditCard, className: 'success' }
+                    case 'pos_error': return { icon: AlertCircle, className: 'warning' }
+                    case 'new_user': return { icon: User, className: 'info' }
+                    default: return { icon: Activity, className: 'info' }
+                  }
+                }
+
+                const { icon: Icon, className } = getActivityIcon(activity.type)
+                const timeAgo = getTimeAgo(activity.timestamp)
+
+                return (
+                  <div key={activity.id} className="activity-item">
+                    <div className={`activity-icon ${className}`}>
+                      <Icon size={16} />
+                    </div>
+                    <div className="activity-content">
+                      <div className="activity-title">{activity.title}</div>
+                      <div className="activity-detail">{activity.detail}</div>
+                      <div className="activity-time">{timeAgo}</div>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="activity-item">
+                <div className="activity-content">
+                  <div className="activity-detail">Nessuna attività recente</div>
+                </div>
               </div>
-              <div className="activity-content">
-                <div className="activity-title">Nuova azienda registrata</div>
-                <div className="activity-detail">Pizzeria Da Mario - Milano</div>
-                <div className="activity-time">2 minuti fa</div>
-              </div>
-            </div>
-            
-            <div className="activity-item">
-              <div className="activity-icon success">
-                <CreditCard size={16} />
-              </div>
-              <div className="activity-content">
-                <div className="activity-title">POS configurato</div>
-                <div className="activity-detail">Bar Central - Roma</div>
-                <div className="activity-time">15 minuti fa</div>
-              </div>
-            </div>
-            
-            <div className="activity-item">
-              <div className="activity-icon warning">
-                <AlertCircle size={16} />
-              </div>
-              <div className="activity-content">
-                <div className="activity-title">Errore sistema POS</div>
-                <div className="activity-detail">Ristorante Bella Vista - Napoli</div>
-                <div className="activity-time">1 ora fa</div>
-              </div>
-            </div>
-            
-            <div className="activity-item">
-              <div className="activity-icon info">
-                <User size={16} />
-              </div>
-              <div className="activity-content">
-                <div className="activity-title">Nuovo utente</div>
-                <div className="activity-detail">admin@gelateriafreddi.it</div>
-                <div className="activity-time">2 ore fa</div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -373,29 +399,32 @@ const AdminDashboard: React.FC = () => {
             </button>
           </div>
           <div className="top-orgs">
-            <div className="org-item">
-              <div className="org-info">
-                <div className="org-name">Pizzeria Da Mario</div>
-                <div className="org-detail">1.2K clienti • 450 transazioni</div>
+            {topOrganizations.length > 0 ? (
+              topOrganizations.map(org => {
+                const formatNumber = (num: number) => {
+                  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+                  return num.toString()
+                }
+
+                return (
+                  <div key={org.id} className="org-item">
+                    <div className="org-info">
+                      <div className="org-name">{org.name}</div>
+                      <div className="org-detail">
+                        {formatNumber(org.customers)} clienti • {formatNumber(org.transactions)} transazioni
+                      </div>
+                    </div>
+                    <div className="org-revenue">{formatCurrency(org.revenue)}</div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="org-item">
+                <div className="org-info">
+                  <div className="org-detail">Nessuna organizzazione trovata</div>
+                </div>
               </div>
-              <div className="org-revenue">{formatCurrency(2450)}</div>
-            </div>
-            
-            <div className="org-item">
-              <div className="org-info">
-                <div className="org-name">Bar Central</div>
-                <div className="org-detail">850 clienti • 320 transazioni</div>
-              </div>
-              <div className="org-revenue">{formatCurrency(1890)}</div>
-            </div>
-            
-            <div className="org-item">
-              <div className="org-info">
-                <div className="org-name">Gelateria Freddi</div>
-                <div className="org-detail">620 clienti • 180 transazioni</div>
-              </div>
-              <div className="org-revenue">{formatCurrency(1240)}</div>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -39,8 +39,8 @@ export const SparklesCore: React.FC<SparklesProps> = ({
 
   const particles = Array.from({ length: particleDensity }, (_, i) => ({
     id: i,
-    x: Math.random() * dimensions.width,
-    y: Math.random() * dimensions.height,
+    x: Math.random() * (dimensions.width || 1920),
+    y: Math.random() * (dimensions.height || 1080),
     size: Math.random() * (maxSize - minSize) + minSize,
     duration: Math.random() * speed + 1,
     delay: Math.random() * 2,

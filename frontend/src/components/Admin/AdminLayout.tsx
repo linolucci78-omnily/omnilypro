@@ -118,7 +118,8 @@ const AdminLayout = () => {
       items: [
         { path: '/admin', icon: Home, label: 'Panoramica', exact: true },
         { path: '/admin/system-overview', icon: Activity, label: 'Command Center' },
-        { path: '/admin/root-access', icon: Shield, label: 'Root Access Control' }
+        { path: '/admin/root-access', icon: Shield, label: 'Root Access Control' },
+        { path: '/admin/founders', icon: Crown, label: 'Founder Management' }
       ]
     },
     {
@@ -152,6 +153,7 @@ const AdminLayout = () => {
       group: 'Sistema',
       items: [
         { path: '/admin/settings', icon: Settings, label: 'Impostazioni' },
+        { path: '/admin/stripe-config', icon: CreditCard, label: 'Configurazione Stripe' },
         { path: '/admin/subscription-plans', icon: Crown, label: 'Piani Organizzazioni' },
         { path: '/admin/security', icon: Shield, label: 'Sicurezza' },
         { path: '/admin/notifications', icon: Bell, label: 'Notifiche' },

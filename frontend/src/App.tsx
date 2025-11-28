@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 // REMOVED: GamingNotificationsProvider - using console.log instead for stability
 // import { GamingNotificationsProvider } from './contexts/GamingNotificationsContext'
 import { useMDMCommands } from './hooks/useMDMCommands'
@@ -13,8 +14,12 @@ import AdminLayout from './components/Admin/AdminLayout'
 import Landing from './pages/Landing'
 import LandingTest from './pages/LandingTest'
 import Login from './pages/Login'
+import ActivateAccount from './pages/ActivateAccount'
+import ActivateOrganization from './pages/ActivateOrganization'
+import ActivationSuccess from './pages/ActivationSuccess'
 import Onboarding from './pages/Onboarding'
 import DemoRequestWizard from './components/DemoRequestWizard'
+import EnterpriseWizard from './components/Onboarding/EnterpriseWizard'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import Admin from './pages/Admin'
@@ -78,6 +83,8 @@ import OmnyWalletTestPage from './pages/OmnyWalletTestPage'
 import AdminOmnyDashboard from './components/Admin/Omny/AdminOmnyDashboard'
 import SystemOverview from './components/Admin/SystemOverview'
 import RootAccessControl from './components/Admin/RootAccessControl'
+import FounderManagement from './components/Admin/FounderManagement'
+import StripeConfigDashboard from './components/Admin/StripeConfigDashboard'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -166,11 +173,13 @@ function App() {
     return (
       <HelmetProvider>
         <Router>
-          <AuthProvider>
-            <ToastProvider>
-              <PublicWebsiteSubdomain />
-            </ToastProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ToastProvider>
+                <PublicWebsiteSubdomain />
+              </ToastProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </Router>
       </HelmetProvider>
     );
@@ -185,38 +194,41 @@ function App() {
 
     return (
       <Router>
-        <AuthProvider>
-          <ToastProvider>
-            <div className="App" style={{ margin: 0, padding: 0 }}>
-              <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <POSDashboardWrapper />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pos"
-                  element={
-                    <ProtectedRoute>
-                      <Z108POSInterface />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/customer-display"
-                  element={<CustomerDisplay />}
-                />
-                <Route path="*" element={<Login />} />
-              </Routes>
-            </div>
-          </ToastProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <div className="App" style={{ margin: 0, padding: 0 }}>
+                <Routes>
+                  <Route path="/" element={<Login />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/activate-account" element={<ActivateAccount />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <POSDashboardWrapper />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/pos"
+                    element={
+                      <ProtectedRoute>
+                        <Z108POSInterface />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/customer-display"
+                    element={<CustomerDisplay />}
+                  />
+                  <Route path="*" element={<Login />} />
+                </Routes>
+              </div>
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </Router>
     )
   }
@@ -224,17 +236,20 @@ function App() {
   return (
     <HelmetProvider>
       <Router>
-        <AuthProvider>
-          <ToastProvider>
-            <div className="App">
-              <Routes>
-                <Route path="/" element={<Landing />} />
+        <ThemeProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <div className="App">
+                <Routes>
+                  <Route path="/" element={<Landing />} />
                 <Route path="/landing-test" element={<LandingTest />} />
                 <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
                 {/* ...tutte le altre route originali... */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/update-password" element={<UpdatePassword />} />
+                <Route path="/activate/:token" element={<ActivateOrganization />} />
+                <Route path="/activation-success" element={<ActivationSuccess />} />
                 <Route path="/strapi-test" element={<StrapiTest />} />
                 <Route path="/test" element={<div style={{ padding: '2rem', textAlign: 'center' }}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
                 <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
@@ -249,12 +264,14 @@ function App() {
                 <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
                   <Route index element={<AdminDashboard />} />
                   <Route path="organizations" element={<Admin />} />
+                  <Route path="new-organization" element={<EnterpriseWizard mode="admin" />} />
                   <Route path="business-owners" element={<BusinessOwners />} />
                   <Route path="pending-customers" element={<PendingCustomers />} />
                   <Route path="users" element={<UsersManagement />} />
                   <Route path="profile" element={<ProfileSettings />} />
                   <Route path="system-overview" element={<SystemOverview />} />
                   <Route path="root-access" element={<RootAccessControl />} />
+                  <Route path="founders" element={<FounderManagement />} />
                   <Route path="crm" element={<CRMLeadsDashboard />} />
                   <Route path="demo-requests" element={<DemoRequestsDashboard />} />
                   <Route path="contracts" element={<ContractsDashboard />} />
@@ -283,6 +300,7 @@ function App() {
                   <Route path="downloads" element={<Downloads />} />
                   <Route path="omny" element={<AdminOmnyDashboard />} />
                   <Route path="omny-wallet" element={<OmnyWalletTestPage />} />
+                  <Route path="stripe-config" element={<StripeConfigDashboard />} />
                 </Route>
                 <Route path="/sign/:signatureId" element={
                   <React.Suspense fallback={<div>Caricamento...</div>}>
@@ -296,6 +314,7 @@ function App() {
             </div>
           </ToastProvider>
         </AuthProvider>
+        </ThemeProvider>
       </Router>
     </HelmetProvider>
   )

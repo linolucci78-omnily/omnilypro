@@ -63,22 +63,31 @@
 }
 
 .edit-org-close-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: transparent;
+  background: #f3f4f6;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
   color: #6b7280;
+  flex-shrink: 0;
+}
+
+.edit-org-close-btn svg {
+  width: 28px !important;
+  height: 28px !important;
+  stroke-width: 3 !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
 }
 
 .edit-org-close-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #111827;
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .edit-org-close-btn:disabled {
@@ -145,14 +154,10 @@
 }
 
 .form-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  display: block;
+  font-size: 14px;
   font-weight: 700;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: #1f2937;
   margin-bottom: 8px;
 }
 

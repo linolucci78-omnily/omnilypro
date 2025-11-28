@@ -294,6 +294,10 @@
   background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
+.email-automations-hub-card-winback .email-automations-hub-card-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
 .email-automations-hub-card-icon {
   width: 70px;
   height: 70px;

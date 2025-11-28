@@ -4,269 +4,87 @@ import {
   Upload,
   Download,
   Eye,
-  Copy,
   Edit,
-  Save,
-  RefreshCw,
-  Image,
-  Type,
-  Monitor,
-  Smartphone,
-  Settings,
-  Check,
-  X,
-  Plus,
   Trash2,
+  Plus,
+  Search,
+  RefreshCw,
+  Copy,
+  Check,
+  Calendar,
+  X,
+  Save,
+  Image,
   Code,
-  Globe,
-  Zap
+  Monitor,
+  Smartphone
 } from 'lucide-react'
-import './AdminLayout.css'
 import PageLoader from '../UI/PageLoader'
-
-interface BrandTheme {
-  id: string
-  name: string
-  description: string
-  is_default: boolean
-  is_active: boolean
-  colors: {
-    primary: string
-    secondary: string
-    accent: string
-    background: string
-    surface: string
-    text_primary: string
-    text_secondary: string
-    success: string
-    warning: string
-    error: string
-  }
-  typography: {
-    font_family: string
-    font_size_base: string
-    font_weight_normal: string
-    font_weight_bold: string
-    line_height: string
-  }
-  assets: {
-    logo_light: string
-    logo_dark: string
-    favicon: string
-    app_icon: string
-    background_image?: string
-  }
-  customization: {
-    border_radius: string
-    shadow_level: string
-    animation_speed: string
-  }
-  created_at: string
-  updated_at: string
-  usage_count: number
-}
-
-interface BrandAsset {
-  id: string
-  name: string
-  type: 'logo' | 'icon' | 'image' | 'font'
-  format: string
-  size: string
-  url: string
-  created_at: string
-  usage_count: number
-}
+import { useToast } from '../../contexts/ToastContext'
+import { useTheme, BrandTheme } from '../../contexts/ThemeContext'
 
 const BrandingDashboard: React.FC = () => {
-  const [themes, setThemes] = useState<BrandTheme[]>([])
-  const [assets, setAssets] = useState<BrandAsset[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'themes' | 'assets' | 'preview' | 'css'>('themes')
+  const { showSuccess, showError } = useToast()
+  const { themes, currentTheme, setTheme, saveTheme, deleteTheme, createTheme } = useTheme()
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const [selectedTheme, setSelectedTheme] = useState<BrandTheme | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop')
 
-  // Mock data
-  const mockThemes: BrandTheme[] = [
-    {
-      id: '1',
-      name: 'OMNILY Default',
-      description: 'Tema principale di OMNILY con colori brand ufficiali',
-      is_default: true,
-      is_active: true,
-      colors: {
-        primary: '#3182CE',
-        secondary: '#2D3748',
-        accent: '#F59E0B',
-        background: '#FFFFFF',
-        surface: '#F7FAFC',
-        text_primary: '#1A202C',
-        text_secondary: '#4A5568',
-        success: '#10B981',
-        warning: '#F59E0B',
-        error: '#EF4444'
-      },
-      typography: {
-        font_family: 'Inter, system-ui, sans-serif',
-        font_size_base: '16px',
-        font_weight_normal: '400',
-        font_weight_bold: '600',
-        line_height: '1.5'
-      },
-      assets: {
-        logo_light: '/assets/logo-light.svg',
-        logo_dark: '/assets/logo-dark.svg',
-        favicon: '/assets/favicon.ico',
-        app_icon: '/assets/app-icon.png'
-      },
-      customization: {
-        border_radius: '8px',
-        shadow_level: 'medium',
-        animation_speed: 'normal'
-      },
-      created_at: '2024-12-01T10:00:00Z',
-      updated_at: '2025-01-15T14:30:00Z',
-      usage_count: 1247
-    },
-    {
-      id: '2',
-      name: 'Dark Professional',
-      description: 'Tema scuro professionale per ambienti di lavoro',
-      is_default: false,
-      is_active: false,
-      colors: {
-        primary: '#60A5FA',
-        secondary: '#374151',
-        accent: '#FBBF24',
-        background: '#111827',
-        surface: '#1F2937',
-        text_primary: '#F9FAFB',
-        text_secondary: '#D1D5DB',
-        success: '#34D399',
-        warning: '#FBBF24',
-        error: '#F87171'
-      },
-      typography: {
-        font_family: 'Roboto, system-ui, sans-serif',
-        font_size_base: '15px',
-        font_weight_normal: '400',
-        font_weight_bold: '500',
-        line_height: '1.6'
-      },
-      assets: {
-        logo_light: '/assets/logo-dark-theme.svg',
-        logo_dark: '/assets/logo-dark-theme-alt.svg',
-        favicon: '/assets/favicon-dark.ico',
-        app_icon: '/assets/app-icon-dark.png'
-      },
-      customization: {
-        border_radius: '6px',
-        shadow_level: 'high',
-        animation_speed: 'fast'
-      },
-      created_at: '2025-01-05T09:15:00Z',
-      updated_at: '2025-01-12T16:45:00Z',
-      usage_count: 89
-    },
-    {
-      id: '3',
-      name: 'Minimalist Light',
-      description: 'Tema minimalista chiaro con focus su semplicità',
-      is_default: false,
-      is_active: false,
-      colors: {
-        primary: '#6366F1',
-        secondary: '#64748B',
-        accent: '#06B6D4',
-        background: '#FEFEFE',
-        surface: '#FAFAFA',
-        text_primary: '#0F172A',
-        text_secondary: '#64748B',
-        success: '#22C55E',
-        warning: '#F97316',
-        error: '#EF4444'
-      },
-      typography: {
-        font_family: 'Poppins, system-ui, sans-serif',
-        font_size_base: '16px',
-        font_weight_normal: '300',
-        font_weight_bold: '600',
-        line_height: '1.7'
-      },
-      assets: {
-        logo_light: '/assets/logo-minimal.svg',
-        logo_dark: '/assets/logo-minimal-dark.svg',
-        favicon: '/assets/favicon-minimal.ico',
-        app_icon: '/assets/app-icon-minimal.png'
-      },
-      customization: {
-        border_radius: '12px',
-        shadow_level: 'low',
-        animation_speed: 'slow'
-      },
-      created_at: '2025-01-08T11:30:00Z',
-      updated_at: '2025-01-10T09:20:00Z',
-      usage_count: 34
-    }
-  ]
-
-  const mockAssets: BrandAsset[] = [
-    {
-      id: '1',
-      name: 'OMNILY Logo Light',
-      type: 'logo',
-      format: 'SVG',
-      size: '12 KB',
-      url: '/assets/logo-light.svg',
-      created_at: '2024-12-01T10:00:00Z',
-      usage_count: 1247
-    },
-    {
-      id: '2',
-      name: 'OMNILY Logo Dark',
-      type: 'logo',
-      format: 'SVG',
-      size: '11 KB',
-      url: '/assets/logo-dark.svg',
-      created_at: '2024-12-01T10:05:00Z',
-      usage_count: 89
-    },
-    {
-      id: '3',
-      name: 'App Icon 512x512',
-      type: 'icon',
-      format: 'PNG',
-      size: '45 KB',
-      url: '/assets/app-icon-512.png',
-      created_at: '2024-12-01T10:10:00Z',
-      usage_count: 567
-    },
-    {
-      id: '4',
-      name: 'Background Pattern',
-      type: 'image',
-      format: 'PNG',
-      size: '234 KB',
-      url: '/assets/bg-pattern.png',
-      created_at: '2024-12-15T14:20:00Z',
-      usage_count: 123
-    }
-  ]
-
+  // Apply theme preview in real-time while editing
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setThemes(mockThemes)
-      setAssets(mockAssets)
-      setSelectedTheme(mockThemes[0])
-      setLoading(false)
-    }, 1000)
+    if (isEditing && selectedTheme) {
+      // Apply CSS variables directly to DOM for live preview
+      const root = document.documentElement
+      root.style.setProperty('--primary-color', selectedTheme.colors.primary)
+      root.style.setProperty('--secondary-color', selectedTheme.colors.secondary)
+      root.style.setProperty('--accent-color', selectedTheme.colors.accent)
+      root.style.setProperty('--background-color', selectedTheme.colors.background)
+      root.style.setProperty('--surface-color', selectedTheme.colors.surface)
+      root.style.setProperty('--text-primary-color', selectedTheme.colors.text_primary)
+      root.style.setProperty('--text-secondary-color', selectedTheme.colors.text_secondary)
+      root.style.setProperty('--success-color', selectedTheme.colors.success)
+      root.style.setProperty('--warning-color', selectedTheme.colors.warning)
+      root.style.setProperty('--error-color', selectedTheme.colors.error)
+      root.style.setProperty('--border-radius', selectedTheme.customization.border_radius)
 
-    return () => clearTimeout(timer)
-  }, [])
+      // Apply sidebar colors
+      root.style.setProperty('--sidebar-background', selectedTheme.sidebar.background)
+      root.style.setProperty('--sidebar-text', selectedTheme.sidebar.text)
+      root.style.setProperty('--sidebar-text-hover', selectedTheme.sidebar.text_hover)
+      root.style.setProperty('--sidebar-text-active', selectedTheme.sidebar.text_active)
+      root.style.setProperty('--sidebar-background-hover', selectedTheme.sidebar.background_hover)
+      root.style.setProperty('--sidebar-background-active', selectedTheme.sidebar.background_active)
+      root.style.setProperty('--sidebar-border-color', selectedTheme.sidebar.border_color)
+      root.style.setProperty('--sidebar-logo-text', selectedTheme.sidebar.logo_text)
 
-  const handleThemeSelect = (theme: BrandTheme) => {
-    setSelectedTheme(theme)
-    setIsEditing(false)
+      const shadowMap = {
+        'low': '0 1px 3px rgba(0, 0, 0, 0.1)',
+        'medium': '0 4px 6px rgba(0, 0, 0, 0.1)',
+        'high': '0 10px 15px rgba(0, 0, 0, 0.2)'
+      }
+      root.style.setProperty('--box-shadow', shadowMap[selectedTheme.customization.shadow_level as keyof typeof shadowMap] || shadowMap.medium)
+    }
+  }, [selectedTheme, isEditing])
+
+  const filteredThemes = themes.filter(theme =>
+    theme.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    theme.description.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('it-IT', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
+
+  const handleEdit = (theme: BrandTheme) => {
+    setSelectedTheme({ ...theme })
+    setIsEditing(true)
   }
 
   const handleColorChange = (colorKey: string, value: string) => {
@@ -281,509 +99,797 @@ const BrandingDashboard: React.FC = () => {
     }
   }
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
+  const handleSidebarChange = (sidebarKey: string, value: string) => {
+    if (selectedTheme) {
+      setSelectedTheme({
+        ...selectedTheme,
+        sidebar: {
+          ...selectedTheme.sidebar,
+          [sidebarKey]: value
+        }
+      })
+    }
   }
 
-  const generateCSS = (theme: BrandTheme) => {
-    return `
-/* ${theme.name} - Generated CSS Variables */
+  const handleSave = () => {
+    if (selectedTheme) {
+      saveTheme(selectedTheme)
+      setIsEditing(false)
+      showSuccess('Tema salvato con successo!')
+    }
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setSelectedTheme(null)
+    // Restore current theme
+    if (currentTheme) {
+      const root = document.documentElement
+      root.style.setProperty('--primary-color', currentTheme.colors.primary)
+      root.style.setProperty('--secondary-color', currentTheme.colors.secondary)
+      root.style.setProperty('--accent-color', currentTheme.colors.accent)
+      root.style.setProperty('--background-color', currentTheme.colors.background)
+      root.style.setProperty('--surface-color', currentTheme.colors.surface)
+      root.style.setProperty('--text-primary-color', currentTheme.colors.text_primary)
+      root.style.setProperty('--text-secondary-color', currentTheme.colors.text_secondary)
+      root.style.setProperty('--success-color', currentTheme.colors.success)
+      root.style.setProperty('--warning-color', currentTheme.colors.warning)
+      root.style.setProperty('--error-color', currentTheme.colors.error)
+      root.style.setProperty('--border-radius', currentTheme.customization.border_radius)
+    }
+  }
+
+  const handleCopyCSS = (theme: BrandTheme) => {
+    const css = `
 :root {
-  /* Colors */
-  --color-primary: ${theme.colors.primary};
-  --color-secondary: ${theme.colors.secondary};
-  --color-accent: ${theme.colors.accent};
-  --color-background: ${theme.colors.background};
-  --color-surface: ${theme.colors.surface};
-  --color-text-primary: ${theme.colors.text_primary};
-  --color-text-secondary: ${theme.colors.text_secondary};
-  --color-success: ${theme.colors.success};
-  --color-warning: ${theme.colors.warning};
-  --color-error: ${theme.colors.error};
-
-  /* Typography */
+  --primary: ${theme.colors.primary};
+  --secondary: ${theme.colors.secondary};
+  --accent: ${theme.colors.accent};
+  --background: ${theme.colors.background};
+  --surface: ${theme.colors.surface};
+  --text-primary: ${theme.colors.text_primary};
+  --text-secondary: ${theme.colors.text_secondary};
+  --success: ${theme.colors.success};
+  --warning: ${theme.colors.warning};
+  --error: ${theme.colors.error};
   --font-family: ${theme.typography.font_family};
-  --font-size-base: ${theme.typography.font_size_base};
-  --font-weight-normal: ${theme.typography.font_weight_normal};
-  --font-weight-bold: ${theme.typography.font_weight_bold};
-  --line-height: ${theme.typography.line_height};
-
-  /* Customization */
   --border-radius: ${theme.customization.border_radius};
-  --shadow-level: ${theme.customization.shadow_level};
-  --animation-speed: ${theme.customization.animation_speed};
-}
+}`.trim()
 
-/* Component Styles */
-.btn-primary {
-  background-color: var(--color-primary);
-  color: white;
-  border-radius: var(--border-radius);
-  font-family: var(--font-family);
-}
-
-.btn-secondary {
-  background-color: var(--color-secondary);
-  color: white;
-  border-radius: var(--border-radius);
-  font-family: var(--font-family);
-}
-
-.card {
-  background-color: var(--color-surface);
-  border-radius: var(--border-radius);
-  color: var(--color-text-primary);
-}
-    `.trim()
+    navigator.clipboard.writeText(css)
+    showSuccess('CSS copiato negli appunti!')
   }
 
   if (loading) {
-    return <PageLoader message="Caricamento temi e branding..." size="medium" />
+    return <PageLoader message="Caricamento temi..." size="medium" />
   }
 
+  const totalThemes = themes.length
+  const activeThemes = themes.filter(t => t.is_active).length
+  const totalUsage = themes.reduce((sum, t) => sum + t.usage_count, 0)
+
   return (
-    <div className="admin-dashboard"
-         style={{ width: '100%', maxWidth: 'none', margin: 0, padding: 0, boxSizing: 'border-box' }}>
-      <div className="dashboard-header">
-        <div className="header-content">
-          <div className="header-title">
-            <Palette size={32} />
-            <div>
-              <h1>Brand & Temi</h1>
-              <p>Gestione temi, colori e risorse brand - {themes.length} temi disponibili</p>
-            </div>
+    <div className="admin-page">
+      {/* Header */}
+      <div className="admin-header">
+        <div className="header-left">
+          <div className="header-info">
+            <h1>Brand & Temi</h1>
+            <p>Gestione temi, colori e risorse brand del sistema</p>
           </div>
-          <div className="header-actions">
-            <button className="btn-secondary">
-              <Download size={16} />
-              Esporta Tema
-            </button>
-            <button className="btn-secondary">
-              <Upload size={16} />
-              Importa Tema
-            </button>
-            <button className="btn-primary">
-              <Plus size={16} />
-              Nuovo Tema
-            </button>
+        </div>
+        <div className="header-actions">
+          <button className="btn-secondary">
+            <Download size={18} />
+            Esporta Tema
+          </button>
+          <button className="btn-secondary">
+            <Upload size={18} />
+            Importa Tema
+          </button>
+          <button className="btn-primary">
+            <Plus size={18} />
+            Nuovo Tema
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon">
+            <Palette size={24} />
+          </div>
+          <div>
+            <div className="stat-value">{totalThemes}</div>
+            <div className="stat-label">Temi Totali</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon active">
+            <Check size={24} />
+          </div>
+          <div>
+            <div className="stat-value">{activeThemes}</div>
+            <div className="stat-label">Temi Attivi</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon warning">
+            <Eye size={24} />
+          </div>
+          <div>
+            <div className="stat-value">{totalUsage.toLocaleString()}</div>
+            <div className="stat-label">Visualizzazioni Totali</div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="dashboard-tabs">
-        <button
-          className={`tab ${activeTab === 'themes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('themes')}
-        >
-          <Palette size={16} />
-          Temi
-        </button>
-        <button
-          className={`tab ${activeTab === 'assets' ? 'active' : ''}`}
-          onClick={() => setActiveTab('assets')}
-        >
-          <Image size={16} />
-          Asset
-        </button>
-        <button
-          className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('preview')}
-        >
-          <Eye size={16} />
-          Anteprima
-        </button>
-        <button
-          className={`tab ${activeTab === 'css' ? 'active' : ''}`}
-          onClick={() => setActiveTab('css')}
-        >
-          <Code size={16} />
-          CSS Export
+      {/* Filters Bar */}
+      <div className="filters-bar">
+        <div className="search-box">
+          <Search size={20} />
+          <input
+            type="text"
+            placeholder="Cerca temi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <button className="btn-secondary" onClick={() => setSearchTerm('')}>
+          <RefreshCw size={18} />
+          Reset
         </button>
       </div>
 
-      {activeTab === 'themes' && (
-        <div className="dashboard-section">
-          <div className="themes-layout" style={{
-            display: 'grid',
-            gridTemplateColumns: '300px 1fr',
-            gap: '1rem',
-            height: '600px'
-          }}>
-            {/* Themes List */}
-            <div className="themes-sidebar">
-              <h3>Temi Disponibili</h3>
-              <div className="themes-list">
-                {themes.map((theme) => (
-                  <div
-                    key={theme.id}
-                    className={`theme-card ${selectedTheme?.id === theme.id ? 'selected' : ''}`}
-                    onClick={() => handleThemeSelect(theme)}
-                  >
-                    <div className="theme-header">
-                      <h4>{theme.name}</h4>
-                      <div className="theme-badges">
-                        {theme.is_default && (
-                          <span className="badge default">Default</span>
-                        )}
-                        {theme.is_active && (
-                          <span className="badge active">Attivo</span>
-                        )}
+      {/* Themes Table */}
+      <div className="organizations-table-container">
+        <table className="organizations-table">
+          <thead>
+            <tr>
+              <th>Nome Tema</th>
+              <th>Colori Brand</th>
+              <th>Tipografia</th>
+              <th>Personalizzazione</th>
+              <th style={{ textAlign: 'center' }}>Stato</th>
+              <th style={{ textAlign: 'right' }}>Utilizzi</th>
+              <th style={{ textAlign: 'center' }}>Ultimo Aggiornamento</th>
+              <th style={{ textAlign: 'center' }}>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredThemes.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  Nessun tema trovato
+                </td>
+              </tr>
+            ) : (
+              filteredThemes.map((theme) => (
+                <tr key={theme.id}>
+                  <td>
+                    <div className="org-info">
+                      <div>
+                        <div className="org-name">{theme.name}</div>
+                        <div className="org-type">{theme.description}</div>
                       </div>
                     </div>
+                  </td>
 
-                    <p className="theme-description">{theme.description}</p>
-
-                    <div className="theme-colors">
+                  <td>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <div
-                        className="color-swatch"
-                        style={{ backgroundColor: theme.colors.primary }}
-                        title="Primary"
-                      ></div>
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '4px',
+                          backgroundColor: theme.colors.primary,
+                          border: '1px solid #e5e7eb'
+                        }}
+                        title={`Primary: ${theme.colors.primary}`}
+                      />
                       <div
-                        className="color-swatch"
-                        style={{ backgroundColor: theme.colors.secondary }}
-                        title="Secondary"
-                      ></div>
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '4px',
+                          backgroundColor: theme.colors.secondary,
+                          border: '1px solid #e5e7eb'
+                        }}
+                        title={`Secondary: ${theme.colors.secondary}`}
+                      />
                       <div
-                        className="color-swatch"
-                        style={{ backgroundColor: theme.colors.accent }}
-                        title="Accent"
-                      ></div>
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '4px',
+                          backgroundColor: theme.colors.accent,
+                          border: '1px solid #e5e7eb'
+                        }}
+                        title={`Accent: ${theme.colors.accent}`}
+                      />
                     </div>
+                  </td>
 
-                    <div className="theme-meta">
-                      <span>Aggiornato: {formatDate(theme.updated_at)}</span>
-                      <span>{theme.usage_count} utilizzi</span>
+                  <td>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      <div style={{ fontWeight: 600, color: '#374151' }}>
+                        {theme.typography.font_family.split(',')[0]}
+                      </div>
+                      <div style={{ fontSize: '12px', marginTop: '2px' }}>
+                        {theme.typography.font_size_base} • {theme.typography.font_weight_normal}/{theme.typography.font_weight_bold}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  </td>
 
-            {/* Theme Editor */}
-            {selectedTheme && (
-              <div className="theme-editor">
-                <div className="editor-header">
-                  <h3>{selectedTheme.name}</h3>
-                  <div className="editor-actions">
-                    {!isEditing ? (
+                  <td>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      <div>Border: <span style={{ fontWeight: 500, color: '#374151' }}>{theme.customization.border_radius}</span></div>
+                      <div style={{ marginTop: '2px' }}>Shadow: <span style={{ fontWeight: 500, color: '#374151' }}>{theme.customization.shadow_level}</span></div>
+                    </div>
+                  </td>
+
+                  <td style={{ textAlign: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                      {theme.is_default && (
+                        <span className="plan-badge pro">DEFAULT</span>
+                      )}
+                      {theme.is_active ? (
+                        <span className="status-badge active">Attivo</span>
+                      ) : (
+                        <button
+                          className="status-badge inactive"
+                          style={{ cursor: 'pointer', border: 'none', background: '#fee2e2', color: '#dc2626' }}
+                          onClick={() => {
+                            setTheme(theme.id)
+                            showSuccess(`Tema "${theme.name}" attivato!`)
+                          }}
+                          title="Clicca per attivare questo tema"
+                        >
+                          Attiva
+                        </button>
+                      )}
+                    </div>
+                  </td>
+
+                  <td style={{ textAlign: 'right' }}>
+                    <div className="users-count">
+                      <Eye size={14} />
+                      <span>{theme.usage_count.toLocaleString()}</span>
+                    </div>
+                  </td>
+
+                  <td style={{ textAlign: 'center' }}>
+                    <div className="date-compact">
+                      <Calendar size={14} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
+                      {formatDate(theme.updated_at)}
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="actions-menu">
                       <button
-                        className="btn-primary"
-                        onClick={() => setIsEditing(true)}
+                        className="action-btn"
+                        title="Anteprima"
+                        onClick={() => {
+                          setSelectedTheme(theme)
+                          setShowPreview(true)
+                        }}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        className="action-btn primary"
+                        title="Modifica"
+                        onClick={() => handleEdit(theme)}
                       >
                         <Edit size={16} />
-                        Modifica
                       </button>
-                    ) : (
-                      <div className="edit-actions">
-                        <button className="btn-secondary" onClick={() => setIsEditing(false)}>
-                          <X size={16} />
-                          Annulla
+                      <button
+                        className="action-btn"
+                        title="Copia CSS"
+                        onClick={() => handleCopyCSS(theme)}
+                      >
+                        <Copy size={16} />
+                      </button>
+                      {!theme.is_default && (
+                        <button
+                          className="action-btn danger"
+                          title="Elimina"
+                          onClick={() => showError('Funzione elimina in sviluppo')}
+                        >
+                          <Trash2 size={16} />
                         </button>
-                        <button className="btn-primary">
-                          <Save size={16} />
-                          Salva
-                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="pagination">
+        <div className="pagination-info">
+          Mostrando <strong>{filteredThemes.length}</strong> di <strong>{totalThemes}</strong> temi
+        </div>
+      </div>
+
+      {/* EDIT MODAL */}
+      {isEditing && selectedTheme && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }} onClick={handleCancel}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            maxWidth: '1400px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'hidden',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column'
+          }} onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              position: 'sticky',
+              top: 0,
+              background: 'white',
+              zIndex: 10
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#1f2937' }}>
+                  Modifica Tema: {selectedTheme.name}
+                </h2>
+                <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+                  {selectedTheme.description}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button className="btn-secondary" onClick={handleCancel}>
+                  <X size={18} />
+                  Annulla
+                </button>
+                <button className="btn-primary" onClick={handleSave}>
+                  <Save size={18} />
+                  Salva Modifiche
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content - Split Layout */}
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              {/* Left: Controls */}
+              <div style={{ flex: '0 0 500px', padding: '24px', overflowY: 'auto', borderRight: '1px solid #e5e7eb' }}>
+                {/* Colori Section */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Palette size={20} />
+                    Colori Brand
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {Object.entries(selectedTheme.colors).map(([key, value]) => (
+                      <div key={key}>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px', textTransform: 'capitalize' }}>
+                          {key.replace('_', ' ')}
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={value}
+                            onChange={(e) => handleColorChange(key, e.target.value)}
+                            style={{ width: '50px', height: '36px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+                          />
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => handleColorChange(key, e.target.value)}
+                            style={{ flex: 1, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                          />
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
 
-                <div className="editor-content">
-                  {/* Colors Section */}
-                  <div className="editor-section">
-                    <h4>Colori</h4>
-                    <div className="colors-grid">
-                      {Object.entries(selectedTheme.colors).map(([key, value]) => (
-                        <div key={key} className="color-input-group">
-                          <label>{key.replace('_', ' ').toUpperCase()}</label>
-                          <div className="color-input">
-                            <input
-                              type="color"
-                              value={value}
-                              onChange={(e) => handleColorChange(key, e.target.value)}
-                              disabled={!isEditing}
-                            />
-                            <input
-                              type="text"
-                              value={value}
-                              onChange={(e) => handleColorChange(key, e.target.value)}
-                              disabled={!isEditing}
-                              className="color-hex"
-                            />
-                          </div>
+                {/* Sidebar Section */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Code size={20} />
+                    Sidebar & Navigation
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {Object.entries(selectedTheme.sidebar).map(([key, value]) => (
+                      <div key={key}>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px', textTransform: 'capitalize' }}>
+                          {key.replace(/_/g, ' ')}
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={value}
+                            onChange={(e) => handleSidebarChange(key, e.target.value)}
+                            style={{ width: '48px', height: '36px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+                          />
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => handleSidebarChange(key, e.target.value)}
+                            style={{ flex: 1, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                          />
                         </div>
-                      ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tipografia Section */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Code size={20} />
+                    Tipografia
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                        Font Family
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedTheme.typography.font_family}
+                        onChange={(e) => setSelectedTheme({ ...selectedTheme, typography: { ...selectedTheme.typography, font_family: e.target.value } })}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                        Base Size
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedTheme.typography.font_size_base}
+                        onChange={(e) => setSelectedTheme({ ...selectedTheme, typography: { ...selectedTheme.typography, font_size_base: e.target.value } })}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                        Normal Weight
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedTheme.typography.font_weight_normal}
+                        onChange={(e) => setSelectedTheme({ ...selectedTheme, typography: { ...selectedTheme.typography, font_weight_normal: e.target.value } })}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                        Bold Weight
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedTheme.typography.font_weight_bold}
+                        onChange={(e) => setSelectedTheme({ ...selectedTheme, typography: { ...selectedTheme.typography, font_weight_bold: e.target.value } })}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                      />
                     </div>
                   </div>
+                </div>
 
-                  {/* Typography Section */}
-                  <div className="editor-section">
-                    <h4>Tipografia</h4>
-                    <div className="typography-grid">
-                      <div className="input-group">
-                        <label>Font Family</label>
-                        <input
-                          type="text"
-                          value={selectedTheme.typography.font_family}
-                          disabled={!isEditing}
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label>Base Size</label>
-                        <input
-                          type="text"
-                          value={selectedTheme.typography.font_size_base}
-                          disabled={!isEditing}
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label>Normal Weight</label>
-                        <input
-                          type="text"
-                          value={selectedTheme.typography.font_weight_normal}
-                          disabled={!isEditing}
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label>Bold Weight</label>
-                        <input
-                          type="text"
-                          value={selectedTheme.typography.font_weight_bold}
-                          disabled={!isEditing}
-                          className="form-input"
-                        />
-                      </div>
+                {/* Personalizzazione Section */}
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Image size={20} />
+                    Personalizzazione
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                        Border Radius
+                      </label>
+                      <select
+                        value={selectedTheme.customization.border_radius}
+                        onChange={(e) => setSelectedTheme({ ...selectedTheme, customization: { ...selectedTheme.customization, border_radius: e.target.value } })}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                      >
+                        <option value="4px">4px - Sharp</option>
+                        <option value="6px">6px - Slightly Rounded</option>
+                        <option value="8px">8px - Rounded</option>
+                        <option value="12px">12px - Soft</option>
+                        <option value="16px">16px - Very Soft</option>
+                      </select>
                     </div>
-                  </div>
-
-                  {/* Customization Section */}
-                  <div className="editor-section">
-                    <h4>Personalizzazione</h4>
-                    <div className="customization-grid">
-                      <div className="input-group">
-                        <label>Border Radius</label>
-                        <select
-                          value={selectedTheme.customization.border_radius}
-                          disabled={!isEditing}
-                          className="form-select"
-                        >
-                          <option value="4px">4px - Sharp</option>
-                          <option value="8px">8px - Rounded</option>
-                          <option value="12px">12px - Soft</option>
-                          <option value="16px">16px - Very Soft</option>
-                        </select>
-                      </div>
-                      <div className="input-group">
-                        <label>Shadow Level</label>
-                        <select
-                          value={selectedTheme.customization.shadow_level}
-                          disabled={!isEditing}
-                          className="form-select"
-                        >
-                          <option value="low">Low</option>
-                          <option value="medium">Medium</option>
-                          <option value="high">High</option>
-                        </select>
-                      </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                        Shadow Level
+                      </label>
+                      <select
+                        value={selectedTheme.customization.shadow_level}
+                        onChange={(e) => setSelectedTheme({ ...selectedTheme, customization: { ...selectedTheme.customization, shadow_level: e.target.value } })}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                      </select>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {activeTab === 'assets' && (
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h2>Asset Brand</h2>
-            <div className="header-actions">
-              <button className="btn-secondary">
-                <Upload size={16} />
-                Carica Asset
-              </button>
+              {/* Right: LIVE PREVIEW */}
+              <div style={{ flex: 1, padding: '24px', background: '#f3f4f6', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                    <Eye size={20} />
+                    Anteprima Live
+                  </h3>
+                  <span style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>
+                    Cambia i colori a sinistra per vedere l'anteprima aggiornarsi in tempo reale
+                  </span>
+                </div>
+
+                <div style={{
+                  background: selectedTheme.colors.background,
+                  padding: '32px',
+                  borderRadius: selectedTheme.customization.border_radius,
+                  boxShadow: selectedTheme.customization.shadow_level === 'low' ? '0 1px 3px rgba(0,0,0,0.1)' :
+                             selectedTheme.customization.shadow_level === 'high' ? '0 20px 40px rgba(0,0,0,0.2)' :
+                             '0 10px 20px rgba(0,0,0,0.15)',
+                  fontFamily: selectedTheme.typography.font_family,
+                  fontSize: selectedTheme.typography.font_size_base
+                }}>
+                  <h1 style={{ color: selectedTheme.colors.primary, fontSize: '28px', fontWeight: selectedTheme.typography.font_weight_bold, marginBottom: '12px', margin: '0 0 12px 0' }}>
+                    OMNILY Pro Dashboard
+                  </h1>
+                  <p style={{ color: selectedTheme.colors.text_secondary, marginBottom: '24px', margin: '0 0 24px 0' }}>
+                    Questa è un'anteprima live del tema. Modifica i colori per vederli in tempo reale!
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                    <button style={{
+                      background: selectedTheme.colors.primary,
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: selectedTheme.customization.border_radius,
+                      fontWeight: selectedTheme.typography.font_weight_bold,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}>
+                      Pulsante Primario
+                    </button>
+                    <button style={{
+                      background: selectedTheme.colors.secondary,
+                      color: selectedTheme.colors.text_primary === '#1A202C' ? 'white' : selectedTheme.colors.text_primary,
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: selectedTheme.customization.border_radius,
+                      fontWeight: selectedTheme.typography.font_weight_normal,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}>
+                      Secondario
+                    </button>
+                    <button style={{
+                      background: selectedTheme.colors.accent,
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: selectedTheme.customization.border_radius,
+                      fontWeight: selectedTheme.typography.font_weight_bold,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}>
+                      Accent
+                    </button>
+                  </div>
+
+                  <div style={{
+                    background: selectedTheme.colors.surface,
+                    padding: '16px',
+                    borderRadius: selectedTheme.customization.border_radius,
+                    marginBottom: '16px'
+                  }}>
+                    <h3 style={{ color: selectedTheme.colors.text_primary, margin: '0 0 8px 0', fontWeight: selectedTheme.typography.font_weight_bold, fontSize: '16px' }}>
+                      Card Example
+                    </h3>
+                    <p style={{ color: selectedTheme.colors.text_secondary, margin: 0, fontSize: '14px' }}>
+                      Questo è un esempio di card con sfondo surface.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    <div style={{ background: selectedTheme.colors.success, color: 'white', padding: '12px', borderRadius: selectedTheme.customization.border_radius, textAlign: 'center', fontSize: '13px', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                      Success
+                    </div>
+                    <div style={{ background: selectedTheme.colors.warning, color: 'white', padding: '12px', borderRadius: selectedTheme.customization.border_radius, textAlign: 'center', fontSize: '13px', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                      Warning
+                    </div>
+                    <div style={{ background: selectedTheme.colors.error, color: 'white', padding: '12px', borderRadius: selectedTheme.customization.border_radius, textAlign: 'center', fontSize: '13px', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                      Error
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="assets-grid">
-            {assets.map((asset) => (
-              <div key={asset.id} className="asset-card">
-                <div className="asset-preview">
-                  {asset.type === 'logo' || asset.type === 'icon' ? (
-                    <div className="asset-image">
-                      <Image size={48} />
-                    </div>
-                  ) : (
-                    <div className="asset-placeholder">
-                      <Type size={48} />
-                    </div>
-                  )}
-                </div>
-
-                <div className="asset-info">
-                  <h4>{asset.name}</h4>
-                  <div className="asset-meta">
-                    <span className="asset-type">{asset.type.toUpperCase()}</span>
-                    <span className="asset-format">{asset.format}</span>
-                    <span className="asset-size">{asset.size}</span>
-                  </div>
-                  <div className="asset-usage">
-                    <Zap size={12} />
-                    <span>{asset.usage_count} utilizzi</span>
-                  </div>
-                </div>
-
-                <div className="asset-actions">
-                  <button className="btn-icon">
-                    <Eye size={16} />
-                  </button>
-                  <button className="btn-icon">
-                    <Download size={16} />
-                  </button>
-                  <button className="btn-icon">
-                    <Copy size={16} />
-                  </button>
-                  <button className="btn-icon danger">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
-      {activeTab === 'preview' && selectedTheme && (
-        <div className="dashboard-section">
-          <div className="preview-header">
-            <h2>Anteprima Tema: {selectedTheme.name}</h2>
-            <div className="preview-controls">
-              <div className="device-toggle">
+      {/* PREVIEW MODAL */}
+      {showPreview && selectedTheme && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }} onClick={() => setShowPreview(false)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            maxWidth: '1200px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }} onClick={(e) => e.stopPropagation()}>
+            {/* Preview Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#1f2937' }}>
+                  Anteprima: {selectedTheme.name}
+                </h2>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <button
-                  className={`device-btn ${previewDevice === 'desktop' ? 'active' : ''}`}
+                  className={`btn-secondary ${previewDevice === 'desktop' ? 'active' : ''}`}
                   onClick={() => setPreviewDevice('desktop')}
+                  style={{ background: previewDevice === 'desktop' ? '#3b82f6' : undefined, color: previewDevice === 'desktop' ? 'white' : undefined }}
                 >
-                  <Monitor size={16} />
+                  <Monitor size={18} />
                   Desktop
                 </button>
                 <button
-                  className={`device-btn ${previewDevice === 'mobile' ? 'active' : ''}`}
+                  className={`btn-secondary ${previewDevice === 'mobile' ? 'active' : ''}`}
                   onClick={() => setPreviewDevice('mobile')}
+                  style={{ background: previewDevice === 'mobile' ? '#3b82f6' : undefined, color: previewDevice === 'mobile' ? 'white' : undefined }}
                 >
-                  <Smartphone size={16} />
+                  <Smartphone size={18} />
                   Mobile
+                </button>
+                <button className="btn-secondary" onClick={() => setShowPreview(false)}>
+                  <X size={18} />
+                  Chiudi
                 </button>
               </div>
             </div>
-          </div>
 
-          <div className={`preview-frame ${previewDevice}`}>
-            <div
-              className="preview-content"
-              style={{
-                '--primary': selectedTheme.colors.primary,
-                '--secondary': selectedTheme.colors.secondary,
-                '--accent': selectedTheme.colors.accent,
-                '--background': selectedTheme.colors.background,
-                '--surface': selectedTheme.colors.surface,
-                '--text-primary': selectedTheme.colors.text_primary,
-                '--text-secondary': selectedTheme.colors.text_secondary,
-                fontFamily: selectedTheme.typography.font_family,
-                fontSize: selectedTheme.typography.font_size_base,
-                backgroundColor: selectedTheme.colors.background,
-                color: selectedTheme.colors.text_primary,
+            {/* Preview Content */}
+            <div style={{
+              padding: '40px',
+              background: '#f3f4f6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '500px'
+            }}>
+              <div style={{
+                width: previewDevice === 'desktop' ? '100%' : '375px',
+                background: selectedTheme.colors.background,
+                padding: '32px',
                 borderRadius: selectedTheme.customization.border_radius,
-                padding: '2rem'
-              } as React.CSSProperties}
-            >
-              <h1 style={{ color: selectedTheme.colors.primary }}>
-                OMNILY Pro Dashboard
-              </h1>
-              <p style={{ color: selectedTheme.colors.text_secondary }}>
-                Questa è un'anteprima di come apparirà l'interfaccia con il tema selezionato.
-              </p>
+                boxShadow: selectedTheme.customization.shadow_level === 'low' ? '0 1px 3px rgba(0,0,0,0.1)' :
+                           selectedTheme.customization.shadow_level === 'high' ? '0 20px 40px rgba(0,0,0,0.2)' :
+                           '0 10px 20px rgba(0,0,0,0.15)',
+                fontFamily: selectedTheme.typography.font_family,
+                fontSize: selectedTheme.typography.font_size_base
+              }}>
+                <h1 style={{ color: selectedTheme.colors.primary, fontSize: '32px', fontWeight: selectedTheme.typography.font_weight_bold, marginBottom: '12px' }}>
+                  OMNILY Pro Dashboard
+                </h1>
+                <p style={{ color: selectedTheme.colors.text_secondary, marginBottom: '24px' }}>
+                  Questa è un'anteprima del tema con tutti i colori e stili applicati.
+                </p>
 
-              <div className="preview-components">
-                <button
-                  style={{
-                    backgroundColor: selectedTheme.colors.primary,
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                  <button style={{
+                    background: selectedTheme.colors.primary,
                     color: 'white',
                     border: 'none',
-                    padding: '0.75rem 1.5rem',
+                    padding: '12px 24px',
                     borderRadius: selectedTheme.customization.border_radius,
-                    fontFamily: selectedTheme.typography.font_family,
-                    fontWeight: selectedTheme.typography.font_weight_bold
-                  }}
-                >
-                  Pulsante Primario
-                </button>
-
-                <button
-                  style={{
-                    backgroundColor: selectedTheme.colors.secondary,
+                    fontWeight: selectedTheme.typography.font_weight_bold,
+                    cursor: 'pointer'
+                  }}>
+                    Pulsante Primario
+                  </button>
+                  <button style={{
+                    background: selectedTheme.colors.secondary,
+                    color: selectedTheme.colors.text_primary === '#1A202C' ? 'white' : selectedTheme.colors.text_primary,
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: selectedTheme.customization.border_radius,
+                    fontWeight: selectedTheme.typography.font_weight_normal,
+                    cursor: 'pointer'
+                  }}>
+                    Pulsante Secondario
+                  </button>
+                  <button style={{
+                    background: selectedTheme.colors.accent,
                     color: 'white',
                     border: 'none',
-                    padding: '0.75rem 1.5rem',
+                    padding: '12px 24px',
                     borderRadius: selectedTheme.customization.border_radius,
-                    fontFamily: selectedTheme.typography.font_family,
-                    marginLeft: '1rem'
-                  }}
-                >
-                  Pulsante Secondario
-                </button>
+                    fontWeight: selectedTheme.typography.font_weight_bold,
+                    cursor: 'pointer'
+                  }}>
+                    Accent
+                  </button>
+                </div>
 
-                <div
-                  style={{
-                    backgroundColor: selectedTheme.colors.surface,
-                    padding: '1.5rem',
-                    borderRadius: selectedTheme.customization.border_radius,
-                    marginTop: '1rem',
-                    border: `1px solid ${selectedTheme.colors.secondary}20`
-                  }}
-                >
-                  <h3 style={{ color: selectedTheme.colors.text_primary, margin: '0 0 1rem 0' }}>
-                    Card Component
+                <div style={{
+                  background: selectedTheme.colors.surface,
+                  padding: '20px',
+                  borderRadius: selectedTheme.customization.border_radius,
+                  marginBottom: '16px'
+                }}>
+                  <h3 style={{ color: selectedTheme.colors.text_primary, margin: '0 0 8px 0', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                    Card Example
                   </h3>
-                  <p style={{ color: selectedTheme.colors.text_secondary, margin: '0' }}>
-                    Questo è un esempio di card con il tema applicato.
+                  <p style={{ color: selectedTheme.colors.text_secondary, margin: 0 }}>
+                    Questo è un esempio di card con sfondo surface.
                   </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ flex: 1, background: selectedTheme.colors.success, color: 'white', padding: '12px', borderRadius: selectedTheme.customization.border_radius, textAlign: 'center', fontSize: '14px', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                    Success
+                  </div>
+                  <div style={{ flex: 1, background: selectedTheme.colors.warning, color: 'white', padding: '12px', borderRadius: selectedTheme.customization.border_radius, textAlign: 'center', fontSize: '14px', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                    Warning
+                  </div>
+                  <div style={{ flex: 1, background: selectedTheme.colors.error, color: 'white', padding: '12px', borderRadius: selectedTheme.customization.border_radius, textAlign: 'center', fontSize: '14px', fontWeight: selectedTheme.typography.font_weight_bold }}>
+                    Error
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'css' && selectedTheme && (
-        <div className="dashboard-section">
-          <div className="css-header">
-            <h2>CSS Export: {selectedTheme.name}</h2>
-            <div className="css-actions">
-              <button className="btn-secondary">
-                <Copy size={16} />
-                Copia CSS
-              </button>
-              <button className="btn-primary">
-                <Download size={16} />
-                Download File
-              </button>
-            </div>
-          </div>
-
-          <div className="css-code">
-            <pre>
-              <code>{generateCSS(selectedTheme)}</code>
-            </pre>
           </div>
         </div>
       )}

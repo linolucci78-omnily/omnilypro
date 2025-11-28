@@ -15,6 +15,7 @@ import {
 import { omnyService } from '../../../services/omnyService'
 import { useWeb3 } from '../../../hooks/useWeb3'
 import omnyLogo from '../../../assets/omnycoin-logo.png'
+import OmnyAssistant from '../../OmnyAssistant/OmnyAssistant'
 import './AdminOmnyDashboard.css'
 
 const AdminOmnyDashboard: React.FC = () => {
@@ -229,6 +230,7 @@ const AdminOmnyDashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <OmnyAssistant />
         </div>
     )
 }

@@ -58,9 +58,13 @@ export interface PlanFeatures {
   giftCertificates: boolean
   lottery: boolean
 
-  // Crypto & Wallet Features
+  // Wallet Features
+  wallet: boolean              // Standard wallet
   omnyWallet: boolean          // OmnyWallet integration
   cryptoPayments: boolean      // Accept crypto payments
+
+  // Referral System
+  referralSystem: boolean      // Sistema referral
 
   // Advanced Features
   advancedAnalytics: boolean
@@ -106,9 +110,13 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     giftCertificates: false,   // ❌ Solo Pro+
     lottery: false,            // ❌ Solo Pro+
 
-    // Crypto & Wallet Features
+    // Wallet Features
+    wallet: false,             // ❌ Solo Basic+
     omnyWallet: false,         // ❌ Solo Pro+
     cryptoPayments: false,     // ❌ Solo Pro+
+
+    // Referral System
+    referralSystem: false,     // ❌ Solo Basic+
 
     // Advanced Features
     advancedAnalytics: false,
@@ -153,9 +161,13 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     giftCertificates: false,   // ❌ Solo Pro+
     lottery: false,            // ❌ Solo Pro+
 
-    // Crypto & Wallet Features
+    // Wallet Features
+    wallet: true,              // ✅ Basic+
     omnyWallet: false,         // ❌ Solo Pro+
     cryptoPayments: false,     // ❌ Solo Pro+
+
+    // Referral System
+    referralSystem: true,      // ✅ Basic+
 
     // Advanced Features
     advancedAnalytics: false,
@@ -200,9 +212,13 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     giftCertificates: true,    // ✅ Pro+
     lottery: true,             // ✅ Pro+
 
-    // Crypto & Wallet Features
+    // Wallet Features
+    wallet: true,              // ✅ Basic+
     omnyWallet: true,          // ✅ Pro+ exclusive
     cryptoPayments: true,      // ✅ Pro+ exclusive
+
+    // Referral System
+    referralSystem: true,      // ✅ Basic+
 
     // Advanced Features
     advancedAnalytics: true,
@@ -247,9 +263,13 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     giftCertificates: true,    // ✅ Enterprise
     lottery: true,             // ✅ Enterprise
 
-    // Crypto & Wallet Features - All Available
+    // Wallet Features - All Available
+    wallet: true,              // ✅ Enterprise
     omnyWallet: true,          // ✅ Enterprise
     cryptoPayments: true,      // ✅ Enterprise
+
+    // Referral System
+    referralSystem: true,      // ✅ Enterprise
 
     // Advanced Features - All Available
     advancedAnalytics: true,
@@ -424,6 +444,7 @@ export const getUpgradePlan = async (currentPlan: string, feature: keyof PlanFea
 
 export const formatPlanPrice = (planType: PlanType): string => {
   const pricing = PLAN_PRICES[planType]
+  if (!pricing) return 'N/A'
   if (pricing.price === 0) return 'Gratuito'
   return `€${pricing.price}/${pricing.period === 'month' ? 'mese' : pricing.period}`
 }

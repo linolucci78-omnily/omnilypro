@@ -384,26 +384,52 @@ export interface TicketMessage {
 
 // API functions
 export const organizationsApi = {
-  // Get all organizations
+  // Get all organizations FOR THE CURRENT USER
   async getAll(): Promise<Organization[]> {
-    // Get organizations with user count and customer count
+    // 🔒 SECURITY: Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      console.warn('⚠️ No user logged in, cannot get organizations')
+      return []
+    }
+
+    // Get organizations where user is a member
     const { data, error } = await supabase
       .from('organizations')
       .select(`
         *,
-        organization_users(count),
-        customers(count)
+        organization_users!inner(count, user_id),
+        customers(count),
+        customer_activities(monetary_value, created_at)
       `)
+      .eq('organization_users.user_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    // Transform data to include user_count and customer_count
-    const organizations = (data || []).map(org => ({
-      ...org,
-      user_count: org.organization_users?.[0]?.count || 0,
-      customer_count: org.customers?.[0]?.count || 0
-    }))
+    // Transform data to include user_count, customer_count, and monthly_revenue
+    const organizations = (data || []).map(org => {
+      // Calculate monthly revenue from last 30 days
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const monthlyRevenue = (org.customer_activities || [])
+        .filter((activity: any) => {
+          if (!activity.created_at || !activity.monetary_value) return false
+          const activityDate = new Date(activity.created_at)
+          return activityDate >= thirtyDaysAgo && activity.monetary_value > 0
+        })
+        .reduce((sum: number, activity: any) => sum + (activity.monetary_value || 0), 0)
+
+      return {
+        ...org,
+        user_count: org.organization_users?.[0]?.count || 0,
+        customer_count: org.customers?.[0]?.count || 0,
+        monthly_revenue: monthlyRevenue,
+        pos_enabled: org.enable_pos || false,
+        pos_model: org.pos_type || 'Z108'
+      }
+    })
 
     return organizations
   },
@@ -516,7 +542,7 @@ export const organizationsApi = {
   // Generate demo data for new organization
   async generateDemoData(organizationId: string) {
     console.log('🎭 Generating demo customers, transactions, and workflows for:', organizationId)
-    
+
     // Demo customers
     const demoCustomers = [
       { name: 'Mario Rossi', email: 'mario.rossi@email.com', points: 150 },
@@ -525,11 +551,11 @@ export const organizationsApi = {
       { name: 'Anna Verdi', email: 'anna.verdi@email.com', points: 240 },
       { name: 'Francesco Romano', email: 'francesco.romano@email.com', points: 410 }
     ]
-    
+
     // This would insert demo data into customers table
     // For now, just log the demo data generation
     console.log('✅ Demo data generated:', demoCustomers)
-    
+
     return {
       customers: demoCustomers.length,
       workflows: 3,
@@ -1598,7 +1624,7 @@ export const staffApi = {
 export const permissionsApi = {
   // Get permissions for a specific role
   async getByRole(organizationId: string, role: string): Promise<RolePermission | null> {
-    const { data, error} = await supabase
+    const { data, error } = await supabase
       .from('role_permissions')
       .select('*')
       .eq('organization_id', organizationId)
@@ -2044,7 +2070,7 @@ export const ticketMessagesApi = {
 
   // Delete message
   async delete(messageId: string): Promise<void> {
-    const { error} = await supabase
+    const { error } = await supabase
       .from('ticket_messages')
       .delete()
       .eq('id', messageId)

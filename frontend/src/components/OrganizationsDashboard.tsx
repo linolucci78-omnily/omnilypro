@@ -1508,7 +1508,39 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       // Carica i dettagli specifici della prima organizzazione (quella corrente)
       if (realOrganizations.length > 0) {
-        const currentOrgDetails = await organizationsApi.getById(realOrganizations[0].id)
+        // 🔑 PRIORITY 1: Check for NFC card target organization (from NFC login)
+        const nfcTargetOrgId = localStorage.getItem('nfc_target_organization_id')
+
+        // 🔍 PRIORITY 2: Check if there's a selected organization in localStorage (from Admin switcher)
+        const selectedOrgId = localStorage.getItem('selectedOrganizationId')
+        let organizationToLoad = realOrganizations[0] // Default to first org
+
+        // If there's an NFC target org ID, use it (HIGHEST PRIORITY)
+        if (nfcTargetOrgId) {
+          const foundOrg = realOrganizations.find(org => org.id === nfcTargetOrgId)
+          if (foundOrg) {
+            organizationToLoad = foundOrg
+            console.log('🔑 NFC Login: Caricata organizzazione dalla card NFC:', foundOrg.name)
+            // Clear the NFC target after using it once
+            localStorage.removeItem('nfc_target_organization_id')
+          } else {
+            console.warn('⚠️ Organizzazione dalla card NFC non trovata nelle organizzazioni dell\'utente')
+            // Clear the invalid NFC target
+            localStorage.removeItem('nfc_target_organization_id')
+          }
+        }
+        // If there's a selected org ID, try to find it in the list
+        else if (selectedOrgId) {
+          const foundOrg = realOrganizations.find(org => org.id === selectedOrgId)
+          if (foundOrg) {
+            organizationToLoad = foundOrg
+            console.log('✅ Caricata organizzazione da localStorage:', foundOrg.name)
+          } else {
+            console.warn('⚠️ Organizzazione selezionata non trovata, carico la prima disponibile')
+          }
+        }
+
+        const currentOrgDetails = await organizationsApi.getById(organizationToLoad.id)
         setCurrentOrganization(currentOrgDetails)
 
         // Notifica il parent component del cambio organizzazione
@@ -2411,13 +2443,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }
 
   // Handle section change with access control
-  const handleRestrictedSectionChange = (sectionId: string, featureName: string | null, featureLabel: string) => {
+  const handleRestrictedSectionChange = async (sectionId: string, featureName: string | null, featureLabel: string) => {
     if (checkSectionAccess(featureName)) {
       handleSectionChange(sectionId)
     } else {
       // Show upgrade modal
       const userPlan = (currentOrganization?.plan_type || 'free') as PlanType
-      const requiredPlanType = getUpgradePlan(userPlan, featureName as any) || PlanType.BASIC
+      const requiredPlanType = await getUpgradePlan(userPlan, featureName as any) || PlanType.BASIC
 
       setUpgradeFeature(featureLabel)
       setRequiredPlan(requiredPlanType)
@@ -2442,10 +2474,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'lottery', icon: TicketIcon, label: 'Lotterie', feature: 'lottery' },
       { id: 'loyalty-tiers', icon: Star, label: 'Livelli Fedeltà', feature: 'loyaltyTiers' },
       { id: 'rewards', icon: Award, label: 'Premi', feature: 'rewards' },
-      { id: 'referral', icon: Share2, label: 'Sistema Referral', feature: null },
+      { id: 'referral', icon: Share2, label: 'Sistema Referral', feature: 'referralSystem' },
       { id: 'gift-certificates', icon: CreditCard, label: 'Gift Certificates', feature: 'giftCertificates' },
-      { id: 'wallet', icon: Wallet, label: 'Wallet', feature: null },
-      { id: 'omny-wallet', icon: Coins, label: 'OMNY Wallet', feature: null },
+      { id: 'wallet', icon: Wallet, label: 'Wallet', feature: 'wallet' },
+      { id: 'omny-wallet', icon: Coins, label: 'OMNY Wallet', feature: 'omnyWallet' },
       { id: 'coupons', icon: Ticket, label: 'Coupons', feature: 'coupons' },
       { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: 'notifications' },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
@@ -2455,7 +2487,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: 'posIntegration' },
       { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
-      { id: 'website', icon: Globe, label: 'Il Mio Sito Web', feature: null },
+      { id: 'website-editor', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
       { id: 'settings', icon: Settings, label: 'Impostazioni', feature: null },
       { id: 'support', icon: HelpCircle, label: 'Aiuto & Supporto', feature: null }
@@ -3123,9 +3155,14 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       case 'website-editor':
         return currentOrganization ? (
-          <WebsiteContentEditor
-            organizationId={currentOrganization.id}
-          />
+          <div className="dashboard-content">
+            <WebsiteHub
+              organizationId={currentOrganization.id}
+              organizationSlug={currentOrganization.slug || ''}
+              primaryColor={currentOrganization.primary_color || '#dc2626'}
+              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
+            />
+          </div>
         ) : (
           <div className="section-content">
             <div className="section-header">
@@ -3213,18 +3250,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               organizationId={currentOrganization.id}
               primaryColor={currentOrganization.primary_color || '#dc2626'}
               onBack={() => setActiveSection('dashboard')}
-            />
-          </div>
-        ) : null
-
-      case 'website':
-        return currentOrganization ? (
-          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
-            <WebsiteHub
-              organizationId={currentOrganization.id}
-              organizationSlug={currentOrganization.slug || ''}
-              primaryColor={currentOrganization.primary_color || '#dc2626'}
-              secondaryColor={currentOrganization.secondary_color || '#ef4444'}
             />
           </div>
         ) : null

@@ -41,11 +41,19 @@ export interface OperatorNFCLoginLog {
 export const operatorNFCService = {
   /**
    * Autentica un operatore tramite NFC UID
+   * @param nfcUid - UID della tessera NFC
+   * @returns OperatorAuthResult se autenticato, null altrimenti
+   *
+   * 🔑 IMPORTANTE: La card NFC funziona come un ID personale.
+   * Ti porta alla TUA organizzazione (quella sulla card) da qualsiasi POS,
+   * non è limitata a specifici dispositivi POS.
    */
   async authenticateViaNFC(nfcUid: string): Promise<OperatorAuthResult | null> {
     try {
       const { data, error } = await supabase
-        .rpc('authenticate_operator_via_nfc', { p_nfc_uid: nfcUid })
+        .rpc('authenticate_operator_via_nfc', {
+          p_nfc_uid: nfcUid
+        })
         .maybeSingle() // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
       if (error) {
@@ -60,6 +68,7 @@ export const operatorNFCService = {
       }
 
       console.log('✅ Operator authenticated:', data)
+      console.log('🔑 Card organization:', data.organization_id)
       return data
     } catch (error) {
       console.error('Exception in authenticateViaNFC:', error)

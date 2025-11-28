@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean
   userRole: string | null
   isSuperAdmin: boolean
+  isFounder: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<any>
   signOut: () => Promise<void>
@@ -36,9 +37,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [isFounder, setIsFounder] = useState(false)
 
   // Cache per evitare query ripetute
-  const roleCache = React.useRef<{ [userId: string]: { role: string, isSuperAdmin: boolean, timestamp: number } }>({})
+  const roleCache = React.useRef<{ [userId: string]: { role: string, isSuperAdmin: boolean, isFounder: boolean, timestamp: number } }>({})
   const CACHE_DURATION = 5 * 60 * 1000 // 5 minuti
 
   // Function to check user role
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 [CACHE] Using cached role:', cached.role)
       setUserRole(cached.role)
       setIsSuperAdmin(cached.isSuperAdmin)
+      setIsFounder(cached.isFounder)
       return
     }
     console.log('🔐 [V5] Checking user role for:', userId);
@@ -67,16 +70,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 [V9] Auth user from session:', authUser?.email);
       console.log('🔐 [V9] Auth user metadata:', authUser?.user_metadata);
 
+      // Check for founder status FIRST (highest priority)
+      const isFounderUser = authUser?.user_metadata?.is_founder === true
+
+      // Se è founder, ha automaticamente anche super admin
+      if (isFounderUser) {
+        console.log('👑 [FOUNDER] FOUNDER DETECTED from metadata! Full access granted.');
+        roleCache.current[userId] = {
+          role: 'founder',
+          isSuperAdmin: true,
+          isFounder: true,
+          timestamp: Date.now()
+        };
+        setUserRole('founder');
+        setIsSuperAdmin(true);
+        setIsFounder(true);
+        setLoading(false);
+        return;
+      }
+
       // Se è super admin nei metadati, impostal subito e ritorna
       if (authUser?.user_metadata?.is_super_admin === true) {
         console.log('🔐 [V9] ✅ SUPER ADMIN DETECTED from metadata! Setting role and returning.');
         roleCache.current[userId] = {
           role: 'super_admin',
           isSuperAdmin: true,
+          isFounder: false,
           timestamp: Date.now()
         };
         setUserRole('super_admin');
         setIsSuperAdmin(true);
+        setIsFounder(false);
         setLoading(false); // IMPORTANTE: ferma il loading!
         return;
       }
@@ -131,11 +155,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         roleCache.current[userId] = {
           role,
           isSuperAdmin: isSuper,
+          isFounder: false,
           timestamp: Date.now()
         }
 
         setUserRole(role);
         setIsSuperAdmin(isSuper);
+        setIsFounder(false);
         return;
       }
 
@@ -143,11 +169,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 [V5] No roles found for user in any table.');
       setUserRole(null);
       setIsSuperAdmin(false);
+      setIsFounder(false);
 
     } catch (err) {
       console.error('🔐 [V5] Critical error in checkUserRole:', err);
       setUserRole(null);
       setIsSuperAdmin(false);
+      setIsFounder(false);
     } finally {
       setLoading(false);
     }
@@ -209,6 +237,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         setUserRole(null)
         setIsSuperAdmin(false)
+        setIsFounder(false)
         setLoading(false)
       }
     })
@@ -312,6 +341,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     userRole,
     isSuperAdmin,
+    isFounder,
     signIn,
     signUp,
     signOut,

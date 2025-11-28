@@ -230,13 +230,16 @@ const Login: React.FC = () => {
       }
 
       try {
-        // Cerca l'operatore nel database
+        // Cerca l'operatore nel database usando SOLO l'NFC UID
+        // La card ti porta all'organizzazione associata alla card, non al POS
         const operatorAuth = await operatorNFCService.authenticateViaNFC(nfcUid);
 
         if (!operatorAuth) {
           showWarning('Tessera Non Associata', 'Vai su Impostazioni → Tessere Operatori POS per associare questa tessera ad un operatore');
           return;
         }
+
+        console.log('✅ Card NFC riconosciuta - Organizzazione:', operatorAuth.organization_id);
 
         // Mostra l'operatore riconosciuto
         setRecognizedOperator(operatorAuth);
@@ -259,6 +262,11 @@ const Login: React.FC = () => {
 
             // Decodifica la password dall'operatore
             const operatorPassword = atob(operatorAuth.encrypted_password);
+
+            // 🔑 IMPORTANTE: Salva l'organization_id della card PRIMA del login
+            // Questo assicura che il redirect vada all'organizzazione della card, non a quella di default dell'utente
+            console.log('💾 Storing NFC card organization_id for redirect:', operatorAuth.organization_id);
+            localStorage.setItem('nfc_target_organization_id', operatorAuth.organization_id);
 
             await signIn(operatorAuth.user_email, operatorPassword);
 

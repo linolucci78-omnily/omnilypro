@@ -9,14 +9,33 @@ export class OrganizationService {
      * Create new organization from EnterpriseWizard data
      * @param {Object} wizardData - Complete data from wizard steps
      * @param {Object} userInfo - Current user info
+     * @param {String} mode - 'admin' or 'client' (default: 'client')
      */
-    async createOrganization(wizardData: any, _userInfo: any) {
+    async createOrganization(wizardData: any, _userInfo: any, mode: 'admin' | 'client' = 'client') {
         try {
             console.log('ORGANIZATION SERVICE: Creating organization from wizard data...', wizardData)
-            
+            console.log('Mode:', mode)
+
+            // STEP 1: Create or get business owner
+            let ownerId = null
+            if (wizardData.ownerEmail) {
+                ownerId = await this.createOrGetBusinessOwner({
+                    firstName: wizardData.ownerFirstName,
+                    lastName: wizardData.ownerLastName,
+                    email: wizardData.ownerEmail,
+                    phone: wizardData.ownerPhone,
+                    avatarUrl: wizardData.ownerAvatarUrl
+                })
+                console.log('✅ Business owner created/found:', ownerId)
+            }
+
             // Generate unique slug from organization name
             const slug = await this.generateUniqueSlug(wizardData.organizationName)
-            
+
+            // Generate activation token if in admin mode
+            const activationToken = mode === 'admin' ? crypto.randomUUID() : null
+            const status = mode === 'admin' ? 'pending_payment' : 'active'
+
             // Prepare organization data mapping all wizard steps
             const orgData = {
                 // Basic info (Step 1)
@@ -32,10 +51,19 @@ export class OrganizationService {
                 phone: wizardData.phoneNumber,
                 website: wizardData.website,
                 tagline: wizardData.tagline,
-                
+
+                // Owner Relation (FK to business_owners table)
+                owner_id: ownerId,
+
                 // Default plan
-                plan_type: 'basic',
-                plan_status: 'active',
+                plan_type: wizardData.planType || 'basic',
+                plan_status: status === 'active' ? 'active' : 'pending',
+
+                // Activation (for admin mode)
+                status: status,
+                activation_token: activationToken,
+                invited_at: mode === 'admin' ? new Date().toISOString() : null,
+                onboarding_completed: mode === 'admin' ? true : false,
                 
                 // Loyalty system (Step 2)
                 points_name: wizardData.pointsName || 'Punti',
@@ -150,11 +178,42 @@ export class OrganizationService {
                 await this.createDefaultRewards(organization.id, wizardData.defaultRewards)
             }
 
+            // SEND BUSINESS INVITE EMAIL if in admin mode
+            if (mode === 'admin' && wizardData.ownerEmail && wizardData.planType && activationToken) {
+                console.log('📧 Sending business invite email to:', wizardData.ownerEmail)
+                console.log('Plan:', wizardData.planType)
+                console.log('Activation token:', activationToken)
+
+                try {
+                    const { emailService } = await import('../services/emailService')
+
+                    // Map planType (pro/basic/enterprise) to email service format (premium/basic/enterprise)
+                    const emailPlanType = wizardData.planType === 'pro' ? 'premium' : wizardData.planType
+
+                    const emailResult = await emailService.sendBusinessInviteEmail(
+                        wizardData.ownerEmail,
+                        emailPlanType,
+                        activationToken
+                    )
+
+                    if (emailResult.success) {
+                        console.log('✅ Business invite email sent successfully to:', wizardData.ownerEmail)
+                    } else {
+                        console.error('❌ Failed to send business invite email:', emailResult.error)
+                    }
+                } catch (emailError) {
+                    console.error('❌ Exception sending business invite email:', emailError)
+                }
+            }
+
             return {
                 success: true,
                 organization,
                 subdomain: `${slug}.omnilypro.app`,
-                dashboardUrl: `/dashboard?org=${organization.id}`
+                dashboardUrl: `/dashboard?org=${organization.id}`,
+                activationToken: activationToken,
+                activationUrl: activationToken ? `/activate/${activationToken}` : null,
+                mode: mode
             }
             
         } catch (error: any) {
@@ -505,6 +564,107 @@ export class OrganizationService {
 
         if (error) throw error
         return data
+    }
+
+    /**
+     * Create or get existing business owner
+     * Returns owner_id (creates new if email doesn't exist, returns existing if it does)
+     */
+    async createOrGetBusinessOwner(ownerData: any) {
+        try {
+            // Check if owner already exists by email
+            const { data: existingOwner, error: searchError } = await supabase
+                .from('business_owners')
+                .select('id')
+                .eq('email', ownerData.email)
+                .single()
+
+            if (existingOwner) {
+                console.log('📧 Existing business owner found:', ownerData.email)
+                return existingOwner.id
+            }
+
+            // Create new business owner
+            // Log dei dati prima dell'inserimento
+            console.log('📝 Attempting to create business owner with data:', {
+                first_name: ownerData.firstName,
+                last_name: ownerData.lastName,
+                email: ownerData.email,
+                phone: ownerData.phone,
+                avatar_url: ownerData.avatarUrl
+            })
+
+            const { data: newOwner, error: createError } = await supabase
+                .from('business_owners')
+                .insert({
+                    first_name: ownerData.firstName,
+                    last_name: ownerData.lastName,
+                    email: ownerData.email,
+                    phone: ownerData.phone,
+                    avatar_url: ownerData.avatarUrl
+                })
+                .select('id')
+                .single()
+
+            if (createError) {
+                console.error('Failed to create business owner:', createError)
+                console.error('Full error details:', JSON.stringify(createError, null, 2))
+                throw createError
+            }
+
+            console.log('✅ New business owner created:', ownerData.email)
+
+            // STEP 2: Create Supabase Auth user with email confirmation
+            try {
+                const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+                    email: ownerData.email,
+                    email_confirm: false, // User must confirm via email
+                    user_metadata: {
+                        first_name: ownerData.firstName,
+                        last_name: ownerData.lastName,
+                        role: 'business_owner',
+                        owner_id: newOwner.id
+                    }
+                })
+
+                if (authError) {
+                    console.error('⚠️ Failed to create Auth user (will need manual setup):', authError)
+                    // Don't throw - we still want to return the owner_id
+                    // Admin can manually send activation email later
+                } else {
+                    console.log('✅ Supabase Auth user created, activation email sent to:', ownerData.email)
+                }
+            } catch (authException) {
+                console.error('⚠️ Exception creating Auth user:', authException)
+                // Continue anyway - business_owner record is created
+            }
+
+            return newOwner.id
+        } catch (error) {
+            console.error('Error in createOrGetBusinessOwner:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Get all organizations owned by a business owner (for organization switcher)
+     */
+    async getOwnerOrganizations(ownerEmail: string) {
+        try {
+            const { data, error } = await supabase
+                .rpc('get_owner_organizations', { owner_email_param: ownerEmail })
+
+            if (error) {
+                console.error('Failed to get owner organizations:', error)
+                return []
+            }
+
+            console.log(`📋 Found ${data?.length || 0} organizations for owner:`, ownerEmail)
+            return data || []
+        } catch (error) {
+            console.error('Error in getOwnerOrganizations:', error)
+            return []
+        }
     }
 
     /**

@@ -545,6 +545,122 @@ export class EmailService {
       organizationId
     })
   }
+
+  /**
+   * Invia email invito business owner con link pagamento
+   */
+  async sendBusinessInviteEmail(
+    email: string,
+    planType: 'basic' | 'premium' | 'enterprise',
+    inviteToken: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const planDetails = {
+      basic: { name: 'Basic', price: '€49', color: '#3b82f6', features: ['POS essenziale', 'Fino a 5 utenti', 'Report base'] },
+      premium: { name: 'Premium', price: '€99', color: '#8b5cf6', features: ['POS completo', 'Utenti illimitati', 'Report avanzati', 'App mobile'] },
+      enterprise: { name: 'Enterprise', price: '€199', color: '#f59e0b', features: ['Tutte le funzioni Premium', 'Multi-sede', 'API dedicate', 'Supporto prioritario'] }
+    }
+
+    const plan = planDetails[planType]
+    const registerLink = `${window.location.origin}/activate/${inviteToken}`
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: 0.5px;">🎉 Benvenuto in OMNILY PRO!</h1>
+                    <p style="margin: 15px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">Il tuo sistema POS completo</p>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px 30px;">
+                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333; line-height: 1.6;">
+                      Sei stato invitato ad unirti a <strong>OMNILY PRO</strong> con il piano <strong>${plan.name}</strong>!
+                    </p>
+
+                    <!-- Piano selezionato -->
+                    <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, ${plan.color}10 0%, ${plan.color}05 100%); border-left: 4px solid ${plan.color}; border-radius: 8px;">
+                      <h2 style="margin: 0 0 15px 0; font-size: 24px; color: ${plan.color};">Piano ${plan.name}</h2>
+                      <p style="margin: 0 0 15px 0; font-size: 32px; font-weight: 700; color: #333;">${plan.price}<span style="font-size: 16px; font-weight: 400; color: #666;">/mese</span></p>
+                      <h3 style="margin: 20px 0 10px 0; font-size: 16px; color: #333;">✨ Caratteristiche incluse:</h3>
+                      <ul style="margin: 0; padding-left: 20px; color: #333; font-size: 14px; line-height: 1.8;">
+                        ${plan.features.map(f => `<li>${f}</li>`).join('')}
+                      </ul>
+                    </div>
+
+                    <p style="margin: 0 0 30px 0; font-size: 16px; color: #333; line-height: 1.6;">
+                      Per completare la registrazione e attivare il tuo account, clicca sul pulsante qui sotto:
+                    </p>
+
+                    <!-- CTA Button -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="padding: 20px 0;">
+                          <a href="${registerLink}" style="display: inline-block; background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                            Registrati e Paga
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <p style="margin: 30px 0 20px 0; font-size: 14px; color: #666; line-height: 1.6;">
+                      Oppure copia e incolla questo link nel tuo browser:
+                    </p>
+
+                    <p style="margin: 0 0 30px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: ${plan.color}; word-break: break-all; font-family: monospace;">
+                      ${registerLink}
+                    </p>
+
+                    <div style="margin: 30px 0 0 0; padding: 20px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 6px;">
+                      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e40af;">💳 Cosa succede dopo:</h3>
+                      <ol style="margin: 10px 0 0 0; padding-left: 20px; color: #333; font-size: 14px; line-height: 1.8;">
+                        <li>Completa la registrazione con i tuoi dati</li>
+                        <li>Effettua il pagamento sicuro tramite Stripe</li>
+                        <li>Accedi immediatamente alla tua dashboard</li>
+                        <li>Configura il tuo sistema POS</li>
+                      </ol>
+                    </div>
+
+                    <p style="margin: 30px 0 0 0; font-size: 13px; color: #999; line-height: 1.6;">
+                      <em>Questo link è valido per 7 giorni. Se non hai richiesto questa registrazione, ignora questa email.</em>
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                    <p style="color: white; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">Grazie per aver scelto OMNILY PRO!</p>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 0;">Il sistema POS che fa crescere il tuo business</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `
+
+    return this.sendEmail({
+      to: email,
+      subject: `🎉 Sei stato invitato ad OMNILY PRO - Piano ${plan.name}`,
+      html,
+      from: 'OMNILY PRO <noreply@omnilypro.com>'
+    })
+  }
 }
 
 export const emailService = new EmailService()

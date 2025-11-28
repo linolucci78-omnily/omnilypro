@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 // import { useAuth } from '../../contexts/AuthContext' // Temporary disabled
 import { organizationService } from '../../services/organizationService'
 import { getMockUser } from '../../services/mockAuth'
-import { Zap, Award, CheckCircle2, Building2, Users, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer, Moon, Sun, ArrowRight, ArrowLeft } from 'lucide-react'
-import { SparklesCore } from '@/components/UI/sparkles'
+import { useToast } from '../../contexts/ToastContext'
+import { Zap, Award, CheckCircle2, Building2, Users, User, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer, ArrowRight, ArrowLeft, Package, AlertCircle } from 'lucide-react'
 import styles from './EnterpriseWizard.module.css'
 import './icon-styles.css'
+import './EnterpriseWizardAdmin.css'
+import './EnterpriseWizardContent.css'
 // import POSTestPanel from '../POS/POSTestPanel'
 
-const EnterpriseWizard: React.FC = () => {
+interface EnterpriseWizardProps {
+  mode?: 'admin' | 'client'
+  onComplete?: (organizationData: any) => void
+}
+
+const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', onComplete }) => {
+  const navigate = useNavigate()
+  const { showSuccess } = useToast()
   // const { user } = useAuth() // TODO: Enable when auth is ready
   const user = getMockUser() // Temporary mock for development
-  
-  // Dark mode state - sincronizzato con landing/login page
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('omnily_landing_theme')
-      return saved === 'dark'
-    }
-    return false
-  })
 
   // Carica step salvato da localStorage
   const [currentStep, setCurrentStep] = useState(() => {
@@ -29,13 +30,9 @@ const EnterpriseWizard: React.FC = () => {
   })
 
   const [loading, setLoading] = useState(false)
-
-  // Persist dark mode
-  useEffect(() => {
-    localStorage.setItem('omnily_landing_theme', darkMode ? 'dark' : 'light')
-  }, [darkMode])
-
-  const toggleDarkMode = () => setDarkMode(!darkMode)
+  const [validatingVAT, setValidatingVAT] = useState(false)
+  const [vatValidated, setVatValidated] = useState(false)
+  const [createdOrganization, setCreatedOrganization] = useState<any>(null)
   
   // Carica dati salvati da localStorage  
   const [formData, setFormData] = useState(() => {
@@ -50,6 +47,9 @@ const EnterpriseWizard: React.FC = () => {
     
     // Dati di default se non ci sono salvataggi
     return {
+    // Plan Selection (admin mode only)
+    planType: 'basic',
+
     // Step 1: Organization Basics
     organizationName: '',
     partitaIVA: '',
@@ -65,7 +65,14 @@ const EnterpriseWizard: React.FC = () => {
     city: '',
     province: '',
     cap: '',
-    
+
+    // Owner Information
+    ownerFirstName: '',
+    ownerLastName: '',
+    ownerEmail: '',
+    ownerPhone: '',
+    ownerAvatarUrl: '',
+
     // Step 2: Loyalty System Setup
     pointsName: 'Punti',
     pointsPerEuro: '1',
@@ -238,26 +245,29 @@ const EnterpriseWizard: React.FC = () => {
   const validatePartitaIVA = async (piva: string) => {
     if (!piva || piva.length !== 11) return false;
 
-    // TODO: Replace with your actual Supabase project URL in production
-    const supabaseFunctionUrl = process.env.NODE_ENV === 'development'
-      ? 'http://localhost:54321/functions/v1/validate-vat'
-      : 'https://sjvatdnvewohvswfrdiv.supabase.co/functions/v1/validate-vat';
+    setValidatingVAT(true);
+    setVatValidated(false);
 
     try {
-      const response = await fetch(supabaseFunctionUrl, {
-        method: 'POST',
+      // Usa API proxy CORS-friendly per VIES
+      const response = await fetch(`https://corsproxy.io/?https://ec.europa.eu/taxation_customs/vies/rest-api/ms/IT/vat/${piva}`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({ vatNumber: `IT${piva}` }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error('VIES API non disponibile');
+      }
 
-      if (data.valid) {
-        const addressString = data.traderAddress || '';
+      const data = await response.json();
+      console.log('📋 Risposta VIES:', data);
+
+      if (data.isValid || data.valid) {
+        const companyName = data.name || data.traderName || '';
+        const addressString = data.address || data.traderAddress || '';
+
         let parsedAddress = {
           address: addressString,
           city: '',
@@ -276,19 +286,28 @@ const EnterpriseWizard: React.FC = () => {
 
         setFormData((prev: any) => ({
           ...prev,
-          organizationName: data.traderName || prev.organizationName,
+          organizationName: companyName || prev.organizationName,
           address: parsedAddress.address,
           city: parsedAddress.city,
           province: parsedAddress.province,
           cap: parsedAddress.cap,
         }));
-        
-        console.log('Partita IVA validata:', data);
+
+        setVatValidated(true);
+        console.log('✅ Partita IVA validata con successo!');
+        console.log('📝 Nome azienda:', companyName);
+        console.log('📍 Indirizzo:', addressString);
+        setValidatingVAT(false);
         return true;
       }
+
+      console.log('❌ P.IVA non valida o non trovata');
+      setValidatingVAT(false);
       return false;
     } catch (error: any) {
-      console.log('⚠️ Errore validazione P.IVA:', error);
+      console.log('⚠️ Errore validazione P.IVA:', error.message);
+      setValidatingVAT(false);
+      // Non mostrare errore all'utente, semplicemente non auto-compilare
       return false;
     }
   };
@@ -332,7 +351,7 @@ const EnterpriseWizard: React.FC = () => {
 
   const getNextButtonText = (): string => {
     switch (currentStep) {
-      case 0: return 'Inizia Configurazione'
+      case 0: return mode === 'admin' ? 'Continua con Dati Azienda' : 'Inizia Configurazione'
       case 1: return 'Configura Loyalty System'
       case 2: return 'Setup Prodotti e Categorie'
       case 3: return 'Configura Rewards'
@@ -415,27 +434,33 @@ const EnterpriseWizard: React.FC = () => {
   const createOrganization = async () => {
     try {
       console.log('🚀 Creating organization with wizard data...')
-      
+      console.log('Mode:', mode)
+
       // Call organization service with complete wizard data
-      const result = await organizationService.createOrganization(formData, user)
-      
+      const result = await organizationService.createOrganization(formData, user, mode)
+
       if (result.success) {
         console.log('Organization created successfully:', result.organization.name)
         console.log('🌐 Subdomain:', result.subdomain)
         console.log('Dashboard URL:', result.dashboardUrl)
-        
+
         // Store organization data for redirect
         localStorage.setItem('newOrganization', JSON.stringify(result))
-        
+
         // Pulisci i dati del wizard completato
         localStorage.removeItem('omnily-wizard-data')
         localStorage.removeItem('omnily-wizard-step')
-        
+
+        // If in admin mode and callback provided, call it
+        if (mode === 'admin' && onComplete) {
+          onComplete(result)
+        }
+
         return result
       } else {
         throw new Error(result.error || 'Failed to create organization')
       }
-      
+
     } catch (error: any) {
       console.error('❌ Organization creation failed:', error)
       // Show error to user
@@ -446,31 +471,340 @@ const EnterpriseWizard: React.FC = () => {
 
   const renderStep = () => {
     switch (currentStep) {
-      // Step 0: Welcome
+      // Step 0: Welcome (or Plan Selection in admin mode)
       case 0:
-        return (
-          <div className={styles.stepContent}>
-            <div className={styles.welcomeIcon}>
-              <Award size={48} />
+        // ADMIN MODE: Plan Selection
+        if (mode === 'admin') {
+          return (
+            <div className="wizard-content-wrapper">
+              <div className="wizard-page-header">
+                <h2>
+                  <CreditCard size={32} color="#3b82f6" />
+                  Selezione Piano Abbonamento
+                </h2>
+                <p>Seleziona il piano di abbonamento per la nuova organizzazione</p>
+              </div>
+
+              <div className="wizard-info-box">
+                <div className="wizard-info-box-icon">
+                  <AlertCircle size={20} />
+                </div>
+                <div className="wizard-info-box-content">
+                  <p>Il piano selezionato determinerà le funzionalità disponibili e il prezzo mensile dell'abbonamento.</p>
+                </div>
+              </div>
+
+              {/* Plans Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginTop: '24px' }}>
+
+                {/* BASIC Plan */}
+                <div
+                  onClick={() => setFormData({ ...formData, planType: 'basic' })}
+                  style={{
+                    background: formData.planType === 'basic' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'white',
+                    border: formData.planType === 'basic' ? '3px solid #3b82f6' : '2px solid #e2e8f0',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    boxShadow: formData.planType === 'basic' ? '0 8px 24px rgba(59, 130, 246, 0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
+                    color: formData.planType === 'basic' ? 'white' : '#1e293b'
+                  }}
+                >
+                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
+                      Piano BASIC
+                    </div>
+                    <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+                      €29
+                    </div>
+                    <div style={{ fontSize: '14px', opacity: 0.8 }}>
+                      al mese
+                    </div>
+                  </div>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
+                    <li>✓ Fino a 100 clienti</li>
+                    <li>✓ Sistema punti fedeltà</li>
+                    <li>✓ 3 livelli loyalty</li>
+                    <li>✓ Coupon e premi</li>
+                    <li>✓ Email automations</li>
+                    <li>✓ Supporto email</li>
+                  </ul>
+                </div>
+
+                {/* PRO Plan */}
+                <div
+                  onClick={() => setFormData({ ...formData, planType: 'pro' })}
+                  style={{
+                    background: formData.planType === 'pro' ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' : 'white',
+                    border: formData.planType === 'pro' ? '3px solid #8b5cf6' : '2px solid #e2e8f0',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    boxShadow: formData.planType === 'pro' ? '0 8px 24px rgba(139, 92, 246, 0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
+                    color: formData.planType === 'pro' ? 'white' : '#1e293b',
+                    position: 'relative',
+                    transform: formData.planType === 'pro' ? 'scale(1.05)' : 'scale(1)'
+                  }}
+                >
+                  <div style={{ position: 'absolute', top: '-12px', right: '20px', background: '#10b981', color: 'white', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '700' }}>
+                    POPOLARE
+                  </div>
+                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
+                      Piano PRO
+                    </div>
+                    <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+                      €99
+                    </div>
+                    <div style={{ fontSize: '14px', opacity: 0.8 }}>
+                      al mese
+                    </div>
+                  </div>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
+                    <li>✓ Fino a 1000 clienti</li>
+                    <li>✓ Tutto di Basic +</li>
+                    <li>✓ Sistema lotterie</li>
+                    <li>✓ OMNY Wallet</li>
+                    <li>✓ Analytics avanzati</li>
+                    <li>✓ Branding personalizzato</li>
+                    <li>✓ Supporto prioritario</li>
+                  </ul>
+                </div>
+
+                {/* ENTERPRISE Plan */}
+                <div
+                  onClick={() => setFormData({ ...formData, planType: 'enterprise' })}
+                  style={{
+                    background: formData.planType === 'enterprise' ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 'white',
+                    border: formData.planType === 'enterprise' ? '3px solid #fbbf24' : '2px solid #e2e8f0',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    boxShadow: formData.planType === 'enterprise' ? '0 8px 24px rgba(251, 191, 36, 0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
+                    color: formData.planType === 'enterprise' ? 'white' : '#1e293b'
+                  }}
+                >
+                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
+                      Piano ENTERPRISE
+                    </div>
+                    <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+                      €299
+                    </div>
+                    <div style={{ fontSize: '14px', opacity: 0.8 }}>
+                      al mese
+                    </div>
+                  </div>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
+                    <li>✓ Clienti illimitati</li>
+                    <li>✓ Tutto di Pro +</li>
+                    <li>✓ Canali integrazione</li>
+                    <li>✓ White label completo</li>
+                    <li>✓ SSO e API dedicate</li>
+                    <li>✓ Account manager dedicato</li>
+                    <li>✓ Supporto 24/7</li>
+                  </ul>
+                </div>
+
+              </div>
+
+              {/* Selected Plan Summary */}
+              {formData.planType && (
+                <div style={{
+                  marginTop: '24px',
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                  borderRadius: '12px',
+                  border: '2px solid #86efac'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <CheckCircle2 size={24} color="#22c55e" />
+                    <div>
+                      <div style={{ fontSize: '16px', fontWeight: '600', color: '#166534' }}>
+                        Piano selezionato: {formData.planType.toUpperCase()}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#15803d', marginTop: '4px' }}>
+                        Il business owner riceverà un link per completare il pagamento e attivare l'account.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
-            <h1 className={styles.title}>Benvenuto in OMNILY PRO</h1>
-            <p className={styles.description}>
-              Configurazione completa della tua piattaforma loyalty enterprise italiana.
-              Setup avanzato in 7 step per risultati professionali.
-            </p>
-            <div className={styles.stats}>
-              <div className={styles.stat}>
-                <span className={styles.statNumber}>10.000+</span>
-                <span className={styles.statLabel}>Aziende Italiane</span>
+          )
+        }
+
+        // CLIENT MODE: Command Center - Dynamic Overview Dashboard
+        const calculateProgress = (step: number) => {
+          // Calculate completion % for each section based on formData
+          switch(step) {
+            case 1: return formData.organizationName && formData.partitaIVA ? 100 : 0
+            case 2: return formData.pointsName && formData.pointsPerEuro ? 80 : 0
+            case 3: return formData.productCategories?.length > 0 ? 60 : 0
+            case 4: return formData.defaultRewards?.length > 0 ? 70 : 0
+            case 5: return formData.primaryColor ? 90 : 0
+            case 6: return 40 // Channels
+            case 7: return 30 // Marketing
+            case 8: return formData.teamMembers?.length > 0 ? 50 : 0
+            case 9: return 20 // POS
+            case 10: return 10 // Notifications
+            case 11: return 0 // Final
+            default: return 0
+          }
+        }
+
+        const sectionGroups = [
+          {
+            title: 'Setup Base',
+            sections: [
+              { step: 1, icon: Building2, label: 'Organizzazione', progress: calculateProgress(1) },
+              { step: 2, icon: Award, label: 'Loyalty System', progress: calculateProgress(2) },
+              { step: 3, icon: Package, label: 'Prodotti', progress: calculateProgress(3) },
+            ]
+          },
+          {
+            title: 'Configurazione',
+            sections: [
+              { step: 4, icon: Gift, label: 'Rewards', progress: calculateProgress(4) },
+              { step: 5, icon: Palette, label: 'Branding', progress: calculateProgress(5) },
+              { step: 6, icon: Globe, label: 'Canali', progress: calculateProgress(6) },
+            ]
+          },
+          {
+            title: 'Operazioni',
+            sections: [
+              { step: 7, icon: BarChart3, label: 'Marketing', progress: calculateProgress(7) },
+              { step: 8, icon: Users, label: 'Team', progress: calculateProgress(8) },
+              { step: 9, icon: CreditCard, label: 'POS', progress: calculateProgress(9) },
+            ]
+          }
+        ]
+
+        return (
+          <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <div style={{ display: 'inline-block', padding: '12px 24px', background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', borderRadius: '12px', marginBottom: '16px' }}>
+                <Award size={32} color="white" />
               </div>
-              <div className={styles.stat}>
-                <span className={styles.statNumber}>7 Step</span>
-                <span className={styles.statLabel}>Setup Completo</span>
+              <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '12px', color: '#1e293b' }}>
+                Command Center
+              </h1>
+              <p style={{ fontSize: '16px', color: '#64748b', maxWidth: '600px', margin: '0 auto' }}>
+                Dashboard di controllo per la creazione della nuova azienda enterprise
+              </p>
+            </div>
+
+            {/* Live Organization Preview */}
+            {formData.organizationName && (
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '32px',
+                border: '2px solid #e2e8f0',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1e293b' }}>
+                  📋 Anteprima Organizzazione
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Nome Azienda</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>{formData.organizationName || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>P.IVA</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>{formData.partitaIVA || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Settore</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>{formData.industry || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Colore Brand</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: formData.primaryColor || '#60a5fa', border: '2px solid #e2e8f0' }} />
+                      <span style={{ fontSize: '14px', color: '#64748b' }}>{formData.primaryColor || 'Non impostato'}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className={styles.stat}>
-                <span className={styles.statNumber}>P.IVA</span>
-                <span className={styles.statLabel}>Riconoscimento</span>
-              </div>
+            )}
+
+            {/* Sections Grid with Progress */}
+            <div style={{ display: 'grid', gap: '24px' }}>
+              {sectionGroups.map((group, idx) => (
+                <div key={idx}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#64748b', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {group.title}
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                    {group.sections.map((section) => {
+                      const IconComponent = section.icon
+                      return (
+                        <div
+                          key={section.step}
+                          onClick={() => setCurrentStep(section.step)}
+                          style={{
+                            background: 'white',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            border: '2px solid #e2e8f0',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = '#60a5fa'
+                            e.currentTarget.style.transform = 'translateY(-2px)'
+                            e.currentTarget.style.boxShadow = '0 8px 16px rgba(96,165,250,0.15)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = '#e2e8f0'
+                            e.currentTarget.style.transform = 'translateY(0)'
+                            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '10px',
+                              background: `linear-gradient(135deg, ${section.progress > 0 ? '#10b981' : '#60a5fa'}, ${section.progress > 0 ? '#059669' : '#3b82f6'})`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              <IconComponent size={20} color="white" />
+                            </div>
+                            <div style={{
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              color: section.progress === 100 ? '#10b981' : section.progress > 0 ? '#f59e0b' : '#94a3b8',
+                              background: section.progress === 100 ? '#d1fae5' : section.progress > 0 ? '#fef3c7' : '#f1f5f9',
+                              padding: '4px 8px',
+                              borderRadius: '6px'
+                            }}>
+                              {section.progress === 100 ? '✓ Completo' : section.progress > 0 ? `${section.progress}%` : 'Da fare'}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b', marginBottom: '4px' }}>
+                            {section.label}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>
+                            Step {section.step} / {steps.length - 1}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )
@@ -478,57 +812,218 @@ const EnterpriseWizard: React.FC = () => {
       // Step 1: Organization Details + P.IVA
       case 1:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Building2 size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Building2 size={32} color="#3b82f6" />
+                Dettagli Organizzazione
+              </h2>
+              <p>Configura i dati aziendali principali con validazione automatica P.IVA</p>
             </div>
-            <h2 className={styles.stepTitle}>Dettagli Organizzazione</h2>
-            <p className={styles.stepDescription}>
-              Dati aziendali con validazione automatica Partita IVA
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Partita IVA 🇮🇹</label>
+
+            {/* Info Box */}
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Inizia inserendo i tuoi dati personali come proprietario dell'azienda</p>
+              </div>
+            </div>
+
+            {/* Owner Data Card - PRIMO! */}
+            <div className="wizard-form-card">
+              <h3><User size={20} /> Dati Proprietario</h3>
+
+              {/* Avatar Upload Section */}
+              <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    border: '3px solid #e5e7eb',
+                    background: formData.ownerAvatarUrl ? `url(${formData.ownerAvatarUrl})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '48px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}>
+                    {!formData.ownerAvatarUrl && (formData.ownerFirstName?.[0] || 'U')}
+                  </div>
                   <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="12345678901"
-                    value={formData.partitaIVA}
-                    onChange={(e) => handlePartitaIVAChange(e.target.value)}
-                    maxLength={11}
+                    type="file"
+                    id="ownerAvatar"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                          handleInputChange('ownerAvatarUrl', e.target?.result as string)
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }}
                   />
-                  <small className={styles.hint}>Auto-compilazione dati azienda</small>
+                  <label
+                    htmlFor="ownerAvatar"
+                    style={{
+                      padding: '8px 16px',
+                      background: 'linear-gradient(to right, #60a5fa, #3b82f6)',
+                      color: 'white',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Upload size={16} />
+                    Carica Foto
+                  </label>
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Codice Fiscale</label>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>
+                    Foto Profilo Proprietario
+                  </p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
+                    Carica una foto professionale del proprietario. Questa sarà utilizzata nel profilo admin e nelle comunicazioni ufficiali.
+                  </p>
+                </div>
+              </div>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Nome Proprietario *</label>
                   <input
                     type="text"
-                    className={styles.input}
+                    placeholder="Mario"
+                    value={formData.ownerFirstName || ''}
+                    onChange={(e) => handleInputChange('ownerFirstName', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="wizard-form-group">
+                  <label>Cognome Proprietario *</label>
+                  <input
+                    type="text"
+                    placeholder="Rossi"
+                    value={formData.ownerLastName || ''}
+                    onChange={(e) => handleInputChange('ownerLastName', e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label><Mail size={16} /> Email Proprietario *</label>
+                  <input
+                    type="email"
+                    placeholder="mario.rossi@example.com"
+                    value={formData.ownerEmail || ''}
+                    onChange={(e) => handleInputChange('ownerEmail', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="wizard-form-group">
+                  <label><Phone size={16} /> Telefono Proprietario *</label>
+                  <input
+                    type="tel"
+                    placeholder="+39 333 1234567"
+                    value={formData.ownerPhone || ''}
+                    onChange={(e) => handleInputChange('ownerPhone', e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Dati Fiscali Card */}
+            <div className="wizard-form-card">
+              <h3><Shield size={20} /> Dati Fiscali Azienda</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Partita IVA 🇮🇹</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="12345678901"
+                      value={formData.partitaIVA}
+                      onChange={(e) => handlePartitaIVAChange(e.target.value)}
+                      maxLength={11}
+                      style={{
+                        paddingRight: validatingVAT || vatValidated ? '40px' : '16px'
+                      }}
+                    />
+                    {validatingVAT && (
+                      <div style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#3b82f6'
+                      }}>
+                        <div className="wizard-spinner" style={{ width: '20px', height: '20px', border: '2px solid #f3f4f6', borderTop: '2px solid #3b82f6' }}></div>
+                      </div>
+                    )}
+                    {vatValidated && !validatingVAT && (
+                      <div style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#10b981'
+                      }}>
+                        <CheckCircle2 size={20} />
+                      </div>
+                    )}
+                  </div>
+                  <small className="wizard-form-hint">
+                    {vatValidated ? '✅ Dati azienda caricati automaticamente' : 'Auto-compilazione dati azienda dal registro'}
+                  </small>
+                </div>
+                <div className="wizard-form-group">
+                  <label>Codice Fiscale</label>
+                  <input
+                    type="text"
                     placeholder="RSSMRA80A01H501Z"
                     value={formData.codiceFiscale}
                     onChange={(e) => handleInputChange('codiceFiscale', e.target.value)}
                   />
                 </div>
               </div>
+            </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Nome Organizzazione</label>
+            {/* Company Data Card */}
+            <div className="wizard-form-card">
+              <h3><Building2 size={20} /> Informazioni Azienda</h3>
+
+              <div className="wizard-form-group">
+                <label>Nome Organizzazione</label>
                 <input
                   type="text"
-                  className={styles.input}
                   placeholder="La Mia Pizzeria S.r.l."
                   value={formData.organizationName}
                   onChange={(e) => handleInputChange('organizationName', e.target.value)}
                 />
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Settore</label>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Settore</label>
                   <select
-                    className={styles.select}
                     value={formData.industry}
                     onChange={(e) => handleInputChange('industry', e.target.value)}
                   >
@@ -539,10 +1034,9 @@ const EnterpriseWizard: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Dimensione Team</label>
+                <div className="wizard-form-group">
+                  <label>Dimensione Team</label>
                   <select
-                    className={styles.select}
                     value={formData.teamSize}
                     onChange={(e) => handleInputChange('teamSize', e.target.value)}
                   >
@@ -555,44 +1049,41 @@ const EnterpriseWizard: React.FC = () => {
                 </div>
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Indirizzo Completo</label>
+              <div className="wizard-form-group">
+                <label>Indirizzo Completo</label>
                 <input
                   type="text"
-                  className={styles.input}
                   placeholder="Via Roma 123"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
                 />
               </div>
 
-              <div className={styles.formRow}>
-                <div className={`${styles.formGroup} ${styles.formGroupCity}`}>
-                  <label className={styles.label}>Città</label>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Città</label>
                   <input
                     type="text"
-                    className={styles.input}
                     placeholder="Milano"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
                   />
                 </div>
-                <div className={`${styles.formGroup} ${styles.formGroupProvince}`}>
-                  <label className={styles.label}>Provincia</label>
+                <div className="wizard-form-group">
+                  <label>Provincia</label>
                   <input
                     type="text"
-                    className={styles.input}
                     placeholder="MI"
                     value={formData.province}
                     onChange={(e) => handleInputChange('province', e.target.value)}
                     maxLength={2}
+                    style={{ textTransform: 'uppercase' }}
                   />
                 </div>
-                <div className={`${styles.formGroup} ${styles.formGroupCap}`}>
-                  <label className={styles.label}>CAP</label>
+                <div className="wizard-form-group">
+                  <label>CAP</label>
                   <input
                     type="text"
-                    className={styles.input}
                     placeholder="20100"
                     value={formData.cap}
                     onChange={(e) => handleInputChange('cap', e.target.value)}
@@ -600,24 +1091,26 @@ const EnterpriseWizard: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
 
-              {/* Nuovi campi per contatti e branding */}
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}><Phone size={16} className={styles.labelIcon} /> Telefono Aziendale</label>
+            {/* Contacts Card */}
+            <div className="wizard-form-card">
+              <h3><Phone size={20} /> Informazioni di Contatto</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label><Phone size={16} /> Telefono Aziendale</label>
                   <input
                     type="tel"
-                    className={styles.input}
                     placeholder="+39 02 1234567"
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   />
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}><Mail size={16} className={styles.labelIcon} /> Email Aziendale</label>
+                <div className="wizard-form-group">
+                  <label><Mail size={16} /> Email Aziendale</label>
                   <input
                     type="email"
-                    className={styles.input}
                     placeholder="info@miazienda.it"
                     value={formData.businessEmail}
                     onChange={(e) => handleInputChange('businessEmail', e.target.value)}
@@ -625,28 +1118,31 @@ const EnterpriseWizard: React.FC = () => {
                 </div>
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}><Globe2 size={16} className={styles.labelIcon} /> Sito Web</label>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label><Globe2 size={16} /> Sito Web</label>
                   <input
                     type="url"
-                    className={styles.input}
                     placeholder="https://www.miazienda.it"
                     value={formData.website}
                     onChange={(e) => handleInputChange('website', e.target.value)}
                   />
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}><MessageSquare size={16} className={styles.labelIcon} /> Tagline/Slogan</label>
+                <div className="wizard-form-group">
+                  <label><MessageSquare size={16} /> Tagline/Slogan</label>
                   <input
                     type="text"
-                    className={styles.input}
                     placeholder="La migliore pizza della città"
                     value={formData.tagline}
                     onChange={(e) => handleInputChange('tagline', e.target.value)}
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Logo Upload - remains in Contacts card */}
+            <div className="wizard-form-card">
+              <h3><Upload size={20} /> Logo Aziendale</h3>
 
               {/* Upload logo */}
               <div className={styles.formGroup}>
@@ -761,7 +1257,18 @@ const EnterpriseWizard: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
 
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(0)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(2)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -769,32 +1276,42 @@ const EnterpriseWizard: React.FC = () => {
       // Step 2: Loyalty System Setup
       case 2:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Gift size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Gift size={32} color="#3b82f6" />
+                Sistema Loyalty
+              </h2>
+              <p>Configura punti, rewards e meccaniche di fidelizzazione</p>
             </div>
-            <h2 className={styles.stepTitle}>Sistema Loyalty</h2>
-            <p className={styles.stepDescription}>
-              Configura punti, rewards e meccaniche di fidelizzazione
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Nome Punti</label>
+
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <Star size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Crea un sistema personalizzato per premiare i tuoi clienti fedeli</p>
+              </div>
+            </div>
+
+            {/* Card 1: Configurazione Base */}
+            <div className="wizard-form-card">
+              <h3><Award size={20} /> Configurazione Base</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Nome Punti</label>
                   <input
                     type="text"
-                    className={styles.input}
                     placeholder="Gemme, Stelline, Punti..."
                     value={formData.pointsName}
                     onChange={(e) => handleInputChange('pointsName', e.target.value)}
                   />
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Punti per Euro</label>
+                <div className="wizard-form-group">
+                  <label>Punti per Euro</label>
                   <input
                     type="number"
-                    className={styles.input}
                     placeholder="1"
                     value={formData.pointsPerEuro}
                     onChange={(e) => handleInputChange('pointsPerEuro', e.target.value)}
@@ -802,236 +1319,291 @@ const EnterpriseWizard: React.FC = () => {
                 </div>
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Soglia Reward</label>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Soglia Reward</label>
                   <input
                     type="number"
-                    className={styles.input}
                     placeholder="100"
                     value={formData.rewardThreshold}
                     onChange={(e) => handleInputChange('rewardThreshold', e.target.value)}
                   />
-                  <small className={styles.hint}>Punti necessari per un reward</small>
+                  <small className="wizard-form-hint">Punti necessari per un reward</small>
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Bonus Benvenuto</label>
+                <div className="wizard-form-group">
+                  <label>Bonus Benvenuto</label>
                   <input
                     type="number"
-                    className={styles.input}
                     placeholder="50"
                     value={formData.welcomeBonus}
                     onChange={(e) => handleInputChange('welcomeBonus', e.target.value)}
                   />
-                  <small className={styles.hint}>Punti regalo per nuovi clienti</small>
+                  <small className="wizard-form-hint">Punti regalo per nuovi clienti</small>
                 </div>
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Scadenza Punti (mesi)</label>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Scadenza Punti (mesi)</label>
                   <input
                     type="number"
-                    className={styles.input}
                     placeholder="12"
                     value={formData.pointsExpiry}
                     onChange={(e) => handleInputChange('pointsExpiry', e.target.value)}
                   />
-                  <small className={styles.hint}>0 = mai scadono</small>
+                  <small className="wizard-form-hint">0 = mai scadono</small>
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Sistema Livelli Clienti</label>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="enableTierSystem"
-                      checked={formData.enableTierSystem}
-                      onChange={(e) => handleInputChange('enableTierSystem', e.target.checked)}
-                    />
-                    <label htmlFor="enableTierSystem" className={styles.toggleLabel}>
-                      Abilita livelli personalizzati
-                    </label>
+                <div className="wizard-form-group">
+                  <label>Sistema Livelli Clienti</label>
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Abilita livelli personalizzati</h4>
+                      <p>I clienti salgono di livello accumulando punti</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.enableTierSystem ? 'active' : ''}`}
+                      onClick={() => handleInputChange('enableTierSystem', !formData.enableTierSystem)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
                   </div>
-                  <small className={styles.hint}>I clienti salgono di livello accumulando punti</small>
                 </div>
               </div>
+            </div>
 
-              {formData.enableTierSystem && (
-                <div className={styles.tiersSection}>
-                  <h4>🏆 I Tuoi Livelli Loyalty</h4>
-                  <p className={styles.sectionDescription}>Crea livelli personalizzati per la tua attività. Esempio: "Pizza Lover → Pizza Master → Pizza Legend"</p>
-                  
-                  {formData.loyaltyTiers.map((tier: any, index: any) => (
-                    <div key={index} className={styles.tierItem}>
-                      <div className={styles.tierHeader}>
-                        <div 
-                          className={styles.tierColor} 
-                          style={{
-                            background: tier.gradient 
-                              ? `linear-gradient(135deg, ${tier.color}, ${tier.gradientEnd})` 
-                              : tier.color 
+            {/* Card 2: Livelli Loyalty (conditional) */}
+            {formData.enableTierSystem && (
+              <div className="wizard-form-card">
+                <h3><Award size={20} /> I Tuoi Livelli Loyalty</h3>
+                <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>
+                  Crea livelli personalizzati per la tua attività. Esempio: "Pizza Lover → Pizza Master → Pizza Legend"
+                </p>
+
+                {formData.loyaltyTiers.map((tier: any, index: any) => (
+                  <div key={index} style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    marginBottom: '16px',
+                    backgroundColor: '#fafafa'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '16px'
+                    }}>
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '6px',
+                          background: tier.gradient
+                            ? `linear-gradient(135deg, ${tier.color}, ${tier.gradientEnd})`
+                            : tier.color
+                        }}
+                      ></div>
+                      <span style={{ fontWeight: '600', fontSize: '15px' }}>Livello {index + 1}</span>
+                      {formData.loyaltyTiers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newTiers = formData.loyaltyTiers.filter((_: any, i: any) => i !== index)
+                            handleInputChange('loyaltyTiers', newTiers)
                           }}
-                        ></div>
-                        <span className={styles.tierNumber}>Livello {index + 1}</span>
-                        {formData.loyaltyTiers.length > 1 && (
-                          <button 
-                            type="button"
-                            className={styles.removeBtn}
-                            onClick={() => {
-                              const newTiers = formData.loyaltyTiers.filter((_: any, i: any) => i !== index)
+                          style={{
+                            marginLeft: 'auto',
+                            padding: '6px 12px',
+                            backgroundColor: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            color: '#dc2626',
+                            fontSize: '14px'
+                          }}
+                        >
+                          ✕ Rimuovi
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="wizard-form-row">
+                      <div className="wizard-form-group">
+                        <label>Nome Livello</label>
+                        <input
+                          type="text"
+                          value={tier.name}
+                          onChange={(e) => {
+                            const newTiers = [...formData.loyaltyTiers]
+                            newTiers[index].name = e.target.value
+                            handleInputChange('loyaltyTiers', newTiers)
+                          }}
+                          placeholder="Es: Pizza Lover, Beauty Expert, Coffee Master..."
+                        />
+                      </div>
+
+                      <div className="wizard-form-group">
+                        <label>Soglia Punti</label>
+                        <input
+                          type="number"
+                          value={tier.threshold}
+                          onChange={(e) => {
+                            const newTiers = [...formData.loyaltyTiers]
+                            newTiers[index].threshold = e.target.value
+                            handleInputChange('loyaltyTiers', newTiers)
+                          }}
+                          placeholder="0"
+                        />
+                        <small className="wizard-form-hint">Punti necessari per raggiungere questo livello</small>
+                      </div>
+
+                      <div className="wizard-form-group">
+                        <label>Moltiplicatore</label>
+                        <input
+                          type="text"
+                          value={`x${tier.multiplier}`}
+                          onChange={(e) => {
+                            const newTiers = [...formData.loyaltyTiers]
+                            newTiers[index].multiplier = e.target.value.replace('x', '')
+                            handleInputChange('loyaltyTiers', newTiers)
+                          }}
+                          placeholder="x1.5"
+                        />
+                        <small className="wizard-form-hint">Punti extra per gli acquisti a questo livello</small>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '16px' }}>
+                      <div className="wizard-form-group">
+                        <label>Personalizzazione Colore</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                          <input
+                            type="color"
+                            value={tier.color}
+                            onChange={(e) => {
+                              const newTiers = [...formData.loyaltyTiers]
+                              newTiers[index].color = e.target.value
                               handleInputChange('loyaltyTiers', newTiers)
                             }}
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                      
-                      <div className={styles.tierForm}>
-                        <div className={styles.tierFormRow}>
-                          <div className={styles.formGroup}>
-                            <label className={styles.label}>Nome Livello</label>
-                            <input
-                              type="text"
-                              className={styles.input}
-                              value={tier.name}
-                              onChange={(e) => {
+                            title="Colore principale"
+                            style={{
+                              width: '50px',
+                              height: '40px',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '6px',
+                              cursor: 'pointer'
+                            }}
+                          />
+                          <div className="wizard-toggle-group" style={{ margin: 0 }}>
+                            <div className="wizard-toggle-info">
+                              <h4>Abilita Gradiente</h4>
+                              <p>Usa due colori per creare un effetto gradiente</p>
+                            </div>
+                            <div
+                              className={`wizard-toggle-switch ${tier.gradient ? 'active' : ''}`}
+                              onClick={() => {
                                 const newTiers = [...formData.loyaltyTiers]
-                                newTiers[index].name = e.target.value
+                                newTiers[index].gradient = !tier.gradient
                                 handleInputChange('loyaltyTiers', newTiers)
                               }}
-                              placeholder="Es: Pizza Lover, Beauty Expert, Coffee Master..."
-                            />
-                          </div>
-                          
-                          <div className={styles.formGroup}>
-                            <label className={styles.label}>Soglia Punti</label>
-                            <input
-                              type="number"
-                              className={styles.input}
-                              value={tier.threshold}
-                              onChange={(e) => {
-                                const newTiers = [...formData.loyaltyTiers]
-                                newTiers[index].threshold = e.target.value
-                                handleInputChange('loyaltyTiers', newTiers)
-                              }}
-                              placeholder="0"
-                            />
-                            <small className={styles.hint}>Punti necessari per raggiungere questo livello</small>
-                          </div>
-                          
-                          <div className={styles.formGroup}>
-                            <label className={styles.label}>Moltiplicatore</label>
-                            <input
-                              type="text"
-                              className={styles.input}
-                              value={`x${tier.multiplier}`}
-                              onChange={(e) => {
-                                const newTiers = [...formData.loyaltyTiers]
-                                newTiers[index].multiplier = e.target.value.replace('x', '')
-                                handleInputChange('loyaltyTiers', newTiers)
-                              }}
-                              placeholder="x1.5"
-                            />
-                            <small className={styles.hint}>Punti extra per gli acquisti a questo livello</small>
-                          </div>
-                        </div>
-                        
-                        <div className={styles.tierColorSection}>
-                          <div className={styles.formGroup}>
-                            <label className={styles.label}>Personalizzazione Colore</label>
-                            <div className={styles.colorSection}>
-                              <div className={styles.colorControls}>
-                                <input
-                                  type="color"
-                                  className={styles.colorInput}
-                                  value={tier.color}
-                                  onChange={(e) => {
-                                    const newTiers = [...formData.loyaltyTiers]
-                                    newTiers[index].color = e.target.value
-                                    handleInputChange('loyaltyTiers', newTiers)
-                                  }}
-                                  title="Colore principale"
-                                />
-                                <div className={styles.gradientToggle}>
-                                  <input
-                                    type="checkbox"
-                                    id={`gradient-${index}`}
-                                    checked={tier.gradient}
-                                    onChange={(e) => {
-                                      const newTiers = [...formData.loyaltyTiers]
-                                      newTiers[index].gradient = e.target.checked
-                                      handleInputChange('loyaltyTiers', newTiers)
-                                    }}
-                                  />
-                                  <label htmlFor={`gradient-${index}`} className={styles.gradientLabel}>
-                                    Abilita Gradiente
-                                  </label>
-                                </div>
-                                {tier.gradient && (
-                                  <input
-                                    type="color"
-                                    className={styles.colorInput}
-                                    value={tier.gradientEnd}
-                                    onChange={(e) => {
-                                      const newTiers = [...formData.loyaltyTiers]
-                                      newTiers[index].gradientEnd = e.target.value
-                                      handleInputChange('loyaltyTiers', newTiers)
-                                    }}
-                                    title="Colore finale gradiente"
-                                  />
-                                )}
-                              </div>
+                            >
+                              <div className="wizard-toggle-slider"></div>
                             </div>
                           </div>
+                          {tier.gradient && (
+                            <input
+                              type="color"
+                              value={tier.gradientEnd}
+                              onChange={(e) => {
+                                const newTiers = [...formData.loyaltyTiers]
+                                newTiers[index].gradientEnd = e.target.value
+                                handleInputChange('loyaltyTiers', newTiers)
+                              }}
+                              title="Colore finale gradiente"
+                              style={{
+                                width: '50px',
+                                height: '40px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px',
+                                cursor: 'pointer'
+                              }}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
-                  ))}
-                  
-                  <button
-                    type="button"
-                    className={styles.addBtn}
-                    onClick={() => {
-                      const newTiers = [...formData.loyaltyTiers, {
-                        name: 'Nuovo Livello',
-                        threshold: String(Math.max(...formData.loyaltyTiers.map((t: any) => parseInt(t.threshold) || 0)) + 200),
-                        multiplier: '1.2',
-                        color: '#10b981',
-                        gradient: false,
-                        gradientEnd: '#10b981'
-                      }]
-                      handleInputChange('loyaltyTiers', newTiers)
-                    }}
-                  >
-                    + Aggiungi Livello
-                  </button>
-                </div>
-              )}
+                  </div>
+                ))}
 
-              <div className={styles.previewCard}>
-                <h4>🎯 Anteprima Sistema</h4>
-                <div className={styles.loyaltyPreview}>
-                  <div className={styles.previewItem}>
-                    <Star size={16} />
-                    <span>1€ di spesa = {formData.pointsPerEuro} {formData.pointsName}</span>
-                  </div>
-                  <div className={styles.previewItem}>
-                    <Gift size={16} />
-                    <span>{formData.rewardThreshold} {formData.pointsName} = 1 Reward</span>
-                  </div>
-                  <div className={styles.previewItem}>
-                    <Award size={16} />
-                    <span>Bonus registrazione: {formData.welcomeBonus} {formData.pointsName}</span>
-                  </div>
-                  {formData.enableTierSystem && formData.loyaltyTiers.length > 0 && (
-                    <div className={styles.previewItem}>
-                      <Shield size={16} />
-                      <span>Livelli: {formData.loyaltyTiers.map((tier: any) => `${tier.name} x${tier.multiplier}`).join(', ')}</span>
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newTiers = [...formData.loyaltyTiers, {
+                      name: 'Nuovo Livello',
+                      threshold: String(Math.max(...formData.loyaltyTiers.map((t: any) => parseInt(t.threshold) || 0)) + 200),
+                      multiplier: '1.2',
+                      color: '#10b981',
+                      gradient: false,
+                      gradientEnd: '#10b981'
+                    }]
+                    handleInputChange('loyaltyTiers', newTiers)
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#f0f9ff',
+                    border: '2px dashed #3b82f6',
+                    borderRadius: '8px',
+                    color: '#3b82f6',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  + Aggiungi Livello
+                </button>
               </div>
+            )}
+
+            {/* Card 3: Anteprima Sistema */}
+            <div className="wizard-form-card">
+              <h3><Star size={20} /> Anteprima Sistema</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                  <Star size={16} color="#3b82f6" />
+                  <span style={{ fontSize: '14px' }}>1€ di spesa = {formData.pointsPerEuro} {formData.pointsName}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                  <Gift size={16} color="#3b82f6" />
+                  <span style={{ fontSize: '14px' }}>{formData.rewardThreshold} {formData.pointsName} = 1 Reward</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                  <Award size={16} color="#3b82f6" />
+                  <span style={{ fontSize: '14px' }}>Bonus registrazione: {formData.welcomeBonus} {formData.pointsName}</span>
+                </div>
+                {formData.enableTierSystem && formData.loyaltyTiers.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                    <Shield size={16} color="#3b82f6" />
+                    <span style={{ fontSize: '14px' }}>Livelli: {formData.loyaltyTiers.map((tier: any) => `${tier.name} x${tier.multiplier}`).join(', ')}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(1)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(3)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1039,238 +1611,393 @@ const EnterpriseWizard: React.FC = () => {
       // Step 3: Products & Categories
       case 3:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Settings size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Package size={32} color="#3b82f6" />
+                Prodotti e Categorie
+              </h2>
+              <p>Configura catalogo prodotti e moltiplicatori per categoria</p>
             </div>
-            <h2 className={styles.stepTitle}>Prodotti e Categorie</h2>
-            <p className={styles.stepDescription}>
-              Configura catalogo prodotti e moltiplicatori per categoria
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Import Catalogo Prodotti</label>
-                <div className={styles.toggleSwitch}>
-                  <input
-                    type="checkbox"
-                    id="importProducts"
-                    checked={formData.importProducts}
-                    onChange={(e) => handleInputChange('importProducts', e.target.checked)}
-                  />
-                  <label htmlFor="importProducts" className={styles.toggleLabel}>
-                    Importa automaticamente dal POS/E-commerce
-                  </label>
-                </div>
-                <small className={styles.hint}>Sincronizza prodotti e prezzi in tempo reale</small>
-              </div>
 
-              <div className={styles.categoriesSection}>
-                <h4>📦 Categorie Prodotti</h4>
-                <div className={styles.categoryList}>
-                  {formData.productCategories.map((category: any, index: any) => (
-                    <div key={index} className={styles.categoryItem}>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        value={category}
-                        onChange={(e) => {
-                          const newCategories = [...formData.productCategories]
-                          newCategories[index] = e.target.value
-                          handleInputChange('productCategories', newCategories)
-                        }}
-                        placeholder="Nome categoria"
-                      />
-                      <button 
-                        type="button"
-                        className={styles.removeBtn}
-                        onClick={() => {
-                          const newCategories = formData.productCategories.filter((_: any, i: any) => i !== index)
-                          handleInputChange('productCategories', newCategories)
-                        }}
-                      >
-                        ✕
-                      </button>
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Organizza il tuo catalogo prodotti e applica moltiplicatori punti per categoria</p>
+              </div>
+            </div>
+
+            {/* Card 1: Import Catalogo */}
+            <div className="wizard-form-card">
+              <h3><Settings size={20} /> Import Catalogo Prodotti</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Sincronizzazione Automatica</label>
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Importa automaticamente dal POS/E-commerce</h4>
+                      <p>Sincronizza prodotti e prezzi in tempo reale</p>
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    className={styles.addBtn}
-                    onClick={() => {
-                      const newCategories = [...formData.productCategories, '']
-                      handleInputChange('productCategories', newCategories)
-                    }}
-                  >
-                    + Aggiungi Categoria
-                  </button>
+                    <div
+                      className={`wizard-toggle-switch ${formData.importProducts ? 'active' : ''}`}
+                      onClick={() => handleInputChange('importProducts', !formData.importProducts)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className={styles.bonusSection}>
-                <h4><Zap size={16} className={styles.sectionIcon} /> Moltiplicatori per Categoria</h4>
+            {/* Card 2: Categorie Prodotti */}
+            <div className="wizard-form-card">
+              <h3><Package size={20} /> Categorie Prodotti</h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {formData.productCategories.map((category: any, index: any) => (
+                  <div key={index} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <input
+                      type="text"
+                      value={category}
+                      onChange={(e) => {
+                        const newCategories = [...formData.productCategories]
+                        newCategories[index] = e.target.value
+                        handleInputChange('productCategories', newCategories)
+                      }}
+                      placeholder="Nome categoria"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newCategories = formData.productCategories.filter((_: any, i: any) => i !== index)
+                        handleInputChange('productCategories', newCategories)
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#fef2f2',
+                        border: '1px solid #fecaca',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        color: '#dc2626',
+                        fontSize: '14px'
+                      }}
+                    >
+                      ✕ Rimuovi
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newCategories = [...formData.productCategories, '']
+                    handleInputChange('productCategories', newCategories)
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#f0f9ff',
+                    border: '2px dashed #3b82f6',
+                    borderRadius: '8px',
+                    color: '#3b82f6',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  + Aggiungi Categoria
+                </button>
+              </div>
+            </div>
+
+            {/* Card 3: Moltiplicatori per Categoria */}
+            <div className="wizard-form-card">
+              <h3><Zap size={20} /> Moltiplicatori per Categoria</h3>
+              <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>
+                Imposta moltiplicatori punti per incentivare l'acquisto di determinate categorie
+              </p>
+
+              {formData.bonusCategories.map((bonus: any, index: any) => (
+                <div key={index} className="wizard-form-row">
+                  <div className="wizard-form-group">
+                    <label>{bonus.category}</label>
+                    <input
+                      type="text"
+                      value={`x${bonus.multiplier}`}
+                      onChange={(e) => {
+                        const newBonuses = [...formData.bonusCategories]
+                        newBonuses[index].multiplier = e.target.value.replace('x', '')
+                        handleInputChange('bonusCategories', newBonuses)
+                      }}
+                      placeholder="x1.2"
+                    />
+                    <small className="wizard-form-hint">Moltiplicatore punti per questa categoria</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Card 4: Anteprima Moltiplicatori */}
+            <div className="wizard-form-card">
+              <h3><BarChart3 size={20} /> Anteprima Moltiplicatori</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {formData.bonusCategories.map((bonus: any, index: any) => (
-                  <div key={index} className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>{bonus.category}</label>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        value={`x${bonus.multiplier}`}
-                        onChange={(e) => {
-                          const newBonuses = [...formData.bonusCategories]
-                          newBonuses[index].multiplier = e.target.value.replace('x', '')
-                          handleInputChange('bonusCategories', newBonuses)
-                        }}
-                        placeholder="x1.2"
-                      />
-                    </div>
+                  <div key={index} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px'
+                  }}>
+                    <Star size={16} color="#3b82f6" />
+                    <span style={{ fontSize: '14px' }}>{bonus.category}: {bonus.multiplier}x punti</span>
                   </div>
                 ))}
               </div>
+            </div>
 
-              <div className={styles.previewCard}>
-                <h4><BarChart3 size={16} className={styles.sectionIcon} /> Anteprima Moltiplicatori</h4>
-                  <div className={styles.multiplierPreview}>
-                    {formData.bonusCategories.map((bonus: any, index: any) => (
-                    <div key={index} className={styles.previewItem}>
-                      <Star size={16} />
-                      <span>{bonus.category}: {bonus.multiplier}x punti</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(2)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(4)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
 
-      // Step 4: Rewards Configuration  
+      // Step 4: Rewards Configuration
       case 4:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Star size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Star size={32} color="#3b82f6" />
+                Configurazione Rewards
+              </h2>
+              <p>Configura premi predefiniti e tipologie di rewards</p>
             </div>
-            <h2 className={styles.stepTitle}>Configurazione Rewards</h2>
-            <p className={styles.stepDescription}>
-              Configura premi predefiniti e tipologie di rewards
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Tipologie Reward Abilitate</label>
-                <div className={styles.checkboxGroup}>
-                  {[
-                    { value: 'discount', label: 'Sconto in Euro' },
-                    { value: 'freeProduct', label: 'Prodotto Gratuito' },
-                    { value: 'cashback', label: 'Cashback' }
-                  ].map(type => (
-                    <div key={type.value} className={styles.checkboxItem}>
-                      <input
-                        type="checkbox"
-                        id={type.value}
-                        checked={formData.rewardTypes.includes(type.value)}
-                        onChange={(e) => {
-                          let newTypes = [...formData.rewardTypes]
-                          if (e.target.checked) {
-                            newTypes.push(type.value)
-                          } else {
-                            newTypes = newTypes.filter((t: any) => t !== type.value)
-                          }
-                          handleInputChange('rewardTypes', newTypes)
-                        }}
-                      />
-                      <label htmlFor={type.value}>{type.label}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              <div className={styles.rewardsSection}>
-                <h4>🎁 Rewards Predefiniti</h4>
-                {formData.defaultRewards.map((reward: any, index: any) => (
-                  <div key={index} className={styles.rewardItem}>
-                    <div className={styles.formRow}>
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>Punti Richiesti</label>
-                        <input
-                          type="number"
-                          className={styles.input}
-                          value={reward.points}
-                          onChange={(e) => {
-                            const newRewards = [...formData.defaultRewards]
-                            newRewards[index].points = e.target.value
-                            handleInputChange('defaultRewards', newRewards)
-                          }}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>Livello Richiesto</label>
-                        <select
-                          className={styles.input}
-                          value={reward.requiredTier || 'Iniziale'}
-                          onChange={(e) => {
-                            const newRewards = [...formData.defaultRewards]
-                            newRewards[index].requiredTier = e.target.value
-                            handleInputChange('defaultRewards', newRewards)
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Crea premi accattivanti per incentivare la fedeltà dei tuoi clienti</p>
+              </div>
+            </div>
+
+            {/* Card 1: Tipologie Reward */}
+            <div className="wizard-form-card">
+              <h3><Gift size={20} /> Tipologie Reward Abilitate</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {[
+                      { value: 'discount', label: 'Sconto in Euro', description: 'Offri sconti diretti sul totale acquisto' },
+                      { value: 'freeProduct', label: 'Prodotto Gratuito', description: 'Regala prodotti specifici ai clienti fedeli' },
+                      { value: 'cashback', label: 'Cashback', description: 'Restituisci una percentuale dell\'importo speso' }
+                    ].map(type => (
+                      <div key={type.value} className="wizard-toggle-group">
+                        <div className="wizard-toggle-info">
+                          <h4>{type.label}</h4>
+                          <p>{type.description}</p>
+                        </div>
+                        <div
+                          className={`wizard-toggle-switch ${formData.rewardTypes.includes(type.value) ? 'active' : ''}`}
+                          onClick={() => {
+                            let newTypes = [...formData.rewardTypes]
+                            if (formData.rewardTypes.includes(type.value)) {
+                              newTypes = newTypes.filter((t: any) => t !== type.value)
+                            } else {
+                              newTypes.push(type.value)
+                            }
+                            handleInputChange('rewardTypes', newTypes)
                           }}
                         >
-                          {formData.loyaltyTiers.map((tier: any) => (
-                            <option key={tier.name} value={tier.name}>
-                              {tier.name} ({tier.threshold}+ punti)
-                            </option>
-                          ))}
-                        </select>
+                          <div className="wizard-toggle-slider"></div>
+                        </div>
                       </div>
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>Valore</label>
-                        <input
-                          type="text"
-                          className={styles.input}
-                          value={reward.value}
-                          onChange={(e) => {
-                            const newRewards = [...formData.defaultRewards]
-                            newRewards[index].value = e.target.value
-                            handleInputChange('defaultRewards', newRewards)
-                          }}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>Descrizione</label>
-                        <input
-                          type="text"
-                          className={styles.input}
-                          value={reward.description}
-                          onChange={(e) => {
-                            const newRewards = [...formData.defaultRewards]
-                            newRewards[index].description = e.target.value
-                            handleInputChange('defaultRewards', newRewards)
-                          }}
-                        />
-                      </div>
-                      <button 
-                        type="button"
-                        className={styles.removeBtn}
-                        onClick={() => {
-                          const newRewards = formData.defaultRewards.filter((_: any, i: any) => i !== index)
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Rewards Predefiniti */}
+            <div className="wizard-form-card">
+              <h3><Star size={20} /> Rewards Predefiniti</h3>
+              <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>
+                Crea rewards disponibili per i tuoi clienti in base al livello di fedeltà
+              </p>
+
+              {formData.defaultRewards.map((reward: any, index: any) => (
+                <div key={index} style={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  marginBottom: '16px',
+                  backgroundColor: '#fafafa'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '16px'
+                  }}>
+                    <span style={{ fontWeight: '600', fontSize: '15px' }}>Reward {index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newRewards = formData.defaultRewards.filter((_: any, i: any) => i !== index)
+                        handleInputChange('defaultRewards', newRewards)
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#fef2f2',
+                        border: '1px solid #fecaca',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        color: '#dc2626',
+                        fontSize: '14px'
+                      }}
+                    >
+                      ✕ Rimuovi
+                    </button>
+                  </div>
+
+                  <div className="wizard-form-row">
+                    <div className="wizard-form-group">
+                      <label>Punti Richiesti</label>
+                      <input
+                        type="number"
+                        value={reward.points}
+                        onChange={(e) => {
+                          const newRewards = [...formData.defaultRewards]
+                          newRewards[index].points = e.target.value
                           handleInputChange('defaultRewards', newRewards)
                         }}
+                        placeholder="100"
+                      />
+                    </div>
+
+                    <div className="wizard-form-group">
+                      <label>Livello Richiesto</label>
+                      <select
+                        value={reward.requiredTier || 'Iniziale'}
+                        onChange={(e) => {
+                          const newRewards = [...formData.defaultRewards]
+                          newRewards[index].requiredTier = e.target.value
+                          handleInputChange('defaultRewards', newRewards)
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          backgroundColor: 'white'
+                        }}
                       >
-                        ✕
-                      </button>
+                        {formData.loyaltyTiers.map((tier: any) => (
+                          <option key={tier.name} value={tier.name}>
+                            {tier.name} ({tier.threshold}+ punti)
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  className={styles.addBtn}
-                  onClick={() => {
-                    const newRewards = [...formData.defaultRewards, { points: '100', requiredTier: 'Iniziale', type: 'discount', value: '5', description: '5€ di sconto' }]
-                    handleInputChange('defaultRewards', newRewards)
-                  }}
-                >
-                  + Aggiungi Reward
-                </button>
-              </div>
+
+                  <div className="wizard-form-row">
+                    <div className="wizard-form-group">
+                      <label>Valore</label>
+                      <input
+                        type="text"
+                        value={reward.value}
+                        onChange={(e) => {
+                          const newRewards = [...formData.defaultRewards]
+                          newRewards[index].value = e.target.value
+                          handleInputChange('defaultRewards', newRewards)
+                        }}
+                        placeholder="5"
+                      />
+                    </div>
+
+                    <div className="wizard-form-group">
+                      <label>Descrizione</label>
+                      <input
+                        type="text"
+                        value={reward.description}
+                        onChange={(e) => {
+                          const newRewards = [...formData.defaultRewards]
+                          newRewards[index].description = e.target.value
+                          handleInputChange('defaultRewards', newRewards)
+                        }}
+                        placeholder="5€ di sconto"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const newRewards = [...formData.defaultRewards, { points: '100', requiredTier: 'Iniziale', type: 'discount', value: '5', description: '5€ di sconto' }]
+                  handleInputChange('defaultRewards', newRewards)
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#f0f9ff',
+                  border: '2px dashed #3b82f6',
+                  borderRadius: '8px',
+                  color: '#3b82f6',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                + Aggiungi Reward
+              </button>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(3)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(5)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1278,116 +2005,167 @@ const EnterpriseWizard: React.FC = () => {
       // Step 5: Branding
       case 5:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Palette size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Palette size={32} color="#3b82f6" />
+                Branding Aziendale
+              </h2>
+              <p>Personalizza colori e identità visiva della tua piattaforma</p>
             </div>
-            <h2 className={styles.stepTitle}>Branding</h2>
-            <p className={styles.stepDescription}>
-              Personalizza colori e identità visiva della tua piattaforma
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Colore Primario</label>
-                  <div className={styles.colorInputGroup}>
+
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Definisci l'identità visiva del tuo programma loyalty</p>
+              </div>
+            </div>
+
+            {/* Card 1: Colori Brand */}
+            <div className="wizard-form-card">
+              <h3><Palette size={20} /> Colori Brand</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Colore Primario</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input
                       type="color"
-                      className={styles.colorInput}
                       value={formData.primaryColor}
                       onChange={(e) => handleInputChange('primaryColor', e.target.value)}
+                      style={{
+                        width: '60px',
+                        height: '40px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
                     />
                     <input
                       type="text"
-                      className={styles.input}
                       value={formData.primaryColor}
                       onChange={(e) => handleInputChange('primaryColor', e.target.value)}
+                      placeholder="#ef4444"
+                      style={{ flex: 1 }}
                     />
                   </div>
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Colore Secondario</label>
-                  <div className={styles.colorInputGroup}>
+
+                <div className="wizard-form-group">
+                  <label>Colore Secondario</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input
                       type="color"
-                      className={styles.colorInput}
                       value={formData.secondaryColor}
                       onChange={(e) => handleInputChange('secondaryColor', e.target.value)}
+                      style={{
+                        width: '60px',
+                        height: '40px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
                     />
                     <input
                       type="text"
-                      className={styles.input}
                       value={formData.secondaryColor}
                       onChange={(e) => handleInputChange('secondaryColor', e.target.value)}
+                      placeholder="#dc2626"
+                      style={{ flex: 1 }}
                     />
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Social Media Links */}
-              <div className={styles.socialSection}>
-                <h4><Globe size={16} className={styles.sectionIcon} /> Collegamenti Social</h4>
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}><Globe size={16} className={styles.labelIcon} /> Facebook</label>
-                    <input
-                      type="url"
-                      className={styles.input}
-                      placeholder="https://www.facebook.com/miazienda"
-                      value={formData.facebookUrl}
-                      onChange={(e) => handleInputChange('facebookUrl', e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}><Globe size={16} className={styles.labelIcon} /> Instagram</label>
-                    <input
-                      type="url"
-                      className={styles.input}
-                      placeholder="https://www.instagram.com/miazienda"
-                      value={formData.instagramUrl}
-                      onChange={(e) => handleInputChange('instagramUrl', e.target.value)}
-                    />
-                  </div>
+            {/* Card 2: Collegamenti Social */}
+            <div className="wizard-form-card">
+              <h3><Globe size={20} /> Collegamenti Social</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label><Globe size={16} /> Facebook</label>
+                  <input
+                    type="url"
+                    placeholder="https://www.facebook.com/miazienda"
+                    value={formData.facebookUrl}
+                    onChange={(e) => handleInputChange('facebookUrl', e.target.value)}
+                  />
                 </div>
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}><Users size={16} className={styles.labelIcon} /> LinkedIn</label>
-                    <input
-                      type="url"
-                      className={styles.input}
-                      placeholder="https://www.linkedin.com/company/miazienda"
-                      value={formData.linkedinUrl}
-                      onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}><MessageSquare size={16} className={styles.labelIcon} /> Twitter/X</label>
-                    <input
-                      type="url"
-                      className={styles.input}
-                      placeholder="https://twitter.com/miazienda"
-                      value={formData.twitterUrl}
-                      onChange={(e) => handleInputChange('twitterUrl', e.target.value)}
-                    />
-                  </div>
+                <div className="wizard-form-group">
+                  <label><Globe size={16} /> Instagram</label>
+                  <input
+                    type="url"
+                    placeholder="https://www.instagram.com/miazienda"
+                    value={formData.instagramUrl}
+                    onChange={(e) => handleInputChange('instagramUrl', e.target.value)}
+                  />
                 </div>
               </div>
 
-              <div className={styles.brandPreview}>
-                <h4><Palette size={16} className={styles.sectionIcon} /> Anteprima Brand</h4>
-                <div className={styles.mockupCard} style={{
-                  background: `linear-gradient(135deg, ${formData.primaryColor}, ${formData.secondaryColor})`
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label><Users size={16} /> LinkedIn</label>
+                  <input
+                    type="url"
+                    placeholder="https://www.linkedin.com/company/miazienda"
+                    value={formData.linkedinUrl}
+                    onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                  />
+                </div>
+                <div className="wizard-form-group">
+                  <label><MessageSquare size={16} /> Twitter/X</label>
+                  <input
+                    type="url"
+                    placeholder="https://twitter.com/miazienda"
+                    value={formData.twitterUrl}
+                    onChange={(e) => handleInputChange('twitterUrl', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Anteprima Brand */}
+            <div className="wizard-form-card">
+              <h3><Palette size={20} /> Anteprima Brand</h3>
+              <div style={{
+                background: `linear-gradient(135deg, ${formData.primaryColor}, ${formData.secondaryColor})`,
+                borderRadius: '12px',
+                padding: '40px',
+                textAlign: 'center',
+                color: 'white'
+              }}>
+                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+                  {formData.organizationName || 'La Tua Azienda'}
+                </h3>
+                <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '20px' }}>
+                  {formData.tagline || 'Sistema Loyalty Personalizzato'}
+                </p>
+                <div style={{
+                  display: 'inline-block',
+                  padding: '12px 24px',
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  backdropFilter: 'blur(10px)'
                 }}>
-                  <div className={styles.mockupContent}>
-                    <h3>{formData.organizationName || 'La Tua Azienda'}</h3>
-                    <p>{formData.tagline || 'Sistema Loyalty Personalizzato'}</p>
-                    <div className={styles.mockupButton}>
-                      Guadagna {formData.pointsName}
-                    </div>
-                  </div>
+                  Guadagna {formData.pointsName || 'Punti'}
                 </div>
               </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(4)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(6)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1395,107 +2173,172 @@ const EnterpriseWizard: React.FC = () => {
       // Step 6: Channels Integration
       case 6:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Zap size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Globe size={32} color="#3b82f6" />
+                Canali e Integrazione
+              </h2>
+              <p>Configura POS, E-commerce e canali di vendita</p>
             </div>
-            <h2 className={styles.stepTitle}>Canali e Integrazione</h2>
-            <p className={styles.stepDescription}>
-              Configura POS, E-commerce e canali di vendita
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.channelsGrid}>
-                <div className={styles.channelCard}>
-                  <div className={styles.channelHeader}>
-                    <Settings size={24} />
-                    <h4>POS Fisico</h4>
-                  </div>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="enablePOS"
-                      checked={formData.enablePOS}
-                      onChange={(e) => handleInputChange('enablePOS', e.target.checked)}
-                    />
-                    <label htmlFor="enablePOS" className={styles.toggleLabel}>
-                      Abilita integrazione POS
-                    </label>
-                  </div>
-                  {formData.enablePOS && (
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>Numero Dispositivi POS</label>
-                      <input
-                        type="number"
-                        className={styles.input}
-                        value={formData.posDevices}
-                        onChange={(e) => handleInputChange('posDevices', e.target.value)}
-                        min="1"
-                      />
+
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Seleziona i canali di vendita da integrare con il tuo programma loyalty</p>
+              </div>
+            </div>
+
+            {/* Card 1: POS Fisico */}
+            <div className="wizard-form-card">
+              <h3><Settings size={20} /> POS Fisico</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Abilita integrazione POS</h4>
+                      <p>Integra il sistema loyalty con il tuo punto vendita</p>
                     </div>
-                  )}
-                </div>
-
-                <div className={styles.channelCard}>
-                  <div className={styles.channelHeader}>
-                    <Globe size={24} />
-                    <h4>E-commerce</h4>
-                  </div>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="enableEcommerce"
-                      checked={formData.enableEcommerce}
-                      onChange={(e) => handleInputChange('enableEcommerce', e.target.checked)}
-                    />
-                    <label htmlFor="enableEcommerce" className={styles.toggleLabel}>
-                      Integra sito e-commerce
-                    </label>
-                  </div>
-                </div>
-
-                <div className={styles.channelCard}>
-                  <div className={styles.channelHeader}>
-                    <Smartphone size={24} />
-                    <h4>App Mobile</h4>
-                  </div>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="enableApp"
-                      checked={formData.enableApp}
-                      onChange={(e) => handleInputChange('enableApp', e.target.checked)}
-                    />
-                    <label htmlFor="enableApp" className={styles.toggleLabel}>
-                      App loyalty dedicata
-                    </label>
+                    <div
+                      className={`wizard-toggle-switch ${formData.enablePOS ? 'active' : ''}`}
+                      onClick={() => handleInputChange('enablePOS', !formData.enablePOS)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className={styles.integrationPreview}>
-                <h4>🔗 Canali Attivi</h4>
-                <div className={styles.activeChannels}>
-                  {formData.enablePOS && (
-                    <div className={styles.previewItem}>
-                      <Settings size={16} />
-                      <span>POS: {formData.posDevices} dispositivi</span>
+              {formData.enablePOS && (
+                <div className="wizard-form-row">
+                  <div className="wizard-form-group">
+                    <label>Numero Dispositivi POS</label>
+                    <input
+                      type="number"
+                      value={formData.posDevices}
+                      onChange={(e) => handleInputChange('posDevices', e.target.value)}
+                      min="1"
+                      placeholder="1"
+                    />
+                    <small className="wizard-form-hint">Quanti terminali POS vuoi configurare?</small>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Card 2: E-commerce */}
+            <div className="wizard-form-card">
+              <h3><Globe size={20} /> E-commerce</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Integra sito e-commerce</h4>
+                      <p>Permetti ai clienti di guadagnare punti anche online</p>
                     </div>
-                  )}
-                  {formData.enableEcommerce && (
-                    <div className={styles.previewItem}>
-                      <Globe size={16} />
-                      <span>E-commerce integrato</span>
+                    <div
+                      className={`wizard-toggle-switch ${formData.enableEcommerce ? 'active' : ''}`}
+                      onClick={() => handleInputChange('enableEcommerce', !formData.enableEcommerce)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
                     </div>
-                  )}
-                  {formData.enableApp && (
-                    <div className={styles.previewItem}>
-                      <Smartphone size={16} />
-                      <span>App mobile attiva</span>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Card 3: App Mobile */}
+            <div className="wizard-form-card">
+              <h3><Smartphone size={20} /> App Mobile</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>App loyalty dedicata</h4>
+                      <p>App mobile brandizzata per i tuoi clienti</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.enableApp ? 'active' : ''}`}
+                      onClick={() => handleInputChange('enableApp', !formData.enableApp)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Riepilogo Canali Attivi */}
+            <div className="wizard-form-card">
+              <h3><Zap size={20} /> Canali Attivi</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {formData.enablePOS && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px'
+                  }}>
+                    <Settings size={16} color="#3b82f6" />
+                    <span style={{ fontSize: '14px' }}>POS: {formData.posDevices} dispositivi</span>
+                  </div>
+                )}
+                {formData.enableEcommerce && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px'
+                  }}>
+                    <Globe size={16} color="#3b82f6" />
+                    <span style={{ fontSize: '14px' }}>E-commerce integrato</span>
+                  </div>
+                )}
+                {formData.enableApp && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px'
+                  }}>
+                    <Smartphone size={16} color="#3b82f6" />
+                    <span style={{ fontSize: '14px' }}>App mobile attiva</span>
+                  </div>
+                )}
+                {!formData.enablePOS && !formData.enableEcommerce && !formData.enableApp && (
+                  <div style={{
+                    padding: '20px',
+                    textAlign: 'center',
+                    color: '#9ca3af',
+                    fontSize: '14px'
+                  }}>
+                    Nessun canale selezionato
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(5)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(7)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1503,91 +2346,186 @@ const EnterpriseWizard: React.FC = () => {
       // Step 7: Marketing Campaigns
       case 7:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Bell size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <BarChart3 size={32} color="#3b82f6" />
+                Campagne Marketing
+              </h2>
+              <p>Configura automazioni e campagne di retention</p>
             </div>
-            <h2 className={styles.stepTitle}>Campagne Marketing</h2>
-            <p className={styles.stepDescription}>
-              Configura automazioni e campagne di retention
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.campaignsGrid}>
-                <div className={styles.campaignCard}>
-                  <h4>👋 Benvenuto Clienti</h4>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="welcomeCampaign"
-                      checked={formData.welcomeCampaign}
-                      onChange={(e) => handleInputChange('welcomeCampaign', e.target.checked)}
-                    />
-                    <label htmlFor="welcomeCampaign" className={styles.toggleLabel}>
-                      Attiva campagna benvenuto automatica
-                    </label>
-                  </div>
-                  <small className={styles.hint}>Email + SMS + bonus points per nuovi iscritti</small>
-                </div>
 
-                <div className={styles.campaignCard}>
-                  <h4>🎂 Compleanno Cliente</h4>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="birthdayRewards"
-                      checked={formData.birthdayRewards}
-                      onChange={(e) => handleInputChange('birthdayRewards', e.target.checked)}
-                    />
-                    <label htmlFor="birthdayRewards" className={styles.toggleLabel}>
-                      Regalo automatico compleanno
-                    </label>
-                  </div>
-                  <small className={styles.hint}>Reward speciale il giorno del compleanno</small>
-                </div>
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Attiva campagne automatiche per fidelizzare i clienti e aumentare le visite</p>
+              </div>
+            </div>
 
-                <div className={styles.campaignCard}>
-                  <h4>⏰ Riattivazione Clienti</h4>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="inactiveCampaign"
-                      checked={formData.inactiveCampaign}
-                      onChange={(e) => handleInputChange('inactiveCampaign', e.target.checked)}
-                    />
-                    <label htmlFor="inactiveCampaign" className={styles.toggleLabel}>
-                      Win-back per clienti inattivi
-                    </label>
-                  </div>
-                  <small className={styles.hint}>Campagna automatica dopo 30 giorni di inattività</small>
-                </div>
+            {/* Card 1: Benvenuto Clienti */}
+            <div className="wizard-form-card">
+              <h3><Users size={20} /> Benvenuto Clienti</h3>
 
-                <div className={styles.campaignCard}>
-                  <h4>🎄 Campagne Stagionali</h4>
-                  <div className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      id="seasonalCampaigns"
-                      checked={formData.seasonalCampaigns}
-                      onChange={(e) => handleInputChange('seasonalCampaigns', e.target.checked)}
-                    />
-                    <label htmlFor="seasonalCampaigns" className={styles.toggleLabel}>
-                      Promozioni Natale/Pasqua/Estate
-                    </label>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Attiva campagna benvenuto automatica</h4>
+                      <p>Email + SMS + bonus points per nuovi iscritti</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.welcomeCampaign ? 'active' : ''}`}
+                      onClick={() => handleInputChange('welcomeCampaign', !formData.welcomeCampaign)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
                   </div>
-                  <small className={styles.hint}>Campagne automatiche per festivitÃ  principali</small>
                 </div>
               </div>
+            </div>
 
-              <div className={styles.campaignPreview}>
-                <h4>📈 Automazioni Attive</h4>
-                <div className={styles.activeCampaigns}>
-                  {formData.welcomeCampaign && <span className={styles.campaignTag}>Benvenuto</span>}
-                  {formData.birthdayRewards && <span className={styles.campaignTag}>Compleanno</span>}
-                  {formData.inactiveCampaign && <span className={styles.campaignTag}>Win-back</span>}
-                  {formData.seasonalCampaigns && <span className={styles.campaignTag}>Stagionali</span>}
+            {/* Card 2: Compleanno Cliente */}
+            <div className="wizard-form-card">
+              <h3><Gift size={20} /> Compleanno Cliente</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Regalo automatico compleanno</h4>
+                      <p>Reward speciale il giorno del compleanno</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.birthdayRewards ? 'active' : ''}`}
+                      onClick={() => handleInputChange('birthdayRewards', !formData.birthdayRewards)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Card 3: Riattivazione Clienti */}
+            <div className="wizard-form-card">
+              <h3><Bell size={20} /> Riattivazione Clienti</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Win-back per clienti inattivi</h4>
+                      <p>Campagna automatica dopo 30 giorni di inattività</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.inactiveCampaign ? 'active' : ''}`}
+                      onClick={() => handleInputChange('inactiveCampaign', !formData.inactiveCampaign)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Campagne Stagionali */}
+            <div className="wizard-form-card">
+              <h3><Star size={20} /> Campagne Stagionali</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Promozioni Natale/Pasqua/Estate</h4>
+                      <p>Campagne automatiche per festività principali</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.seasonalCampaigns ? 'active' : ''}`}
+                      onClick={() => handleInputChange('seasonalCampaigns', !formData.seasonalCampaigns)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Automazioni Attive */}
+            <div className="wizard-form-card">
+              <h3><BarChart3 size={20} /> Automazioni Attive</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {formData.welcomeCampaign && (
+                  <span style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Benvenuto
+                  </span>
+                )}
+                {formData.birthdayRewards && (
+                  <span style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Compleanno
+                  </span>
+                )}
+                {formData.inactiveCampaign && (
+                  <span style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Win-back
+                  </span>
+                )}
+                {formData.seasonalCampaigns && (
+                  <span style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Stagionali
+                  </span>
+                )}
+                {!formData.welcomeCampaign && !formData.birthdayRewards && !formData.inactiveCampaign && !formData.seasonalCampaigns && (
+                  <span style={{
+                    padding: '20px',
+                    color: '#9ca3af',
+                    fontSize: '14px'
+                  }}>
+                    Nessuna automazione attiva
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(6)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(8)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1595,65 +2533,151 @@ const EnterpriseWizard: React.FC = () => {
       // Step 8: Team Setup
       case 8:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <UserPlus size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <UserPlus size={32} color="#3b82f6" />
+                Team e Permessi
+              </h2>
+              <p>Invita i membri del tuo team e configura i ruoli</p>
             </div>
-            <h2 className={styles.stepTitle}>Setup Team</h2>
-            <p className={styles.stepDescription}>
-              Invita i membri del tuo team e configura i ruoli
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Nome Admin</label>
+
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Configura il team che gestirà il programma loyalty</p>
+              </div>
+            </div>
+
+            {/* Card 1: Amministratore Principale */}
+            <div className="wizard-form-card">
+              <h3><Shield size={20} /> Amministratore Principale</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Nome Admin</label>
                   <input
                     type="text"
-                    className={styles.input}
                     placeholder="Mario Rossi"
                     value={formData.adminName}
                     onChange={(e) => handleInputChange('adminName', e.target.value)}
                   />
                 </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Email Admin</label>
+                <div className="wizard-form-group">
+                  <label>Email Admin</label>
                   <input
                     type="email"
-                    className={styles.input}
                     placeholder="admin@tuaazienda.it"
                     value={formData.adminEmail}
                     onChange={(e) => handleInputChange('adminEmail', e.target.value)}
                   />
                 </div>
               </div>
+            </div>
 
-              <div className={styles.teamRoles}>
-                <h4>👑 Ruoli Disponibili</h4>
-                <div className={styles.rolesList}>
-                  <div className={styles.roleItem}>
-                    <Shield size={20} />
-                    <div>
-                      <strong>Admin</strong>
-                      <small>Accesso completo, gestione utenti</small>
-                    </div>
+            {/* Card 2: Ruoli Disponibili */}
+            <div className="wizard-form-card">
+              <h3><Users size={20} /> Ruoli Disponibili</h3>
+              <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>
+                Sistema di ruoli e permessi per il tuo team
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '16px',
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    backgroundColor: '#dbeafe',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Shield size={20} color="#3b82f6" />
                   </div>
-                  <div className={styles.roleItem}>
-                    <Users size={20} />
-                    <div>
-                      <strong>Manager</strong>
-                      <small>Gestione clienti e campagne</small>
-                    </div>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '15px', display: 'block', marginBottom: '4px' }}>Admin</strong>
+                    <small style={{ color: '#6b7280', fontSize: '14px' }}>Accesso completo, gestione utenti e configurazioni</small>
                   </div>
-                  <div className={styles.roleItem}>
-                    <BarChart3 size={20} />
-                    <div>
-                      <strong>Operatore</strong>
-                      <small>Visualizzazione dati e reports</small>
-                    </div>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '16px',
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    backgroundColor: '#dbeafe',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Users size={20} color="#3b82f6" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '15px', display: 'block', marginBottom: '4px' }}>Manager</strong>
+                    <small style={{ color: '#6b7280', fontSize: '14px' }}>Gestione clienti, campagne e rewards</small>
+                  </div>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '16px',
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    backgroundColor: '#dbeafe',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <BarChart3 size={20} color="#3b82f6" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '15px', display: 'block', marginBottom: '4px' }}>Operatore</strong>
+                    <small style={{ color: '#6b7280', fontSize: '14px' }}>Visualizzazione dati e reports, sola lettura</small>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(7)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(9)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1661,23 +2685,42 @@ const EnterpriseWizard: React.FC = () => {
       // Step 9: POS Integration
       case 9:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <CreditCard size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <CreditCard size={32} color="#3b82f6" />
+                Integrazione POS
+              </h2>
+              <p>Configura terminale POS per tessere loyalty NFC e transazioni</p>
             </div>
-            <h2 className={styles.stepTitle}>Integrazione POS ZCS</h2>
-            <p className={styles.stepDescription}>
-              Configura terminale POS per tessere loyalty NFC e transazioni
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.posConfig}>
-                <div className={styles.inputGroup}>
-                  <label>Modello POS ZCS</label>
+
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Configura il terminale POS ZCS per lettura NFC e pagamenti</p>
+              </div>
+            </div>
+
+            {/* Card 1: Modello POS */}
+            <div className="wizard-form-card">
+              <h3><CreditCard size={20} /> Modello POS ZCS</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Seleziona Modello</label>
                   <select
                     value={formData.posModel}
                     onChange={(e) => handleInputChange('posModel', e.target.value)}
-                    className={styles.input}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      backgroundColor: 'white'
+                    }}
                   >
                     <option value="Z108">Z108 - Android POS (Consigliato)</option>
                     <option value="Z100">Z100 - Smart POS</option>
@@ -1688,11 +2731,23 @@ const EnterpriseWizard: React.FC = () => {
                     <option value="Z45">Z45 - Card Reader USB</option>
                   </select>
                 </div>
+              </div>
 
-                <div className={styles.inputGroup}>
-                  <label>Connessione</label>
-                  <div className={styles.radioGroup}>
-                    <label className={styles.radioOption}>
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <label>Tipo Connessione</label>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      border: formData.posConnection === 'usb' ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      backgroundColor: formData.posConnection === 'usb' ? '#f0f9ff' : 'white',
+                      flex: 1
+                    }}>
                       <input
                         type="radio"
                         name="posConnection"
@@ -1700,9 +2755,19 @@ const EnterpriseWizard: React.FC = () => {
                         checked={formData.posConnection === 'usb'}
                         onChange={(e) => handleInputChange('posConnection', e.target.value)}
                       />
-                      <span>USB</span>
+                      <span style={{ fontWeight: '500' }}>USB</span>
                     </label>
-                    <label className={styles.radioOption}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      border: formData.posConnection === 'bluetooth' ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      backgroundColor: formData.posConnection === 'bluetooth' ? '#f0f9ff' : 'white',
+                      flex: 1
+                    }}>
                       <input
                         type="radio"
                         name="posConnection"
@@ -1710,92 +2775,111 @@ const EnterpriseWizard: React.FC = () => {
                         checked={formData.posConnection === 'bluetooth'}
                         onChange={(e) => handleInputChange('posConnection', e.target.value)}
                       />
-                      <span>Bluetooth</span>
+                      <span style={{ fontWeight: '500' }}>Bluetooth</span>
                     </label>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className={styles.posFeatures}>
-                <h4>Funzionalità POS</h4>
-                <div className={styles.featureGrid}>
-                  <div className={styles.featureCard}>
-                    <div className={styles.featureHeader}>
-                      <Printer size={20} />
-                      <span>Stampa Ricevute</span>
-                      <input
-                        type="checkbox"
-                        className={styles.featureToggle}
-                        checked={formData.enableReceiptPrint}
-                        onChange={(e) => handleInputChange('enableReceiptPrint', e.target.checked)}
-                      />
-                    </div>
-                    <small>Stampa automatica ricevute con QR code loyalty</small>
+            {/* Card 2: Funzionalità POS */}
+            <div className="wizard-form-card">
+              <h3><Settings size={20} /> Funzionalità POS</h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Stampa Ricevute */}
+                <div className="wizard-toggle-group">
+                  <div className="wizard-toggle-info">
+                    <h4>Stampa Ricevute</h4>
+                    <p>Stampa automatica ricevute con QR code loyalty</p>
                   </div>
-
-                  <div className={styles.featureCard}>
-                    <div className={styles.featureHeader}>
-                      <Smartphone size={20} />
-                      <span>Lettore NFC</span>
-                      <input
-                        type="checkbox"
-                        className={styles.featureToggle}
-                        checked={formData.enableNFC}
-                        onChange={(e) => handleInputChange('enableNFC', e.target.checked)}
-                      />
-                    </div>
-                    <small>Lettura tessere loyalty contactless</small>
+                  <div
+                    className={`wizard-toggle-switch ${formData.enableReceiptPrint ? 'active' : ''}`}
+                    onClick={() => handleInputChange('enableReceiptPrint', !formData.enableReceiptPrint)}
+                  >
+                    <div className="wizard-toggle-slider"></div>
                   </div>
+                </div>
 
-                  <div className={styles.featureCard}>
-                    <div className={styles.featureHeader}>
-                      <CreditCard size={20} />
-                      <span>EMV Chip & PIN</span>
-                      <input
-                        type="checkbox"
-                        className={styles.featureToggle}
-                        checked={formData.enableEMV}
-                        onChange={(e) => handleInputChange('enableEMV', e.target.checked)}
-                      />
-                    </div>
-                    <small>Pagamenti sicuri con chip e PIN</small>
+                {/* Lettore NFC */}
+                <div className="wizard-toggle-group">
+                  <div className="wizard-toggle-info">
+                    <h4>Lettore NFC</h4>
+                    <p>Lettura tessere loyalty contactless</p>
                   </div>
+                  <div
+                    className={`wizard-toggle-switch ${formData.enableNFC ? 'active' : ''}`}
+                    onClick={() => handleInputChange('enableNFC', !formData.enableNFC)}
+                  >
+                    <div className="wizard-toggle-slider"></div>
+                  </div>
+                </div>
 
-                  <div className={styles.featureCard}>
-                    <div className={styles.featureHeader}>
-                      <Shield size={20} />
-                      <span>PinPad Sicuro</span>
-                      <input
-                        type="checkbox"
-                        className={styles.featureToggle}
-                        checked={formData.enablePinPad}
-                        onChange={(e) => handleInputChange('enablePinPad', e.target.checked)}
-                      />
-                    </div>
-                    <small>Crittografia PIN avanzata DUKPT</small>
+                {/* EMV Chip & PIN */}
+                <div className="wizard-toggle-group">
+                  <div className="wizard-toggle-info">
+                    <h4>EMV Chip & PIN</h4>
+                    <p>Pagamenti sicuri con chip e PIN</p>
+                  </div>
+                  <div
+                    className={`wizard-toggle-switch ${formData.enableEMV ? 'active' : ''}`}
+                    onClick={() => handleInputChange('enableEMV', !formData.enableEMV)}
+                  >
+                    <div className="wizard-toggle-slider"></div>
+                  </div>
+                </div>
+
+                {/* PinPad Sicuro */}
+                <div className="wizard-toggle-group">
+                  <div className="wizard-toggle-info">
+                    <h4>PinPad Sicuro</h4>
+                    <p>Crittografia PIN avanzata DUKPT</p>
+                  </div>
+                  <div
+                    className={`wizard-toggle-switch ${formData.enablePinPad ? 'active' : ''}`}
+                    onClick={() => handleInputChange('enablePinPad', !formData.enablePinPad)}
+                  >
+                    <div className="wizard-toggle-slider"></div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className={styles.posPreview}>
-                <div className={styles.previewHeader}>
-                  <h4>Test Connessione POS</h4>
-                  <div className={styles.posStatus}>
-                    <div className={styles.statusDot}></div>
-                    <span>POS {formData.posModel} Configurato</span>
-                  </div>
-                </div>
-                
-                {/* <POSTestPanel
-                  posModel={formData.posModel}
-                  posConnection={formData.posConnection}
-                  onTestComplete={(results) => {
-                    console.log('Test POS completato:', results)
-                    // Salva risultati test in formData se necessario
-                    handleInputChange('posTestResults', results)
-                  }}
-                /> */}
+            {/* Card 3: Status POS */}
+            <div className="wizard-form-card">
+              <h3><Settings size={20} /> Configurazione POS</h3>
+              <div style={{
+                padding: '20px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                border: '1px solid #bfdbfe',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#3b82f6',
+                  animation: 'pulse 2s infinite'
+                }}></div>
+                <span style={{ fontSize: '14px', color: '#1e40af', fontWeight: '500' }}>
+                  POS {formData.posModel} Configurato ({formData.posConnection.toUpperCase()})
+                </span>
               </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(8)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(10)}>
+                Continua
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1803,56 +2887,100 @@ const EnterpriseWizard: React.FC = () => {
       // Step 10: Notifications
       case 10:
         return (
-          <div className={styles.stepContent}>
-            <div className={`${styles.stepIcon} ${styles.mainStepIcon}`}>
-              <Bell size={32} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <Bell size={32} color="#3b82f6" />
+                Notifiche e Comunicazioni
+              </h2>
+              <p>Configura comunicazioni e alerts per clienti e team</p>
             </div>
-            <h2 className={styles.stepTitle}>Notifiche</h2>
-            <p className={styles.stepDescription}>
-              Configura comunicazioni e alerts per clienti e team
-            </p>
-            
-            <div className={styles.form}>
-              <div className={styles.notificationSettings}>
-                <div className={styles.settingItem}>
-                  <div className={styles.settingInfo}>
-                    <strong>Email Notifications</strong>
-                    <small>Notifiche via email per eventi importanti</small>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className={styles.toggle}
-                    checked={formData.enableEmailNotifications}
-                    onChange={(e) => handleInputChange('enableEmailNotifications', e.target.checked.toString())}
-                  />
-                </div>
 
-                <div className={styles.settingItem}>
-                  <div className={styles.settingInfo}>
-                    <strong>Push Notifications</strong>
-                    <small>Notifiche push per app mobile</small>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className={styles.toggle}
-                    checked={formData.enablePushNotifications}
-                    onChange={(e) => handleInputChange('enablePushNotifications', e.target.checked.toString())}
-                  />
-                </div>
+            <div className="wizard-info-box">
+              <div className="wizard-info-box-icon">
+                <AlertCircle size={20} />
+              </div>
+              <div className="wizard-info-box-content">
+                <p>Attiva i canali di comunicazione per interagire con i tuoi clienti</p>
+              </div>
+            </div>
 
-                <div className={styles.settingItem}>
-                  <div className={styles.settingInfo}>
-                    <strong>Email di Benvenuto</strong>
-                    <small>Email automatica per nuovi clienti</small>
+            {/* Card 1: Email Notifications */}
+            <div className="wizard-form-card">
+              <h3><Mail size={20} /> Email Notifications</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Email Notifications</h4>
+                      <p>Notifiche via email per eventi importanti</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.enableEmailNotifications ? 'active' : ''}`}
+                      onClick={() => handleInputChange('enableEmailNotifications', !formData.enableEmailNotifications)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
                   </div>
-                  <input
-                    type="checkbox"
-                    className={styles.toggle}
-                    checked={formData.welcomeEmailEnabled}
-                    onChange={(e) => handleInputChange('welcomeEmailEnabled', e.target.checked.toString())}
-                  />
                 </div>
               </div>
+            </div>
+
+            {/* Card 2: Push Notifications */}
+            <div className="wizard-form-card">
+              <h3><Smartphone size={20} /> Push Notifications</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Push Notifications</h4>
+                      <p>Notifiche push per app mobile</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.enablePushNotifications ? 'active' : ''}`}
+                      onClick={() => handleInputChange('enablePushNotifications', !formData.enablePushNotifications)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Email di Benvenuto */}
+            <div className="wizard-form-card">
+              <h3><Mail size={20} /> Email di Benvenuto</h3>
+
+              <div className="wizard-form-row">
+                <div className="wizard-form-group">
+                  <div className="wizard-toggle-group">
+                    <div className="wizard-toggle-info">
+                      <h4>Email di Benvenuto</h4>
+                      <p>Email automatica per nuovi clienti</p>
+                    </div>
+                    <div
+                      className={`wizard-toggle-switch ${formData.welcomeEmailEnabled ? 'active' : ''}`}
+                      onClick={() => handleInputChange('welcomeEmailEnabled', !formData.welcomeEmailEnabled)}
+                    >
+                      <div className="wizard-toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(9)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button className="wizard-btn wizard-btn-next" onClick={() => setCurrentStep(11)}>
+                Review & Deploy
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         )
@@ -1860,64 +2988,384 @@ const EnterpriseWizard: React.FC = () => {
       // Step 11: Deploy Complete
       case 11:
         return (
-          <div className={styles.stepContent}>
-            <div className={styles.successIcon}>
-              <CheckCircle2 size={48} />
+          <div className="wizard-content-wrapper">
+            <div className="wizard-page-header">
+              <h2>
+                <CheckCircle2 size={32} color="#22c55e" />
+                Review & Launch
+              </h2>
+              <p><strong>{formData.organizationName}</strong> è configurata e pronta per il lancio</p>
             </div>
-            <h2 className={styles.stepTitle}>Deploy Completato!</h2>
-            <p className={styles.stepDescription}>
-              <strong>{formData.organizationName}</strong> è configurata e pronta per il lancio
-            </p>
-            
-            <div className={styles.deployFeatures}>
-              <div className={styles.feature}>
-                <div className={styles.featureIcon}>
-                  <Building2 size={16} />
-                </div>
-                <span>Organizzazione creata</span>
+
+            <div className="wizard-info-box" style={{ backgroundColor: '#f0fdf4', borderColor: '#86efac' }}>
+              <div className="wizard-info-box-icon" style={{ backgroundColor: '#dcfce7' }}>
+                <CheckCircle2 size={20} color="#22c55e" />
               </div>
-              <div className={styles.feature}>
-                <div className={styles.featureIcon}>
-                  <Gift size={16} />
-                </div>
-                <span>Sistema loyalty configurato</span>
-              </div>
-              <div className={styles.feature}>
-                <div className={styles.featureIcon}>
-                  <Palette size={16} />
-                </div>
-                <span>Branding personalizzato</span>
-              </div>
-              <div className={styles.feature}>
-                <div className={styles.featureIcon}>
-                  <Users size={16} />
-                </div>
-                <span>Team setup completato</span>
-              </div>
-              <div className={styles.feature}>
-                <div className={styles.featureIcon}>
-                  <CreditCard size={16} />
-                </div>
-                <span>POS ZCS integrato</span>
-              </div>
-              <div className={styles.feature}>
-                <div className={styles.featureIcon}>
-                  <Bell size={16} />
-                </div>
-                <span>Notifiche attivate</span>
+              <div className="wizard-info-box-content">
+                <p style={{ color: '#166534' }}>Tutte le configurazioni sono state salvate. Rivedi il riepilogo e lancia la tua azienda!</p>
               </div>
             </div>
 
+            {/* Card: Riepilogo Configurazione */}
+            <div className="wizard-form-card">
+              <h3><Settings size={20} /> Riepilogo Configurazione</h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '8px',
+                  border: '1px solid #86efac'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    backgroundColor: '#dcfce7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Building2 size={16} color="#22c55e" />
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#166534' }}>Organizzazione creata</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '8px',
+                  border: '1px solid #86efac'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    backgroundColor: '#dcfce7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Gift size={16} color="#22c55e" />
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#166534' }}>Sistema loyalty configurato</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '8px',
+                  border: '1px solid #86efac'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    backgroundColor: '#dcfce7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Palette size={16} color="#22c55e" />
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#166534' }}>Branding personalizzato</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '8px',
+                  border: '1px solid #86efac'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    backgroundColor: '#dcfce7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Users size={16} color="#22c55e" />
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#166534' }}>Team setup completato</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '8px',
+                  border: '1px solid #86efac'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    backgroundColor: '#dcfce7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <CreditCard size={16} color="#22c55e" />
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#166534' }}>POS ZCS integrato</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '8px',
+                  border: '1px solid #86efac'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    backgroundColor: '#dcfce7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Bell size={16} color="#22c55e" />
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#166534' }}>Notifiche attivate</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Loading State */}
             {loading && (
-              <div className={styles.loadingBar}>
-                <div className={styles.loadingProgress}></div>
+              <div className="wizard-form-card">
+                <div style={{
+                  padding: '20px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    marginBottom: '12px'
+                  }}>
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+                      animation: 'loading 2s infinite'
+                    }}></div>
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#6b7280' }}>
+                    Reindirizzamento alla dashboard in corso...
+                  </p>
+                </div>
               </div>
             )}
 
-            <div className={styles.successActions}>
-              <p className={styles.successMessage}>
-Reindirizzamento alla dashboard in corso...
+            {/* Navigation Buttons */}
+            <div className="wizard-nav-buttons">
+              <button className="wizard-btn wizard-btn-back" onClick={() => setCurrentStep(10)}>
+                <ArrowLeft size={18} />
+                Indietro
+              </button>
+              <button
+                className="wizard-btn wizard-btn-next"
+                onClick={async () => {
+                  setLoading(true)
+                  try {
+                    const result = await createOrganization()
+
+                    if (mode === 'admin') {
+                      // In admin mode, save result and go to confirmation step
+                      setCreatedOrganization(result)
+                      setCurrentStep(12) // Step 12 = Confirmation
+                      setLoading(false)
+                    } else {
+                      // In client mode, redirect to dashboard
+                      setTimeout(() => {
+                        window.location.href = '/dashboard'
+                      }, 2000)
+                    }
+                  } catch (error) {
+                    console.error('Setup failed:', error)
+                    setLoading(false)
+                  }
+                }}
+                disabled={loading}
+                style={{
+                  backgroundColor: loading ? '#9ca3af' : (mode === 'admin' ? '#3b82f6' : '#22c55e'),
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading
+                  ? (mode === 'admin' ? 'Invio in corso...' : 'Creazione in corso...')
+                  : (mode === 'admin' ? 'Crea e Invia Invito' : 'Crea Azienda')
+                }
+                <CheckCircle2 size={18} />
+              </button>
+            </div>
+          </div>
+        )
+
+      // Step 12: Confirmation (Admin Mode Only)
+      case 12:
+        if (mode !== 'admin' || !createdOrganization) return null
+
+        const activationUrl = `${window.location.origin}${createdOrganization.activationUrl}`
+
+        return (
+          <div className="wizard-step-content">
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <div className="wizard-step-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.5rem',
+                  boxShadow: '0 10px 30px rgba(34, 197, 94, 0.3)'
+                }}>
+                  <CheckCircle2 size={48} color="white" />
+                </div>
+                <h2 className="step-title" style={{ fontSize: '32px', marginBottom: '0.5rem' }}>
+                  ✅ Azienda Creata con Successo!
+                </h2>
+                <p className="step-description" style={{ fontSize: '16px', color: '#6b7280' }}>
+                  L'azienda <strong>{createdOrganization.organization.name}</strong> è stata creata e attende il pagamento
+                </p>
+              </div>
+
+              <div style={{
+              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+              border: '2px solid #3b82f6',
+              borderRadius: '16px',
+              padding: '2rem',
+              marginBottom: '2rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                <div style={{
+                  background: '#3b82f6',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  display: 'flex'
+                }}>
+                  <Mail size={24} color="white" />
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e40af', margin: 0 }}>
+                  Link di Attivazione
+                </h3>
+              </div>
+
+              <p style={{ fontSize: '14px', color: '#1e40af', marginBottom: '1rem' }}>
+                Invia questo link al proprietario dell'azienda per completare l'attivazione e il pagamento:
               </p>
+
+              <div style={{
+                background: 'white',
+                border: '2px dashed #3b82f6',
+                borderRadius: '12px',
+                padding: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '1rem'
+              }}>
+                <input
+                  type="text"
+                  value={activationUrl}
+                  readOnly
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '14px',
+                    fontFamily: 'monospace',
+                    color: '#1e40af',
+                    background: 'transparent'
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(activationUrl)
+                    showSuccess('Link copiato!', 'Il link di attivazione è stato copiato negli appunti')
+                  }}
+                  style={{
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
+                >
+                  📋 Copia Link
+                </button>
+              </div>
+
+              <div style={{
+                background: '#fef3c7',
+                border: '1px solid #fbbf24',
+                borderRadius: '8px',
+                padding: '12px',
+                display: 'flex',
+                alignItems: 'start',
+                gap: '8px'
+              }}>
+                <AlertCircle size={20} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ fontSize: '13px', color: '#92400e', margin: 0 }}>
+                  <strong>Importante:</strong> L'azienda sarà attiva solo dopo che il proprietario completerà il pagamento tramite questo link.
+                </p>
+              </div>
+            </div>
+
+              <div className="wizard-nav-buttons">
+                <button
+                  className="wizard-btn wizard-btn-next"
+                  onClick={() => navigate('/admin/business-owners')}
+                  style={{
+                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    width: '100%'
+                  }}
+                >
+                  Torna a Gestione Aziende
+                  <ArrowRight size={18} />
+                </button>
+              </div>
             </div>
           </div>
         )
@@ -1928,82 +3376,57 @@ Reindirizzamento alla dashboard in corso...
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${
-      darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' : 'bg-gradient-to-br from-orange-50 via-white to-pink-50'
-    }`}>
-      {/* Animated Background */}
-      {darkMode ? (
-        <div className="fixed inset-0 pointer-events-none">
-          <SparklesCore
-            background="transparent"
-            minSize={1.2}
-            maxSize={3}
-            particleDensity={120}
-            className="w-full h-full"
-            particleColor="#ef4444"
-          />
-        </div>
-      ) : (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-red-200 to-pink-200 rounded-full mix-blend-normal filter blur-3xl animate-blob" />
-            <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-br from-pink-200 to-red-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-2000" />
-            <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-br from-red-100 to-pink-100 rounded-full mix-blend-normal filter blur-3xl animate-blob animation-delay-4000" />
-          </div>
-        </div>
-      )}
-
-      {/* Dark Mode Toggle - Fixed Top Right */}
-      <div className="fixed top-6 right-6 z-50">
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          onClick={toggleDarkMode}
-          className={`p-3 rounded-xl transition-all duration-300 shadow-lg ${
-            darkMode
-              ? 'bg-gray-800/80 backdrop-blur-xl text-yellow-400 hover:bg-gray-700/80 border border-white/10'
-              : 'bg-white/80 backdrop-blur-xl text-gray-700 hover:bg-gray-100/80 border border-gray-200 shadow-xl'
-          }`}
-          aria-label="Toggle dark mode"
-        >
-          {darkMode ? <Sun size={24} /> : <Moon size={24} />}
-        </motion.button>
-      </div>
+    <div className="enterprise-wizard-admin min-h-screen bg-gray-50" style={{ background: '#f8fafc' }}>
 
       <div className="min-h-screen flex relative">
-        {/* Sidebar with Steps - Glassmorphism */}
+        {/* Sidebar with Steps */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className={`w-[300px] min-h-screen border-r backdrop-blur-xl sticky top-0 ${
-            darkMode
-              ? 'bg-white/10 border-white/10'
-              : 'bg-white/80 border-gray-200 shadow-2xl'
-          }`}
-          style={{ height: '100vh', overflowY: 'auto' }}
+          className="wizard-sidebar w-[300px] min-h-screen border-r bg-white border-gray-200 shadow-lg"
+          style={{ height: '100vh', overflowY: 'auto', background: '#1e293b' }}
         >
           <div className="p-6">
-            {/* Logo Header */}
+            {/* Logo Header with Close Button */}
             <div className="mb-8">
-              <h1 className={`text-2xl font-black mb-1 ${
-                darkMode
-                  ? 'bg-gradient-to-r from-red-400 via-pink-400 to-red-500 bg-clip-text text-transparent'
-                  : 'bg-gradient-to-r from-red-600 via-pink-600 to-red-700 bg-clip-text text-transparent'
-              }`}>
-                OMNILY PRO
-              </h1>
-              <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <div className="flex items-start justify-between mb-2">
+                <h1 className="text-2xl font-black mb-1" style={{
+                  background: 'linear-gradient(to right, #60a5fa, #3b82f6)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  OMNILY PRO
+                </h1>
+                <button
+                  onClick={() => navigate('/admin/organizations')}
+                  className="transition-all duration-200"
+                  style={{
+                    color: '#94a3b8',
+                    background: 'none',
+                    border: 'none',
+                    padding: '4px',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#60a5fa'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+                  title="Chiudi e torna alle aziende"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <p className="text-xs font-semibold" style={{ color: '#94a3b8' }}>
                 Enterprise Wizard
               </p>
             </div>
 
             {/* Auto-save Indicator */}
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-6 ${
-              darkMode ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
+              false ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
             }`}>
               <CheckCircle2 size={14} className="text-green-500" />
-              <span className={`text-xs font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>
+              <span className={`text-xs font-semibold ${false ? 'text-green-400' : 'text-green-700'}`}>
                 Auto-salvataggio attivo
               </span>
             </div>
@@ -2023,14 +3446,14 @@ Reindirizzamento alla dashboard in corso...
                     transition={{ delay: index * 0.05 }}
                     className={`relative group cursor-pointer rounded-xl p-3 transition-all duration-300 ${
                       isActive
-                        ? darkMode
-                          ? 'bg-gradient-to-r from-red-600/20 to-pink-600/20 border border-red-500/30 shadow-lg shadow-red-500/10'
-                          : 'bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-lg'
+                        ? false
+                          ? 'bg-gradient-to-r from-blue-400/20 to-blue-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10'
+                          : 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 shadow-lg'
                         : isCompleted
-                        ? darkMode
+                        ? false
                           ? 'bg-white/5 border border-white/10 hover:bg-white/10'
                           : 'bg-white/60 border border-gray-200 hover:bg-white/80'
-                        : darkMode
+                        : false
                         ? 'bg-white/5 border border-white/10 hover:bg-white/10 opacity-60'
                         : 'bg-white/40 border border-gray-200 hover:bg-white/60 opacity-60'
                     }`}
@@ -2040,7 +3463,7 @@ Reindirizzamento alla dashboard in corso...
                       <div className={`absolute left-[22px] top-full w-0.5 h-2 ${
                         isCompleted
                           ? 'bg-gradient-to-b from-green-500 to-green-400'
-                          : darkMode ? 'bg-white/10' : 'bg-gray-200'
+                          : false ? 'bg-white/10' : 'bg-gray-200'
                       }`} />
                     )}
 
@@ -2050,8 +3473,8 @@ Reindirizzamento alla dashboard in corso...
                         isCompleted
                           ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
                           : isActive
-                          ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/30'
-                          : darkMode
+                          ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-lg shadow-blue-500/30'
+                          : false
                           ? 'bg-white/10 text-gray-400'
                           : 'bg-gray-200 text-gray-600'
                       }`}>
@@ -2062,13 +3485,13 @@ Reindirizzamento alla dashboard in corso...
                       <div className="flex-1 min-w-0">
                         <div className={`font-bold text-xs mb-0.5 truncate ${
                           isActive
-                            ? darkMode ? 'text-red-400' : 'text-red-600'
-                            : darkMode ? 'text-gray-300' : 'text-gray-700'
+                            ? false ? 'text-blue-400' : 'text-blue-500'
+                            : false ? 'text-gray-300' : 'text-gray-700'
                         }`}>
                           {step.title}
                         </div>
                         <div className={`text-[10px] truncate ${
-                          darkMode ? 'text-gray-500' : 'text-gray-500'
+                          false ? 'text-gray-500' : 'text-gray-500'
                         }`}>
                           {step.subtitle}
                         </div>
@@ -2077,8 +3500,8 @@ Reindirizzamento alla dashboard in corso...
                       {/* Icon */}
                       <div className={`flex-shrink-0 ${
                         isActive
-                          ? darkMode ? 'text-red-400' : 'text-red-600'
-                          : darkMode ? 'text-gray-600' : 'text-gray-400'
+                          ? false ? 'text-blue-400' : 'text-blue-500'
+                          : false ? 'text-gray-600' : 'text-gray-400'
                       }`}>
                         <IconComponent size={16} />
                       </div>
@@ -2097,7 +3520,7 @@ Reindirizzamento alla dashboard in corso...
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`border-b backdrop-blur-xl sticky top-0 z-40 ${
-              darkMode
+              false
                 ? 'bg-white/5 border-white/10'
                 : 'bg-white/80 border-gray-200 shadow-lg'
             }`}
@@ -2105,15 +3528,15 @@ Reindirizzamento alla dashboard in corso...
             <div className="px-8 py-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className={`text-2xl font-black mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <h2 className={`text-2xl font-black mb-1 ${false ? 'text-white' : 'text-gray-900'}`}>
                     {steps[currentStep]?.title}
                   </h2>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className={`text-sm ${false ? 'text-gray-400' : 'text-gray-600'}`}>
                     {steps[currentStep]?.subtitle}
                   </p>
                 </div>
                 <div className={`px-4 py-2 rounded-xl font-bold text-sm ${
-                  darkMode
+                  false
                     ? 'bg-white/10 text-gray-300 border border-white/20'
                     : 'bg-gray-100 text-gray-700 border border-gray-200'
                 }`}>
@@ -2123,21 +3546,37 @@ Reindirizzamento alla dashboard in corso...
 
               {/* Progress Bar */}
               <div className={`w-full h-2 rounded-full overflow-hidden ${
-                darkMode ? 'bg-white/10' : 'bg-gray-200'
+                false ? 'bg-white/10' : 'bg-gray-200'
               }`}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
                   transition={{ duration: 0.5 }}
-                  className="h-full bg-gradient-to-r from-red-600 to-pink-600 rounded-full shadow-lg shadow-red-500/50"
+                  className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full shadow-lg shadow-blue-500/50"
                 />
               </div>
             </div>
           </motion.div>
 
           {/* Content Area with AnimatePresence */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-8">
+          <div
+            className="flex-1"
+            style={{
+              position: 'relative',
+              height: '100vh'
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                overflowY: 'scroll',
+                overflowX: 'hidden'
+              }}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentStep}
@@ -2145,11 +3584,6 @@ Reindirizzamento alla dashboard in corso...
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  className={`p-8 rounded-2xl border backdrop-blur-xl ${
-                    darkMode
-                      ? 'bg-white/5 border-white/10'
-                      : 'bg-white/80 border-gray-200 shadow-xl'
-                  }`}
                 >
                   {renderStep()}
                 </motion.div>
@@ -2162,7 +3596,7 @@ Reindirizzamento alla dashboard in corso...
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`border-t backdrop-blur-xl sticky bottom-0 ${
-              darkMode
+              false
                 ? 'bg-white/5 border-white/10'
                 : 'bg-white/80 border-gray-200 shadow-2xl'
             }`}
@@ -2176,7 +3610,7 @@ Reindirizzamento alla dashboard in corso...
                     animate={{ opacity: 1, x: 0 }}
                     onClick={handlePrevious}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 transition-all duration-300 hover:scale-105 ${
-                      darkMode
+                      false
                         ? 'bg-white/5 border-white/20 text-white hover:bg-white/10'
                         : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400 shadow-lg hover:shadow-xl'
                     }`}
@@ -2196,7 +3630,7 @@ Reindirizzamento alla dashboard in corso...
                     animate={{ opacity: 1, x: 0 }}
                     onClick={handleNext}
                     disabled={isStepDisabled(currentStep)}
-                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/80 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-xl font-bold shadow-xl shadow-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/80 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {getNextButtonText()}
                     <ArrowRight size={20} />

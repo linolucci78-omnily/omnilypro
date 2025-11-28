@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Building2,
   Users,
@@ -23,9 +24,13 @@ import { organizationsApi } from '../lib/supabase'
 import type { Organization } from '../lib/supabase'
 import PageLoader from '../components/UI/PageLoader'
 import EditOrganizationModal from '../components/EditOrganizationModal'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
+import { useToast } from '../contexts/ToastContext'
 import './Admin.css'
 
 const Admin: React.FC = () => {
+  const navigate = useNavigate()
+  const { showSuccess, showError } = useToast()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -33,6 +38,8 @@ const Admin: React.FC = () => {
   const [selectedOrgs, setSelectedOrgs] = useState<string[]>([])
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null)
 
   useEffect(() => {
     loadOrganizations()
@@ -52,19 +59,19 @@ const Admin: React.FC = () => {
 
   const filteredOrganizations = organizations.filter(org => {
     const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         org.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         org.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesFilter = filterStatus === 'all' || 
-                         (filterStatus === 'active' && org.is_active) ||
-                         (filterStatus === 'inactive' && !org.is_active)
-    
+      org.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesFilter = filterStatus === 'all' ||
+      (filterStatus === 'active' && org.is_active) ||
+      (filterStatus === 'inactive' && !org.is_active)
+
     return matchesSearch && matchesFilter
   })
 
   const handleSelectOrg = (orgId: string) => {
-    setSelectedOrgs(prev => 
-      prev.includes(orgId) 
+    setSelectedOrgs(prev =>
+      prev.includes(orgId)
         ? prev.filter(id => id !== orgId)
         : [...prev, orgId]
     )
@@ -72,8 +79,8 @@ const Admin: React.FC = () => {
 
   const handleSelectAll = () => {
     setSelectedOrgs(
-      selectedOrgs.length === filteredOrganizations.length 
-        ? [] 
+      selectedOrgs.length === filteredOrganizations.length
+        ? []
         : filteredOrganizations.map(org => org.id)
     )
   }
@@ -89,21 +96,20 @@ const Admin: React.FC = () => {
   }
 
   const handleDeleteOrganization = async (org: Organization) => {
-    const confirmMessage = `⚠️ ATTENZIONE ⚠️\n\nSei sicuro di voler eliminare "${org.name}"?\n\nQuesta azione:\n• Eliminerà TUTTI i dati dell'azienda\n• Eliminerà tutti i clienti associati\n• Eliminerà tutte le transazioni\n• È IRREVERSIBILE\n\nDigita "${org.name}" per confermare:`
+    setOrgToDelete(org)
+    setShowDeleteModal(true)
+  }
 
-    const confirmation = window.prompt(confirmMessage)
+  const confirmDelete = async () => {
+    if (!orgToDelete) return
 
-    if (confirmation === org.name) {
-      try {
-        await organizationsApi.delete(org.id)
-        await loadOrganizations()
-        alert(`✅ Azienda "${org.name}" eliminata con successo`)
-      } catch (error) {
-        console.error('Error deleting organization:', error)
-        alert('❌ Errore durante l\'eliminazione dell\'azienda')
-      }
-    } else if (confirmation !== null) {
-      alert('❌ Nome azienda non corretto. Eliminazione annullata.')
+    try {
+      await organizationsApi.delete(orgToDelete.id)
+      await loadOrganizations()
+      showSuccess('Azienda eliminata', `"${orgToDelete.name}" è stata eliminata con successo`)
+    } catch (error) {
+      console.error('Error deleting organization:', error)
+      showError('Errore eliminazione', 'Si è verificato un errore durante l\'eliminazione dell\'azienda')
     }
   }
 
@@ -118,6 +124,16 @@ const Admin: React.FC = () => {
         alert('Errore durante l\'eliminazione delle organizzazioni')
       }
     }
+  }
+
+  const handleEnterDashboard = (org: Organization) => {
+    // Salva l'organizzazione selezionata in localStorage
+    localStorage.setItem('selectedOrganizationId', org.id)
+    localStorage.setItem('selectedOrganizationName', org.name)
+    localStorage.setItem('selectedOrganizationSlug', org.slug)
+
+    // Apri la dashboard in una nuova tab
+    window.open('/dashboard', '_blank')
   }
 
   const formatDate = (dateString: string) => {
@@ -143,13 +159,16 @@ const Admin: React.FC = () => {
             <p>Gestisci tutte le organizzazioni del sistema</p>
           </div>
         </div>
-        
+
         <div className="header-actions">
           <button className="btn-secondary">
             <Download size={18} />
             Esporta CSV
           </button>
-          <button className="btn-primary">
+          <button
+            className="btn-primary"
+            onClick={() => navigate('/admin/new-organization')}
+          >
             <Plus size={18} />
             Nuova Azienda
           </button>
@@ -167,7 +186,7 @@ const Admin: React.FC = () => {
             <div className="stat-label">Aziende Totali</div>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon active">
             <Users size={24} />
@@ -177,7 +196,7 @@ const Admin: React.FC = () => {
             <div className="stat-label">Aziende Attive</div>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon warning">
             <CreditCard size={24} />
@@ -187,7 +206,7 @@ const Admin: React.FC = () => {
             <div className="stat-label">Con POS Attivo</div>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon">
             <Calendar size={24} />
@@ -217,11 +236,11 @@ const Admin: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="filter-group">
           <Filter size={18} />
-          <select 
-            value={filterStatus} 
+          <select
+            value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
           >
             <option value="all">Tutti</option>
@@ -229,7 +248,7 @@ const Admin: React.FC = () => {
             <option value="inactive">Solo Inattivi</option>
           </select>
         </div>
-        
+
         {selectedOrgs.length > 0 && (
           <div className="selected-actions">
             <span>{selectedOrgs.length} selezionate</span>
@@ -250,11 +269,14 @@ const Admin: React.FC = () => {
             <thead>
               <tr>
                 <th>
-                  <input
-                    type="checkbox"
-                    checked={selectedOrgs.length === filteredOrganizations.length && filteredOrganizations.length > 0}
-                    onChange={handleSelectAll}
-                  />
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={filteredOrganizations.length > 0 && selectedOrgs.length === filteredOrganizations.length}
+                      onChange={handleSelectAll}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </th>
                 <th>Azienda</th>
                 <th>Contatti</th>
@@ -273,20 +295,23 @@ const Admin: React.FC = () => {
               {filteredOrganizations.map(org => (
                 <tr key={org.id} className={selectedOrgs.includes(org.id) ? 'selected' : ''}>
                   <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedOrgs.includes(org.id)}
-                      onChange={() => handleSelectOrg(org.id)}
-                    />
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrgs.includes(org.id)}
+                        onChange={() => handleSelectOrg(org.id)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
                   </td>
-                  
+
                   <td>
                     <div className="org-info">
                       <div className="org-logo">
                         {org.logo_url ? (
                           <img src={org.logo_url} alt="Logo" />
                         ) : (
-                          <div 
+                          <div
                             className="logo-placeholder"
                             style={{ backgroundColor: org.primary_color }}
                           >
@@ -300,7 +325,7 @@ const Admin: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  
+
                   <td>
                     <div className="contact-info">
                       {org.email && (
@@ -323,14 +348,14 @@ const Admin: React.FC = () => {
                       )}
                     </div>
                   </td>
-                  
+
                   <td>
                     <div className="location-info">
                       <MapPin size={14} />
                       <span>{org.address || 'Non specificato'}</span>
                     </div>
                   </td>
-                  
+
                   <td>
                     <div className="pos-info">
                       {org.pos_enabled ? (
@@ -343,7 +368,7 @@ const Admin: React.FC = () => {
                       )}
                     </div>
                   </td>
-                  
+
                   <td>
                     <div className="plan-info">
                       <span className={`plan-badge ${org.plan_type}`}>
@@ -351,7 +376,7 @@ const Admin: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  
+
                   <td style={{ textAlign: 'center' }}>
                     <div className="users-count">
                       <Users size={12} />
@@ -374,26 +399,26 @@ const Admin: React.FC = () => {
                       <span className="revenue-period">/mese</span>
                     </div>
                   </td>
-                  
+
                   <td style={{ textAlign: 'center' }}>
                     {getStatusBadge(org.is_active)}
                   </td>
-                  
+
                   <td>
                     <div className="date-compact">
-                      {new Date(org.created_at).toLocaleDateString('it-IT', { 
-                        day: '2-digit', 
+                      {new Date(org.created_at).toLocaleDateString('it-IT', {
+                        day: '2-digit',
                         month: '2-digit',
                         year: '2-digit'
                       })}
                     </div>
                   </td>
-                  
+
                   <td>
                     <div className="actions-menu">
-                      <button 
+                      <button
                         className="action-btn primary"
-                        onClick={() => window.open('/dashboard', '_blank')}
+                        onClick={() => handleEnterDashboard(org)}
                         title="Accedi al Dashboard Azienda"
                       >
                         <Monitor size={16} />
@@ -431,7 +456,7 @@ const Admin: React.FC = () => {
             </tbody>
           </table>
         )}
-        
+
         {!loading && filteredOrganizations.length === 0 && (
           <div className="empty-state">
             <Building2 size={48} />
@@ -466,6 +491,18 @@ const Admin: React.FC = () => {
           setSelectedOrganization(null)
         }}
         onSave={handleSaveOrganization}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setOrgToDelete(null)
+        }}
+        onConfirm={confirmDelete}
+        itemName={orgToDelete?.name || ''}
+        itemType="azienda"
       />
     </div>
   )

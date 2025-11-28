@@ -1,0 +1,103 @@
+/* Enterprise Wizard - Admin Style Override */
+
+/* Hide admin sidebar and topbar when wizard is active */
+.admin-layout:has(.enterprise-wizard-admin) .admin-sidebar {
+  display: none !important;
+}
+
+.admin-layout:has(.enterprise-wizard-admin) .admin-topbar {
+  display: none !important;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.enterprise-wizard-admin *::-webkit-scrollbar {
+  display: none;
+}
+
+.enterprise-wizard-admin * {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Make wizard take full width */
+.admin-layout:has(.enterprise-wizard-admin) .admin-main {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.enterprise-wizard-admin {
+  background: #f8fafc !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+.enterprise-wizard-admin .wizard-sidebar {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.enterprise-wizard-admin .wizard-sidebar h1 {
+  background: linear-gradient(to right, #60a5fa, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.enterprise-wizard-admin .wizard-sidebar p,
+.enterprise-wizard-admin .wizard-sidebar .nav-text {
+  color: #94a3b8 !important;
+}
+
+.enterprise-wizard-admin .step-item.active {
+  background: linear-gradient(to right, rgba(96, 165, 250, 0.1), rgba(59, 130, 246, 0.1)) !important;
+  border-color: #60a5fa !important;
+}
+
+.enterprise-wizard-admin .step-item.active .step-title {
+  color: #60a5fa !important;
+}
+
+.enterprise-wizard-admin .step-number.active {
+  background: linear-gradient(to right, #60a5fa, #3b82f6) !important;
+}
+
+.enterprise-wizard-admin .step-item.completed {
+  background: rgba(16, 185, 129, 0.05) !important;
+}
+
+.enterprise-wizard-admin .progress-bar-fill {
+  background: linear-gradient(to right, #60a5fa, #3b82f6) !important;
+}
+
+.enterprise-wizard-admin .btn-primary {
+  background: linear-gradient(to right, #60a5fa, #3b82f6) !important;
+  border: none !important;
+}
+
+.enterprise-wizard-admin .btn-primary:hover {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+}
+
+.enterprise-wizard-admin .main-content {
+  background: white !important;
+}
+
+.enterprise-wizard-admin .wizard-header {
+  background: white !important;
+  border-color: #e2e8f0 !important;
+}
+
+.enterprise-wizard-admin .wizard-footer {
+  background: white !important;
+  border-color: #e2e8f0 !important;
+}
+
+.enterprise-wizard-admin .form-card {
+  background: white !important;
+  border-color: #e2e8f0 !important;
+}

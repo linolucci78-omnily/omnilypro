@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Building2, 
-  Users, 
-  Search, 
-  Filter, 
-  Plus, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Building2,
+  Users,
+  User,
+  Search,
+  Filter,
+  Plus,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
   Calendar,
   Phone,
   Mail,
@@ -22,10 +23,25 @@ import {
   CheckCircle2,
   Clock,
   Shield,
-  Zap
+  Zap,
+  X,
+  FileText,
+  History,
+  Ban,
+  RefreshCw,
+  Key,
+  Settings,
+  Save
 } from 'lucide-react'
 import PageLoader from '../components/UI/PageLoader'
 import './BusinessOwners.css'
+import '../components/EditOrganizationModal.css'
+import InviteBusinessModal from '../components/InviteBusinessModal'
+import ChangePlanModal from '../components/Admin/ChangePlanModal'
+import SuspendAccountModal from '../components/Admin/SuspendAccountModal'
+import AccountHistoryModal from '../components/Admin/AccountHistoryModal'
+import { businessOwnerService } from '../services/businessOwnerService'
+import { useToast } from '../contexts/ToastContext'
 
 interface BusinessOwner {
   id: string
@@ -49,12 +65,27 @@ interface BusinessOwner {
 }
 
 const BusinessOwners: React.FC = () => {
+  const toast = useToast()
   const [owners, setOwners] = useState<BusinessOwner[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterPlan, setFilterPlan] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [selectedOwners, setSelectedOwners] = useState<string[]>([])
+
+  // Modal states
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showMoreMenu, setShowMoreMenu] = useState<string | null>(null)
+  const [selectedOwner, setSelectedOwner] = useState<BusinessOwner | null>(null)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+
+  // New modal states
+  const [showChangePlanModal, setShowChangePlanModal] = useState(false)
+  const [showSuspendModal, setShowSuspendModal] = useState(false)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
 
   // Mock data per demo - proprietari aziende che usano OMNILY PRO
   const mockOwners: BusinessOwner[] = [
@@ -175,10 +206,109 @@ const BusinessOwners: React.FC = () => {
 
   const handleSelectAll = () => {
     setSelectedOwners(
-      selectedOwners.length === filteredOwners.length 
-        ? [] 
+      selectedOwners.length === filteredOwners.length
+        ? []
         : filteredOwners.map(owner => owner.id)
     )
+  }
+
+  // Action handlers
+  const handleViewDetails = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowDetailsModal(true)
+  }
+
+  const handleEdit = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowEditModal(true)
+  }
+
+  const handleManagePermissions = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowPermissionsModal(true)
+  }
+
+  const handleSendEmail = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowEmailModal(true)
+  }
+
+  const handleToggleMoreMenu = (ownerId: string) => {
+    setShowMoreMenu(showMoreMenu === ownerId ? null : ownerId)
+  }
+
+  const handleChangePlan = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowChangePlanModal(true)
+    setShowMoreMenu(null)
+  }
+
+  const handleChangePlanConfirm = async (newPlan: 'free' | 'pro' | 'enterprise') => {
+    if (!selectedOwner) return
+
+    try {
+      await businessOwnerService.changePlan(selectedOwner.id, newPlan, 'Admin')
+      toast.success(`Piano cambiato con successo a ${newPlan.toUpperCase()}`)
+
+      // Aggiorna localmente
+      setOwners(prev => prev.map(o =>
+        o.id === selectedOwner.id ? { ...o, planType: newPlan } : o
+      ))
+    } catch (error: any) {
+      toast.error(error.message || 'Errore durante il cambio piano')
+    }
+  }
+
+  const handleSuspendAccount = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowSuspendModal(true)
+    setShowMoreMenu(null)
+  }
+
+  const handleSuspendAccountConfirm = async (reason: string, duration?: 'temporary' | 'permanent') => {
+    if (!selectedOwner) return
+
+    try {
+      await businessOwnerService.suspendAccount(selectedOwner.id, reason, duration || 'temporary', 'Admin')
+      toast.success(`Account di ${selectedOwner.company} sospeso con successo`)
+
+      // Aggiorna localmente
+      setOwners(prev => prev.map(o =>
+        o.id === selectedOwner.id ? { ...o, planStatus: 'cancelled' as any } : o
+      ))
+    } catch (error: any) {
+      toast.error(error.message || 'Errore durante la sospensione')
+    }
+  }
+
+  const handleExportData = (owner: BusinessOwner) => {
+    try {
+      const csvContent = businessOwnerService.exportToCSV(owner)
+      const filename = `${owner.company.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}`
+      businessOwnerService.downloadCSV(csvContent, filename)
+      toast.success(`Dati di ${owner.company} esportati con successo`)
+    } catch (error) {
+      toast.error('Errore durante l\'esportazione')
+    }
+    setShowMoreMenu(null)
+  }
+
+  const handleViewHistory = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowHistoryModal(true)
+    setShowMoreMenu(null)
+  }
+
+  const handleResetPassword = async (owner: BusinessOwner) => {
+    if (window.confirm(`Inviare email di reset password a ${owner.email}?`)) {
+      try {
+        await businessOwnerService.sendPasswordReset(owner.email)
+        toast.success(`Email di reset inviata a ${owner.email}`)
+      } catch (error: any) {
+        toast.error(error.message || 'Errore durante l\'invio email')
+      }
+      setShowMoreMenu(null)
+    }
   }
 
   const getPlanBadge = (planType: string) => {
@@ -401,11 +531,14 @@ const BusinessOwners: React.FC = () => {
             <thead>
               <tr>
                 <th>
-                  <input
-                    type="checkbox"
-                    checked={selectedOwners.length === filteredOwners.length && filteredOwners.length > 0}
-                    onChange={handleSelectAll}
-                  />
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={selectedOwners.length === filteredOwners.length && filteredOwners.length > 0}
+                      onChange={handleSelectAll}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </th>
                 <th>Proprietario</th>
                 <th>Azienda</th>
@@ -423,11 +556,14 @@ const BusinessOwners: React.FC = () => {
               {filteredOwners.map(owner => (
                 <tr key={owner.id} className={selectedOwners.includes(owner.id) ? 'selected' : ''}>
                   <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedOwners.includes(owner.id)}
-                      onChange={() => handleSelectOwner(owner.id)}
-                    />
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={selectedOwners.includes(owner.id)}
+                        onChange={() => handleSelectOwner(owner.id)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
                   </td>
                   
                   <td>
@@ -515,21 +651,70 @@ const BusinessOwners: React.FC = () => {
                   
                   <td>
                     <div className="actions-menu">
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleViewDetails(owner)}
+                        title="Visualizza Dettagli"
+                      >
                         <Eye size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleEdit(owner)}
+                        title="Modifica Organizzazione"
+                      >
                         <Edit size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleManagePermissions(owner)}
+                        title="Gestisci Permessi"
+                      >
                         <Shield size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleSendEmail(owner)}
+                        title="Invia Email"
+                      >
                         <Mail size={16} />
                       </button>
-                      <button className="action-btn">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleToggleMoreMenu(owner.id)}
+                        title="Altre Azioni"
+                      >
                         <MoreVertical size={16} />
                       </button>
+
+                      {/* More Actions Dropdown */}
+                      {showMoreMenu === owner.id && (
+                        <div className="more-actions-dropdown">
+                          <button onClick={() => handleChangePlan(owner, 'pro')}>
+                            <Zap size={16} />
+                            Cambia Piano
+                          </button>
+                          <button onClick={() => handleViewHistory(owner)}>
+                            <History size={16} />
+                            Storico Attività
+                          </button>
+                          <button onClick={() => handleExportData(owner)}>
+                            <Download size={16} />
+                            Esporta Dati
+                          </button>
+                          <button onClick={() => handleResetPassword(owner)}>
+                            <Key size={16} />
+                            Reset Password
+                          </button>
+                          <button
+                            onClick={() => handleSuspendAccount(owner)}
+                            className="danger"
+                          >
+                            <Ban size={16} />
+                            Sospendi Account
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -546,6 +731,425 @@ const BusinessOwners: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedOwner && (
+        <>
+          <div className="edit-org-overlay" onClick={() => setShowDetailsModal(false)} />
+          <div className="edit-org-modal">
+            {/* Header */}
+            <div className="edit-org-header">
+              <div className="edit-org-header-content">
+                <Building2 size={24} />
+                <div>
+                  <h2>Dettagli Organizzazione</h2>
+                  <p>{selectedOwner.company}</p>
+                </div>
+              </div>
+              <button className="edit-org-close-btn" onClick={() => setShowDetailsModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="edit-org-content">
+              <div className="details-grid">
+                <div className="detail-section">
+                  <h3><Users size={18} /> Proprietario</h3>
+                  <div className="detail-row">
+                    <span className="detail-label">Nome:</span>
+                    <span className="detail-value">{selectedOwner.name}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Email:</span>
+                    <span className="detail-value">{selectedOwner.email}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Telefono:</span>
+                    <span className="detail-value">{selectedOwner.phone || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="detail-section">
+                  <h3><Building2 size={18} /> Azienda</h3>
+                  <div className="detail-row">
+                    <span className="detail-label">Nome:</span>
+                    <span className="detail-value">{selectedOwner.company}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Tipo:</span>
+                    <span className="detail-value">{selectedOwner.businessType}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Indirizzo:</span>
+                    <span className="detail-value">{selectedOwner.address || 'N/A'}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">P.IVA:</span>
+                    <span className="detail-value">{selectedOwner.vatNumber || 'N/A'}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Sito Web:</span>
+                    <span className="detail-value">{selectedOwner.website || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="detail-section">
+                  <h3><CreditCard size={18} /> Piano & Fatturazione</h3>
+                  <div className="detail-row">
+                    <span className="detail-label">Piano:</span>
+                    <span className="detail-value">{getPlanBadge(selectedOwner.planType)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Stato:</span>
+                    <span className="detail-value">{getStatusBadge(selectedOwner.planStatus)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Ricavi:</span>
+                    <span className="detail-value">{formatCurrency(selectedOwner.monthlyRevenue)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Prossima Fattura:</span>
+                    <span className="detail-value">{selectedOwner.nextBilling ? formatDate(selectedOwner.nextBilling) : 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="detail-section">
+                  <h3><TrendingUp size={18} /> Statistiche</h3>
+                  <div className="detail-row">
+                    <span className="detail-label">Clienti:</span>
+                    <span className="detail-value">{selectedOwner.totalCustomers.toLocaleString()}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">POS:</span>
+                    <span className="detail-value">{selectedOwner.posEnabled ? 'Attivo' : 'Non attivo'}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Ticket:</span>
+                    <span className="detail-value">{selectedOwner.supportTickets}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Iscrizione:</span>
+                    <span className="detail-value">{formatDate(selectedOwner.joinDate)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Ultimo Login:</span>
+                    <span className="detail-value">{selectedOwner.lastLogin ? formatDate(selectedOwner.lastLogin) : 'Mai'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="edit-org-footer">
+              <button className="btn-secondary" onClick={() => setShowDetailsModal(false)}>
+                Chiudi
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedOwner && (
+        <>
+          <div className="edit-org-overlay" onClick={() => setShowEditModal(false)} />
+          <div className="edit-org-modal">
+            {/* Header */}
+            <div className="edit-org-header">
+              <div className="edit-org-header-content">
+                <Edit size={24} />
+                <div>
+                  <h2>Modifica Organizzazione</h2>
+                  <p>{selectedOwner.company}</p>
+                </div>
+              </div>
+              <button className="edit-org-close-btn" onClick={() => setShowEditModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="edit-org-content">
+              <form className="edit-form">
+                <div className="form-group">
+                  <label className="form-label">
+                    <User size={16} />
+                    Nome Proprietario
+                  </label>
+                  <input type="text" defaultValue={selectedOwner.name} className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <Mail size={16} />
+                    Email
+                  </label>
+                  <input type="email" defaultValue={selectedOwner.email} className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <Phone size={16} />
+                    Telefono
+                  </label>
+                  <input type="tel" defaultValue={selectedOwner.phone} className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <Building2 size={16} />
+                    Nome Azienda
+                  </label>
+                  <input type="text" defaultValue={selectedOwner.company} className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <Zap size={16} />
+                    Tipo di Business
+                  </label>
+                  <input type="text" defaultValue={selectedOwner.businessType} className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <CreditCard size={16} />
+                    Piano
+                  </label>
+                  <select defaultValue={selectedOwner.planType} className="form-select">
+                    <option value="free">FREE</option>
+                    <option value="pro">PRO</option>
+                    <option value="enterprise">ENTERPRISE</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+
+            {/* Footer */}
+            <div className="edit-org-footer">
+              <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
+                Annulla
+              </button>
+              <button type="submit" className="btn-primary">
+                <Save size={18} />
+                Salva Modifiche
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Permissions Modal */}
+      {showPermissionsModal && selectedOwner && (
+        <>
+          <div className="edit-org-overlay" onClick={() => setShowPermissionsModal(false)} />
+          <div className="edit-org-modal">
+            {/* Header */}
+            <div className="edit-org-header">
+              <div className="edit-org-header-content">
+                <Shield size={24} />
+                <div>
+                  <h2>Gestisci Permessi</h2>
+                  <p>{selectedOwner.company}</p>
+                </div>
+              </div>
+              <button className="edit-org-close-btn" onClick={() => setShowPermissionsModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="edit-org-content">
+              <div className="permissions-list">
+                <div className="permission-item">
+                  <div className="permission-info">
+                    <Shield size={20} />
+                    <div>
+                      <h4>Accesso POS</h4>
+                      <p>Abilita/disabilita l'accesso al sistema POS</p>
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input type="checkbox" defaultChecked={selectedOwner.posEnabled} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+                <div className="permission-item">
+                  <div className="permission-info">
+                    <Users size={20} />
+                    <div>
+                      <h4>Gestione Utenti</h4>
+                      <p>Consenti di aggiungere/rimuovere utenti</p>
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input type="checkbox" defaultChecked={true} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+                <div className="permission-item">
+                  <div className="permission-info">
+                    <FileText size={20} />
+                    <div>
+                      <h4>Report Avanzati</h4>
+                      <p>Accesso ai report e analitiche avanzate</p>
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input type="checkbox" defaultChecked={selectedOwner.planType !== 'free'} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+                <div className="permission-item">
+                  <div className="permission-info">
+                    <Settings size={20} />
+                    <div>
+                      <h4>Impostazioni Azienda</h4>
+                      <p>Modifica impostazioni e configurazioni</p>
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input type="checkbox" defaultChecked={true} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="edit-org-footer">
+              <button className="btn-secondary" onClick={() => setShowPermissionsModal(false)}>
+                Chiudi
+              </button>
+              <button className="btn-primary">
+                <Save size={18} />
+                Salva Permessi
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Send Email Modal */}
+      {showEmailModal && selectedOwner && (
+        <>
+          <div className="edit-org-overlay" onClick={() => setShowEmailModal(false)} />
+          <div className="edit-org-modal">
+            {/* Header */}
+            <div className="edit-org-header">
+              <div className="edit-org-header-content">
+                <Mail size={24} />
+                <div>
+                  <h2>Invia Email</h2>
+                  <p>{selectedOwner.name}</p>
+                </div>
+              </div>
+              <button className="edit-org-close-btn" onClick={() => setShowEmailModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="edit-org-content">
+              <form className="email-form">
+                <div className="form-group">
+                  <label className="form-label">
+                    <Mail size={16} />
+                    Destinatario
+                  </label>
+                  <input type="email" value={selectedOwner.email} disabled className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <FileText size={16} />
+                    Oggetto
+                  </label>
+                  <input type="text" placeholder="Inserisci oggetto..." className="form-input" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <Edit size={16} />
+                    Messaggio
+                  </label>
+                  <textarea rows={6} placeholder="Scrivi il tuo messaggio..." className="form-textarea"></textarea>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <Settings size={16} />
+                    Template
+                  </label>
+                  <select className="form-select">
+                    <option value="">Personalizzato</option>
+                    <option value="welcome">Email di Benvenuto</option>
+                    <option value="upgrade">Invito Upgrade Piano</option>
+                    <option value="reminder">Promemoria Fattura</option>
+                    <option value="support">Richiesta Feedback</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+
+            {/* Footer */}
+            <div className="edit-org-footer">
+              <button type="button" className="btn-secondary" onClick={() => setShowEmailModal(false)}>
+                Annulla
+              </button>
+              <button type="submit" className="btn-primary">
+                <Mail size={18} />
+                Invia Email
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      {/* Invite Modal */}
+      <InviteBusinessModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+      />
+
+      {/* Change Plan Modal */}
+      {selectedOwner && (
+        <ChangePlanModal
+          isOpen={showChangePlanModal}
+          onClose={() => setShowChangePlanModal(false)}
+          businessOwner={{
+            id: selectedOwner.id,
+            name: selectedOwner.name,
+            email: selectedOwner.email,
+            company: selectedOwner.company,
+            planType: selectedOwner.planType
+          }}
+          onConfirm={handleChangePlanConfirm}
+        />
+      )}
+
+      {/* Suspend Account Modal */}
+      {selectedOwner && (
+        <SuspendAccountModal
+          isOpen={showSuspendModal}
+          onClose={() => setShowSuspendModal(false)}
+          businessOwner={{
+            id: selectedOwner.id,
+            name: selectedOwner.name,
+            email: selectedOwner.email,
+            company: selectedOwner.company,
+            planType: selectedOwner.planType
+          }}
+          onConfirm={handleSuspendAccountConfirm}
+        />
+      )}
+
+      {/* Account History Modal */}
+      {selectedOwner && (
+        <AccountHistoryModal
+          isOpen={showHistoryModal}
+          onClose={() => setShowHistoryModal(false)}
+          businessOwner={{
+            id: selectedOwner.id,
+            name: selectedOwner.name,
+            email: selectedOwner.email,
+            company: selectedOwner.company
+          }}
+          onLoadHistory={businessOwnerService.loadHistory.bind(businessOwnerService)}
+        />
+      )}
     </div>
   )
 }
