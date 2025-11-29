@@ -170,8 +170,8 @@ const ProfileSettings: React.FC = () => {
 
   if (!user || !userData) {
     return (
-      <div className="profile-loading">
-        <div className="spinner"></div>
+      <div className="founder-profile-loading">
+        <div className="founder-spinner"></div>
         <p>Caricamento profilo...</p>
       </div>
     )
@@ -190,21 +190,49 @@ const ProfileSettings: React.FC = () => {
             {formData.avatar_url ? (
               <img src={formData.avatar_url} alt={displayName} />
             ) : (
-              <div className="avatar-placeholder">
+              <div className="founder-avatar-placeholder">
                 <UserIcon size={80} />
               </div>
             )}
             {uploading && (
-              <div className="avatar-uploading">
-                <div className="spinner-small"></div>
+              <div className="founder-avatar-uploading">
+                <div className="founder-spinner-small"></div>
               </div>
             )}
             <button
-              className="avatar-edit-btn"
+              className="founder-avatar-edit-btn"
               onClick={handleAvatarClick}
               disabled={uploading}
+              style={{
+                position: 'absolute',
+                bottom: '8px',
+                right: '8px',
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: '#0f172a',
+                color: 'white',
+                border: '3px solid white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 10000
+              }}
             >
-              <Camera size={18} />
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
             </button>
           </div>
           <span className="founder-badge">
@@ -216,17 +244,17 @@ const ProfileSettings: React.FC = () => {
         <p className="founder-title">Founder & CEO of OmnilyPro</p>
 
         <div className="founder-meta">
-          <div className="meta-item">
+          <div className="founder-meta-item">
             <MapPin size={14} />
             <span>Italia</span>
           </div>
-          <div className="meta-item">
+          <div className="founder-meta-item">
             <Globe size={14} />
             <a href="https://omnilypro.com" target="_blank" rel="noopener noreferrer">
               omnilypro.com
             </a>
           </div>
-          <div className="meta-item">
+          <div className="founder-meta-item">
             <Mail size={14} />
             <span>{formData.email}</span>
           </div>
@@ -243,12 +271,12 @@ const ProfileSettings: React.FC = () => {
 
       {/* Content Grid */}
       <form onSubmit={handleSubmit} className="founder-content">
-        <div className="content-left">
+        <div className="founder-content-left">
           {/* Executive Bio */}
           <div className="founder-card">
-            <div className="card-header-inline">
+            <div className="founder-card-header-inline">
               <h3>Bio Esecutiva</h3>
-              <button type="button" className="btn-ai">
+              <button type="button" className="founder-btn-ai">
                 <Sparkles size={14} />
                 Migliora con AI
               </button>
@@ -257,7 +285,7 @@ const ProfileSettings: React.FC = () => {
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              className="bio-textarea"
+              className="founder-bio-textarea"
               placeholder="Descrivi la tua esperienza, visione e ruolo come Founder di OmnilyPro. Cosa ti guida nel creare soluzioni innovative per il settore retail e POS?"
               rows={6}
             />
@@ -266,46 +294,46 @@ const ProfileSettings: React.FC = () => {
           {/* Dettagli Personali */}
           <div className="founder-card">
             <h3>Dettagli Personali</h3>
-            <div className="form-grid-2col">
-              <div className="form-group">
+            <div className="founder-form-grid-2col">
+              <div className="founder-form-group">
                 <label>Nome</label>
                 <input
                   type="text"
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
-                  className="form-input"
+                  className="founder-form-input"
                   placeholder="Il tuo nome"
                 />
               </div>
-              <div className="form-group">
+              <div className="founder-form-group">
                 <label>Cognome</label>
                 <input
                   type="text"
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
-                  className="form-input"
+                  className="founder-form-input"
                   placeholder="Il tuo cognome"
                 />
               </div>
-              <div className="form-group">
+              <div className="founder-form-group">
                 <label>Email Personale</label>
                 <input
                   type="email"
                   value={formData.email}
                   disabled
-                  className="form-input"
+                  className="founder-form-input"
                 />
               </div>
-              <div className="form-group">
+              <div className="founder-form-group">
                 <label>Telefono</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="form-input"
+                  className="founder-form-input"
                   placeholder="+39 123 456 7890"
                 />
               </div>
@@ -313,18 +341,18 @@ const ProfileSettings: React.FC = () => {
           </div>
         </div>
 
-        <div className="content-right">
+        <div className="founder-content-right">
           {/* Founder ID Card */}
           <div className="founder-id-card">
-            <div className="id-header">
+            <div className="founder-id-header">
               <Crown size={18} />
               <span>Founder ID</span>
             </div>
-            <div className="id-code">{getFounderId()}</div>
-            <p className="id-description">
+            <div className="founder-id-code">{getFounderId()}</div>
+            <p className="founder-id-description">
               Questo ID garantisce accesso amministrativo completo su tutte le istanze della piattaforma OmnilyPro. Mantienilo riservato.
             </p>
-            <button type="button" className="btn-copy-id" onClick={copyFounderId}>
+            <button type="button" className="founder-btn-copy-id" onClick={copyFounderId}>
               <Copy size={14} />
               Copia ID
             </button>
@@ -332,19 +360,19 @@ const ProfileSettings: React.FC = () => {
 
           {/* Profilo Pubblico */}
           <div className="founder-card">
-            <div className="card-header-inline">
+            <div className="founder-card-header-inline">
               <h4>Profilo Pubblico</h4>
-              <a href={`https://omnilypro.com/team/${user?.id}`} target="_blank" rel="noopener noreferrer" className="btn-icon">
+              <a href={`https://omnilypro.com/team/${user?.id}`} target="_blank" rel="noopener noreferrer" className="founder-btn-icon">
                 <ExternalLink size={14} />
               </a>
             </div>
-            <a href={`https://omnilypro.com/team/${user?.id}`} target="_blank" rel="noopener noreferrer" className="public-profile-link">
+            <a href={`https://omnilypro.com/team/${user?.id}`} target="_blank" rel="noopener noreferrer" className="founder-public-profile-link">
               omnilypro.com/team/founder
             </a>
           </div>
 
           {/* Save Button */}
-          <button type="submit" className="btn-save-founder" disabled={loading}>
+          <button type="submit" className="founder-btn-save" disabled={loading}>
             <Save size={18} />
             {loading ? 'Salvataggio...' : 'Salva Profilo'}
           </button>

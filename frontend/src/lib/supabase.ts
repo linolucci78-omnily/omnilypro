@@ -452,6 +452,45 @@ export const organizationsApi = {
     return organizations
   },
 
+  // Get ALL organizations (for admin page - no filtering)
+  async getAllForAdmin(): Promise<Organization[]> {
+    // Get ALL organizations without user filtering
+    const { data, error } = await supabase
+      .from('organizations')
+      .select(`
+        *,
+        organization_users(count),
+        customers(count),
+        customer_activities(monetary_value, created_at)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    // Transform data to include user_count, customer_count, and monthly_revenue
+    const organizations = (data || []).map(org => {
+      // Calculate monthly revenue from last 30 days
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const monthlyRevenue = (org.customer_activities || [])
+        .filter((activity: any) => {
+          const activityDate = new Date(activity.created_at)
+          return activityDate >= thirtyDaysAgo && activity.monetary_value
+        })
+        .reduce((sum: number, activity: any) => sum + (activity.monetary_value || 0), 0)
+
+      return {
+        ...org,
+        user_count: org.organization_users?.[0]?.count || 0,
+        customer_count: org.customers?.[0]?.count || 0,
+        monthly_revenue: monthlyRevenue
+      }
+    })
+
+    return organizations
+  },
+
   // Get organization by ID
   async getById(id: string): Promise<Organization | null> {
     const { data, error } = await supabase

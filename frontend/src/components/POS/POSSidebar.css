@@ -75,8 +75,8 @@
 .pos-user-email {
   font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
   color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.25rem;
 }
 
 .pos-user-role {
@@ -84,6 +84,15 @@
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.pos-user-org {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 /* Navigation */

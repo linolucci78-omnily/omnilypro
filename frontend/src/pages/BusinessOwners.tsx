@@ -34,6 +34,7 @@ import {
   Save
 } from 'lucide-react'
 import PageLoader from '../components/UI/PageLoader'
+import { ToggleSwitch } from '../components/ToggleSwitch'
 import './BusinessOwners.css'
 import '../components/EditOrganizationModal.css'
 import InviteBusinessModal from '../components/InviteBusinessModal'
@@ -531,13 +532,12 @@ const BusinessOwners: React.FC = () => {
             <thead>
               <tr>
                 <th>
-                  <label className="toggle-switch">
+                  <label className="table-checkbox-wrapper">
                     <input
                       type="checkbox"
                       checked={selectedOwners.length === filteredOwners.length && filteredOwners.length > 0}
                       onChange={handleSelectAll}
                     />
-                    <span className="toggle-slider"></span>
                   </label>
                 </th>
                 <th>Proprietario</th>
@@ -556,13 +556,12 @@ const BusinessOwners: React.FC = () => {
               {filteredOwners.map(owner => (
                 <tr key={owner.id} className={selectedOwners.includes(owner.id) ? 'selected' : ''}>
                   <td>
-                    <label className="toggle-switch">
+                    <label className="table-checkbox-wrapper">
                       <input
                         type="checkbox"
                         checked={selectedOwners.includes(owner.id)}
                         onChange={() => handleSelectOwner(owner.id)}
                       />
-                      <span className="toggle-slider"></span>
                     </label>
                   </td>
                   
@@ -958,56 +957,44 @@ const BusinessOwners: React.FC = () => {
             <div className="edit-org-content">
               <div className="permissions-list">
                 <div className="permission-item">
-                  <div className="permission-info">
-                    <Shield size={20} />
-                    <div>
-                      <h4>Accesso POS</h4>
-                      <p>Abilita/disabilita l'accesso al sistema POS</p>
-                    </div>
-                  </div>
-                  <label className="toggle-switch">
-                    <input type="checkbox" defaultChecked={selectedOwner.posEnabled} />
-                    <span className="toggle-slider"></span>
-                  </label>
+                  <ToggleSwitch
+                    label="Accesso POS"
+                    description="Abilita/disabilita l'accesso al sistema POS"
+                    checked={selectedOwner.posEnabled || false}
+                    onChange={(checked) => {
+                      console.log('POS enabled:', checked)
+                    }}
+                  />
                 </div>
                 <div className="permission-item">
-                  <div className="permission-info">
-                    <Users size={20} />
-                    <div>
-                      <h4>Gestione Utenti</h4>
-                      <p>Consenti di aggiungere/rimuovere utenti</p>
-                    </div>
-                  </div>
-                  <label className="toggle-switch">
-                    <input type="checkbox" defaultChecked={true} />
-                    <span className="toggle-slider"></span>
-                  </label>
+                  <ToggleSwitch
+                    label="Gestione Utenti"
+                    description="Consenti di aggiungere/rimuovere utenti"
+                    checked={true}
+                    onChange={(checked) => {
+                      console.log('User management:', checked)
+                    }}
+                  />
                 </div>
                 <div className="permission-item">
-                  <div className="permission-info">
-                    <FileText size={20} />
-                    <div>
-                      <h4>Report Avanzati</h4>
-                      <p>Accesso ai report e analitiche avanzate</p>
-                    </div>
-                  </div>
-                  <label className="toggle-switch">
-                    <input type="checkbox" defaultChecked={selectedOwner.planType !== 'free'} />
-                    <span className="toggle-slider"></span>
-                  </label>
+                  <ToggleSwitch
+                    label="Report Avanzati"
+                    description="Accesso ai report e analitiche avanzate"
+                    checked={selectedOwner.planType !== 'free'}
+                    onChange={(checked) => {
+                      console.log('Advanced reports:', checked)
+                    }}
+                  />
                 </div>
                 <div className="permission-item">
-                  <div className="permission-info">
-                    <Settings size={20} />
-                    <div>
-                      <h4>Impostazioni Azienda</h4>
-                      <p>Modifica impostazioni e configurazioni</p>
-                    </div>
-                  </div>
-                  <label className="toggle-switch">
-                    <input type="checkbox" defaultChecked={true} />
-                    <span className="toggle-slider"></span>
-                  </label>
+                  <ToggleSwitch
+                    label="Impostazioni Azienda"
+                    description="Modifica impostazioni e configurazioni"
+                    checked={true}
+                    onChange={(checked) => {
+                      console.log('Company settings:', checked)
+                    }}
+                  />
                 </div>
               </div>
             </div>

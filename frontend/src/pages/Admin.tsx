@@ -48,7 +48,7 @@ const Admin: React.FC = () => {
   const loadOrganizations = async () => {
     try {
       setLoading(true)
-      const data = await organizationsApi.getAll()
+      const data = await organizationsApi.getAllForAdmin()
       setOrganizations(data)
     } catch (error) {
       console.error('Error loading organizations:', error)
@@ -269,13 +269,12 @@ const Admin: React.FC = () => {
             <thead>
               <tr>
                 <th>
-                  <label className="toggle-switch">
+                  <label className="table-checkbox-wrapper">
                     <input
                       type="checkbox"
                       checked={filteredOrganizations.length > 0 && selectedOrgs.length === filteredOrganizations.length}
                       onChange={handleSelectAll}
                     />
-                    <span className="toggle-slider"></span>
                   </label>
                 </th>
                 <th>Azienda</th>
@@ -295,13 +294,12 @@ const Admin: React.FC = () => {
               {filteredOrganizations.map(org => (
                 <tr key={org.id} className={selectedOrgs.includes(org.id) ? 'selected' : ''}>
                   <td>
-                    <label className="toggle-switch">
+                    <label className="table-checkbox-wrapper">
                       <input
                         type="checkbox"
                         checked={selectedOrgs.includes(org.id)}
                         onChange={() => handleSelectOrg(org.id)}
                       />
-                      <span className="toggle-slider"></span>
                     </label>
                   </td>
 

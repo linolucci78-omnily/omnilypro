@@ -2,8 +2,8 @@
    FOUNDER PROFILE - GEMINI STYLE DESIGN
    ============================================== */
 
-/* Loading State */
-.profile-loading {
+/* Loading State - Scoped */
+.founder-profile-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12,25 +12,25 @@
   gap: 1rem;
 }
 
-.spinner {
+.founder-profile-loading .founder-spinner {
   width: 48px;
   height: 48px;
   border: 4px solid #e2e8f0;
   border-top-color: #0f172a;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: founder-spin 0.8s linear infinite;
 }
 
-.spinner-small {
+.founder-profile .founder-spinner-small {
   width: 24px;
   height: 24px;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: founder-spin 0.6s linear infinite;
 }
 
-@keyframes spin {
+@keyframes founder-spin {
   to { transform: rotate(360deg); }
 }
 
@@ -42,31 +42,34 @@
 }
 
 /* Header Section with Centered Avatar */
-.founder-header {
+.founder-profile .founder-header {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 4rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
-.founder-avatar-container {
+.founder-profile .founder-avatar-container {
   position: relative;
   display: inline-block;
   margin-bottom: 1.5rem;
 }
 
-.founder-avatar {
+.founder-profile .founder-avatar {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 6px;
   margin: 0 auto;
 }
 
-.founder-avatar img,
-.founder-avatar .avatar-placeholder {
+.founder-profile .founder-avatar img,
+.founder-profile .founder-avatar .founder-avatar-placeholder {
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -78,7 +81,7 @@
   color: #94a3b8;
 }
 
-.avatar-uploading {
+.founder-profile .founder-avatar-uploading {
   position: absolute;
   inset: 0;
   display: flex;
@@ -88,7 +91,7 @@
   border-radius: 50%;
 }
 
-.avatar-edit-btn {
+.founder-profile .founder-avatar-edit-btn {
   position: absolute;
   bottom: 8px;
   right: 8px;
@@ -106,17 +109,17 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.avatar-edit-btn:hover {
+.founder-profile .founder-avatar-edit-btn:hover {
   background: #1e293b;
   transform: scale(1.05);
 }
 
-.avatar-edit-btn:disabled {
+.founder-profile .founder-avatar-edit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.founder-badge {
+.founder-profile .founder-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -131,7 +134,7 @@
   margin-top: 1rem;
 }
 
-.founder-name {
+.founder-profile .founder-name {
   font-size: 2.5rem;
   font-weight: 700;
   color: #0f172a;
@@ -139,13 +142,13 @@
   letter-spacing: -0.02em;
 }
 
-.founder-title {
+.founder-profile .founder-title {
   font-size: 1.125rem;
   color: #64748b;
   margin-bottom: 1.5rem;
 }
 
-.founder-meta {
+.founder-profile .founder-meta {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,7 +156,7 @@
   flex-wrap: wrap;
 }
 
-.meta-item {
+.founder-profile .founder-meta-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -161,38 +164,38 @@
   font-size: 0.95rem;
 }
 
-.meta-item svg {
+.founder-profile .founder-meta-item svg {
   color: #94a3b8;
 }
 
-.meta-item a {
+.founder-profile .founder-meta-item a {
   color: #3b82f6;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.meta-item a:hover {
+.founder-profile .founder-meta-item a:hover {
   color: #2563eb;
   text-decoration: underline;
 }
 
 /* Content Grid - Two Columns */
-.founder-content {
+.founder-profile .founder-content {
   display: grid;
   grid-template-columns: 1fr 400px;
   gap: 2rem;
   align-items: start;
 }
 
-.content-left,
-.content-right {
+.founder-profile .founder-content-left,
+.founder-profile .founder-content-right {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
 /* Card Styles */
-.founder-card {
+.founder-profile .founder-card {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
@@ -200,34 +203,34 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.founder-card h3 {
+.founder-profile .founder-card h3 {
   font-size: 1.25rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 1.5rem 0;
 }
 
-.founder-card h4 {
+.founder-profile .founder-card h4 {
   font-size: 1rem;
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 0.75rem 0;
 }
 
-.card-header-inline {
+.founder-profile .founder-card-header-inline {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.5rem;
 }
 
-.card-header-inline h3,
-.card-header-inline h4 {
+.founder-profile .founder-card-header-inline h3,
+.founder-profile .founder-card-header-inline h4 {
   margin: 0;
 }
 
 /* Executive Bio */
-.bio-textarea {
+.founder-profile .founder-bio-textarea {
   width: 100%;
   min-height: 150px;
   padding: 1rem;
@@ -242,19 +245,19 @@
   transition: all 0.2s ease;
 }
 
-.bio-textarea:focus {
+.founder-profile .founder-bio-textarea:focus {
   outline: none;
   border-color: #3b82f6;
   background: white;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.bio-textarea::placeholder {
+.founder-profile .founder-bio-textarea::placeholder {
   color: #94a3b8;
 }
 
 /* AI Button */
-.btn-ai {
+.founder-profile .founder-btn-ai {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -269,25 +272,25 @@
   transition: all 0.2s ease;
 }
 
-.btn-ai:hover {
+.founder-profile .founder-btn-ai:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Form Grid 2 Columns */
-.form-grid-2col {
+.founder-profile .founder-form-grid-2col {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
 }
 
-.form-group {
+.founder-profile .founder-form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.form-group label {
+.founder-profile .founder-form-group label {
   font-size: 0.875rem;
   font-weight: 600;
   color: #475569;
@@ -295,7 +298,7 @@
   letter-spacing: 0.025em;
 }
 
-.form-input {
+.founder-profile .founder-form-input {
   padding: 0.875rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -305,25 +308,25 @@
   transition: all 0.2s ease;
 }
 
-.form-input:focus {
+.founder-profile .founder-form-input:focus {
   outline: none;
   border-color: #3b82f6;
   background: white;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-input:disabled {
+.founder-profile .founder-form-input:disabled {
   background: #f1f5f9;
   color: #94a3b8;
   cursor: not-allowed;
 }
 
-.form-input::placeholder {
+.founder-profile .founder-form-input::placeholder {
   color: #cbd5e1;
 }
 
 /* Founder ID Card - Dark Theme */
-.founder-id-card {
+.founder-profile .founder-id-card {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border: 1px solid #334155;
   border-radius: 16px;
@@ -332,7 +335,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.id-header {
+.founder-profile .founder-id-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -344,11 +347,11 @@
   letter-spacing: 0.05em;
 }
 
-.id-header svg {
+.founder-profile .founder-id-header svg {
   color: #fbbf24;
 }
 
-.id-code {
+.founder-profile .founder-id-code {
   font-size: 2rem;
   font-weight: 700;
   font-family: 'Courier New', monospace;
@@ -357,14 +360,14 @@
   margin-bottom: 1rem;
 }
 
-.id-description {
+.founder-profile .founder-id-description {
   font-size: 0.875rem;
   line-height: 1.5;
   color: #94a3b8;
   margin-bottom: 1.5rem;
 }
 
-.btn-copy-id {
+.founder-profile .founder-btn-copy-id {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -381,13 +384,13 @@
   transition: all 0.2s ease;
 }
 
-.btn-copy-id:hover {
+.founder-profile .founder-btn-copy-id:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Public Profile Link */
-.public-profile-link {
+.founder-profile .founder-public-profile-link {
   display: block;
   padding: 1rem;
   background: #f8fafc;
@@ -401,12 +404,12 @@
   transition: all 0.2s ease;
 }
 
-.public-profile-link:hover {
+.founder-profile .founder-public-profile-link:hover {
   background: #f1f5f9;
   border-color: #cbd5e1;
 }
 
-.btn-icon {
+.founder-profile .founder-btn-icon {
   width: 32px;
   height: 32px;
   display: flex;
@@ -420,14 +423,14 @@
   transition: all 0.2s ease;
 }
 
-.btn-icon:hover {
+.founder-profile .founder-btn-icon:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
   color: #0f172a;
 }
 
 /* Save Button */
-.btn-save-founder {
+.founder-profile .founder-btn-save {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -445,13 +448,13 @@
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
-.btn-save-founder:hover {
+.founder-profile .founder-btn-save:hover {
   background: #1e293b;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
 }
 
-.btn-save-founder:disabled {
+.founder-profile .founder-btn-save:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -459,20 +462,20 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .founder-content {
+  .founder-profile .founder-content {
     grid-template-columns: 1fr;
   }
 
-  .content-right {
+  .founder-profile .founder-content-right {
     order: -1;
   }
 
-  .founder-avatar {
+  .founder-profile .founder-avatar {
     width: 150px;
     height: 150px;
   }
 
-  .founder-name {
+  .founder-profile .founder-name {
     font-size: 2rem;
   }
 }
@@ -482,37 +485,37 @@
     padding: 2rem 1rem;
   }
 
-  .founder-header {
+  .founder-profile .founder-header {
     margin-bottom: 2rem;
   }
 
-  .founder-avatar {
+  .founder-profile .founder-avatar {
     width: 120px;
     height: 120px;
   }
 
-  .founder-name {
+  .founder-profile .founder-name {
     font-size: 1.75rem;
   }
 
-  .founder-meta {
+  .founder-profile .founder-meta {
     flex-direction: column;
     gap: 0.75rem;
   }
 
-  .form-grid-2col {
+  .founder-profile .founder-form-grid-2col {
     grid-template-columns: 1fr;
   }
 
-  .founder-card {
+  .founder-profile .founder-card {
     padding: 1.5rem;
   }
 
-  .founder-id-card {
+  .founder-profile .founder-id-card {
     padding: 1.5rem;
   }
 
-  .id-code {
+  .founder-profile .founder-id-code {
     font-size: 1.5rem;
   }
 }

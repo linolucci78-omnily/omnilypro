@@ -3593,10 +3593,10 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
             {/* Operatore Loggato */}
             <div className="operator-info">
+              <div className="operator-label">Operatore • {currentOrganization?.name || 'OMNILY PRO'}</div>
               <div className="operator-name">{user?.user_metadata?.first_name && user?.user_metadata?.last_name
                 ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
                 : user?.user_metadata?.first_name || user?.user_metadata?.last_name || user?.email || 'Admin'}</div>
-              <div className="operator-label">{currentOrganization?.name || 'OMNILY PRO'}</div>
             </div>
           </div>
 
