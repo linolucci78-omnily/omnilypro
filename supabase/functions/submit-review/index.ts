@@ -31,7 +31,7 @@ serve(async (req: Request) => {
     const url = new URL(req.url)
     const orgId = url.searchParams.get('org')
     const customerId = url.searchParams.get('customer')
-    const transactionId = url.searchParams.get('transaction')
+    const activityId = url.searchParams.get('activity') || url.searchParams.get('transaction') // Support both for backward compatibility
 
     if (!orgId || !customerId) {
       return new Response('Missing required parameters', {
@@ -76,7 +76,7 @@ serve(async (req: Request) => {
         .select('id, rating, comment, created_at')
         .eq('organization_id', orgId)
         .eq('customer_id', customerId)
-        .eq('transaction_id', transactionId)
+        .eq('transaction_id', activityId)
         .single()
 
       const primaryColor = org.primary_color || '#dc2626'
@@ -91,7 +91,7 @@ serve(async (req: Request) => {
 
       // Return review form HTML
       return new Response(
-        generateReviewFormHTML(org.name, customer.name, primaryColor, orgId, customerId, transactionId),
+        generateReviewFormHTML(org.name, customer.name, primaryColor, orgId, customerId, activityId),
         {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'text/html' }
@@ -133,7 +133,7 @@ serve(async (req: Request) => {
         .select('id')
         .eq('organization_id', orgId)
         .eq('customer_id', customerId)
-        .eq('transaction_id', transactionId)
+        .eq('transaction_id', activityId)
         .single()
 
       if (existingReview) {
@@ -149,7 +149,7 @@ serve(async (req: Request) => {
         .insert({
           organization_id: orgId,
           customer_id: customerId,
-          transaction_id: transactionId,
+          transaction_id: activityId,
           rating,
           comment: comment || null,
           platform: platform || 'internal',

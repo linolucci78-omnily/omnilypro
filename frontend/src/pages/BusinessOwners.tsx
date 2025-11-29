@@ -176,12 +176,38 @@ const BusinessOwners: React.FC = () => {
   const loadOwners = async () => {
     try {
       setLoading(true)
-      setTimeout(() => {
-        setOwners(mockOwners)
-        setLoading(false)
-      }, 800)
+
+      // Carica tutte le organizzazioni con i loro utenti
+      const organizations = await businessOwnerService.getAllWithOwners()
+
+      // Trasforma i dati delle organizzazioni nel formato BusinessOwner
+      const ownersData: BusinessOwner[] = organizations.map(org => ({
+        id: org.id,
+        name: org.owner_name || 'Proprietario',
+        email: org.owner_email || org.email || 'N/A',
+        phone: org.phone || undefined,
+        company: org.name,
+        businessType: org.industry || 'N/A',
+        planType: (org.plan_type || 'free') as 'free' | 'pro' | 'enterprise',
+        planStatus: org.is_active ? 'active' : 'inactive' as any,
+        joinDate: org.created_at ? new Date(org.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        lastLogin: org.last_login || undefined,
+        monthlyRevenue: org.monthly_revenue || 0,
+        totalCustomers: org.customer_count || 0,
+        posEnabled: org.pos_enabled || false,
+        supportTickets: 0,
+        website: org.domain || undefined,
+        address: org.address || undefined,
+        vatNumber: org.vat_number || undefined,
+        nextBilling: undefined
+      }))
+
+      setOwners(ownersData)
+      setLoading(false)
     } catch (error) {
       console.error('Error loading business owners:', error)
+      // Se c'è un errore, usa i dati mock come fallback
+      setOwners(mockOwners)
       setLoading(false)
     }
   }
@@ -315,15 +341,17 @@ const BusinessOwners: React.FC = () => {
   const getPlanBadge = (planType: string) => {
     const planConfig = {
       free: { label: 'FREE', color: '#6b7280', bg: '#f3f4f6' },
+      basic: { label: 'BASIC', color: '#3b82f6', bg: '#dbeafe' },
+      premium: { label: 'PREMIUM', color: '#8b5cf6', bg: '#ede9fe' },
       pro: { label: 'PRO', color: '#3b82f6', bg: '#dbeafe' },
       enterprise: { label: 'ENTERPRISE', color: '#8b5cf6', bg: '#ede9fe' }
     }
-    const config = planConfig[planType as keyof typeof planConfig]
-    
+    const config = planConfig[planType as keyof typeof planConfig] || { label: planType?.toUpperCase() || 'N/A', color: '#6b7280', bg: '#f3f4f6' }
+
     return (
-      <span 
+      <span
         className="plan-badge"
-        style={{ 
+        style={{
           backgroundColor: config.bg,
           color: config.color
         }}
@@ -336,17 +364,19 @@ const BusinessOwners: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       active: { label: 'Attivo', color: '#16a34a', bg: '#dcfce7', icon: CheckCircle2 },
+      inactive: { label: 'Inattivo', color: '#dc2626', bg: '#fee2e2', icon: AlertCircle },
       trial: { label: 'Trial', color: '#d97706', bg: '#fef3c7', icon: Clock },
       expired: { label: 'Scaduto', color: '#dc2626', bg: '#fee2e2', icon: AlertCircle },
-      cancelled: { label: 'Cancellato', color: '#6b7280', bg: '#f3f4f6', icon: AlertCircle }
+      cancelled: { label: 'Cancellato', color: '#6b7280', bg: '#f3f4f6', icon: AlertCircle },
+      suspended: { label: 'Sospeso', color: '#dc2626', bg: '#fee2e2', icon: AlertCircle }
     }
-    const config = statusConfig[status as keyof typeof statusConfig]
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status || 'N/A', color: '#6b7280', bg: '#f3f4f6', icon: AlertCircle }
     const IconComponent = config.icon
-    
+
     return (
-      <span 
+      <span
         className="status-badge"
-        style={{ 
+        style={{
           backgroundColor: config.bg,
           color: config.color
         }}

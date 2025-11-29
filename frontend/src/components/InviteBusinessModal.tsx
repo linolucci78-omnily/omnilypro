@@ -7,11 +7,12 @@ import './EditOrganizationModal.css'; // Reuse styles
 interface InviteBusinessModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
 type PlanType = 'basic' | 'premium' | 'enterprise';
 
-const InviteBusinessModal: React.FC<InviteBusinessModalProps> = ({ isOpen, onClose }) => {
+const InviteBusinessModal: React.FC<InviteBusinessModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [email, setEmail] = useState('');
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('premium');
     const [loading, setLoading] = useState(false);

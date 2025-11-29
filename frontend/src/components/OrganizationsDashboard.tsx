@@ -67,6 +67,7 @@ import WebsiteHub from './WebsiteHub'
 import { ContactMessagesPanel } from './ContactMessagesPanel'
 import { hasAccessSync, getUpgradePlan, PlanType, getPlanFeaturesSync, PLAN_NAMES, fetchPlanOverrides } from '../utils/planPermissions'
 import UpgradeModal from './UI/UpgradeModal'
+import OrganizationSelectorModal from './OrganizationSelectorModal'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
 
@@ -92,6 +93,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   // const { showChallengeComplete, showBadgeUnlock } = useGamingNotifications()
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
+  const [showOrgSelector, setShowOrgSelector] = useState(false)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [customerStats, setCustomerStats] = useState({
     total: 0,
@@ -1456,8 +1458,11 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }, [currentOrganization, customers])
 
   useEffect(() => {
-    fetchOrganizations()
-  }, [])
+    // Aspetta che user sia disponibile prima di caricare le organizzazioni
+    if (user) {
+      fetchOrganizations()
+    }
+  }, [user])
 
   useEffect(() => {
     if (activeSection === 'members' || activeSection === 'dashboard') {
@@ -1502,8 +1507,27 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       setLoading(true)
 
       // Carica organizzazioni reali dal database
-      const realOrganizations = await organizationsApi.getAll()
+      // Se c'è un selectedOrganizationId in localStorage (admin switch), carica TUTTE le organizzazioni
+      const selectedOrgId = localStorage.getItem('selectedOrganizationId')
 
+      // Check multiple possible super admin role values
+      const isSuperAdmin = user?.role === 'super_admin' ||
+                          user?.role === 'superadmin' ||
+                          user?.role === 'admin' ||
+                          (user as any)?.app_metadata?.role === 'super_admin' ||
+                          (user as any)?.user_metadata?.role === 'super_admin'
+
+      const shouldLoadAll = isSuperAdmin || selectedOrgId !== null
+
+      console.log('🔍 Utente corrente:', user?.email, '- Ruolo:', user?.role, '- Super Admin:', isSuperAdmin)
+      console.log('🔍 User object completo:', user)
+      console.log('🔍 Selected Org ID in localStorage:', selectedOrgId, '- Should load all:', shouldLoadAll)
+
+      const realOrganizations = shouldLoadAll
+        ? await organizationsApi.getAllForAdmin()
+        : await organizationsApi.getAll()
+
+      console.log('📊 Organizzazioni caricate:', realOrganizations.length, shouldLoadAll ? '(TUTTE - Super Admin o Switch)' : '(Solo utente)')
       setOrganizations(realOrganizations)
 
       // Carica i dettagli specifici della prima organizzazione (quella corrente)
@@ -1513,7 +1537,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
         // 🔍 PRIORITY 2: Check if there's a selected organization in localStorage (from Admin switcher)
         const selectedOrgId = localStorage.getItem('selectedOrganizationId')
+        console.log('🔍 localStorage selectedOrganizationId:', selectedOrgId)
         let organizationToLoad = realOrganizations[0] // Default to first org
+        let shouldShowSelector = false
 
         // If there's an NFC target org ID, use it (HIGHEST PRIORITY)
         if (nfcTargetOrgId) {
@@ -1531,13 +1557,22 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         }
         // If there's a selected org ID, try to find it in the list
         else if (selectedOrgId) {
+          console.log('🔍 Cerco organizzazione con ID:', selectedOrgId, 'tra', realOrganizations.length, 'organizzazioni')
           const foundOrg = realOrganizations.find(org => org.id === selectedOrgId)
           if (foundOrg) {
             organizationToLoad = foundOrg
-            console.log('✅ Caricata organizzazione da localStorage:', foundOrg.name)
+            console.log('✅ Caricata organizzazione da localStorage:', foundOrg.name, '(ID:', foundOrg.id, ')')
           } else {
             console.warn('⚠️ Organizzazione selezionata non trovata, carico la prima disponibile')
+            console.log('📋 Lista organizzazioni disponibili:', realOrganizations.map(o => ({ id: o.id, name: o.name })))
           }
+        }
+        // If no org selected and user has multiple orgs (and not in POS mode), show selector
+        else if (realOrganizations.length > 1 && !isPOSMode) {
+          shouldShowSelector = true
+          setLoading(false)
+          setShowOrgSelector(true)
+          return // Don't load organization yet, wait for user selection
         }
 
         const currentOrgDetails = await organizationsApi.getById(organizationToLoad.id)
@@ -1560,6 +1595,32 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     } catch (err) {
       console.error('❌ Errore nel caricamento organizzazioni:', err)
       setError(err instanceof Error ? err.message : 'Errore nel caricamento organizzazioni')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOrganizationSelect = async (orgId: string) => {
+    try {
+      setLoading(true)
+      setShowOrgSelector(false)
+
+      // Save selected organization to localStorage
+      localStorage.setItem('selectedOrganizationId', orgId)
+
+      // Load organization details
+      const orgDetails = await organizationsApi.getById(orgId)
+      setCurrentOrganization(orgDetails)
+
+      // Notify parent component
+      if (onOrganizationChange) {
+        onOrganizationChange(orgDetails)
+      }
+
+      console.log('✅ Organizzazione selezionata:', orgDetails.name)
+    } catch (error) {
+      console.error('❌ Errore nel caricamento organizzazione selezionata:', error)
+      setError('Errore nel caricamento dell\'organizzazione selezionata')
     } finally {
       setLoading(false)
     }
@@ -3557,17 +3618,26 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   if (error) return <div className="error">Errore: {error}</div>
 
   return (
-    <div
-      className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}
-      style={
-        isPOSMode
-          ? {} // In POS mode, eredita CSS variables da POSLayout (parent)
-          : {
-            '--primary-color': getActiveColors().primary,
-            '--secondary-color': getActiveColors().secondary
-          } as React.CSSProperties
-      }
-    >
+    <>
+      {/* Organization Selector Modal */}
+      {showOrgSelector && (
+        <OrganizationSelectorModal
+          organizations={organizations}
+          onSelect={handleOrganizationSelect}
+        />
+      )}
+
+      <div
+        className={`dashboard-layout ${isPOSMode ? 'pos-mode' : ''}`}
+        style={
+          isPOSMode
+            ? {} // In POS mode, eredita CSS variables da POSLayout (parent)
+            : {
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties
+        }
+      >
       {/* DEBUG: POS Mode Indicator */}
       {/* Sidebar - Hidden in POS mode */}
       {!isPOSMode && (
@@ -5026,6 +5096,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         type={confirmModalConfig.type}
       />
     </div>
+    </>
   )
 }
 

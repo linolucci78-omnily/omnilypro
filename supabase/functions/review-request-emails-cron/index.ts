@@ -95,43 +95,53 @@ serve(async (req: Request) => {
         const nextDay = new Date(targetDate)
         nextDay.setDate(nextDay.getDate() + 1)
 
-        console.log(`📅 Looking for transactions between ${targetDate.toISOString()} and ${nextDay.toISOString()}`)
+        console.log(`📅 Looking for purchase activities between ${targetDate.toISOString()} and ${nextDay.toISOString()}`)
 
-        // Find transactions from target date
-        const { data: transactions, error: transactionsError } = await supabase
-          .from('transactions')
-          .select('id, customer_id, amount, points_earned, created_at')
+        // Find purchase activities from target date (using customer_activities table)
+        const { data: activities, error: activitiesError } = await supabase
+          .from('customer_activities')
+          .select('id, customer_id, metadata, created_at')
           .eq('organization_id', org.id)
+          .eq('type', 'purchase')
           .gte('created_at', targetDate.toISOString())
           .lt('created_at', nextDay.toISOString())
-          .gte('amount', org.review_request_min_amount || 30)
           .order('created_at', { ascending: false })
 
-        if (transactionsError) {
-          console.error(`❌ Error fetching transactions for ${org.name}:`, transactionsError)
+        if (activitiesError) {
+          console.error(`❌ Error fetching activities for ${org.name}:`, activitiesError)
           totalErrors++
           continue
         }
 
-        if (!transactions || transactions.length === 0) {
-          console.log(`📭 No eligible transactions found for ${org.name}`)
+        // Filter activities by minimum amount (from metadata)
+        const eligibleActivities = activities?.filter(activity => {
+          const amount = activity.metadata?.amount || 0
+          return amount >= (org.review_request_min_amount || 30)
+        }) || []
+
+        if (eligibleActivities.length === 0) {
+          console.log(`📭 No eligible purchase activities found for ${org.name}`)
           continue
         }
 
-        console.log(`📦 Found ${transactions.length} eligible transactions for ${org.name}`)
+        console.log(`📦 Found ${eligibleActivities.length} eligible purchase activities for ${org.name}`)
 
-        // Process each transaction
-        for (const transaction of transactions) {
+        // Process each purchase activity
+        for (const activity of eligibleActivities) {
           try {
-            // Check if customer already left a review for this transaction
+            // Extract data from metadata
+            const amount = activity.metadata?.amount || 0
+            const pointsEarned = activity.metadata?.points_earned || 0
+
+            // Check if customer already left a review for this activity
             const { data: existingReview } = await supabase
               .from('customer_reviews')
               .select('id')
-              .eq('transaction_id', transaction.id)
+              .eq('transaction_id', activity.id)
               .single()
 
             if (existingReview) {
-              console.log(`⏭️  Customer already reviewed transaction ${transaction.id}, skipping`)
+              console.log(`⏭️  Customer already reviewed activity ${activity.id}, skipping`)
               totalSkipped++
               continue
             }
@@ -140,11 +150,11 @@ serve(async (req: Request) => {
             const { data: customer, error: customerError } = await supabase
               .from('customers')
               .select('id, name, email, is_active')
-              .eq('id', transaction.customer_id)
+              .eq('id', activity.customer_id)
               .single()
 
             if (customerError || !customer || !customer.is_active || !customer.email) {
-              console.log(`⏭️  Customer not found or inactive for transaction ${transaction.id}, skipping`)
+              console.log(`⏭️  Customer not found or inactive for activity ${activity.id}, skipping`)
               totalSkipped++
               continue
             }
@@ -179,7 +189,7 @@ serve(async (req: Request) => {
               .eq('is_public', true)
 
             // Generate review URL
-            const reviewUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/submit-review?org=${org.id}&customer=${customer.id}&transaction=${transaction.id}`
+            const reviewUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/submit-review?org=${org.id}&customer=${customer.id}&activity=${activity.id}`
 
             // Send review request email
             console.log(`📧 Sending review request email to ${customer.email}...`)
@@ -193,9 +203,9 @@ serve(async (req: Request) => {
                 dynamic_data: {
                   customer_name: customer.name,
                   store_name: org.name,
-                  purchase_date: new Date(transaction.created_at).toLocaleDateString('it-IT'),
-                  purchase_amount: transaction.amount.toFixed(2),
-                  points_earned: transaction.points_earned || 0,
+                  purchase_date: new Date(activity.created_at).toLocaleDateString('it-IT'),
+                  purchase_amount: amount.toFixed(2),
+                  points_earned: pointsEarned,
                   bonus_points: org.review_request_bonus_points || 50,
                   review_url: reviewUrl,
                   store_url: org.website || 'https://omnilypro.com',
@@ -223,8 +233,8 @@ serve(async (req: Request) => {
             console.log(`✅ Review request email sent to ${customer.name}`)
             totalSent++
 
-          } catch (transactionError) {
-            console.error(`❌ Error processing transaction ${transaction.id}:`, transactionError)
+          } catch (activityError) {
+            console.error(`❌ Error processing activity ${activity.id}:`, activityError)
             totalErrors++
           }
         }
