@@ -235,10 +235,7 @@ const AdminLayout = () => {
                 : currentUser?.first_name || currentUser?.last_name || user?.email || 'Admin'}
             </div>
             <div className="user-role">
-              {userRole === 'super_admin' ? 'Super Amministratore' :
-                userRole === 'sales_agent' ? 'Agente Vendite' :
-                  userRole === 'account_manager' ? 'Account Manager' :
-                    'Amministratore'}
+              OMNILY Admin
             </div>
           </div>
         </Link>
@@ -340,9 +337,7 @@ const AdminLayout = () => {
                       : currentUser?.first_name || currentUser?.last_name || user?.email || 'Admin'}
                   </div>
                   <div className="profile-role">
-                    {userRole === 'super_admin' ? 'Super Admin' :
-                      userRole === 'sales_agent' ? 'Vendite' :
-                        userRole === 'account_manager' ? 'Account' : 'Admin'}
+                    OMNILY Admin
                   </div>
                 </div>
                 <ChevronDown size={16} />
