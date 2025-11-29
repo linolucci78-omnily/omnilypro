@@ -393,16 +393,34 @@ export const organizationsApi = {
       return []
     }
 
+    // First get user's organization IDs from organization_users
+    const { data: userOrgs, error: userOrgsError } = await supabase
+      .from('organization_users')
+      .select('org_id')
+      .eq('user_id', user.id)
+
+    if (userOrgsError) {
+      console.error('Error fetching user organizations:', userOrgsError)
+      throw userOrgsError
+    }
+
+    if (!userOrgs || userOrgs.length === 0) {
+      console.log('User has no organizations')
+      return []
+    }
+
+    const orgIds = userOrgs.map(uo => uo.org_id)
+
     // Get organizations where user is a member
     const { data, error } = await supabase
       .from('organizations')
       .select(`
         *,
-        organization_users!inner(count, user_id),
+        organization_users(count),
         customers(count),
         customer_activities(monetary_value, created_at)
       `)
-      .eq('organization_users.user_id', user.id)
+      .in('id', orgIds)
       .order('created_at', { ascending: false })
 
     if (error) throw error
