@@ -997,175 +997,276 @@ const MDMDashboard: React.FC = () => {
 
       {/* Device Detail Modal */}
       {selectedDevice && (
-        <div className="device-modal-overlay" onClick={() => setSelectedDevice(null)}>
-          <div className="device-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{selectedDevice.name}</h2>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '700px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>
+                {selectedDevice.name}
+              </h2>
               <button
-                className="close-btn"
                 onClick={() => setSelectedDevice(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0 8px'
+                }}
               >
                 ×
               </button>
             </div>
 
-            <div className="modal-content">
-              <div className="device-details">
-                <div className="detail-group">
-                  <h4>Informazioni Generali</h4>
-                  <div className="detail-row">
-                    <span>Organizzazione:</span>
-                    <span>{selectedDevice.organization?.name}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Negozio:</span>
-                    <span>{selectedDevice.store_location}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Modello:</span>
-                    <span>{selectedDevice.device_model || 'N/A'}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Android ID:</span>
-                    <span className="mono">{selectedDevice.android_id}</span>
-                  </div>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Informazioni Generali */}
+              <div>
+                <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>Informazioni Generali</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px', alignItems: 'start' }}>
+                  <span style={{ fontWeight: 600, color: '#666' }}>Organizzazione:</span>
+                  <span style={{ color: '#1a1a1a' }}>{selectedDevice.organization?.name}</span>
 
-                <div className="detail-group">
-                  <h4>Status Sistema</h4>
-                  <div className="detail-row">
-                    <span>Status:</span>
-                    <span className={`status-badge ${selectedDevice.status}`}>
-                      {selectedDevice.status}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Batteria:</span>
-                    <span>{selectedDevice.battery_level || 0}%</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>WiFi:</span>
-                    <span>{selectedDevice.wifi_ssid || 'Non connesso'}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Ultimo ping:</span>
-                    <span>{getTimeSince(selectedDevice.last_seen)}</span>
-                  </div>
-                </div>
+                  <span style={{ fontWeight: 600, color: '#666' }}>Negozio:</span>
+                  <span style={{ color: '#1a1a1a' }}>{selectedDevice.store_location}</span>
 
-                <div className="detail-group">
-                  <h4>Configurazione</h4>
-                  <div className="detail-row">
-                    <span>Modalità Kiosk:</span>
-                    <span className={selectedDevice.kiosk_mode_active ? 'active' : 'inactive'}>
-                      {selectedDevice.kiosk_mode_active ? 'Attiva' : 'Non attiva'}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span>App corrente:</span>
-                    <span className="mono">{selectedDevice.current_app_package || 'N/A'}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Lingua:</span>
-                    <span>{selectedDevice.language}</span>
-                  </div>
-                </div>
+                  <span style={{ fontWeight: 600, color: '#666' }}>Modello:</span>
+                  <span style={{ color: '#1a1a1a' }}>{selectedDevice.device_model || 'N/A'}</span>
 
-                {selectedDevice.latitude && selectedDevice.longitude ? (
-                  <div className="detail-group">
-                    <h4>📍 Posizione GPS</h4>
-                    <div className="detail-row">
-                      <span>Latitudine:</span>
-                      <span className="mono">{selectedDevice.latitude.toFixed(6)}°</span>
-                    </div>
-                    <div className="detail-row">
-                      <span>Longitudine:</span>
-                      <span className="mono">{selectedDevice.longitude.toFixed(6)}°</span>
-                    </div>
-                    <div className="detail-row">
-                      <span>Precisione:</span>
-                      <span>{selectedDevice.location_accuracy_meters ? `±${selectedDevice.location_accuracy_meters}m` : 'N/A'}</span>
-                    </div>
-                    <div className="detail-row">
-                      <span>Indirizzo approssimativo:</span>
-                      <span>{selectedDevice.store_location}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                      <button
-                        className="action-btn secondary"
-                        onClick={() => {
-                          const url = `https://www.google.com/maps?q=${selectedDevice.latitude},${selectedDevice.longitude}`
-                          window.open(url, '_blank')
-                        }}
-                        style={{ flex: 1 }}
-                      >
-                        <MapPin size={14} />
-                        Google Maps
-                      </button>
-                      <button
-                        className="action-btn secondary"
-                        onClick={() => {
-                          const url = `https://www.openstreetmap.org/?mlat=${selectedDevice.latitude}&mlon=${selectedDevice.longitude}&zoom=16`
-                          window.open(url, '_blank')
-                        }}
-                        style={{ flex: 1 }}
-                      >
-                        <MapPin size={14} />
-                        OpenStreetMap
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="detail-group">
-                    <h4>📍 Posizione GPS</h4>
-                    <div style={{
-                      padding: '12px',
-                      background: '#fef3c7',
-                      border: '1px solid #f59e0b',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      color: '#92400e'
-                    }}>
-                      ⚠️ Nessuna posizione GPS disponibile. Il dispositivo deve inviare le coordinate.
-                    </div>
-                  </div>
-                )}
+                  <span style={{ fontWeight: 600, color: '#666' }}>Android ID:</span>
+                  <span style={{ color: '#1a1a1a', fontFamily: 'monospace', fontSize: '13px' }}>{selectedDevice.android_id}</span>
+                </div>
               </div>
 
-              <div className="modal-actions">
+              {/* Status Sistema */}
+              <div>
+                <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>Status Sistema</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px', alignItems: 'start' }}>
+                  <span style={{ fontWeight: 600, color: '#666' }}>Status:</span>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    background: selectedDevice.status === 'online' ? '#dcfce7' : selectedDevice.status === 'setup' ? '#dbeafe' : '#fee2e2',
+                    color: selectedDevice.status === 'online' ? '#15803d' : selectedDevice.status === 'setup' ? '#1e40af' : '#b91c1c',
+                    width: 'fit-content'
+                  }}>
+                    {selectedDevice.status}
+                  </span>
+
+                  <span style={{ fontWeight: 600, color: '#666' }}>Batteria:</span>
+                  <span style={{ color: '#1a1a1a' }}>{selectedDevice.battery_level || 0}%</span>
+
+                  <span style={{ fontWeight: 600, color: '#666' }}>WiFi:</span>
+                  <span style={{ color: '#1a1a1a' }}>{selectedDevice.wifi_ssid || 'Non connesso'}</span>
+
+                  <span style={{ fontWeight: 600, color: '#666' }}>Ultimo ping:</span>
+                  <span style={{ color: '#1a1a1a' }}>{getTimeSince(selectedDevice.last_seen)}</span>
+                </div>
+              </div>
+
+              {/* Configurazione */}
+              <div>
+                <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>Configurazione</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px', alignItems: 'start' }}>
+                  <span style={{ fontWeight: 600, color: '#666' }}>Modalità Kiosk:</span>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    background: selectedDevice.kiosk_mode_active ? '#dcfce7' : '#fee2e2',
+                    color: selectedDevice.kiosk_mode_active ? '#15803d' : '#b91c1c',
+                    width: 'fit-content'
+                  }}>
+                    {selectedDevice.kiosk_mode_active ? 'Attiva' : 'Non attiva'}
+                  </span>
+
+                  <span style={{ fontWeight: 600, color: '#666' }}>App corrente:</span>
+                  <span style={{ color: '#1a1a1a', fontFamily: 'monospace', fontSize: '13px' }}>{selectedDevice.current_app_package || 'N/A'}</span>
+
+                  <span style={{ fontWeight: 600, color: '#666' }}>Lingua:</span>
+                  <span style={{ color: '#1a1a1a' }}>{selectedDevice.language}</span>
+                </div>
+              </div>
+
+              {/* Posizione GPS */}
+              {selectedDevice.latitude && selectedDevice.longitude ? (
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>📍 Posizione GPS</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px', alignItems: 'start', marginBottom: '12px' }}>
+                    <span style={{ fontWeight: 600, color: '#666' }}>Latitudine:</span>
+                    <span style={{ color: '#1a1a1a', fontFamily: 'monospace', fontSize: '13px' }}>{selectedDevice.latitude.toFixed(6)}°</span>
+
+                    <span style={{ fontWeight: 600, color: '#666' }}>Longitudine:</span>
+                    <span style={{ color: '#1a1a1a', fontFamily: 'monospace', fontSize: '13px' }}>{selectedDevice.longitude.toFixed(6)}°</span>
+
+                    <span style={{ fontWeight: 600, color: '#666' }}>Precisione:</span>
+                    <span style={{ color: '#1a1a1a' }}>{selectedDevice.location_accuracy_meters ? `±${selectedDevice.location_accuracy_meters}m` : 'N/A'}</span>
+
+                    <span style={{ fontWeight: 600, color: '#666' }}>Indirizzo:</span>
+                    <span style={{ color: '#1a1a1a' }}>{selectedDevice.store_location}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => {
+                        const url = `https://www.google.com/maps?q=${selectedDevice.latitude},${selectedDevice.longitude}`
+                        window.open(url, '_blank')
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '8px 16px',
+                        background: '#f3f4f6',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <MapPin size={14} />
+                      Google Maps
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = `https://www.openstreetmap.org/?mlat=${selectedDevice.latitude}&mlon=${selectedDevice.longitude}&zoom=16`
+                        window.open(url, '_blank')
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '8px 16px',
+                        background: '#f3f4f6',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <MapPin size={14} />
+                      OpenStreetMap
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>📍 Posizione GPS</h4>
+                  <div style={{
+                    padding: '12px',
+                    background: '#fef3c7',
+                    border: '1px solid #f59e0b',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    color: '#92400e'
+                  }}>
+                    ⚠️ Nessuna posizione GPS disponibile. Il dispositivo deve inviare le coordinate.
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
                 <button
-                  className="action-btn primary"
                   onClick={() => sendCommand(selectedDevice.id, 'reboot')}
                   disabled={selectedDevice.status === 'offline'}
+                  style={{
+                    padding: '10px 16px',
+                    background: selectedDevice.status === 'offline' ? '#e5e7eb' : '#0284c7',
+                    color: selectedDevice.status === 'offline' ? '#9ca3af' : 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: selectedDevice.status === 'offline' ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
                 >
                   <RefreshCw size={16} />
-                  Riavvia Dispositivo
+                  Riavvia
                 </button>
 
                 <button
-                  className={`action-btn ${selectedDevice.kiosk_mode_active ? 'danger' : 'success'}`}
                   onClick={() => sendCommand(
                     selectedDevice.id,
                     selectedDevice.kiosk_mode_active ? 'kiosk_off' : 'kiosk_on'
                   )}
                   disabled={selectedDevice.status === 'offline'}
+                  style={{
+                    padding: '10px 16px',
+                    background: selectedDevice.status === 'offline' ? '#e5e7eb' : selectedDevice.kiosk_mode_active ? '#dc2626' : '#059669',
+                    color: selectedDevice.status === 'offline' ? '#9ca3af' : 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: selectedDevice.status === 'offline' ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
                 >
                   {selectedDevice.kiosk_mode_active ? <Unlock size={16} /> : <Lock size={16} />}
-                  {selectedDevice.kiosk_mode_active ? 'Disattiva Kiosk' : 'Attiva Kiosk'}
+                  {selectedDevice.kiosk_mode_active ? 'Disattiva' : 'Attiva'} Kiosk
                 </button>
 
                 <button
-                  className="action-btn danger"
                   onClick={() => sendCommand(selectedDevice.id, 'kiosk_off')}
                   disabled={selectedDevice.status === 'offline'}
                   title="Forza uscita da Kiosk Mode anche se lo stato è incorretto"
+                  style={{
+                    padding: '10px 16px',
+                    background: selectedDevice.status === 'offline' ? '#e5e7eb' : '#dc2626',
+                    color: selectedDevice.status === 'offline' ? '#9ca3af' : 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: selectedDevice.status === 'offline' ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
                 >
                   <Unlock size={16} />
                   Force Unlock 🆘
                 </button>
 
                 <button
-                  className="action-btn warning"
                   onClick={() => showConfirm(
                     'Sei sicuro di voler spegnere il dispositivo? Questa azione richiederà un riavvio manuale.',
                     () => sendCommand(selectedDevice.id, 'shutdown'),
@@ -1176,28 +1277,70 @@ const MDMDashboard: React.FC = () => {
                     }
                   )}
                   disabled={selectedDevice.status === 'offline'}
+                  style={{
+                    padding: '10px 16px',
+                    background: selectedDevice.status === 'offline' ? '#e5e7eb' : '#f59e0b',
+                    color: selectedDevice.status === 'offline' ? '#9ca3af' : 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: selectedDevice.status === 'offline' ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
                 >
                   <Power size={16} />
                   Spegni
                 </button>
 
                 <button
-                  className="action-btn secondary"
                   onClick={() => sendCommand(selectedDevice.id, 'locate')}
                   disabled={selectedDevice.status === 'offline'}
+                  style={{
+                    padding: '10px 16px',
+                    background: selectedDevice.status === 'offline' ? '#e5e7eb' : '#f3f4f6',
+                    color: selectedDevice.status === 'offline' ? '#9ca3af' : '#1a1a1a',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: selectedDevice.status === 'offline' ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    gridColumn: 'span 2'
+                  }}
                 >
                   <MapPin size={16} />
-                  Localizza
+                  Localizza Dispositivo
                 </button>
 
                 <button
-                  className="action-btn danger"
                   onClick={() => {
                     setDeviceToDelete(selectedDevice)
                     setShowDeleteModal(true)
                     setDeleteConfirmText('')
                   }}
-                  style={{ marginTop: '12px', width: '100%' }}
+                  style={{
+                    padding: '12px 20px',
+                    background: '#dc2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    gridColumn: 'span 2',
+                    marginTop: '8px'
+                  }}
                 >
                   <Trash2 size={16} />
                   Elimina Dispositivo
@@ -1210,145 +1353,214 @@ const MDMDashboard: React.FC = () => {
 
       {/* Add Device Modal */}
       {showAddDeviceModal && (
-        <div className="device-modal-overlay" onClick={() => setShowAddDeviceModal(false)}>
-          <div className="device-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>➕ Aggiungi Nuovo Dispositivo POS</h2>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>
+                ➕ Aggiungi Nuovo Dispositivo POS
+              </h2>
               <button
-                className="close-btn"
                 onClick={() => setShowAddDeviceModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0 8px'
+                }}
               >
                 ×
               </button>
             </div>
 
-            <div className="modal-content">
-              <div className="add-device-form">
-                <div className="form-section">
-                  <h4>📱 Informazioni Dispositivo</h4>
-                  <div className="form-row">
-                    <label>Nome Dispositivo:</label>
-                    <input
-                      type="text"
-                      placeholder="es. POS-Milano-01"
-                      value={deviceForm.name}
-                      onChange={(e) => setDeviceForm({...deviceForm, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Modello:</label>
-                    <select
-                      value={deviceForm.device_model}
-                      onChange={(e) => setDeviceForm({...deviceForm, device_model: e.target.value})}
-                    >
-                      <option value="Z108">Z108 Terminal</option>
-                      <option value="custom">Altro Modello</option>
-                    </select>
-                  </div>
-                  <div className="form-row">
-                    <label>Android ID:</label>
-                    <input type="text" placeholder="Verrà generato automaticamente" disabled />
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h4>🏪 Associazione Store</h4>
-                  <div className="form-row">
-                    <label>Organizzazione:</label>
-                    <select
-                      value={deviceForm.organization_id}
-                      onChange={(e) => setDeviceForm({...deviceForm, organization_id: e.target.value})}
-                    >
-                      <option value="">Seleziona Organizzazione...</option>
-                      {organizations.map(org => (
-                        <option key={org.id} value={org.id}>{org.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-row">
-                    <label>Negozio/Ubicazione:</label>
-                    <input
-                      type="text"
-                      placeholder="es. Milano Centro, Roma Termini"
-                      value={deviceForm.store_location}
-                      onChange={(e) => setDeviceForm({...deviceForm, store_location: e.target.value})}
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Indirizzo:</label>
-                    <input
-                      type="text"
-                      placeholder="Via Roma 123, Milano"
-                      value={deviceForm.store_address}
-                      onChange={(e) => setDeviceForm({...deviceForm, store_address: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h4>📶 Configurazione Rete</h4>
-                  <div style={{
-                    background: '#f0f9ff',
-                    border: '1px solid #0284c7',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    fontSize: '13px',
-                    color: '#0369a1'
-                  }}>
-                    ℹ️ <strong>WiFi sarà configurato durante il setup fisico</strong><br />
-                    Il tecnico sul posto selezionerà la rete WiFi disponibile e inserirà le credenziali
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h4>⚙️ Configurazione Kiosk</h4>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={deviceForm.kiosk_auto_start}
-                        onChange={(e) => setDeviceForm({...deviceForm, kiosk_auto_start: e.target.checked})}
-                      />
-                      Attiva modalità Kiosk all'avvio
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>App principale:</label>
-                    <select
-                      value={deviceForm.main_app_package}
-                      onChange={(e) => setDeviceForm({...deviceForm, main_app_package: e.target.value})}
-                    >
-                      <option value="com.omnily.bridge">OMNILY Bridge POS</option>
-                      <option value="custom">Altra App</option>
-                    </select>
-                  </div>
-                </div>
+            {/* Form Sections */}
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>📱 Informazioni Dispositivo</h4>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Nome Dispositivo:</label>
+                <input
+                  type="text"
+                  placeholder="es. POS-Milano-01"
+                  value={deviceForm.name}
+                  onChange={(e) => setDeviceForm({...deviceForm, name: e.target.value})}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                />
               </div>
-
-              <div className="modal-actions">
-                <button
-                  className="action-btn secondary"
-                  onClick={() => setShowAddDeviceModal(false)}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Modello:</label>
+                <select
+                  value={deviceForm.device_model}
+                  onChange={(e) => setDeviceForm({...deviceForm, device_model: e.target.value})}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
                 >
-                  Annulla
-                </button>
-                <button
-                  className="action-btn primary"
-                  onClick={handleGenerateQR}
-                  disabled={formLoading || qrLoading}
-                >
-                  <Download size={16} />
-                  {qrLoading ? 'Generando...' : 'Genera QR Code Setup'}
-                </button>
-                <button
-                  className="action-btn success"
-                  onClick={handleCreateDevice}
-                  disabled={formLoading}
-                >
-                  <Plus size={16} />
-                  {formLoading ? 'Creando...' : 'Crea Dispositivo'}
-                </button>
+                  <option value="Z108">Z108 Terminal</option>
+                  <option value="custom">Altro Modello</option>
+                </select>
               </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Android ID:</label>
+                <input type="text" placeholder="Verrà generato automaticamente" disabled style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#f3f4f6', color: '#9ca3af' }} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>🏪 Associazione Store</h4>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Organizzazione:</label>
+                <select
+                  value={deviceForm.organization_id}
+                  onChange={(e) => setDeviceForm({...deviceForm, organization_id: e.target.value})}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                >
+                  <option value="">Seleziona Organizzazione...</option>
+                  {organizations.map(org => (
+                    <option key={org.id} value={org.id}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Negozio/Ubicazione:</label>
+                <input
+                  type="text"
+                  placeholder="es. Milano Centro, Roma Termini"
+                  value={deviceForm.store_location}
+                  onChange={(e) => setDeviceForm({...deviceForm, store_location: e.target.value})}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                />
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Indirizzo:</label>
+                <input
+                  type="text"
+                  placeholder="Via Roma 123, Milano"
+                  value={deviceForm.store_address}
+                  onChange={(e) => setDeviceForm({...deviceForm, store_address: e.target.value})}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>📶 Configurazione Rete</h4>
+              <div style={{
+                background: '#f0f9ff',
+                border: '1px solid #0284c7',
+                borderRadius: '8px',
+                padding: '12px',
+                fontSize: '13px',
+                color: '#0369a1'
+              }}>
+                ℹ️ <strong>WiFi sarà configurato durante il setup fisico</strong><br />
+                Il tecnico sul posto selezionerà la rete WiFi disponibile e inserirà le credenziali
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>⚙️ Configurazione Kiosk</h4>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', fontSize: '14px', color: '#4b5563', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={deviceForm.kiosk_auto_start}
+                    onChange={(e) => setDeviceForm({...deviceForm, kiosk_auto_start: e.target.checked})}
+                    style={{ marginRight: '8px' }}
+                  />
+                  Attiva modalità Kiosk all'avvio
+                </label>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>App principale:</label>
+                <select
+                  value={deviceForm.main_app_package}
+                  onChange={(e) => setDeviceForm({...deviceForm, main_app_package: e.target.value})}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+                >
+                  <option value="com.omnily.bridge">OMNILY Bridge POS</option>
+                  <option value="custom">Altra App</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+              <button
+                onClick={() => setShowAddDeviceModal(false)}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#4b5563',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer'
+                }}
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleGenerateQR}
+                disabled={formLoading || qrLoading}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#0284c7',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: formLoading || qrLoading ? 'not-allowed' : 'pointer',
+                  opacity: formLoading || qrLoading ? 0.6 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Download size={16} />
+                {qrLoading ? 'Generando...' : 'Genera QR Code Setup'}
+              </button>
+              <button
+                onClick={handleCreateDevice}
+                disabled={formLoading}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#059669',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: formLoading ? 'not-allowed' : 'pointer',
+                  opacity: formLoading ? 0.6 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Plus size={16} />
+                {formLoading ? 'Creando...' : 'Crea Dispositivo'}
+              </button>
             </div>
           </div>
         </div>
@@ -1356,19 +1568,48 @@ const MDMDashboard: React.FC = () => {
 
       {/* QR Code Modal */}
       {showQRModal && (
-        <div className="device-modal-overlay" onClick={() => setShowQRModal(false)}>
-          <div className="device-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>📱 QR Code Setup Dispositivo</h2>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>
+                📱 QR Code Setup Dispositivo
+              </h2>
               <button
-                className="close-btn"
                 onClick={() => setShowQRModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0 8px'
+                }}
               >
                 ×
               </button>
             </div>
 
-            <div className="modal-content">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ textAlign: 'center', padding: '20px' }}>
                 <div style={{
                   backgroundColor: '#fff',
@@ -1499,19 +1740,48 @@ const MDMDashboard: React.FC = () => {
 
       {/* Store Config Modal */}
       {showStoreConfigModal && (
-        <div className="device-modal-overlay" onClick={() => setShowStoreConfigModal(false)}>
-          <div className="device-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>⚙️ Configurazioni Store</h2>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '700px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>
+                ⚙️ Configurazioni Store
+              </h2>
               <button
-                className="close-btn"
                 onClick={() => setShowStoreConfigModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0 8px'
+                }}
               >
                 ×
               </button>
             </div>
 
-            <div className="modal-content">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="add-device-form">
                 <div className="form-section">
                   <h4>🏪 Configurazioni Globali Store</h4>
@@ -1703,23 +1973,52 @@ const MDMDashboard: React.FC = () => {
 
       {/* Delete Device Modal with Text Confirmation */}
       {showDeleteModal && deviceToDelete && (
-        <div className="device-modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="device-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <div className="modal-header">
-              <h2 style={{ color: '#dc2626' }}>⚠️ Elimina Dispositivo</h2>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '500px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#dc2626', margin: 0 }}>
+                ⚠️ Elimina Dispositivo
+              </h2>
               <button
-                className="close-btn"
                 onClick={() => {
                   setShowDeleteModal(false)
                   setDeviceToDelete(null)
                   setDeleteConfirmText('')
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0 8px'
                 }}
               >
                 ×
               </button>
             </div>
 
-            <div className="modal-content" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{
                 background: '#fef2f2',
                 border: '2px solid #dc2626',
@@ -1780,19 +2079,37 @@ const MDMDashboard: React.FC = () => {
                     setDeviceToDelete(null)
                     setDeleteConfirmText('')
                   }}
-                  className="action-btn secondary"
-                  style={{ flex: 1 }}
+                  style={{
+                    flex: 1,
+                    padding: '12px 20px',
+                    background: '#f3f4f6',
+                    color: '#1a1a1a',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
                 >
                   Annulla
                 </button>
                 <button
                   onClick={confirmDeleteDevice}
                   disabled={deleteConfirmText !== 'ELIMINA'}
-                  className="action-btn danger"
                   style={{
                     flex: 1,
-                    opacity: deleteConfirmText === 'ELIMINA' ? 1 : 0.5,
-                    cursor: deleteConfirmText === 'ELIMINA' ? 'pointer' : 'not-allowed'
+                    padding: '12px 20px',
+                    background: deleteConfirmText === 'ELIMINA' ? '#dc2626' : '#e5e7eb',
+                    color: deleteConfirmText === 'ELIMINA' ? 'white' : '#9ca3af',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: deleteConfirmText === 'ELIMINA' ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
                   }}
                 >
                   <Trash2 size={16} />

@@ -16,7 +16,8 @@ export interface Organization {
   name: string
   slug: string
   domain: string | null
-  plan_type: string
+  plan_type: string // @deprecated - use plan_id instead (kept for backward compatibility)
+  plan_id: string | null // UUID foreign key to omnilypro_plans table
   plan_status: string
   max_customers: number
   max_workflows: number
@@ -37,6 +38,11 @@ export interface Organization {
   user_count?: number          // Numero utenti dell'organizzazione (staff/team)
   customer_count?: number      // Numero clienti dell'organizzazione
   monthly_revenue?: number     // Ricavi mensili
+  omnilypro_plans?: {          // OmnilyPro plan data (joined from omnilypro_plans table)
+    id: string
+    name: string
+    slug: string
+  }
 
   // Wizard configuration data
   partita_iva?: string
@@ -461,7 +467,8 @@ export const organizationsApi = {
         *,
         organization_users(count),
         customers(count),
-        customer_activities(monetary_value, created_at)
+        customer_activities(monetary_value, created_at),
+        omnilypro_plans!plan_id(id, name, slug)
       `)
       .order('created_at', { ascending: false })
 
@@ -480,10 +487,12 @@ export const organizationsApi = {
         })
         .reduce((sum: number, activity: any) => sum + (activity.monetary_value || 0), 0)
 
+      const customerCount = org.customers?.[0]?.count || 0
+
       return {
         ...org,
         user_count: org.organization_users?.[0]?.count || 0,
-        customer_count: org.customers?.[0]?.count || 0,
+        customer_count: customerCount,
         monthly_revenue: monthlyRevenue
       }
     })

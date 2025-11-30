@@ -1465,16 +1465,16 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   }, [user])
 
   useEffect(() => {
-    if (activeSection === 'members' || activeSection === 'dashboard') {
+    if ((activeSection === 'members' || activeSection === 'dashboard') && currentOrganization) {
       fetchCustomers()
     }
-  }, [activeSection])
+  }, [activeSection, currentOrganization?.id])
 
   useEffect(() => {
-    if (activeSection === 'rewards') {
+    if (activeSection === 'rewards' && currentOrganization) {
       fetchRewards()
     }
-  }, [activeSection])
+  }, [activeSection, currentOrganization?.id])
 
   // OTTIMIZZAZIONE: Ricerca debounced per performance migliore nella gestione tessere
   useEffect(() => {
@@ -1496,7 +1496,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         );
       });
       setFilteredCustomers(filtered);
-      console.log(`🔍 RICERCA VELOCE "${searchTerm}": ${filtered.length}/${customers.length} clienti trovati`);
     }, 200); // 200ms ottimale per POS
 
     return () => clearTimeout(debounceTimeout);
@@ -1626,12 +1625,12 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (orgId?: string) => {
     try {
       setCustomersLoading(true)
 
-      // Usa l'organization ID dalla prima organization (in un app reale, dovresti gestire l'organization attiva)
-      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
+      // Use provided orgId, or currentOrganization.id, or fallback to first organization
+      const organizationId = orgId || currentOrganization?.id || (organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29')
 
       // Carica clienti reali dal database
       const realCustomers = await customersApi.getAll(organizationId)
@@ -1639,8 +1638,6 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
 
       setCustomers(realCustomers)
       setCustomerStats(realStats)
-
-      console.log(`✅ Caricati ${realCustomers.length} clienti reali per organization ${organizationId}`)
     } catch (err) {
       console.error('❌ Errore nel caricamento clienti dal database:', err)
 
@@ -1659,13 +1656,13 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
     }
   }
 
-  const fetchRewards = async () => {
+  const fetchRewards = async (orgId?: string) => {
     try {
       setRewardsLoading(true)
-      const organizationId = organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29'
+      // Use provided orgId, or currentOrganization.id, or fallback to first organization
+      const organizationId = orgId || currentOrganization?.id || (organizations.length > 0 ? organizations[0].id : 'c06a8dcf-b209-40b1-92a5-c80facf2eb29')
       const rewardsData = await rewardsService.getAll(organizationId)
       setRewards(rewardsData)
-      console.log(`✅ Caricati ${rewardsData.length} premi per organization ${organizationId}`)
     } catch (err) {
       console.error('❌ Errore nel caricamento premi dal database:', err)
       // In caso di errore, non mostrare errore per i premi (tabella potrebbe non esistere ancora)
