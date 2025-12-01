@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X, QrCode, Calendar, Phone, MapPin, MessageSquare, Gift } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { customersApi, supabase } from '../lib/supabase';
@@ -118,23 +118,37 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
   
-  const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    birthDate: '',
-    gender: '',
-    address: '',
-    city: '',
-    zipCode: '',
-    notes: '',
-    referralCode: '',
-    referredBy: '',
-    privacyConsent: false,
-    marketingConsent: false,
-    signature: ''
-  });
+  // Recupera dati salvati da localStorage se presenti
+  const getSavedFormData = (): FormData => {
+    try {
+      const saved = localStorage.getItem('registrationWizardData');
+      if (saved) {
+        console.log('📦 Dati wizard recuperati da localStorage');
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Errore recupero dati da localStorage:', error);
+    }
+    return {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      birthDate: '',
+      gender: '',
+      address: '',
+      city: '',
+      zipCode: '',
+      notes: '',
+      referralCode: '',
+      referredBy: '',
+      privacyConsent: false,
+      marketingConsent: false,
+      signature: ''
+    };
+  };
+
+  const [formData, setFormData] = useState<FormData>(getSavedFormData());
 
   const steps = [
     { number: 1, title: 'Dati Personali', icon: User },
@@ -143,9 +157,36 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     { number: 4, title: 'Privacy & Consensi', icon: Shield }
   ];
 
+  // Warning quando prova a chiudere/ricaricare la pagina se ci sono dati compilati
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Controlla se ci sono dati compilati
+      const hasData = formData.firstName || formData.lastName || formData.email || formData.phone;
+
+      if (hasData && !isLoading) {
+        e.preventDefault();
+        e.returnValue = 'Hai dati non salvati. Sei sicuro di voler uscire?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [formData, isLoading]);
+
   useEffect(() => {
     if (isOpen) {
-      resetForm();
+      // Solo resetta se NON ci sono dati salvati in localStorage
+      const savedData = localStorage.getItem('registrationWizardData');
+      if (!savedData) {
+        console.log('🔄 Nessun dato salvato, resetto il form');
+        resetForm();
+      } else {
+        console.log('📦 Dati trovati in localStorage, mantengo il form');
+      }
       initCanvas();
       fetchOrganization(); // Fetch latest organization data from DB
     }
@@ -849,9 +890,18 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       console.log(`📊 FormData aggiornato:`, newData);
+
+      // Salva automaticamente in localStorage
+      try {
+        localStorage.setItem('registrationWizardData', JSON.stringify(newData));
+        console.log('💾 Dati salvati in localStorage');
+      } catch (error) {
+        console.error('Errore salvataggio localStorage:', error);
+      }
+
       return newData;
     });
-    
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -965,6 +1015,33 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const prevStep = () => {
     setCurrentStep(currentStep - 1);
   };
+
+  // Check if current step is valid for disabling "Avanti" button
+  // useMemo ensures this recalculates whenever formData or currentStep changes
+  const isCurrentStepValid = useMemo(() => {
+    const newErrors: { [key: string]: string } = {};
+
+    switch (currentStep) {
+      case 1:
+        if (!formData.firstName.trim()) newErrors.firstName = 'Nome richiesto';
+        if (!formData.lastName.trim()) newErrors.lastName = 'Cognome richiesto';
+        if (!formData.gender) newErrors.gender = 'Genere richiesto';
+        break;
+      case 2:
+        if (!formData.email.trim()) newErrors.email = 'Email richiesta';
+        if (!formData.phone.trim()) newErrors.phone = 'Telefono richiesto';
+        break;
+      case 3:
+        // Note step - always valid (no required fields)
+        break;
+      case 4:
+        if (!formData.privacyConsent) newErrors.privacyConsent = 'Consenso privacy richiesto';
+        if (!formData.signature) newErrors.signature = 'Firma richiesta';
+        break;
+    }
+
+    return Object.keys(newErrors).length === 0;
+  }, [formData, currentStep]);
 
   const calculateTier = (points: number) => {
     console.log('🏆 calculateTier called with points:', points);
@@ -1346,6 +1423,10 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
       // Mostra messaggio di conferma
       showToast('✅ Cliente registrato con successo! Invio email per accedere all\'app', 'success');
+
+      // Pulisci localStorage dopo registrazione completata
+      localStorage.removeItem('registrationWizardData');
+      console.log('🧹 Dati wizard rimossi da localStorage');
 
       console.log('❌ Chiudo modal...');
       // Ritarda la chiusura per mostrare il messaggio
@@ -1802,6 +1883,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               type="button"
               className="btn-primary"
               onClick={nextStep}
+              disabled={!isCurrentStepValid}
+              style={{
+                opacity: !isCurrentStepValid ? 0.5 : 1,
+                cursor: !isCurrentStepValid ? 'not-allowed' : 'pointer'
+              }}
             >
               Avanti →
             </button>
@@ -1810,7 +1896,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               type="button"
               className="btn-success"
               onClick={handleSubmit}
-              disabled={isLoading}
+              disabled={isLoading || !isCurrentStepValid}
+              style={{
+                opacity: (isLoading || !isCurrentStepValid) ? 0.5 : 1,
+                cursor: (isLoading || !isCurrentStepValid) ? 'not-allowed' : 'pointer'
+              }}
             >
               {isLoading ? 'Registrazione...' : 'Completa Registrazione'}
             </button>

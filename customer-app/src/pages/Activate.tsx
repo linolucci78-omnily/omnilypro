@@ -20,6 +20,8 @@ export default function Activate() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [success, setSuccess] = useState(false)
 
+  const primaryColor = organization?.primary_color || '#dc2626'
+
   useEffect(() => {
     if (token) {
       verifyToken()
@@ -85,7 +87,7 @@ export default function Activate() {
 
       if (error) throw new Error(error.message)
       if (data.error) throw new Error(data.error)
-      if (!data.success) throw new Error('Errore durante l\'attivazione')
+      if (!data.success) throw new Error('Errore durante l\\'attivazione')
 
       setSuccess(true)
 
@@ -94,7 +96,7 @@ export default function Activate() {
       }, 2000)
 
     } catch (err: any) {
-      setError(err.message || 'Errore durante l\'attivazione')
+      setError(err.message || 'Errore durante l\\'attivazione')
     } finally {
       setSubmitting(false)
     }
@@ -105,22 +107,22 @@ export default function Activate() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#f9fafb',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
-            width: '60px',
-            height: '60px',
-            border: '6px solid rgba(255,255,255,0.3)',
-            borderTopColor: 'white',
+            width: '50px',
+            height: '50px',
+            border: '4px solid #e5e7eb',
+            borderTopColor: primaryColor,
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
-            margin: '0 auto 1.5rem'
+            margin: '0 auto 1rem'
           }}></div>
-          <p style={{ color: 'white', fontSize: '1.125rem', fontWeight: 500 }}>
+          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             Verifica in corso...
           </p>
         </div>
@@ -133,44 +135,41 @@ export default function Activate() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#f9fafb',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem'
+        padding: '1.5rem'
       }}>
         <div style={{
           background: 'white',
-          borderRadius: '1.5rem',
-          padding: '3rem 2rem',
+          borderRadius: '0.5rem',
+          padding: '2rem',
           maxWidth: '400px',
           width: '100%',
           textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e5e7eb'
         }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚠️</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem', color: '#dc2626' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: '#dc2626' }}>
             Link non valido
           </h2>
-          <p style={{ color: '#6b7280', marginBottom: '2rem', lineHeight: 1.6 }}>
+          <p style={{ color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
             {error}
           </p>
           <button
             onClick={() => navigate(`/${slug}/login`)}
             style={{
-              padding: '1rem 2rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '0.75rem 1.5rem',
+              background: primaryColor,
               color: 'white',
               border: 'none',
-              borderRadius: '0.75rem',
+              borderRadius: '0.375rem',
               cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '1rem',
-              width: '100%',
-              transition: 'transform 0.2s',
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              width: '100%'
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             Vai al Login
           </button>
@@ -184,43 +183,51 @@ export default function Activate() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#f9fafb',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem'
+        padding: '1.5rem'
       }}>
         <div style={{
           background: 'white',
-          borderRadius: '1.5rem',
-          padding: '3rem 2rem',
+          borderRadius: '0.5rem',
+          padding: '2rem',
           maxWidth: '400px',
           width: '100%',
           textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          animation: 'slideUp 0.5s ease-out'
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e5e7eb'
         }}>
           <div style={{
-            fontSize: '4rem',
-            marginBottom: '1rem',
-            animation: 'bounceIn 0.6s ease-out'
+            width: '50px',
+            height: '50px',
+            background: '#10b981',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem',
+            border: '3px solid white',
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
           }}>
-            ✅
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem', color: '#10b981' }}>
-            Account Attivato!
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: '#10b981' }}>
+            Account Attivato
           </h2>
-          <p style={{ color: '#6b7280', lineHeight: 1.6 }}>
-            Perfetto! Ora puoi accedere con le tue credenziali.
+          <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            Il tuo account è stato attivato con successo.
           </p>
           <div style={{
-            marginTop: '2rem',
-            padding: '1rem',
+            padding: '0.75rem',
             background: '#f0fdf4',
-            borderRadius: '0.75rem',
+            borderRadius: '0.375rem',
             border: '1px solid #86efac'
           }}>
-            <p style={{ fontSize: '0.875rem', color: '#166534' }}>
+            <p style={{ fontSize: '0.75rem', color: '#166534' }}>
               Reindirizzamento al login...
             </p>
           </div>
@@ -233,46 +240,32 @@ export default function Activate() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: '#f9fafb',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2rem'
+      padding: '1.5rem'
     }}>
       <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes bounceIn {
-          0% { transform: scale(0); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
-        }
       `}</style>
 
       <div style={{
         width: '100%',
-        maxWidth: '440px',
-        animation: 'slideUp 0.5s ease-out'
+        maxWidth: '440px'
       }}>
         {/* Logo Section */}
         {organization?.logo_url && (
           <div style={{
             textAlign: 'center',
-            marginBottom: '2rem',
-            background: 'white',
-            padding: '1.5rem',
-            borderRadius: '1rem',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+            marginBottom: '1.5rem'
           }}>
             <img
               src={organization.logo_url}
               alt={organization.name}
-              style={{ maxWidth: '140px', height: 'auto' }}
+              style={{ maxWidth: '120px', height: 'auto' }}
             />
           </div>
         )}
@@ -280,43 +273,41 @@ export default function Activate() {
         {/* Main Card */}
         <div style={{
           background: 'white',
-          borderRadius: '1.5rem',
-          padding: '2.5rem',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          borderRadius: '0.5rem',
+          padding: '2rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e5e7eb'
         }}>
           {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🔐</div>
+          <div style={{ marginBottom: '1.5rem' }}>
             <h1 style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              marginBottom: '0.5rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              fontSize: '1.5rem',
+              fontWeight: 600,
+              marginBottom: '0.25rem',
+              color: '#111827'
             }}>
-              Attiva il tuo Account
+              Attivazione Account
             </h1>
-            <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-              Ciao <strong style={{ color: '#111827' }}>{customer?.name}</strong>! 👋
-              <br />
-              Imposta una password sicura per iniziare
+            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+              Benvenuto <strong style={{ color: '#111827' }}>{customer?.name}</strong>
+            </p>
+            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+              Imposta una password per accedere al tuo account.
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {/* Email (disabled) */}
             <div>
               <label style={{
                 display: 'block',
-                marginBottom: '0.5rem',
+                marginBottom: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 600,
+                fontWeight: 500,
                 color: '#374151'
               }}>
-                📧 Email
+                Email
               </label>
               <input
                 type="email"
@@ -324,13 +315,12 @@ export default function Activate() {
                 disabled
                 style={{
                   width: '100%',
-                  padding: '0.875rem 1rem',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '0.75rem',
-                  fontSize: '1rem',
+                  padding: '0.625rem 0.75rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
                   background: '#f9fafb',
-                  color: '#6b7280',
-                  fontWeight: 500
+                  color: '#6b7280'
                 }}
               />
             </div>
@@ -339,12 +329,12 @@ export default function Activate() {
             <div>
               <label style={{
                 display: 'block',
-                marginBottom: '0.5rem',
+                marginBottom: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 600,
+                fontWeight: 500,
                 color: '#374151'
               }}>
-                🔒 Password
+                Password
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -356,56 +346,65 @@ export default function Activate() {
                   placeholder="Minimo 6 caratteri"
                   style={{
                     width: '100%',
-                    padding: '0.875rem 3rem 0.875rem 1rem',
-                    border: `2px solid ${password ? passwordStrength.color : '#e5e7eb'}`,
-                    borderRadius: '0.75rem',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    transition: 'all 0.2s'
+                    padding: '0.625rem 2.5rem 0.625rem 0.75rem',
+                    border: `1px solid ${password ? passwordStrength.color : '#d1d5db'}`,
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    outline: 'none'
                   }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = password ? passwordStrength.color : '#e5e7eb'}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   style={{
                     position: 'absolute',
-                    right: '1rem',
+                    right: '0.75rem',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '1.25rem'
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    fontWeight: 500,
+                    padding: '0.25rem 0.5rem'
                   }}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  )}
                 </button>
               </div>
 
               {/* Password Strength Indicator */}
               {password && (
-                <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ marginTop: '0.375rem' }}>
                   <div style={{
-                    height: '4px',
+                    height: '3px',
                     background: '#e5e7eb',
-                    borderRadius: '2px',
+                    borderRadius: '1.5px',
                     overflow: 'hidden'
                   }}>
                     <div style={{
                       height: '100%',
                       width: `${passwordStrength.strength}%`,
                       background: passwordStrength.color,
-                      transition: 'all 0.3s',
-                      borderRadius: '2px'
+                      transition: 'all 0.3s'
                     }}></div>
                   </div>
                   <p style={{
                     fontSize: '0.75rem',
                     color: passwordStrength.color,
                     marginTop: '0.25rem',
-                    fontWeight: 600
+                    fontWeight: 500
                   }}>
                     {passwordStrength.label}
                   </p>
@@ -417,12 +416,12 @@ export default function Activate() {
             <div>
               <label style={{
                 display: 'block',
-                marginBottom: '0.5rem',
+                marginBottom: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 600,
+                fontWeight: 500,
                 color: '#374151'
               }}>
-                🔐 Conferma Password
+                Conferma Password
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -434,35 +433,45 @@ export default function Activate() {
                   placeholder="Ripeti la password"
                   style={{
                     width: '100%',
-                    padding: '0.875rem 3rem 0.875rem 1rem',
-                    border: `2px solid ${confirmPassword && confirmPassword !== password ? '#ef4444' : '#e5e7eb'}`,
-                    borderRadius: '0.75rem',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    transition: 'all 0.2s'
+                    padding: '0.625rem 2.5rem 0.625rem 0.75rem',
+                    border: `1px solid ${confirmPassword && confirmPassword !== password ? '#ef4444' : '#d1d5db'}`,
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    outline: 'none'
                   }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = confirmPassword && confirmPassword !== password ? '#ef4444' : '#e5e7eb'}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   style={{
                     position: 'absolute',
-                    right: '1rem',
+                    right: '0.75rem',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '1.25rem'
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    fontWeight: 500,
+                    padding: '0.25rem 0.5rem'
                   }}
                 >
-                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                  {showConfirmPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  )}
                 </button>
               </div>
               {confirmPassword && confirmPassword !== password && (
-                <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.25rem', fontWeight: 600 }}>
+                <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.25rem' }}>
                   Le password non corrispondono
                 </p>
               )}
@@ -471,51 +480,36 @@ export default function Activate() {
             {/* Error Message */}
             {error && (
               <div style={{
-                padding: '1rem',
+                padding: '0.75rem',
                 background: '#fee2e2',
                 color: '#991b1b',
-                borderRadius: '0.75rem',
+                borderRadius: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 500,
                 border: '1px solid #fecaca'
               }}>
-                ⚠️ {error}
+                {error}
               </div>
             )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={submitting || password !== confirmPassword}
+              disabled={submitting || password !== confirmPassword || password.length < 6}
               style={{
                 width: '100%',
-                padding: '1rem',
-                background: submitting || password !== confirmPassword
+                padding: '0.75rem',
+                background: (submitting || password !== confirmPassword || password.length < 6)
                   ? '#d1d5db'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  : primaryColor,
                 color: 'white',
                 border: 'none',
-                borderRadius: '0.75rem',
-                fontSize: '1.0625rem',
-                fontWeight: 700,
-                cursor: submitting || password !== confirmPassword ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                boxShadow: submitting || password !== confirmPassword ? 'none' : '0 4px 12px rgba(102, 126, 234, 0.4)'
-              }}
-              onMouseOver={(e) => {
-                if (!submitting && password === confirmPassword) {
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)'
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!submitting && password === confirmPassword) {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)'
-                }
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: (submitting || password !== confirmPassword || password.length < 6) ? 'not-allowed' : 'pointer'
               }}
             >
-              {submitting ? '⏳ Attivazione in corso...' : '✨ Attiva Account'}
+              {submitting ? 'Attivazione in corso...' : 'Attiva Account'}
             </button>
           </form>
         </div>
