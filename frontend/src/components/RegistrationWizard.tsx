@@ -1125,9 +1125,20 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           let referralCode = url;
           if (url.includes('ref=')) {
             console.log('📌 Found ref= pattern in URL');
-            const urlParams = new URLSearchParams(url.split('?')[1]);
-            referralCode = urlParams.get('ref') || url;
-            console.log('📌 Extracted referral code:', referralCode);
+            // Use regex to extract ref value (supports & character in the code)
+            // Match: ref=ANYTHING (letters, numbers, &, etc.) until end of string or another & parameter
+            const match = url.match(/[?&]ref=([^&]+)/);
+            if (match && match[1]) {
+              referralCode = decodeURIComponent(match[1]);
+              console.log('📌 Extracted referral code:', referralCode);
+            } else {
+              // Fallback: extract everything after ref=
+              const refIndex = url.indexOf('ref=');
+              if (refIndex !== -1) {
+                referralCode = url.substring(refIndex + 4);
+                console.log('📌 Extracted referral code (fallback):', referralCode);
+              }
+            }
           } else if (url.includes('/referral/')) {
             console.log('📌 Found /referral/ pattern in URL');
             // Extract from URL pattern like /referral/ABC123 or /referral/S&C123

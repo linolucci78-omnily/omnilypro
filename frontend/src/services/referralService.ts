@@ -801,7 +801,7 @@ export function generateReferralLink(
   referralCode: string,
   baseUrl: string = window.location.origin
 ): string {
-  return `${baseUrl}/register?ref=${referralCode}`;
+  return `${baseUrl}/register?ref=${encodeURIComponent(referralCode)}`;
 }
 
 /**

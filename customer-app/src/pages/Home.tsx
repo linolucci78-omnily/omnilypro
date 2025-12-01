@@ -29,7 +29,7 @@ export default function Home() {
     if (!customer || !organization) return
 
     const referralCode = customer.referral_code || 'LOADING'
-    const shareUrl = `${window.location.origin}/${slug}/register?ref=${referralCode}`
+    const shareUrl = `${window.location.origin}/${slug}/register?ref=${encodeURIComponent(referralCode)}`
     const shareText = `Unisciti a ${organization.name} con il mio codice ${referralCode} e guadagna punti!`
 
     if (navigator.share) {
