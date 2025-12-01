@@ -25,7 +25,7 @@ import {
 import { rewardsService, type Reward } from '../services/rewardsService'
 import { supabase } from '../lib/supabase'
 import MultiRewardCreator from './MultiRewardCreator'
-import toast from 'react-hot-toast'
+import { useToast } from '../contexts/ToastContext'
 import './RewardsManagement.css'
 
 interface RewardsManagementProps {
@@ -76,6 +76,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   primaryColor,
   secondaryColor
 }) => {
+  const { showSuccess, showError } = useToast()
   const [rewards, setRewards] = useState<Reward[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -239,16 +240,16 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       console.log('Reward deleted successfully')
       await fetchRewards()
       setDeleteConfirmId(null)
-      toast.success('Premio eliminato con successo')
+      showSuccess('Premio eliminato', 'Il premio è stato eliminato con successo')
     } catch (error: any) {
       console.error('Errore eliminazione premio:', error)
 
       // Check if it's a foreign key constraint error
       if (error.code === '23503' || error.message?.includes('foreign key') || error.message?.includes('reward_redemptions')) {
-        toast.error('Impossibile eliminare: questo premio è già stato riscattato da alcuni clienti')
+        showError('Impossibile eliminare', 'Questo premio è già stato riscattato da alcuni clienti')
         setDeleteConfirmId(null)
       } else {
-        toast.error(error.message || 'Errore durante l\'eliminazione del premio')
+        showError('Errore', error.message || 'Errore durante l\'eliminazione del premio')
       }
     }
   }
