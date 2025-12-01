@@ -133,9 +133,11 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
   const loadOrganizationUsers = async () => {
     try {
-      console.log('🔍 Caricamento utenti con account auth per org:', organizationId)
+      console.log('🔍 Caricamento operatori per org:', organizationId)
 
-      // Step 1: Carica organization_users per questa org
+      const allStaffMembers: StaffMember[] = []
+
+      // Step 1: Carica organization_users (utenti con account auth)
       const { data: orgUsers, error: orgError } = await supabase
         .from('organization_users')
         .select('user_id, role, created_at')
@@ -143,75 +145,100 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
       if (orgError) {
         console.error('Errore caricamento organization_users:', orgError)
-        throw orgError
       }
 
       console.log('📋 Organization users trovati:', orgUsers?.length || 0)
 
-      if (!orgUsers || orgUsers.length === 0) {
-        console.warn('⚠️ Nessun utente in organization_users')
+      // Step 2: Carica dettagli utenti dalla tabella users
+      if (orgUsers && orgUsers.length > 0) {
+        const userIds = orgUsers.map(ou => ou.user_id)
+        const { data: usersData, error: usersError } = await supabase
+          .from('users')
+          .select('id, email, full_name')
+          .in('id', userIds)
+
+        if (usersError) {
+          console.error('Errore caricamento users:', usersError)
+        }
+
+        console.log('👥 User details trovati:', usersData?.length || 0)
+
+        // Combina i dati
+        const usersMap = new Map((usersData || []).map(u => [u.id, u]))
+
+        const authStaffMembers = orgUsers.map((ou: any) => {
+          const userData = usersMap.get(ou.user_id)
+
+          // Determina il nome: priorità a full_name se esiste e non è vuoto
+          let displayName = 'Utente Sconosciuto'
+          if (userData?.full_name && userData.full_name.trim() !== '') {
+            displayName = userData.full_name.trim()
+          } else if (userData?.email) {
+            displayName = userData.email.split('@')[0]
+          }
+
+          return {
+            id: ou.user_id,
+            organization_id: organizationId,
+            name: displayName,
+            email: userData?.email || '',
+            role: ou.role as any,
+            pin_code: '',
+            is_active: true,
+            created_at: ou.created_at || '',
+            updated_at: ou.created_at || ''
+          }
+        })
+
+        allStaffMembers.push(...authStaffMembers)
+      }
+
+      // Step 3: Carica ANCHE dalla tabella staff_members (operatori creati da TeamManagement)
+      const { data: staffMembersData, error: staffError } = await supabase
+        .from('staff_members')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+
+      if (staffError) {
+        console.error('Errore caricamento staff_members:', staffError)
+      } else if (staffMembersData && staffMembersData.length > 0) {
+        console.log('👥 Staff members trovati:', staffMembersData.length)
+
+        // Aggiungi gli staff members, evitando duplicati per ID
+        const existingIds = new Set(allStaffMembers.map(s => s.id))
+
+        staffMembersData.forEach((staff: any) => {
+          if (!existingIds.has(staff.id)) {
+            allStaffMembers.push({
+              id: staff.id,
+              organization_id: staff.organization_id,
+              name: staff.name || staff.email?.split('@')[0] || 'Operatore',
+              email: staff.email || '',
+              role: staff.role || 'staff',
+              pin_code: staff.pin_code || '',
+              is_active: staff.is_active !== false,
+              created_at: staff.created_at || '',
+              updated_at: staff.updated_at || ''
+            })
+          }
+        })
+      }
+
+      console.log('✅ Totale operatori caricati:', allStaffMembers.length)
+
+      if (allStaffMembers.length === 0) {
+        showError('Nessun Operatore', 'Non ci sono operatori. Vai in Gestione Team per creare operatori.')
         setOrganizationUsers([])
-        showError('Nessun Operatore', `Non ci sono operatori configurati. Vai in Gestione Team per creare operatori.`)
         return
       }
 
-      // Step 2: Carica dettagli utenti dalla tabella users
-      const userIds = orgUsers.map(ou => ou.user_id)
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, email, full_name')
-        .in('id', userIds)
-
-      if (usersError) {
-        console.error('Errore caricamento users:', usersError)
-        throw usersError
-      }
-
-      console.log('👥 User details trovati:', usersData?.length || 0)
-
-      // Step 3: Combina i dati
-      const usersMap = new Map((usersData || []).map(u => [u.id, u]))
-
-      const staffMembers = orgUsers.map((ou: any) => {
-        const userData = usersMap.get(ou.user_id)
-
-        // Determina il nome: priorità a full_name se esiste e non è vuoto
-        let displayName = 'Utente Sconosciuto'
-        if (userData?.full_name && userData.full_name.trim() !== '') {
-          displayName = userData.full_name.trim()
-        } else if (userData?.email) {
-          // Usa solo la parte prima della @ come fallback
-          displayName = userData.email.split('@')[0]
-        }
-
-        console.log('👤 User mapping:', {
-          user_id: ou.user_id,
-          full_name: userData?.full_name,
-          email: userData?.email,
-          displayName
-        })
-
-        return {
-          id: ou.user_id, // Questo è l'auth.users.id!
-          organization_id: organizationId,
-          name: displayName,
-          email: userData?.email || '',
-          role: ou.role as any,
-          pin_code: '',
-          is_active: true,
-          created_at: ou.created_at || '',
-          updated_at: ou.created_at || ''
-        }
-      })
-
-      console.log('✅ Caricati', staffMembers.length, 'utenti con account auth:', staffMembers)
-
-      setOrganizationUsers(staffMembers)
+      setOrganizationUsers(allStaffMembers)
 
       // DEBUG: Toast temporaneo per vedere sul POS
-      if (staffMembers.length > 0) {
-        const operatorNames = staffMembers.slice(0, 3).map((u: any) => u.name).join(', ')
-        showSuccess('Operatori Trovati', `Trovati ${staffMembers.length} operatori: ${operatorNames}${staffMembers.length > 3 ? '...' : ''}`)
+      if (allStaffMembers.length > 0) {
+        const operatorNames = allStaffMembers.slice(0, 3).map((u: any) => u.name).join(', ')
+        showSuccess('Operatori Trovati', `Trovati ${allStaffMembers.length} operatori: ${operatorNames}${allStaffMembers.length > 3 ? '...' : ''}`)
       }
     } catch (error: any) {
       console.error('Error loading staff members:', error)
