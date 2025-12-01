@@ -1107,20 +1107,30 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         // Setup callback handler globale
         (window as any).registrationWizardQRHandler = (result: string) => {
           console.log('✅ QR Code scanned via bridge:', result);
+          console.log('🔍 Type of result:', typeof result);
+          console.log('🔍 Result stringified:', JSON.stringify(result));
 
           // Extract referral code from URL or use direct code
           let referralCode = result;
           if (result.includes('ref=')) {
+            console.log('📌 Found ref= pattern in URL');
             const urlParams = new URLSearchParams(result.split('?')[1]);
             referralCode = urlParams.get('ref') || result;
+            console.log('📌 Extracted referral code:', referralCode);
           } else if (result.includes('/referral/')) {
-            // Extract from URL pattern like /referral/ABC123
-            const match = result.match(/\/referral\/([A-Z0-9]+)/);
-            if (match) referralCode = match[1];
+            console.log('📌 Found /referral/ pattern in URL');
+            // Extract from URL pattern like /referral/ABC123 or /referral/S&C123
+            const match = result.match(/\/referral\/([A-Z0-9&]+)/i);
+            if (match) {
+              referralCode = match[1];
+              console.log('📌 Extracted referral code:', referralCode);
+            }
           }
 
+          console.log('🎯 Setting referral code:', referralCode);
           // Set the referral code
           handleInputChange('referralCode', referralCode);
+          console.log('✅ handleInputChange called');
 
           // Cleanup
           delete (window as any).registrationWizardQRHandler;
