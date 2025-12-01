@@ -181,11 +181,19 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     if (isOpen) {
       // Solo resetta se NON ci sono dati salvati in localStorage
       const savedData = localStorage.getItem('registrationWizardData');
+      const savedStep = localStorage.getItem('registrationWizardStep');
+
       if (!savedData) {
         console.log('🔄 Nessun dato salvato, resetto il form');
         resetForm();
       } else {
         console.log('📦 Dati trovati in localStorage, mantengo il form');
+        // Recupera anche lo step salvato
+        if (savedStep) {
+          const step = parseInt(savedStep, 10);
+          console.log(`📍 Step recuperato: ${step}`);
+          setCurrentStep(step);
+        }
       }
       initCanvas();
       fetchOrganization(); // Fetch latest organization data from DB
@@ -233,6 +241,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     });
     setErrors({});
     setDuplicateWarning('');
+    // Pulisci localStorage
+    localStorage.removeItem('registrationWizardData');
+    localStorage.removeItem('registrationWizardStep');
   };
 
   const initCanvas = () => {
@@ -891,10 +902,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       const newData = { ...prev, [field]: value };
       console.log(`📊 FormData aggiornato:`, newData);
 
-      // Salva automaticamente in localStorage
+      // Salva automaticamente in localStorage (dati + step corrente)
       try {
         localStorage.setItem('registrationWizardData', JSON.stringify(newData));
-        console.log('💾 Dati salvati in localStorage');
+        localStorage.setItem('registrationWizardStep', currentStep.toString());
+        console.log('💾 Dati e step salvati in localStorage');
       } catch (error) {
         console.error('Errore salvataggio localStorage:', error);
       }
@@ -1008,12 +1020,16 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(currentStep + 1);
+      const newStep = currentStep + 1;
+      setCurrentStep(newStep);
+      localStorage.setItem('registrationWizardStep', newStep.toString());
     }
   };
 
   const prevStep = () => {
-    setCurrentStep(currentStep - 1);
+    const newStep = currentStep - 1;
+    setCurrentStep(newStep);
+    localStorage.setItem('registrationWizardStep', newStep.toString());
   };
 
   // Check if current step is valid for disabling "Avanti" button
@@ -1142,7 +1158,8 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             const urlParams = new URLSearchParams(decodedText.split('?')[1]);
             referralCode = urlParams.get('ref') || decodedText;
           } else if (decodedText.includes('/referral/')) {
-            const match = decodedText.match(/\/referral\/([A-Z0-9]+)/);
+            // Match any characters after /referral/ including &, special chars
+            const match = decodedText.match(/\/referral\/([A-Z0-9&]+)/i);
             if (match) referralCode = match[1];
           }
 
