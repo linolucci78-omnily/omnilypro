@@ -43,6 +43,7 @@ interface GeneratedReward {
   required_tier?: string
   description: string
   emoji?: string
+  imageSearchQuery?: string  // Query ottimizzata per ricerca immagine su Unsplash
 }
 
 serve(async (req) => {
@@ -266,6 +267,20 @@ ${customInstructions}
 Rispetta queste preferenze nella generazione dei premi, adattando i suggerimenti alle esigenze specifiche indicate.
 ` : ''}
 
+PER OGNI PREMIO, GENERA ANCHE:
+- imageSearchQuery: Una query ottimale in INGLESE per cercare la foto perfetta su Unsplash
+  La query deve essere descrittiva, professionale, specifica e in INGLESE.
+
+ESEMPI di imageSearchQuery corrette per ${businessType}:
+${getImageQueryExamples(businessType)}
+
+REGOLE per imageSearchQuery:
+1. SEMPRE in INGLESE (mai italiano!)
+2. Descrittiva e specifica (3-6 parole)
+3. Include contesto del business (es. "restaurant", "cafe", "shop")
+4. Evita parole generiche come solo "free" o "discount"
+5. Pensa a cosa cercheresti su Google Images per trovare la foto perfetta
+
 RISPONDI SOLO CON JSON valido in questo formato:
 {
   "reasoning": "Breve spiegazione della strategia scelta (1-2 frasi)",
@@ -277,7 +292,8 @@ RISPONDI SOLO CON JSON valido in questo formato:
       "points_required": 100,
       "required_tier": "uno dei nomi tier forniti sopra",
       "description": "Descrizione coinvolgente che invoglia al riscatto",
-      "emoji": "🎁"
+      "emoji": "🎁",
+      "imageSearchQuery": "descriptive english query for image search"
     }
   ]
 }
@@ -323,4 +339,51 @@ function detectBusinessType(name: string): string {
   }
 
   return 'Attività Commerciale'
+}
+
+function getImageQueryExamples(businessType: string): string {
+  const examples: Record<string, string[]> = {
+    'Ristorante/Pizzeria': [
+      '- "Pizza Margherita Gratis" → "margherita pizza italian restaurant wood fired oven"',
+      '- "Dessert del Giorno" → "italian dessert tiramisu restaurant plated"',
+      '- "Aperitivo Omaggio" → "aperitif drinks sunset italian aperitivo"',
+      '- "Sconto 20%" → "restaurant dining table elegant setting"'
+    ],
+    'Bar/Caffetteria': [
+      '- "Caffè Espresso Gratis" → "espresso coffee cup on wooden table cafe"',
+      '- "Cappuccino Omaggio" → "cappuccino latte art coffee shop"',
+      '- "Brioche Gratis" → "italian brioche croissant breakfast pastry"',
+      '- "Sconto Colazione" → "breakfast coffee croissant morning cafe"'
+    ],
+    'Salone/Parrucchiere': [
+      '- "Taglio Gratis" → "hair salon haircut professional stylist"',
+      '- "Trattamento Capelli" → "hair treatment salon professional care"',
+      '- "Piega Omaggio" → "hairstyling blow dry salon"',
+      '- "Sconto Colore" → "hair coloring salon professional"'
+    ],
+    'Palestra/Fitness': [
+      '- "Mese Gratis" → "fitness gym equipment workout motivation"',
+      '- "Personal Trainer" → "personal trainer fitness coaching gym"',
+      '- "Lezione Yoga" → "yoga class group meditation studio"',
+      '- "Sconto Iscrizione" → "gym membership fitness center"'
+    ],
+    'Negozio/Retail': [
+      '- "Sconto 10%" → "shopping bag retail store discount"',
+      '- "Prodotto Gratis" → "gift product shopping retail store"',
+      '- "Buono Acquisto" → "gift card voucher shopping retail"',
+      '- "Spedizione Gratis" → "package delivery shipping box"'
+    ],
+    'Ospitalità/Hotel': [
+      '- "Notte Gratis" → "hotel room luxury bed accommodation"',
+      '- "Colazione Inclusa" → "hotel breakfast buffet morning"',
+      '- "Upgrade Camera" → "luxury hotel suite room"',
+      '- "Sconto Soggiorno" → "hotel resort vacation accommodation"'
+    ]
+  }
+
+  return examples[businessType]?.join('\n') ||
+    '- "Premio Standard" → "gift present reward celebration"\n' +
+    '- "Sconto" → "discount sale shopping percentage"\n' +
+    '- "Prodotto Gratis" → "free product gift giveaway"\n' +
+    '- "Buono Regalo" → "gift card voucher present"'
 }
