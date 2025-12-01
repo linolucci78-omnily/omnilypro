@@ -87,7 +87,7 @@ export default function Activate() {
 
       if (error) throw new Error(error.message)
       if (data.error) throw new Error(data.error)
-      if (!data.success) throw new Error('Errore durante l\\'attivazione')
+      if (!data.success) throw new Error('Errore durante l\'attivazione')
 
       setSuccess(true)
 
@@ -96,7 +96,7 @@ export default function Activate() {
       }, 2000)
 
     } catch (err: any) {
-      setError(err.message || 'Errore durante l\\'attivazione')
+      setError(err.message || 'Errore durante l\'attivazione')
     } finally {
       setSubmitting(false)
     }
@@ -107,22 +107,39 @@ export default function Activate() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: '#f9fafb',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ textAlign: 'center' }}>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={{
+          position: 'absolute',
+          top: '-10%',
+          right: '-5%',
+          width: '400px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)',
+          borderRadius: '50%',
+          pointerEvents: 'none'
+        }}></div>
+        <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{
-            width: '50px',
-            height: '50px',
-            border: '4px solid #e5e7eb',
+            width: '60px',
+            height: '60px',
+            border: '4px solid rgba(255,255,255,0.2)',
             borderTopColor: primaryColor,
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 1rem'
           }}></div>
-          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9375rem', fontWeight: 500 }}>
             Verifica in corso...
           </p>
         </div>
@@ -240,59 +257,216 @@ export default function Activate() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#f9fafb',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1.5rem'
+      padding: '1.5rem',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Decorative elements */}
+      <div style={{
+        position: 'absolute',
+        top: '-10%',
+        right: '-5%',
+        width: '400px',
+        height: '400px',
+        background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)',
+        borderRadius: '50%',
+        pointerEvents: 'none'
+      }}></div>
+      <div style={{
+        position: 'absolute',
+        bottom: '-10%',
+        left: '-5%',
+        width: '300px',
+        height: '300px',
+        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)',
+        borderRadius: '50%',
+        pointerEvents: 'none'
+      }}></div>
       <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          33% { transform: translateY(-20px) translateX(10px); }
+          66% { transform: translateY(-10px) translateX(-10px); }
+        }
+        @keyframes float2 {
+          0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+          50% { transform: translateY(-30px) translateX(-15px) rotate(180deg); }
+        }
+        .star {
+          position: absolute;
+          background: white;
+          border-radius: 50%;
+          animation: twinkle 3s ease-in-out infinite;
+        }
+        .particle {
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+        }
       `}</style>
+
+      {/* Stars background */}
+      <div className="star" style={{ width: '2px', height: '2px', top: '10%', left: '15%', animationDelay: '0s' }}></div>
+      <div className="star" style={{ width: '1px', height: '1px', top: '20%', left: '25%', animationDelay: '0.5s' }}></div>
+      <div className="star" style={{ width: '2px', height: '2px', top: '15%', left: '80%', animationDelay: '1s' }}></div>
+      <div className="star" style={{ width: '1px', height: '1px', top: '40%', left: '10%', animationDelay: '1.5s' }}></div>
+      <div className="star" style={{ width: '2px', height: '2px', top: '60%', left: '90%', animationDelay: '2s' }}></div>
+      <div className="star" style={{ width: '1px', height: '1px', top: '70%', left: '20%', animationDelay: '2.5s' }}></div>
+      <div className="star" style={{ width: '2px', height: '2px', top: '80%', left: '70%', animationDelay: '0.8s' }}></div>
+      <div className="star" style={{ width: '1px', height: '1px', top: '30%', left: '50%', animationDelay: '1.2s' }}></div>
+      <div className="star" style={{ width: '2px', height: '2px', top: '50%', left: '30%', animationDelay: '1.8s' }}></div>
+      <div className="star" style={{ width: '1px', height: '1px', top: '90%', left: '60%', animationDelay: '2.3s' }}></div>
+      <div className="star" style={{ width: '2px', height: '2px', top: '25%', left: '65%', animationDelay: '0.3s' }}></div>
+      <div className="star" style={{ width: '1px', height: '1px', top: '45%', left: '85%', animationDelay: '1.7s' }}></div>
+
+      {/* Floating particles */}
+      <div className="particle" style={{
+        width: '4px',
+        height: '4px',
+        background: 'rgba(59, 130, 246, 0.4)',
+        top: '15%',
+        left: '10%',
+        animation: 'float 8s ease-in-out infinite',
+        animationDelay: '0s'
+      }}></div>
+      <div className="particle" style={{
+        width: '6px',
+        height: '6px',
+        background: 'rgba(99, 102, 241, 0.3)',
+        top: '25%',
+        left: '85%',
+        animation: 'float2 10s ease-in-out infinite',
+        animationDelay: '1s'
+      }}></div>
+      <div className="particle" style={{
+        width: '3px',
+        height: '3px',
+        background: 'rgba(139, 92, 246, 0.5)',
+        top: '60%',
+        left: '15%',
+        animation: 'float 12s ease-in-out infinite',
+        animationDelay: '2s'
+      }}></div>
+      <div className="particle" style={{
+        width: '5px',
+        height: '5px',
+        background: 'rgba(59, 130, 246, 0.35)',
+        top: '70%',
+        left: '75%',
+        animation: 'float2 9s ease-in-out infinite',
+        animationDelay: '0.5s'
+      }}></div>
+      <div className="particle" style={{
+        width: '4px',
+        height: '4px',
+        background: 'rgba(96, 165, 250, 0.4)',
+        top: '40%',
+        left: '50%',
+        animation: 'float 11s ease-in-out infinite',
+        animationDelay: '1.5s'
+      }}></div>
+      <div className="particle" style={{
+        width: '3px',
+        height: '3px',
+        background: 'rgba(147, 197, 253, 0.3)',
+        top: '85%',
+        left: '30%',
+        animation: 'float2 13s ease-in-out infinite',
+        animationDelay: '2.5s'
+      }}></div>
 
       <div style={{
         width: '100%',
-        maxWidth: '440px'
+        maxWidth: '480px',
+        animation: 'slideIn 0.4s ease-out',
+        position: 'relative',
+        zIndex: 1
       }}>
-        {/* Logo Section */}
+        {/* Logo Section - Outside Card */}
         {organization?.logo_url && (
           <div style={{
-            textAlign: 'center',
-            marginBottom: '1.5rem'
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: '2.5rem',
+            width: '100%'
           }}>
             <img
               src={organization.logo_url}
               alt={organization.name}
-              style={{ maxWidth: '120px', height: 'auto' }}
+              style={{
+                maxWidth: '180px',
+                height: 'auto',
+                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5))',
+                display: 'block'
+              }}
             />
           </div>
         )}
 
         {/* Main Card */}
         <div style={{
-          background: 'white',
-          borderRadius: '0.5rem',
-          padding: '2rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #e5e7eb'
+          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.75) 100%)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '1.25rem',
+          padding: '2.5rem',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(59, 130, 246, 0.3)',
+          border: '1px solid rgba(59, 130, 246, 0.2)'
         }}>
           {/* Header */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h1 style={{
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              marginBottom: '0.25rem',
-              color: '#111827'
+          <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1rem',
+              boxShadow: `0 4px 12px ${primaryColor}40`
             }}>
-              Attivazione Account
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <h1 style={{
+              fontSize: '1.75rem',
+              fontWeight: 700,
+              marginBottom: '0.5rem',
+              color: '#ffffff',
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+            }}>
+              Attiva il tuo Account
             </h1>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-              Benvenuto <strong style={{ color: '#111827' }}>{customer?.name}</strong>
+            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9375rem', lineHeight: '1.5' }}>
+              Benvenuto <strong style={{ color: '#60a5fa', fontWeight: 600 }}>{customer?.name}</strong>
             </p>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-              Imposta una password per accedere al tuo account.
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+              Imposta una password sicura per proteggere il tuo account
             </p>
           </div>
 
@@ -304,8 +478,10 @@ export default function Activate() {
                 display: 'block',
                 marginBottom: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#374151'
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.9)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
               }}>
                 Email
               </label>
@@ -315,12 +491,13 @@ export default function Activate() {
                 disabled
                 style={{
                   width: '100%',
-                  padding: '0.625rem 0.75rem',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  background: '#f9fafb',
-                  color: '#6b7280'
+                  padding: '0.75rem 1rem',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.9375rem',
+                  background: 'rgba(15, 23, 42, 0.6)',
+                  color: 'rgba(255,255,255,0.5)',
+                  outline: 'none'
                 }}
               />
             </div>
@@ -331,8 +508,10 @@ export default function Activate() {
                 display: 'block',
                 marginBottom: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#374151'
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.9)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
               }}>
                 Password
               </label>
@@ -346,11 +525,14 @@ export default function Activate() {
                   placeholder="Minimo 6 caratteri"
                   style={{
                     width: '100%',
-                    padding: '0.625rem 2.5rem 0.625rem 0.75rem',
-                    border: `1px solid ${password ? passwordStrength.color : '#d1d5db'}`,
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    outline: 'none'
+                    padding: '0.75rem 3rem 0.75rem 1rem',
+                    border: `1px solid ${password ? passwordStrength.color : 'rgba(59, 130, 246, 0.3)'}`,
+                    borderRadius: '0.5rem',
+                    fontSize: '0.9375rem',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    color: 'rgba(255,255,255,0.95)',
+                    outline: 'none',
+                    transition: 'all 0.2s'
                   }}
                 />
                 <button
@@ -364,10 +546,10 @@ export default function Activate() {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                    fontWeight: 500,
-                    padding: '0.25rem 0.5rem'
+                    color: 'rgba(255,255,255,0.6)',
+                    padding: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
                   {showPassword ? (
@@ -386,25 +568,27 @@ export default function Activate() {
 
               {/* Password Strength Indicator */}
               {password && (
-                <div style={{ marginTop: '0.375rem' }}>
+                <div style={{ marginTop: '0.5rem' }}>
                   <div style={{
-                    height: '3px',
-                    background: '#e5e7eb',
-                    borderRadius: '1.5px',
+                    height: '4px',
+                    background: 'rgba(255,255,255,0.1)',
+                    borderRadius: '2px',
                     overflow: 'hidden'
                   }}>
                     <div style={{
                       height: '100%',
                       width: `${passwordStrength.strength}%`,
                       background: passwordStrength.color,
-                      transition: 'all 0.3s'
+                      transition: 'all 0.3s',
+                      boxShadow: `0 0 10px ${passwordStrength.color}80`
                     }}></div>
                   </div>
                   <p style={{
                     fontSize: '0.75rem',
                     color: passwordStrength.color,
-                    marginTop: '0.25rem',
-                    fontWeight: 500
+                    marginTop: '0.375rem',
+                    fontWeight: 600,
+                    textShadow: `0 0 10px ${passwordStrength.color}40`
                   }}>
                     {passwordStrength.label}
                   </p>
@@ -418,8 +602,10 @@ export default function Activate() {
                 display: 'block',
                 marginBottom: '0.375rem',
                 fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#374151'
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.9)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
               }}>
                 Conferma Password
               </label>
@@ -433,11 +619,14 @@ export default function Activate() {
                   placeholder="Ripeti la password"
                   style={{
                     width: '100%',
-                    padding: '0.625rem 2.5rem 0.625rem 0.75rem',
-                    border: `1px solid ${confirmPassword && confirmPassword !== password ? '#ef4444' : '#d1d5db'}`,
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    outline: 'none'
+                    padding: '0.75rem 3rem 0.75rem 1rem',
+                    border: `1px solid ${confirmPassword && confirmPassword !== password ? '#ef4444' : 'rgba(59, 130, 246, 0.3)'}`,
+                    borderRadius: '0.5rem',
+                    fontSize: '0.9375rem',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    color: 'rgba(255,255,255,0.95)',
+                    outline: 'none',
+                    transition: 'all 0.2s'
                   }}
                 />
                 <button
@@ -451,10 +640,10 @@ export default function Activate() {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                    fontWeight: 500,
-                    padding: '0.25rem 0.5rem'
+                    color: 'rgba(255,255,255,0.6)',
+                    padding: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
                   {showConfirmPassword ? (
@@ -471,7 +660,13 @@ export default function Activate() {
                 </button>
               </div>
               {confirmPassword && confirmPassword !== password && (
-                <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.25rem' }}>
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: '#f87171',
+                  marginTop: '0.5rem',
+                  fontWeight: 600,
+                  textShadow: '0 0 10px rgba(248, 113, 113, 0.3)'
+                }}>
                   Le password non corrispondono
                 </p>
               )}
@@ -480,12 +675,14 @@ export default function Activate() {
             {/* Error Message */}
             {error && (
               <div style={{
-                padding: '0.75rem',
-                background: '#fee2e2',
-                color: '#991b1b',
-                borderRadius: '0.375rem',
+                padding: '1rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#fca5a5',
+                borderRadius: '0.5rem',
                 fontSize: '0.875rem',
-                border: '1px solid #fecaca'
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                fontWeight: 500,
+                textAlign: 'center'
               }}>
                 {error}
               </div>
@@ -497,21 +694,37 @@ export default function Activate() {
               disabled={submitting || password !== confirmPassword || password.length < 6}
               style={{
                 width: '100%',
-                padding: '0.75rem',
+                padding: '1rem',
                 background: (submitting || password !== confirmPassword || password.length < 6)
-                  ? '#d1d5db'
-                  : primaryColor,
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: (submitting || password !== confirmPassword || password.length < 6) ? 'not-allowed' : 'pointer'
+                  ? 'rgba(255,255,255,0.1)'
+                  : `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`,
+                color: (submitting || password !== confirmPassword || password.length < 6) ? 'rgba(255,255,255,0.4)' : 'white',
+                border: (submitting || password !== confirmPassword || password.length < 6) ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                borderRadius: '0.75rem',
+                fontSize: '0.9375rem',
+                fontWeight: 700,
+                cursor: (submitting || password !== confirmPassword || password.length < 6) ? 'not-allowed' : 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                boxShadow: (submitting || password !== confirmPassword || password.length < 6) ? 'none' : `0 8px 20px ${primaryColor}40`,
+                transition: 'all 0.3s',
+                marginTop: '0.5rem'
               }}
             >
               {submitting ? 'Attivazione in corso...' : 'Attiva Account'}
             </button>
           </form>
+        </div>
+
+        {/* Powered by */}
+        <div style={{
+          textAlign: 'center',
+          marginTop: '2rem',
+          color: 'rgba(255,255,255,0.4)',
+          fontSize: '0.8125rem',
+          fontWeight: 500
+        }}>
+          Powered by <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>OmnilyPro</span>
         </div>
       </div>
     </div>

@@ -157,17 +157,47 @@ export class EmailService {
 
         <tr>
           <td style="text-align: center; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.3);">
-            ${branding.phone ? `<p style="color: white; font-size: 15px; margin: 8px 0;">📞 <a href="tel:${branding.phone}" style="color: white; text-decoration: none;">${branding.phone}</a></p>` : ''}
-            ${branding.email ? `<p style="color: white; font-size: 15px; margin: 8px 0;">✉️ <a href="mailto:${branding.email}" style="color: white; text-decoration: none;">${branding.email}</a></p>` : ''}
-            ${branding.address ? `<p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0;">📍 ${branding.address}</p>` : ''}
-            ${branding.whatsapp_business ? `<p style="color: white; font-size: 15px; margin: 8px 0;">💬 <a href="https://wa.me/${branding.whatsapp_business.replace(/[^0-9]/g, '')}" style="color: white; text-decoration: none;">WhatsApp</a></p>` : ''}
+            ${branding.phone ? `
+            <p style="color: white; font-size: 15px; margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              <a href="tel:${branding.phone}" style="color: white; text-decoration: none;">${branding.phone}</a>
+            </p>
+            ` : ''}
+            ${branding.email ? `
+            <p style="color: white; font-size: 15px; margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <a href="mailto:${branding.email}" style="color: white; text-decoration: none;">${branding.email}</a>
+            </p>
+            ` : ''}
+            ${branding.address ? `
+            <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <span>${branding.address}</span>
+            </p>
+            ` : ''}
+            ${branding.whatsapp_business ? `
+            <p style="color: white; font-size: 15px; margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <a href="https://wa.me/${branding.whatsapp_business.replace(/[^0-9]/g, '')}" style="color: white; text-decoration: none;">WhatsApp</a>
+            </p>
+            ` : ''}
           </td>
         </tr>
 
         ${branding.website_url ? `
         <tr>
           <td style="text-align: center; padding: 20px 0;">
-            <a href="${branding.website_url}" style="display: inline-block; background: white; color: ${primaryColor}; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px;">🌐 Visita il nostro sito</a>
+            <a href="${branding.website_url}" style="display: inline-block; background: white; color: ${primaryColor}; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px;">Visita il nostro sito</a>
           </td>
         </tr>
         ` : ''}
@@ -461,61 +491,102 @@ export class EmailService {
   ): Promise<{ success: boolean; error?: string }> {
     const activationLink = `${this.getCustomerAppUrl()}/${organizationSlug}/activate?token=${activationToken}`
 
+    // Carica i dati dell'organizzazione per il colore primario e logo
+    let primaryColor = '#dc2626'
+    let logoUrl = ''
+
+    try {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('primary_color, logo_url')
+        .eq('id', organizationId)
+        .single()
+
+      if (org?.primary_color) primaryColor = org.primary_color
+      if (org?.logo_url) logoUrl = org.logo_url
+    } catch (error) {
+      console.error('Error loading organization for email:', error)
+    }
+
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+          }
+          .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+          }
+        </style>
       </head>
-      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 0;">
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); padding: 60px 20px; position: relative;">
           <tr>
             <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <!-- Header -->
+              <!-- Logo -->
+              ${logoUrl ? `
+              <div style="text-align: center; margin-bottom: 40px;">
+                <img src="${logoUrl}" alt="${organizationName}" style="max-width: 180px; height: auto; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));" />
+              </div>
+              ` : ''}
+
+              <!-- Main Card -->
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.85) 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(59, 130, 246, 0.2); backdrop-filter: blur(20px);">
+
+                <!-- Header with Icon -->
                 <tr>
-                  <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: 0.5px;">🎉 Benvenuto!</h1>
-                    <p style="margin: 15px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">Attiva il tuo account ${organizationName}</p>
+                  <td style="padding: 40px 40px 30px 40px; text-align: center;">
+                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 4px 12px ${primaryColor}40;">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <h1 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Attiva il tuo Account</h1>
+                    <p style="margin: 0; font-size: 16px; color: rgba(255,255,255,0.9); line-height: 1.5;">Benvenuto <strong style="color: #60a5fa; font-weight: 600;">${customerName}</strong></p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px; color: rgba(255,255,255,0.6);">Imposta una password sicura per proteggere il tuo account</p>
                   </td>
                 </tr>
 
                 <!-- Content -->
                 <tr>
-                  <td style="padding: 40px 30px;">
-                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333; line-height: 1.6;">Ciao <strong>${customerName}</strong>,</p>
-
-                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333; line-height: 1.6;">
-                      Sei stato registrato nel programma fedeltà di <strong>${organizationName}</strong>! 🎊
-                    </p>
-
-                    <p style="margin: 0 0 30px 0; font-size: 16px; color: #333; line-height: 1.6;">
-                      Per completare la registrazione e accedere al tuo account, clicca sul pulsante qui sotto per impostare la tua password:
+                  <td style="padding: 0 40px 40px 40px;">
+                    <p style="margin: 0 0 25px 0; font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.6; text-align: center;">
+                      Sei stato registrato nel programma fedeltà di <strong style="color: #ffffff;">${organizationName}</strong>!<br/>
+                      Per completare la registrazione, imposta la tua password.
                     </p>
 
                     <!-- CTA Button -->
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td align="center" style="padding: 20px 0;">
-                          <a href="${activationLink}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
-                            Attiva il tuo Account
+                        <td align="center" style="padding: 10px 0 30px 0;">
+                          <a href="${activationLink}" style="display: inline-block; background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 8px 20px ${primaryColor}40; transition: all 0.3s;">
+                            Attiva Account
                           </a>
                         </td>
                       </tr>
                     </table>
 
-                    <p style="margin: 30px 0 20px 0; font-size: 14px; color: #666; line-height: 1.6;">
+                    <p style="margin: 0 0 15px 0; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; text-align: center;">
                       Oppure copia e incolla questo link nel tuo browser:
                     </p>
 
-                    <p style="margin: 0 0 30px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #667eea; word-break: break-all; font-family: monospace;">
+                    <p style="margin: 0 0 30px 0; padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 12px; color: #60a5fa; word-break: break-all; font-family: monospace; text-align: center;">
                       ${activationLink}
                     </p>
 
-                    <div style="margin: 30px 0 0 0; padding: 20px; background: #f0f9ff; border-left: 4px solid #667eea; border-radius: 6px;">
-                      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e40af;">✨ Cosa puoi fare dopo l'attivazione:</h3>
-                      <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #333; font-size: 14px; line-height: 1.8;">
+                    <!-- Benefits Box -->
+                    <div style="margin: 0; padding: 25px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid ${primaryColor}; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                      <h3 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;">Cosa puoi fare dopo l'attivazione:</h3>
+                      <ul style="margin: 0; padding-left: 20px; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 2;">
                         <li>Accumula punti ad ogni acquisto</li>
                         <li>Sblocca premi esclusivi</li>
                         <li>Raggiungi livelli superiori per vantaggi speciali</li>
@@ -523,8 +594,17 @@ export class EmailService {
                       </ul>
                     </div>
 
-                    <p style="margin: 30px 0 0 0; font-size: 13px; color: #999; line-height: 1.6;">
-                      <em>Questo link è valido per 48 ore. Se non hai richiesto questa registrazione, ignora questa email.</em>
+                    <p style="margin: 25px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; text-align: center; font-style: italic;">
+                      Questo link è valido per 48 ore. Se non hai richiesto questa registrazione, ignora questa email.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Powered by -->
+                <tr>
+                  <td style="padding: 0 0 30px 0; text-align: center;">
+                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 500;">
+                      Powered by <span style="color: rgba(255,255,255,0.7); font-weight: 600;">OmnilyPro</span>
                     </p>
                   </td>
                 </tr>
@@ -550,7 +630,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: customerEmail,
-      subject: `🎉 Attiva il tuo account ${organizationName}`,
+      subject: `Attiva il tuo account - ${organizationName}`,
       html: htmlWithBrandedFooter,
       organizationId
     })

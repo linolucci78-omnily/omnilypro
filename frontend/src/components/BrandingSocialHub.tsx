@@ -130,6 +130,11 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
   const [uploadingImage, setUploadingImage] = useState<string | null>(null) // 'favicon', 'banner', etc.
   const [showEmailPreview, setShowEmailPreview] = useState(false)
 
+  // Campi separati per indirizzo
+  const [addressStreet, setAddressStreet] = useState('')
+  const [addressCity, setAddressCity] = useState('')
+  const [addressPostalCode, setAddressPostalCode] = useState('')
+
   useEffect(() => {
     loadBrandingData()
   }, [organizationId])
@@ -204,6 +209,25 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
           pinterest_url: data.pinterest_url,
           telegram_url: data.telegram_url
         })
+
+        // Parse dell'indirizzo in 3 parti (Via, CAP Città)
+        if (data.address) {
+          const addressParts = data.address.split(',').map((p: string) => p.trim())
+          if (addressParts.length >= 1) {
+            setAddressStreet(addressParts[0] || '')
+          }
+          if (addressParts.length >= 2) {
+            // "00132 Roma" -> separa CAP e città
+            const cityCapPart = addressParts[1] || ''
+            const capMatch = cityCapPart.match(/^(\d{5})\s+(.+)$/)
+            if (capMatch) {
+              setAddressPostalCode(capMatch[1])
+              setAddressCity(capMatch[2])
+            } else {
+              setAddressCity(cityCapPart)
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading branding data:', error)
@@ -307,6 +331,11 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
         ? branding.hashtags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
         : null
 
+      // Concatena i 3 campi indirizzo in un unico campo
+      const fullAddress = [addressStreet, addressPostalCode && addressCity ? `${addressPostalCode} ${addressCity}` : addressCity]
+        .filter(part => part && part.trim())
+        .join(', ')
+
       const updateData = {
         // Colors
         primary_color: branding.primary_color,
@@ -341,7 +370,7 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
         website_url: branding.website_url,
         email: branding.email,
         phone: branding.phone,
-        address: branding.address,
+        address: fullAddress,
         whatsapp_business: branding.whatsapp_business,
 
         // Social Media
@@ -760,11 +789,36 @@ const BrandingSocialHub: React.FC<BrandingSocialHubProps> = ({
               </label>
               <input
                 type="text"
-                value={branding.address || ''}
-                onChange={(e) => setBranding({ ...branding, address: e.target.value })}
+                value={addressStreet}
+                onChange={(e) => setAddressStreet(e.target.value)}
                 className="branding-input"
-                placeholder="Via, Città, CAP"
+                placeholder="Via, numero civico"
               />
+            </div>
+
+            <div className="branding-form-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+              <div className="branding-form-group">
+                <label>Città</label>
+                <input
+                  type="text"
+                  value={addressCity}
+                  onChange={(e) => setAddressCity(e.target.value)}
+                  className="branding-input"
+                  placeholder="Roma"
+                />
+              </div>
+
+              <div className="branding-form-group">
+                <label>CAP</label>
+                <input
+                  type="text"
+                  value={addressPostalCode}
+                  onChange={(e) => setAddressPostalCode(e.target.value)}
+                  className="branding-input"
+                  placeholder="00132"
+                  maxLength={5}
+                />
+              </div>
             </div>
           </div>
 
