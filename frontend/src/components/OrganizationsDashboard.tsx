@@ -3038,6 +3038,8 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               organizationId={currentOrganization.id}
               primaryColor={getActiveColors().primary}
               secondaryColor={getActiveColors().secondary}
+              organization={currentOrganization}
+              customers={customers}
             />
           </div>
         ) : null
@@ -5092,6 +5094,76 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         onCancel={() => setShowConfirmModal(false)}
         type={confirmModalConfig.type}
       />
+
+      {/* NFC Reading Overlay */}
+      {nfcStatus === 'reading' && (
+        <div
+          className="nfc-reading-overlay"
+          onClick={handleNFCRead}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            cursor: 'pointer'
+          }}
+        >
+          <div
+            style={{
+              background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+              borderRadius: '24px',
+              padding: '3rem 4rem',
+              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.3)',
+              textAlign: 'center',
+              maxWidth: '500px',
+              border: `4px solid ${getActiveColors().primary}`
+            }}
+          >
+            <div style={{ marginBottom: '2rem' }}>
+              <CreditCard
+                size={96}
+                style={{
+                  color: getActiveColors().primary,
+                  animation: 'pulse 2s ease-in-out infinite'
+                }}
+              />
+            </div>
+            <h2 style={{
+              margin: '0 0 1rem 0',
+              fontSize: '2rem',
+              fontWeight: '800',
+              color: '#1f2937',
+              letterSpacing: '-0.025em'
+            }}>
+              Avvicina Tessera NFC
+            </h2>
+            <p style={{
+              margin: '0 0 2rem 0',
+              fontSize: '1.1rem',
+              color: '#6b7280',
+              lineHeight: '1.6'
+            }}>
+              Avvicina la tessera NFC del cliente al lettore del dispositivo
+            </p>
+            <p style={{
+              margin: 0,
+              fontSize: '0.95rem',
+              color: '#9ca3af',
+              fontWeight: 600
+            }}>
+              Tocca ovunque per annullare
+            </p>
+          </div>
+        </div>
+      )}
     </div>
     </>
   )
