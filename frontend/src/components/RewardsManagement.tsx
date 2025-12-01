@@ -25,6 +25,7 @@ import {
 import { rewardsService, type Reward } from '../services/rewardsService'
 import { supabase } from '../lib/supabase'
 import MultiRewardCreator from './MultiRewardCreator'
+import toast from 'react-hot-toast'
 import './RewardsManagement.css'
 
 interface RewardsManagementProps {
@@ -233,12 +234,22 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
     if (!deleteConfirmId) return
 
     try {
+      console.log('Deleting reward:', deleteConfirmId)
       await rewardsService.delete(deleteConfirmId, organizationId)
+      console.log('Reward deleted successfully')
       await fetchRewards()
       setDeleteConfirmId(null)
-    } catch (error) {
+      toast.success('Premio eliminato con successo')
+    } catch (error: any) {
       console.error('Errore eliminazione premio:', error)
-      setValidationError('Errore durante l\'eliminazione del premio')
+
+      // Check if it's a foreign key constraint error
+      if (error.code === '23503' || error.message?.includes('foreign key') || error.message?.includes('reward_redemptions')) {
+        toast.error('Impossibile eliminare: questo premio è già stato riscattato da alcuni clienti')
+        setDeleteConfirmId(null)
+      } else {
+        toast.error(error.message || 'Errore durante l\'eliminazione del premio')
+      }
     }
   }
 
@@ -492,14 +503,19 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
               '--secondary-color': secondaryColor
             } as React.CSSProperties}
           >
-            <div className="modal-header">
+            <div
+              className="modal-header"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
+              }}
+            >
               <h2>{editingReward ? 'Modifica Premio' : 'Nuovo Premio'}</h2>
               <button className="btn-close-modal" onClick={handleCloseModal}>
                 <X size={24} />
               </button>
             </div>
 
-            <div className="modal-content">
+            <div className="modal-reward-content">
               {/* Upload Immagine */}
               <div className="form-section">
                 <label className="form-label-bold">Immagine Premio</label>
@@ -682,7 +698,13 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
                 <X size={20} />
                 <span>Annulla</span>
               </button>
-              <button className="btn-save" onClick={handleSubmit}>
+              <button
+                className="btn-save"
+                onClick={handleSubmit}
+                style={{
+                  background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
+                }}
+              >
                 <Save size={20} />
                 <span>{editingReward ? 'Salva Modifiche' : 'Crea Premio'}</span>
               </button>
@@ -696,43 +718,43 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
         <>
           <div className="modal-overlay" onClick={() => setDeleteConfirmId(null)} />
           <div
-            className="modal-reward"
+            className="delete-modal"
             style={{
-              maxWidth: '500px',
               '--primary-color': primaryColor,
               '--secondary-color': secondaryColor
             } as React.CSSProperties}
           >
-            <div className="modal-header">
-              <h2>Conferma Eliminazione</h2>
-              <button className="btn-close-modal" onClick={() => setDeleteConfirmId(null)}>
-                <X size={24} />
+            <div className="delete-modal-content">
+              <button className="delete-modal-close" onClick={() => setDeleteConfirmId(null)}>
+                <X size={20} />
               </button>
-            </div>
 
-            <div className="modal-content" style={{ padding: '2rem', textAlign: 'center' }}>
-              <AlertCircle size={64} style={{ color: '#ef4444', margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', margin: '0 0 0.75rem 0' }}>
-                Sei sicuro di voler eliminare questo premio?
+              <div className="delete-modal-icon">
+                <AlertCircle size={56} />
+              </div>
+
+              <h3 className="delete-modal-title">
+                Conferma Eliminazione
               </h3>
-              <p style={{ fontSize: '1rem', color: '#6b7280', margin: 0 }}>
+
+              <p className="delete-modal-text">
+                Sei sicuro di voler eliminare questo premio?<br />
                 Questa azione non può essere annullata.
               </p>
-            </div>
 
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setDeleteConfirmId(null)}>
-                <X size={20} />
-                <span>Annulla</span>
-              </button>
-              <button
-                className="btn-save"
-                onClick={handleDelete}
-                style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
-              >
-                <Trash2 size={20} />
-                <span>Elimina</span>
-              </button>
+              <div className="delete-modal-actions">
+                <button className="delete-modal-btn delete-modal-btn-cancel" onClick={() => setDeleteConfirmId(null)}>
+                  <X size={18} />
+                  <span>Annulla</span>
+                </button>
+                <button
+                  className="delete-modal-btn delete-modal-btn-delete"
+                  onClick={handleDelete}
+                >
+                  <Trash2 size={18} />
+                  <span>Elimina</span>
+                </button>
+              </div>
             </div>
           </div>
         </>

@@ -51,6 +51,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [scannerError, setScannerError] = useState('');
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const addDebugInfo = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -149,6 +150,26 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       fetchOrganization(); // Fetch latest organization data from DB
     }
   }, [isOpen, organizationId]);
+
+  // Handle input focus/blur to hide/show header
+  useEffect(() => {
+    const handleFocus = () => setIsInputFocused(true);
+    const handleBlur = () => setIsInputFocused(false);
+
+    // Add listeners to all input, select, and textarea elements
+    const inputs = document.querySelectorAll('.wizard-modal input, .wizard-modal select, .wizard-modal textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', handleFocus);
+      input.addEventListener('blur', handleBlur);
+    });
+
+    return () => {
+      inputs.forEach(input => {
+        input.removeEventListener('focus', handleFocus);
+        input.removeEventListener('blur', handleBlur);
+      });
+    };
+  }, [currentStep]); // Re-run when step changes
 
   const resetForm = () => {
     setCurrentStep(1);
@@ -1653,7 +1674,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   return (
     <div className="wizard-overlay">
       <div className="wizard-modal">
-        <div className="wizard-header">
+        <div className={`wizard-header ${isInputFocused ? 'header-hidden' : ''}`}>
           <button className="back-btn" onClick={onClose}>
             <ArrowLeft size={20} />
             Torna Indietro
@@ -1662,14 +1683,14 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           <div style={{ width: '120px' }}></div>
         </div>
 
-        <div className="wizard-progress">
+        <div className={`wizard-progress ${isInputFocused ? 'progress-hidden' : ''}`}>
           {steps.map((step) => {
             const IconComponent = step.icon;
             return (
               <div
                 key={step.number}
                 className={`step-indicator ${
-                  currentStep === step.number ? 'active' : 
+                  currentStep === step.number ? 'active' :
                   currentStep > step.number ? 'completed' : ''
                 }`}
               >
