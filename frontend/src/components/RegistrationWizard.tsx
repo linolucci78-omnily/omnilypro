@@ -1105,22 +1105,33 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         console.log('📱 Usando bridge Android per QR scan');
 
         // Setup callback handler globale
-        (window as any).registrationWizardQRHandler = (result: string) => {
+        (window as any).registrationWizardQRHandler = (result: any) => {
           console.log('✅ QR Code scanned via bridge:', result);
           console.log('🔍 Type of result:', typeof result);
           console.log('🔍 Result stringified:', JSON.stringify(result));
 
+          // Android bridge passa un oggetto JSON: {success: true, content: "url", qrCode: "url"}
+          // Estraiamo l'URL dal campo content o qrCode
+          let url = '';
+          if (typeof result === 'object' && result !== null) {
+            url = result.content || result.qrCode || '';
+            console.log('📦 Extracted URL from object:', url);
+          } else if (typeof result === 'string') {
+            url = result;
+            console.log('📦 URL is a string:', url);
+          }
+
           // Extract referral code from URL or use direct code
-          let referralCode = result;
-          if (result.includes('ref=')) {
+          let referralCode = url;
+          if (url.includes('ref=')) {
             console.log('📌 Found ref= pattern in URL');
-            const urlParams = new URLSearchParams(result.split('?')[1]);
-            referralCode = urlParams.get('ref') || result;
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            referralCode = urlParams.get('ref') || url;
             console.log('📌 Extracted referral code:', referralCode);
-          } else if (result.includes('/referral/')) {
+          } else if (url.includes('/referral/')) {
             console.log('📌 Found /referral/ pattern in URL');
             // Extract from URL pattern like /referral/ABC123 or /referral/S&C123
-            const match = result.match(/\/referral\/([A-Z0-9&]+)/i);
+            const match = url.match(/\/referral\/([A-Z0-9&]+)/i);
             if (match) {
               referralCode = match[1];
               console.log('📌 Extracted referral code:', referralCode);
