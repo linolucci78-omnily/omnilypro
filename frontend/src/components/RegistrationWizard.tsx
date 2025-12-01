@@ -1002,6 +1002,44 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
   // QR Scanner Functions
   const startQrScanner = async () => {
+    console.log('📱 startQrScanner chiamato');
+
+    // Prima prova ad usare il bridge Android (dispositivo POS)
+    if (typeof window !== 'undefined' && (window as any).OmnilyPOS) {
+      const bridge = (window as any).OmnilyPOS;
+
+      if (bridge.readQRCode) {
+        console.log('📱 Usando bridge Android per QR scan');
+
+        // Setup callback handler globale
+        (window as any).registrationWizardQRHandler = (result: string) => {
+          console.log('✅ QR Code scanned via bridge:', result);
+
+          // Extract referral code from URL or use direct code
+          let referralCode = result;
+          if (result.includes('ref=')) {
+            const urlParams = new URLSearchParams(result.split('?')[1]);
+            referralCode = urlParams.get('ref') || result;
+          } else if (result.includes('/referral/')) {
+            // Extract from URL pattern like /referral/ABC123
+            const match = result.match(/\/referral\/([A-Z0-9]+)/);
+            if (match) referralCode = match[1];
+          }
+
+          // Set the referral code
+          handleInputChange('referralCode', referralCode);
+
+          // Cleanup
+          delete (window as any).registrationWizardQRHandler;
+        };
+
+        // Chiama il bridge Android
+        bridge.readQRCode('registrationWizardQRHandler');
+        return;
+      }
+    }
+
+    // Fallback: usa html5-qrcode per browser web
     try {
       setScannerError('');
       setShowQrScanner(true);
@@ -1026,6 +1064,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           if (decodedText.includes('ref=')) {
             const urlParams = new URLSearchParams(decodedText.split('?')[1]);
             referralCode = urlParams.get('ref') || decodedText;
+          } else if (decodedText.includes('/referral/')) {
+            const match = decodedText.match(/\/referral\/([A-Z0-9]+)/);
+            if (match) referralCode = match[1];
           }
 
           // Set the referral code
@@ -1139,10 +1180,21 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           console.log('🎁 Processamento referral code:', formData.referralCode);
           addDebugInfo(`🎁 Referral code: ${formData.referralCode}`);
 
-          // 1. Trova il referrer dal codice
+          // 1. Trova il referrer dal codice con tier info
           const { data: referralProgram, error: referralError } = await supabase
             .from('referral_programs')
-            .select('id, customer_id, organization_id')
+            .select(`
+              id,
+              customer_id,
+              organization_id,
+              current_tier_id,
+              referral_tiers!referral_programs_current_tier_id_fkey (
+                id,
+                name,
+                points_per_referral,
+                points_for_referee
+              )
+            `)
             .eq('referral_code', formData.referralCode.trim())
             .eq('organization_id', organizationId)
             .eq('is_active', true)
@@ -1158,6 +1210,12 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             console.log('✅ Referrer trovato:', referralProgram);
             addDebugInfo(`✅ Referrer trovato: ${referralProgram.customer_id}`);
 
+            // Ottieni i punti dalla tier del referrer
+            const referrerPoints = referralProgram.referral_tiers?.points_per_referral || 20;
+            const refereePoints = referralProgram.referral_tiers?.points_for_referee || 20;
+
+            console.log(`🎁 Punti da assegnare - Referrer: ${referrerPoints}, Referee: ${refereePoints}`);
+
             // 2. Crea record in referral_conversions
             const { data: conversion, error: conversionError } = await supabase
               .from('referral_conversions')
@@ -1168,8 +1226,8 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 referral_program_id: referralProgram.id,
                 referral_code: formData.referralCode.trim(),
                 status: 'completed', // Immediately completed
-                points_awarded_referrer: 50, // Punti bonus per chi ha invitato
-                points_awarded_referee: 50, // Punti bonus per il nuovo cliente
+                points_awarded_referrer: referrerPoints,
+                points_awarded_referee: refereePoints,
                 reward_type: 'points',
                 source: 'registration_wizard',
                 converted_at: new Date().toISOString()
@@ -1185,32 +1243,51 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               addDebugInfo('✅ Referral registrato con successo!');
 
               // 3. Assegna punti bonus al referrer
-              const { error: referrerPointsError } = await supabase
+              const { data: referrerData, error: referrerFetchError } = await supabase
                 .from('customers')
-                .update({
-                  points: supabase.raw('points + 50')
-                })
-                .eq('id', referralProgram.customer_id);
+                .select('points')
+                .eq('id', referralProgram.customer_id)
+                .single();
 
-              if (referrerPointsError) {
-                console.error('❌ Errore assegnazione punti al referrer:', referrerPointsError);
+              if (referrerFetchError || !referrerData) {
+                console.error('❌ Errore lettura punti referrer:', referrerFetchError);
               } else {
-                console.log('✅ Punti bonus assegnati al referrer');
-                addDebugInfo('✅ Punti bonus assegnati');
+                const newReferrerPoints = referrerData.points + referrerPoints;
+                const { error: referrerPointsError } = await supabase
+                  .from('customers')
+                  .update({ points: newReferrerPoints })
+                  .eq('id', referralProgram.customer_id);
+
+                if (referrerPointsError) {
+                  console.error('❌ Errore assegnazione punti al referrer:', referrerPointsError);
+                } else {
+                  console.log(`✅ ${referrerPoints} punti bonus assegnati al referrer (totale: ${newReferrerPoints})`);
+                  addDebugInfo(`✅ ${referrerPoints} punti bonus assegnati al referrer`);
+                }
               }
 
               // 4. Assegna punti bonus anche al nuovo cliente
-              const { error: refereePointsError } = await supabase
+              const { data: refereeData, error: refereeFetchError } = await supabase
                 .from('customers')
-                .update({
-                  points: supabase.raw('points + 50')
-                })
-                .eq('id', createdCustomer.id);
+                .select('points')
+                .eq('id', createdCustomer.id)
+                .single();
 
-              if (refereePointsError) {
-                console.error('❌ Errore assegnazione punti al nuovo cliente:', refereePointsError);
+              if (refereeFetchError || !refereeData) {
+                console.error('❌ Errore lettura punti nuovo cliente:', refereeFetchError);
               } else {
-                console.log('✅ Punti bonus assegnati al nuovo cliente');
+                const newRefereePoints = refereeData.points + refereePoints;
+                const { error: refereePointsError } = await supabase
+                  .from('customers')
+                  .update({ points: newRefereePoints })
+                  .eq('id', createdCustomer.id);
+
+                if (refereePointsError) {
+                  console.error('❌ Errore assegnazione punti al nuovo cliente:', refereePointsError);
+                } else {
+                  console.log(`✅ ${refereePoints} punti bonus assegnati al nuovo cliente (totale: ${newRefereePoints})`);
+                  addDebugInfo(`✅ ${refereePoints} punti bonus assegnati`);
+                }
               }
             }
           }

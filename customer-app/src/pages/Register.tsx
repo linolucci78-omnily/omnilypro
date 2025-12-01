@@ -32,6 +32,7 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/${slug}/activate`,
           data: {
             name: formData.name
           }
