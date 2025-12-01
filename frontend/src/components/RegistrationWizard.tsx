@@ -1125,19 +1125,23 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           let referralCode = url;
           if (url.includes('ref=')) {
             console.log('📌 Found ref= pattern in URL');
-            // Use regex to extract ref value
-            // Match: ref=ANYTHING until the next & or end of string
-            const match = url.match(/[?&]ref=([^&]+)/);
-            if (match && match[1]) {
-              // Decode URI component to handle encoded characters (like %26 for &)
-              referralCode = decodeURIComponent(match[1]);
-              console.log('📌 Extracted referral code:', referralCode);
-            } else {
-              // Fallback: extract everything after ref=
-              const refIndex = url.indexOf('ref=');
-              if (refIndex !== -1) {
-                referralCode = url.substring(refIndex + 4);
-                console.log('📌 Extracted referral code (fallback):', referralCode);
+
+            // IMPORTANT: For old QR codes with unencoded & character (e.g., ref=S&C123),
+            // we need to extract everything after ref= until end of URL
+            const refIndex = url.indexOf('ref=');
+            if (refIndex !== -1) {
+              // Extract everything after ref=
+              const afterRef = url.substring(refIndex + 4);
+              console.log('📌 Raw value after ref=:', afterRef);
+
+              // Try to decode (in case it's a new encoded QR code)
+              try {
+                referralCode = decodeURIComponent(afterRef);
+                console.log('📌 Decoded referral code:', referralCode);
+              } catch (e) {
+                // If decode fails, use raw value
+                referralCode = afterRef;
+                console.log('📌 Using raw referral code:', referralCode);
               }
             }
           } else if (url.includes('/referral/')) {
