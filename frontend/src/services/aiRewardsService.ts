@@ -61,7 +61,8 @@ class AIRewardsService {
     businessContext: BusinessContext,
     organizationId: string,
     customInstructions?: string,
-    rewardsCount: number = 8
+    rewardsCount: number = 8,
+    existingRewards?: Array<{ name: string; description: string }>
   ): Promise<AIRewardsResponse> {
     try {
       // Get auth token
@@ -86,7 +87,8 @@ class AIRewardsService {
             businessContext,
             organizationId,
             customInstructions,
-            rewardsCount
+            rewardsCount,
+            existingRewards  // Passa rewards esistenti alla Edge Function
           })
         }
       )

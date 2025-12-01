@@ -54,11 +54,12 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { businessContext, organizationId, customInstructions, rewardsCount = 8 } = await req.json() as {
+    const { businessContext, organizationId, customInstructions, rewardsCount = 8, existingRewards = [] } = await req.json() as {
       businessContext: BusinessContext
       organizationId: string
       customInstructions?: string
       rewardsCount?: number
+      existingRewards?: Array<{ name: string; description: string }>
     }
 
     console.log('📥 Request received:', { organizationId, hasCustomInstructions: !!customInstructions, rewardsCount })
@@ -114,8 +115,9 @@ serve(async (req) => {
     }
 
     // Build intelligent prompt for Claude
-    const prompt = buildPrompt(businessContext, customInstructions, rewardsCount)
+    const prompt = buildPrompt(businessContext, customInstructions, rewardsCount, existingRewards)
     console.log('🤖 Calling Claude API...')
+    console.log(`📋 Avoiding ${existingRewards.length} existing rewards`)
 
     // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -218,7 +220,7 @@ serve(async (req) => {
   }
 })
 
-function buildPrompt(context: BusinessContext, customInstructions?: string, rewardsCount: number = 8): string {
+function buildPrompt(context: BusinessContext, customInstructions?: string, rewardsCount: number = 8, existingRewards: Array<{ name: string; description: string }> = []): string {
   const { organization, loyalty_tiers, points_config, product_categories, customer_stats } = context
 
   // Detect business type from name if not provided
@@ -226,6 +228,16 @@ function buildPrompt(context: BusinessContext, customInstructions?: string, rewa
 
   const tierNames = loyalty_tiers.map(t => t.name).join(', ')
   const tierList = loyalty_tiers.map(t => `- ${t.name}: da ${t.min_points} ${points_config.name}`).join('\n')
+
+  // Build list of existing rewards to avoid
+  const existingRewardsList = existingRewards.length > 0
+    ? `\n⚠️ PREMI GIÀ ESISTENTI DA EVITARE (${existingRewards.length} premi):
+NON generare premi simili o duplicati di questi:
+${existingRewards.map((r, i) => `${i + 1}. "${r.name}" - ${r.description}`).join('\n')}
+
+IMPORTANTE: Genera premi COMPLETAMENTE NUOVI e DIVERSI da quelli elencati sopra!
+`
+    : ''
 
   const basePrompt = `Sei un esperto di loyalty marketing per "${organization.name}".
 
@@ -242,6 +254,7 @@ ${customer_stats ? `- Punti medi per cliente: ${customer_stats.average_points}` 
 
 LIVELLI DETTAGLIO:
 ${tierList}
+${existingRewardsList}
 
 OBIETTIVO:
 Crea ${rewardsCount} rewards perfetti e personalizzati per questa attività che:

@@ -453,6 +453,10 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
           organizationId={organizationId}
           onRewardsGenerated={handleAIRewardsGenerated}
           primaryColor={primaryColor}
+          existingRewards={rewards.map(r => ({
+            name: r.name,
+            description: r.description
+          }))}
         />
       )}
     </div>

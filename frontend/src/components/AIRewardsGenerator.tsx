@@ -17,6 +17,7 @@ interface AIRewardsGeneratorProps {
   organizationId: string
   onRewardsGenerated: (rewards: RewardData[]) => void
   primaryColor: string
+  existingRewards?: Array<{ name: string; description: string }>  // Rewards già esistenti da evitare
 }
 
 const AIRewardsGenerator: React.FC<AIRewardsGeneratorProps> = ({
@@ -25,7 +26,8 @@ const AIRewardsGenerator: React.FC<AIRewardsGeneratorProps> = ({
   businessContext,
   organizationId,
   onRewardsGenerated,
-  primaryColor
+  primaryColor,
+  existingRewards = []
 }) => {
   const [generating, setGenerating] = useState(false)
   const [generatedRewards, setGeneratedRewards] = useState<AIGeneratedReward[]>([])
@@ -43,11 +45,14 @@ const AIRewardsGenerator: React.FC<AIRewardsGeneratorProps> = ({
       setSelectedRewards(new Set())
 
       console.log('🤖 Step 1: Generating rewards with AI...')
+      console.log(`📋 Existing rewards to avoid: ${existingRewards.length}`)
+
       const response = await aiRewardsService.generateRewards(
         businessContext,
         organizationId,
         customInstructions.trim() || undefined,
-        rewardsCount
+        rewardsCount,
+        existingRewards  // Passa rewards esistenti
       )
 
       if (!response.success || !response.rewards) {
