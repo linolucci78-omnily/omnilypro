@@ -103,6 +103,7 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
           organizationId={organizationId}
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
+          onRewardsChange={fetchRewards}
         />
       </div>
     )

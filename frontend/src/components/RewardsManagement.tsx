@@ -20,11 +20,16 @@ import {
   Wrench,
   Sparkles,
   Gift,
-  Table
+  Table,
+  Grid3x3,
+  Check,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react'
 import { rewardsService, type Reward } from '../services/rewardsService'
 import { supabase } from '../lib/supabase'
 import MultiRewardCreator from './MultiRewardCreator'
+import RewardsTableView from './RewardsTableView'
 import { useToast } from '../contexts/ToastContext'
 import './RewardsManagement.css'
 
@@ -32,6 +37,7 @@ interface RewardsManagementProps {
   organizationId: string
   primaryColor: string
   secondaryColor: string
+  onRewardsChange?: () => void
 }
 
 type RewardCategory = 'product' | 'discount' | 'service' | 'experience' | 'other'
@@ -74,7 +80,8 @@ const REWARD_TYPES: {value: 'discount' | 'freeProduct' | 'cashback' | 'giftCard'
 const RewardsManagement: React.FC<RewardsManagementProps> = ({
   organizationId,
   primaryColor,
-  secondaryColor
+  secondaryColor,
+  onRewardsChange
 }) => {
   const { showSuccess, showError } = useToast()
   const [rewards, setRewards] = useState<Reward[]>([])
@@ -89,6 +96,11 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
   const [loyaltyTiers, setLoyaltyTiers] = useState<LoyaltyTier[]>([])
   const [validationError, setValidationError] = useState<string>('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  // Nuovi stati per vista tabella e selezione multipla
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card')
+  const [selectedRewards, setSelectedRewards] = useState<Set<string>>(new Set())
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -239,6 +251,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       await rewardsService.delete(deleteConfirmId, organizationId)
       console.log('Reward deleted successfully')
       await fetchRewards()
+      onRewardsChange?.()
       setDeleteConfirmId(null)
       showSuccess('Premio eliminato', 'Il premio è stato eliminato con successo')
     } catch (error: any) {
@@ -278,6 +291,79 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
       category: (reward as any).category || 'product'
     })
     setShowModal(true)
+  }
+
+  // Funzioni per selezione multipla
+  const toggleSelectReward = (rewardId: string) => {
+    const newSelected = new Set(selectedRewards)
+    if (newSelected.has(rewardId)) {
+      newSelected.delete(rewardId)
+    } else {
+      newSelected.add(rewardId)
+    }
+    setSelectedRewards(newSelected)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedRewards.size === filteredRewards.length) {
+      setSelectedRewards(new Set())
+    } else {
+      setSelectedRewards(new Set(filteredRewards.map(r => r.id)))
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedRewards.size === 0) return
+
+    try {
+      let deletedCount = 0
+      let failedCount = 0
+      const failedRewards: string[] = []
+
+      // Tenta di eliminare tutti i rewards selezionati
+      for (const rewardId of selectedRewards) {
+        try {
+          await rewardsService.delete(rewardId, organizationId)
+          deletedCount++
+        } catch (error: any) {
+          // Se fallisce per foreign key constraint, conta come fallito
+          if (error.code === '23503' || error.message?.includes('foreign key') || error.message?.includes('reward_redemptions')) {
+            failedCount++
+            const reward = rewards.find(r => r.id === rewardId)
+            if (reward) failedRewards.push(reward.name)
+          } else {
+            throw error // Re-throw se è un altro tipo di errore
+          }
+        }
+      }
+
+      // Ricarica la lista locale e parent hub
+      fetchRewards()
+      onRewardsChange?.()
+      setSelectedRewards(new Set())
+      setShowDeleteConfirm(false)
+
+      // Mostra messaggio appropriato
+      if (deletedCount > 0 && failedCount === 0) {
+        showSuccess(
+          'Premi eliminati',
+          `${deletedCount} ${deletedCount === 1 ? 'premio eliminato' : 'premi eliminati'} con successo`
+        )
+      } else if (deletedCount > 0 && failedCount > 0) {
+        showError(
+          'Eliminazione parziale',
+          `${deletedCount} premi eliminati. ${failedCount} premi non possono essere eliminati perché già riscattati: ${failedRewards.slice(0, 3).join(', ')}${failedRewards.length > 3 ? '...' : ''}`
+        )
+      } else {
+        showError(
+          'Impossibile eliminare',
+          `Tutti i ${failedCount} premi selezionati sono già stati riscattati da clienti e non possono essere eliminati.`
+        )
+      }
+    } catch (error: any) {
+      console.error('Error deleting rewards:', error)
+      showError('Errore', error.message || 'Impossibile eliminare i premi')
+    }
   }
 
   const handleCloseModal = () => {
@@ -392,13 +478,117 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
         </label>
       </div>
 
-      {/* Grid Premi */}
+      {/* Toolbar: View Switch + Bulk Actions */}
+      <div className="rewards-toolbar" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 24px',
+        background: '#f9fafb',
+        borderRadius: '12px',
+        marginBottom: '24px',
+        border: '1px solid #e5e7eb'
+      }}>
+        {/* View Mode Switch */}
+        <div className="view-mode-switch" style={{ display: 'flex', gap: '8px', background: 'white', padding: '4px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+          <button
+            className={`view-btn ${viewMode === 'card' ? 'active' : ''}`}
+            onClick={() => setViewMode('card')}
+            title="Vista Card"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: '6px',
+              background: viewMode === 'card' ? primaryColor : 'transparent',
+              color: viewMode === 'card' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Grid3x3 size={18} />
+            <span>Card</span>
+          </button>
+          <button
+            className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
+            onClick={() => setViewMode('table')}
+            title="Vista Tabella"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: '6px',
+              background: viewMode === 'table' ? primaryColor : 'transparent',
+              color: viewMode === 'table' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Table size={18} />
+            <span>Tabella</span>
+          </button>
+        </div>
+
+        {/* Bulk Actions (solo in vista tabella) */}
+        {viewMode === 'table' && (
+          <div className="bulk-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span className="selected-count" style={{ fontSize: '14px', color: '#6b7280', fontWeight: 500 }}>
+              {selectedRewards.size > 0 ? `${selectedRewards.size} selezionati` : 'Nessuno selezionato'}
+            </span>
+            {selectedRewards.size > 0 && (
+              <button
+                className="btn-delete-selected"
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#ef4444',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <Trash2 size={18} />
+                <span>Elimina Selezionati ({selectedRewards.size})</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Grid/Table Premi */}
       {loading ? (
         <div className="loading-state">
           <Loader className="spinner" size={48} />
           <p>Caricamento premi...</p>
         </div>
       ) : filteredRewards.length > 0 ? (
+        viewMode === 'table' ? (
+          <RewardsTableView
+            rewards={filteredRewards}
+            selectedRewards={selectedRewards}
+            onToggleSelect={toggleSelectReward}
+            onToggleSelectAll={toggleSelectAll}
+            onEdit={handleEdit}
+            onDelete={setDeleteConfirmId}
+            onToggleActive={handleToggleActive}
+            primaryColor={primaryColor}
+          />
+        ) : (
         <div className="rewards-grid">
           {filteredRewards.map(reward => {
             const badge = getBadge(reward)
@@ -478,6 +668,7 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
             )
           })}
         </div>
+        )
       ) : (
         <div className="empty-state-modern">
           <Award size={64} />
@@ -773,6 +964,73 @@ const RewardsManagement: React.FC<RewardsManagementProps> = ({
           loyaltyTiers={loyaltyTiers}
           pointsName="Punti"
         />
+      )}
+
+      {/* Modal conferma eliminazione multipla */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
+            maxWidth: '500px',
+            padding: '32px',
+            borderRadius: '16px',
+            background: 'white'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#fee2e2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px'
+              }}>
+                <AlertCircle size={32} color="#dc2626" />
+              </div>
+              <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700 }}>
+                Eliminare {selectedRewards.size} {selectedRewards.size === 1 ? 'premio' : 'premi'}?
+              </h3>
+              <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
+                Questa azione non può essere annullata. I premi verranno eliminati permanentemente.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#374151',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#dc2626',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Elimina
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

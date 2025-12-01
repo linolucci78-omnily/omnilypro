@@ -144,7 +144,13 @@ serve(async (req) => {
     }
 
     const data = await response.json()
-    console.log('✅ Claude response received, tokens:', data.usage?.total_tokens)
+    console.log('✅ Claude response received')
+    console.log('📊 Full usage object:', JSON.stringify(data.usage))
+    console.log('📝 Response keys:', Object.keys(data))
+
+    const totalTokens = data.usage ? (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0) : 0
+    console.log('🔢 Total tokens:', totalTokens, '(input:', data.usage?.input_tokens, '+ output:', data.usage?.output_tokens, ')')
+
     let claudeResponse = data.content[0].text
 
     // Clean up Claude's response - remove markdown code fences if present
@@ -172,19 +178,26 @@ serve(async (req) => {
 
     // Track AI usage
     try {
+      const tokensUsed = totalTokens || 0
+      console.log('💾 Saving usage to database:', tokensUsed, 'tokens')
+
       await supabaseClient
         .from('ai_rewards_usage')
         .insert({
           organization_id: organizationId,
           rewards_count: rewardsData.rewards?.length || 8,
-          tokens_used: data.usage?.total_tokens || 0,
+          tokens_used: tokensUsed,
           metadata: {
             model: data.model,
-            stop_reason: data.stop_reason
+            stop_reason: data.stop_reason,
+            input_tokens: data.usage?.input_tokens || 0,
+            output_tokens: data.usage?.output_tokens || 0
           }
         })
+
+      console.log('✅ Usage saved successfully')
     } catch (trackingError) {
-      console.error('Error tracking AI usage:', trackingError)
+      console.error('❌ Error tracking AI usage:', trackingError)
       // Don't fail the request if tracking fails
     }
 
