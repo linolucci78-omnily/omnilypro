@@ -37,12 +37,18 @@ export default function Rewards() {
   // Carica premi dal database
   useEffect(() => {
     const loadRewards = async () => {
-      if (!customer?.organization_id) return
+      if (!customer?.organization_id) {
+        console.log('❌ No organization_id for customer')
+        return
+      }
 
+      console.log('📦 Loading rewards for organization:', customer.organization_id)
       setLoading(true)
       try {
         // Carica tutti i premi attivi
         const allRewards = await rewardsService.getActiveRewards(customer.organization_id)
+        console.log('✅ Loaded rewards:', allRewards.length, 'rewards')
+        console.log('📋 Rewards data:', allRewards)
         setRewards(allRewards)
 
         // Carica storico riscatti (se disponibile)
@@ -51,10 +57,11 @@ export default function Rewards() {
             customer.id,
             customer.organization_id
           )
+          console.log('✅ Loaded redemptions:', redemptions.length, 'items')
           setMyRewards(redemptions)
         }
       } catch (error) {
-        console.error('Error loading rewards:', error)
+        console.error('❌ Error loading rewards:', error)
       } finally {
         setLoading(false)
       }

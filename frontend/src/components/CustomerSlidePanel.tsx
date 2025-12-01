@@ -150,7 +150,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       setLoadingActivities(true);
       try {
         console.log(`🔍 Caricamento attività per customer ID: ${customer.id}`);
-        const activities = await customerActivitiesApi.getByCustomerId(customer.id, 5);
+        // Aumentato da 5 a 50 per mostrare più storico
+        const activities = await customerActivitiesApi.getByCustomerId(customer.id, 50);
         console.log(`✅ Caricate ${activities.length} attività per ${customer.name}`, activities);
         setCustomerActivities(activities);
       } catch (error) {
@@ -984,42 +985,158 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
 
         {/* Recent Activity */}
         <div className="customer-slide-panel-activity">
-          <h3>Attività Recente</h3>
-          {loadingActivities ? (
-            <div className="customer-slide-panel-activity-item">
-              <div className="customer-slide-panel-activity-date">-</div>
-              <div className="customer-slide-panel-activity-text">Caricamento attività...</div>
-            </div>
-          ) : customerActivities.length > 0 ? (
-            customerActivities.map((activity) => {
-              const activityDate = new Date(activity.created_at);
-              const now = new Date();
-              const diffInDays = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24));
+          <h3>Storico Movimenti ({customerActivities.length})</h3>
+          <div style={{ maxHeight: '500px', overflowY: 'auto', paddingRight: '8px' }}>
+            {loadingActivities ? (
+              <div className="customer-slide-panel-activity-item">
+                <div className="customer-slide-panel-activity-date">-</div>
+                <div className="customer-slide-panel-activity-text">Caricamento...</div>
+              </div>
+            ) : customerActivities.length > 0 ? (
+              customerActivities.map((activity) => {
+                const activityDate = new Date(activity.created_at);
 
-              let dateLabel = '';
-              if (diffInDays === 0) {
-                dateLabel = 'Oggi';
-              } else if (diffInDays === 1) {
-                dateLabel = 'Ieri';
-              } else if (diffInDays < 7) {
-                dateLabel = `${diffInDays} giorni fa`;
-              } else {
-                dateLabel = activityDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
-              }
+                // Data completa: GG/MM/AAAA HH:MM
+                const fullDate = activityDate.toLocaleDateString('it-IT', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                });
+                const time = activityDate.toLocaleTimeString('it-IT', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
 
-              return (
-                <div key={activity.id} className="customer-slide-panel-activity-item">
-                  <div className="customer-slide-panel-activity-date">{dateLabel}</div>
-                  <div className="customer-slide-panel-activity-text">{activity.description}</div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="customer-slide-panel-activity-item">
-              <div className="customer-slide-panel-activity-date">-</div>
-              <div className="customer-slide-panel-activity-text">Nessuna attività recente</div>
-            </div>
-          )}
+                // Determina tipo, icona SVG e colore
+                let iconSvg = '';
+                let color = '#6b7280';
+                let bgColor = '#f9fafb';
+                let typeLabel = 'Altro';
+
+                const desc = activity.description.toLowerCase();
+
+                if (desc.includes('vendita') || desc.includes('acquisto') || desc.includes('€')) {
+                  typeLabel = 'Vendita';
+                  color = '#10b981';
+                  bgColor = '#d1fae5';
+                  iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
+                } else if (desc.includes('+') && desc.includes('punti')) {
+                  typeLabel = 'Punti Aggiunti';
+                  color = '#3b82f6';
+                  bgColor = '#dbeafe';
+                  iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
+                } else if (desc.includes('-') && desc.includes('punti')) {
+                  typeLabel = 'Punti Rimossi';
+                  color = '#ef4444';
+                  bgColor = '#fee2e2';
+                  iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>';
+                } else if (desc.includes('premio') || desc.includes('riscatto')) {
+                  typeLabel = 'Premio Riscattato';
+                  color = '#a855f7';
+                  bgColor = '#f3e8ff';
+                  iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v8H4v-8M2 7h20v5H2zm10-7v7m0 0l-3-3m3 3l3-3"/></svg>';
+                } else if (desc.includes('registrazione') || desc.includes('benvenuto')) {
+                  typeLabel = 'Registrazione';
+                  color = '#f59e0b';
+                  bgColor = '#fef3c7';
+                  iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>';
+                } else if (desc.includes('referral') || desc.includes('invito')) {
+                  typeLabel = 'Referral';
+                  color = '#06b6d4';
+                  bgColor = '#cffafe';
+                  iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+                }
+
+                // Mostra importo e punti dall'activity object
+                const amount = activity.amount;
+                const points = activity.points;
+
+                return (
+                  <div
+                    key={activity.id}
+                    style={{
+                      borderLeft: `4px solid ${color}`,
+                      backgroundColor: bgColor,
+                      padding: '12px',
+                      marginBottom: '10px',
+                      borderRadius: '6px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div
+                        style={{
+                          color,
+                          minWidth: '20px',
+                          marginTop: '2px'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: iconSvg }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '4px'
+                        }}>
+                          <span style={{
+                            color,
+                            fontWeight: '700',
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }}>
+                            {typeLabel}
+                          </span>
+                          <div style={{ textAlign: 'right' }}>
+                            {amount && amount > 0 && (
+                              <div style={{
+                                color: '#10b981',
+                                fontWeight: '700',
+                                fontSize: '15px'
+                              }}>
+                                {amount.toFixed(2)}
+                              </div>
+                            )}
+                            {points && points !== 0 && (
+                              <div style={{
+                                color,
+                                fontWeight: '600',
+                                fontSize: '13px'
+                              }}>
+                                {points > 0 ? '+' : ''}{points} pt
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{
+                          color: '#1f2937',
+                          fontWeight: '500',
+                          fontSize: '14px',
+                          marginBottom: '6px',
+                          lineHeight: '1.4'
+                        }}>
+                          {activity.description}
+                        </div>
+                        <div style={{
+                          color: '#6b7280',
+                          fontSize: '11px',
+                          fontFamily: 'monospace'
+                        }}>
+                          {fullDate} • {time}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="customer-slide-panel-activity-item">
+                <div className="customer-slide-panel-activity-date">-</div>
+                <div className="customer-slide-panel-activity-text">Nessun movimento registrato</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
