@@ -41,6 +41,7 @@ import InviteBusinessModal from '../components/InviteBusinessModal'
 import ChangePlanModal from '../components/Admin/ChangePlanModal'
 import SuspendAccountModal from '../components/Admin/SuspendAccountModal'
 import AccountHistoryModal from '../components/Admin/AccountHistoryModal'
+import ConfirmResetPasswordModal from '../components/Admin/ConfirmResetPasswordModal'
 import { businessOwnerService } from '../services/businessOwnerService'
 import { useToast } from '../contexts/ToastContext'
 
@@ -87,6 +88,7 @@ const BusinessOwners: React.FC = () => {
   const [showChangePlanModal, setShowChangePlanModal] = useState(false)
   const [showSuspendModal, setShowSuspendModal] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false)
 
   // Mock data per demo - proprietari aziende che usano OMNILY PRO
   const mockOwners: BusinessOwner[] = [
@@ -326,15 +328,21 @@ const BusinessOwners: React.FC = () => {
     setShowMoreMenu(null)
   }
 
-  const handleResetPassword = async (owner: BusinessOwner) => {
-    if (window.confirm(`Inviare email di reset password a ${owner.email}?`)) {
-      try {
-        await businessOwnerService.sendPasswordReset(owner.email)
-        toast.success(`Email di reset inviata a ${owner.email}`)
-      } catch (error: any) {
-        toast.error(error.message || 'Errore durante l\'invio email')
-      }
-      setShowMoreMenu(null)
+  const handleResetPassword = (owner: BusinessOwner) => {
+    setSelectedOwner(owner)
+    setShowResetPasswordModal(true)
+    setShowMoreMenu(null)
+  }
+
+  const confirmResetPassword = async () => {
+    if (!selectedOwner) return
+
+    try {
+      await businessOwnerService.sendPasswordReset(selectedOwner.email)
+      toast.showSuccess('Email Inviata', `Email di reset password inviata a ${selectedOwner.email}`)
+      setShowResetPasswordModal(false)
+    } catch (error: any) {
+      toast.showError('Errore', error.message || 'Errore durante l\'invio email')
     }
   }
 
@@ -429,7 +437,7 @@ const BusinessOwners: React.FC = () => {
             <Download size={18} />
             Esporta Report
           </button>
-          <button className="btn-primary">
+          <button className="btn-primary" onClick={() => setShowInviteModal(true)}>
             <UserPlus size={18} />
             Invita Azienda
           </button>
@@ -1165,6 +1173,16 @@ const BusinessOwners: React.FC = () => {
             company: selectedOwner.company
           }}
           onLoadHistory={businessOwnerService.loadHistory.bind(businessOwnerService)}
+        />
+      )}
+
+      {/* Reset Password Confirmation Modal */}
+      {selectedOwner && (
+        <ConfirmResetPasswordModal
+          isOpen={showResetPasswordModal}
+          onClose={() => setShowResetPasswordModal(false)}
+          onConfirm={confirmResetPassword}
+          email={selectedOwner.email}
         />
       )}
     </div>

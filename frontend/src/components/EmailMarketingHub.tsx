@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Megaphone, FileText, BarChart, Settings, ArrowLeft } from 'lucide-react'
 import EmailMarketingPanel from './EmailMarketingPanel'
+import { FeatureWithLimitGate } from './FeatureWithLimitGate'
+import { supabase } from '../lib/supabase'
 import './EmailMarketingHub.css'
 
 interface EmailMarketingHubProps {
@@ -19,37 +21,72 @@ const EmailMarketingHub: React.FC<EmailMarketingHubProps> = ({
   secondaryColor
 }) => {
   const [activeView, setActiveView] = useState<ViewType>('hub')
+  const [emailsSentThisMonth, setEmailsSentThisMonth] = useState(0)
+
+  // Carica il numero di email inviate questo mese per il controllo limiti
+  useEffect(() => {
+    const loadEmailUsage = async () => {
+      try {
+        const startOfMonth = new Date()
+        startOfMonth.setDate(1)
+        startOfMonth.setHours(0, 0, 0, 0)
+
+        const { count, error } = await supabase
+          .from('email_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId)
+          .gte('sent_at', startOfMonth.toISOString())
+
+        if (!error && count !== null) {
+          setEmailsSentThisMonth(count)
+        }
+      } catch (err) {
+        console.error('Error loading email usage:', err)
+      }
+    }
+
+    loadEmailUsage()
+  }, [organizationId])
 
   // Se è selezionata una vista specifica, mostra il panel con il tab corretto
   if (activeView !== 'hub') {
     return (
-      <EmailMarketingPanel
-        onClose={() => setActiveView('hub')}
-        organizationId={organizationId}
-        organizationName={organizationName}
-        defaultTab={activeView as 'campaigns' | 'templates' | 'logs' | 'settings'}
-      />
+      <FeatureWithLimitGate
+        feature="emailMarketing"
+        currentUsage={{ maxEmailsPerMonth: emailsSentThisMonth }}
+      >
+        <EmailMarketingPanel
+          onClose={() => setActiveView('hub')}
+          organizationId={organizationId}
+          organizationName={organizationName}
+          defaultTab={activeView as 'campaigns' | 'templates' | 'logs' | 'settings'}
+        />
+      </FeatureWithLimitGate>
     )
   }
 
   // Vista principale con le 4 card
   return (
-    <div
-      className="email-marketing-hub-container"
-      style={{
-        '--primary-color': primaryColor,
-        '--secondary-color': secondaryColor
-      } as React.CSSProperties}
+    <FeatureWithLimitGate
+      feature="emailMarketing"
+      currentUsage={{ maxEmailsPerMonth: emailsSentThisMonth }}
     >
-      <div className="email-hub-header">
-        <div className="email-hub-header-content">
-          <Megaphone size={32} />
-          <div>
-            <h1>Email Marketing</h1>
-            <p>Gestisci campagne, modelli e monitora le performance</p>
+      <div
+        className="email-marketing-hub-container"
+        style={{
+          '--primary-color': primaryColor,
+          '--secondary-color': secondaryColor
+        } as React.CSSProperties}
+      >
+        <div className="email-hub-header">
+          <div className="email-hub-header-content">
+            <Megaphone size={32} />
+            <div>
+              <h1>Email Marketing</h1>
+              <p>Gestisci campagne, modelli e monitora le performance</p>
+            </div>
           </div>
         </div>
-      </div>
 
       <div className="email-hub-cards">
         {/* Card 1: Campaigns */}
@@ -132,7 +169,8 @@ const EmailMarketingHub: React.FC<EmailMarketingHubProps> = ({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </FeatureWithLimitGate>
   )
 }
 

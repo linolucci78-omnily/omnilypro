@@ -22,11 +22,14 @@ import {
   Plus,
   Edit2,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Settings
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import SubscriptionModal from './SubscriptionModal'
 import PageLoader from '../UI/PageLoader'
+import AdminPlansManager from './AdminPlansManager'
+import SubscriptionPlansManager from './SubscriptionPlansManager'
 
 interface Subscription {
   id: string
@@ -97,7 +100,7 @@ const BillingDashboardReal: React.FC = () => {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'invoices' | 'plans' | 'analytics'>('subscriptions')
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'invoices' | 'plans' | 'analytics' | 'omnilypro-plans'>('subscriptions')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'past_due' | 'canceled'>('all')
   const [planFilter, setPlanFilter] = useState<'all' | 'basic' | 'premium' | 'enterprise'>('all')
@@ -466,7 +469,7 @@ const BillingDashboardReal: React.FC = () => {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={handleCreateSubscription} style={{
+          <button onClick={() => setActiveTab('omnilypro-plans')} style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -941,8 +944,13 @@ const BillingDashboardReal: React.FC = () => {
         </div>
       )}
 
+      {/* Plans Tab - Subscription Plans Visibility Manager */}
+      {activeTab === 'plans' && (
+        <SubscriptionPlansManager />
+      )}
+
       {/* Other tabs content will be implemented here */}
-      {activeTab !== 'subscriptions' && (
+      {activeTab !== 'subscriptions' && activeTab !== 'plans' && (
         <div style={{
           padding: '40px 24px',
           textAlign: 'center',
@@ -959,6 +967,11 @@ const BillingDashboardReal: React.FC = () => {
             Sezione in sviluppo - implementazione completa in arrivo
           </p>
         </div>
+      )}
+
+      {/* OMNILYPRO Plans Management Tab */}
+      {activeTab === 'omnilypro-plans' && (
+        <AdminPlansManager />
       )}
 
       {/* Subscription Modal */}

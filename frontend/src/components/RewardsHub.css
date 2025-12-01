@@ -443,3 +443,81 @@
     font-size: 1.5rem;
   }
 }
+
+/* ============================================
+   AI REWARDS CARD - ELEGANT STYLING
+   ============================================ */
+
+.rewards-hub-card-ai {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle shimmer effect */
+.rewards-hub-card-ai::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.7s;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.rewards-hub-card-ai:hover::before {
+  left: 100%;
+}
+
+.rewards-hub-card-ai:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
+}
+
+/* Subtle icon animation */
+.rewards-hub-card-ai .rewards-hub-card-icon {
+  position: relative;
+  transition: transform 0.3s;
+}
+
+.rewards-hub-card-ai:hover .rewards-hub-card-icon {
+  transform: scale(1.1);
+}
+
+/* Gradient text for title */
+.rewards-hub-card-ai h3 {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  font-size: 1.5rem !important;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+}
+
+/* Features list subtle animation */
+.rewards-hub-card-ai .rewards-hub-card-features li {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.2s;
+}
+
+.rewards-hub-card-ai:hover .rewards-hub-card-features li {
+  transform: translateX(4px);
+}
+
+/* Floating particles effect */
+.rewards-hub-card-ai .rewards-hub-card-content {
+  position: relative;
+  z-index: 2;
+}

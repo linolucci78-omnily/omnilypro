@@ -55,8 +55,8 @@ export class OrganizationService {
                 // Owner Relation (FK to business_owners table)
                 owner_id: ownerId,
 
-                // Default plan
-                plan_type: wizardData.planType || 'basic',
+                // Plan from dynamic selection
+                plan_id: wizardData.planId || null,
                 plan_status: status === 'active' ? 'active' : 'pending',
 
                 // Activation (for admin mode)
@@ -179,16 +179,19 @@ export class OrganizationService {
             }
 
             // SEND BUSINESS INVITE EMAIL if in admin mode
-            if (mode === 'admin' && wizardData.ownerEmail && wizardData.planType && activationToken) {
+            if (mode === 'admin' && wizardData.ownerEmail && wizardData.planId && activationToken) {
                 console.log('📧 Sending business invite email to:', wizardData.ownerEmail)
-                console.log('Plan:', wizardData.planType)
+                console.log('Plan ID:', wizardData.planId)
                 console.log('Activation token:', activationToken)
 
                 try {
                     const { emailService } = await import('../services/emailService')
+                    const { omnilyProPlansService } = await import('../services/omnilyProPlansService')
 
-                    // Map planType (pro/basic/enterprise) to email service format (premium/basic/enterprise)
-                    const emailPlanType = wizardData.planType === 'pro' ? 'premium' : wizardData.planType
+                    // Get plan details from database
+                    const allPlans = await omnilyProPlansService.getAllPlans()
+                    const selectedPlan = allPlans.find(p => p.id === wizardData.planId)
+                    const emailPlanType = selectedPlan?.slug || 'basic'
 
                     const emailResult = await emailService.sendBusinessInviteEmail(
                         wizardData.ownerEmail,

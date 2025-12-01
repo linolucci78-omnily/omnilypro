@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 // import { useAuth } from '../../contexts/AuthContext' // Temporary disabled
 import { organizationService } from '../../services/organizationService'
+import { omnilyProPlansService, type OmnilyProPlan } from '../../services/omnilyProPlansService'
 import { getMockUser } from '../../services/mockAuth'
 import { useToast } from '../../contexts/ToastContext'
 import { Zap, Award, CheckCircle2, Building2, Users, User, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer, ArrowRight, ArrowLeft, Package, AlertCircle } from 'lucide-react'
@@ -33,6 +34,10 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
   const [validatingVAT, setValidatingVAT] = useState(false)
   const [vatValidated, setVatValidated] = useState(false)
   const [createdOrganization, setCreatedOrganization] = useState<any>(null)
+
+  // Dynamic plans from database
+  const [availablePlans, setAvailablePlans] = useState<OmnilyProPlan[]>([])
+  const [plansLoading, setPlansLoading] = useState(true)
   
   // Carica dati salvati da localStorage  
   const [formData, setFormData] = useState(() => {
@@ -48,7 +53,7 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
     // Dati di default se non ci sono salvataggi
     return {
     // Plan Selection (admin mode only)
-    planType: 'basic',
+    planId: null, // Will be set when plans are loaded
 
     // Step 1: Organization Basics
     organizationName: '',
@@ -153,6 +158,30 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
     kpiTracking: ['customer_retention', 'average_transaction', 'loyalty_roi']
     }
   })
+
+  // Load available plans from database
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        setPlansLoading(true)
+        const plans = await omnilyProPlansService.getWizardPlans()
+        setAvailablePlans(plans)
+
+        // Set default plan to "Basic" if no plan is selected
+        if (!formData.planId && plans.length > 0) {
+          const basicPlan = plans.find(p => p.slug === 'basic')
+          if (basicPlan) {
+            setFormData(prev => ({ ...prev, planId: basicPlan.id }))
+          }
+        }
+      } catch (error) {
+        console.error('Error loading plans:', error)
+      } finally {
+        setPlansLoading(false)
+      }
+    }
+    loadPlans()
+  }, [])
 
   const steps = [
     {
@@ -494,145 +523,106 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                 </div>
               </div>
 
-              {/* Plans Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginTop: '24px' }}>
-
-                {/* BASIC Plan */}
-                <div
-                  onClick={() => setFormData({ ...formData, planType: 'basic' })}
-                  style={{
-                    background: formData.planType === 'basic' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'white',
-                    border: formData.planType === 'basic' ? '3px solid #3b82f6' : '2px solid #e2e8f0',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s',
-                    boxShadow: formData.planType === 'basic' ? '0 8px 24px rgba(59, 130, 246, 0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
-                    color: formData.planType === 'basic' ? 'white' : '#1e293b'
-                  }}
-                >
-                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
-                      Piano BASIC
-                    </div>
-                    <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
-                      €29
-                    </div>
-                    <div style={{ fontSize: '14px', opacity: 0.8 }}>
-                      al mese
-                    </div>
-                  </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
-                    <li>✓ Fino a 100 clienti</li>
-                    <li>✓ Sistema punti fedeltà</li>
-                    <li>✓ 3 livelli loyalty</li>
-                    <li>✓ Coupon e premi</li>
-                    <li>✓ Email automations</li>
-                    <li>✓ Supporto email</li>
-                  </ul>
+              {/* Plans Grid - Dynamic from database */}
+              {plansLoading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  Caricamento piani...
                 </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginTop: '24px' }}>
+                  {availablePlans.map((plan) => {
+                    const isSelected = formData.planId === plan.id
 
-                {/* PRO Plan */}
-                <div
-                  onClick={() => setFormData({ ...formData, planType: 'pro' })}
-                  style={{
-                    background: formData.planType === 'pro' ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' : 'white',
-                    border: formData.planType === 'pro' ? '3px solid #8b5cf6' : '2px solid #e2e8f0',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s',
-                    boxShadow: formData.planType === 'pro' ? '0 8px 24px rgba(139, 92, 246, 0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
-                    color: formData.planType === 'pro' ? 'white' : '#1e293b',
-                    position: 'relative',
-                    transform: formData.planType === 'pro' ? 'scale(1.05)' : 'scale(1)'
-                  }}
-                >
-                  <div style={{ position: 'absolute', top: '-12px', right: '20px', background: '#10b981', color: 'white', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '700' }}>
-                    POPOLARE
-                  </div>
-                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
-                      Piano PRO
-                    </div>
-                    <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
-                      €99
-                    </div>
-                    <div style={{ fontSize: '14px', opacity: 0.8 }}>
-                      al mese
-                    </div>
-                  </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
-                    <li>✓ Fino a 1000 clienti</li>
-                    <li>✓ Tutto di Basic +</li>
-                    <li>✓ Sistema lotterie</li>
-                    <li>✓ OMNY Wallet</li>
-                    <li>✓ Analytics avanzati</li>
-                    <li>✓ Branding personalizzato</li>
-                    <li>✓ Supporto prioritario</li>
-                  </ul>
-                </div>
+                    // Build features list
+                    const featuresCount = Object.values(plan.features).filter(Boolean).length
 
-                {/* ENTERPRISE Plan */}
-                <div
-                  onClick={() => setFormData({ ...formData, planType: 'enterprise' })}
-                  style={{
-                    background: formData.planType === 'enterprise' ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 'white',
-                    border: formData.planType === 'enterprise' ? '3px solid #fbbf24' : '2px solid #e2e8f0',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s',
-                    boxShadow: formData.planType === 'enterprise' ? '0 8px 24px rgba(251, 191, 36, 0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
-                    color: formData.planType === 'enterprise' ? 'white' : '#1e293b'
-                  }}
-                >
-                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
-                      Piano ENTERPRISE
-                    </div>
-                    <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
-                      €299
-                    </div>
-                    <div style={{ fontSize: '14px', opacity: 0.8 }}>
-                      al mese
-                    </div>
-                  </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
-                    <li>✓ Clienti illimitati</li>
-                    <li>✓ Tutto di Pro +</li>
-                    <li>✓ Canali integrazione</li>
-                    <li>✓ White label completo</li>
-                    <li>✓ SSO e API dedicate</li>
-                    <li>✓ Account manager dedicato</li>
-                    <li>✓ Supporto 24/7</li>
-                  </ul>
-                </div>
-
-              </div>
-
-              {/* Selected Plan Summary */}
-              {formData.planType && (
-                <div style={{
-                  marginTop: '24px',
-                  padding: '20px',
-                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                  borderRadius: '12px',
-                  border: '2px solid #86efac'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <CheckCircle2 size={24} color="#22c55e" />
-                    <div>
-                      <div style={{ fontSize: '16px', fontWeight: '600', color: '#166534' }}>
-                        Piano selezionato: {formData.planType.toUpperCase()}
+                    return (
+                      <div
+                        key={plan.id}
+                        onClick={() => setFormData({ ...formData, planId: plan.id })}
+                        style={{
+                          background: isSelected ? `linear-gradient(135deg, ${plan.color} 0%, ${plan.color}dd 100%)` : 'white',
+                          border: isSelected ? `3px solid ${plan.color}` : '2px solid #e2e8f0',
+                          borderRadius: '16px',
+                          padding: '24px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s',
+                          boxShadow: isSelected ? `0 8px 24px ${plan.color}40` : '0 2px 8px rgba(0,0,0,0.05)',
+                          color: isSelected ? 'white' : '#1e293b',
+                          position: 'relative',
+                          transform: plan.is_popular ? 'scale(1.05)' : 'scale(1)'
+                        }}
+                      >
+                        {plan.badge_text && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-12px',
+                            right: '20px',
+                            background: '#10b981',
+                            color: 'white',
+                            padding: '4px 12px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: '700'
+                          }}>
+                            {plan.badge_text}
+                          </div>
+                        )}
+                        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', opacity: 0.9 }}>
+                            {plan.name}
+                          </div>
+                          <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+                            €{plan.price_monthly}
+                          </div>
+                          <div style={{ fontSize: '14px', opacity: 0.8 }}>
+                            al mese
+                          </div>
+                        </div>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '14px', lineHeight: '1.8' }}>
+                          <li>✓ {plan.limits.maxCustomers ? `Fino a ${plan.limits.maxCustomers} clienti` : 'Clienti illimitati'}</li>
+                          {plan.features.loyaltyPrograms && <li>✓ Programmi fedeltà</li>}
+                          {plan.features.emailMarketing && <li>✓ Email Marketing</li>}
+                          {plan.features.smsMarketing && <li>✓ SMS Marketing</li>}
+                          {plan.features.posEnabled && <li>✓ Sistema POS</li>}
+                          {plan.features.advancedAnalytics && <li>✓ Analytics avanzati</li>}
+                          {plan.features.customBranding && <li>✓ Branding personalizzato</li>}
+                          {plan.features.prioritySupport && <li>✓ Supporto prioritario</li>}
+                          <li style={{ opacity: 0.7, marginTop: '8px' }}>+ {featuresCount} funzionalità totali</li>
+                        </ul>
                       </div>
-                      <div style={{ fontSize: '14px', color: '#15803d', marginTop: '4px' }}>
-                        Il business owner riceverà un link per completare il pagamento e attivare l'account.
-                      </div>
-                    </div>
-                  </div>
+                    )
+                  })}
                 </div>
               )}
+
+              {/* Selected Plan Summary */}
+              {formData.planId && (() => {
+                const selectedPlan = availablePlans.find(p => p.id === formData.planId)
+                if (!selectedPlan) return null
+
+                return (
+                  <div style={{
+                    marginTop: '24px',
+                    padding: '20px',
+                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                    borderRadius: '12px',
+                    border: '2px solid #86efac'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <CheckCircle2 size={24} color="#22c55e" />
+                      <div>
+                        <div style={{ fontSize: '16px', fontWeight: '600', color: '#166534' }}>
+                          Piano selezionato: {selectedPlan.name} - €{selectedPlan.price_monthly}/mese
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#15803d', marginTop: '4px' }}>
+                          Il business owner riceverà un link per completare il pagamento e attivare l'account.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
 
             </div>
           )

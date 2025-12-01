@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import { Toaster } from 'react-hot-toast'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -48,6 +49,7 @@ import AdminGiftCertificatesDashboard from './components/Admin/AdminGiftCertific
 import AdminMembershipsDashboard from './components/Admin/AdminMembershipsDashboard'
 import SubscriptionFeaturesManager from './components/Admin/SubscriptionFeaturesManagerV2'
 import PlanFeaturesManager from './components/Admin/PlanFeaturesManager'
+import AdminPlansManager from './components/Admin/AdminPlansManager'
 import WebsiteManager from './components/Admin/WebsiteManager'
 import WebsiteManagerV2 from './components/Admin/WebsiteManagerV2'
 import ContractsDashboard from './components/Admin/ContractsDashboard'
@@ -85,6 +87,7 @@ import SystemOverview from './components/Admin/SystemOverview'
 import RootAccessControl from './components/Admin/RootAccessControl'
 import FounderManagement from './components/Admin/FounderManagement'
 import StripeConfigDashboard from './components/Admin/StripeConfigDashboard'
+import SuperAdminControlCenter from './components/Admin/SuperAdminControlCenter'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -239,6 +242,7 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
+              <Toaster position="top-center" />
               <div className="App">
                 <Routes>
                   <Route path="/" element={<Landing />} />
@@ -263,6 +267,7 @@ function App() {
                 <Route path="/lottery/display/:eventId" element={<LotteryDisplayPage />} />
                 <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
                   <Route index element={<AdminDashboard />} />
+                  <Route path="control-center" element={<SuperAdminControlCenter onBack={() => {}} />} />
                   <Route path="organizations" element={<Admin />} />
                   <Route path="new-organization" element={<EnterpriseWizard mode="admin" />} />
                   <Route path="business-owners" element={<BusinessOwners />} />
@@ -284,6 +289,7 @@ function App() {
                   <Route path="settings" element={<SystemSettings />} />
                   <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
                   <Route path="plan-features" element={<PlanFeaturesManager />} />
+                  <Route path="omnilypro-plans" element={<AdminPlansManager />} />
                   <Route path="analytics" element={<AnalyticsDashboard />} />
                   <Route path="activity" element={<ActivityLogDashboard />} />
                   <Route path="notifications" element={<NotificationsDashboard />} />

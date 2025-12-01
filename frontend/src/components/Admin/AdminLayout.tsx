@@ -117,7 +117,8 @@ const AdminLayout = () => {
       group: 'Founder Dashboard',
       items: [
         { path: '/admin', icon: Home, label: 'Panoramica', exact: true },
-        { path: '/admin/system-overview', icon: Activity, label: 'Command Center' },
+        { path: '/admin/control-center', icon: Activity, label: 'Control Center', disabled: false },
+        { path: '/admin/system-overview', icon: BarChart3, label: 'System Overview' },
         { path: '/admin/root-access', icon: Shield, label: 'Root Access Control' },
         { path: '/admin/founders', icon: Crown, label: 'Founder Management' }
       ]

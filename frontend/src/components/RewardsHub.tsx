@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { Gift, TrendingUp, Award, Package, ArrowLeft, Plus, Edit2, Trash2, Image as ImageIcon, Star, Trophy, Upload, Tag, ToggleRight, Eye, Palette, Smartphone } from 'lucide-react'
+import { Gift, TrendingUp, Award, Package, ArrowLeft, Plus, Edit2, Trash2, Image as ImageIcon, Star, Trophy, Upload, Tag, ToggleRight, Eye, Palette, Smartphone, Sparkles, Zap, Brain } from 'lucide-react'
 import { rewardsService, type Reward } from '../services/rewardsService'
+import { aiRewardsService } from '../services/aiRewardsService'
 import RewardsManagement from './RewardsManagement'
+import AIRewardsGenerator from './AIRewardsGenerator'
+import type { RewardData } from './RewardModal'
 import './RewardsHub.css'
 
 interface RewardsHubProps {
   organizationId: string
   primaryColor: string
   secondaryColor: string
+  organization?: any
+  customers?: any[]
 }
 
 type ViewType = 'hub' | 'manage' | 'customer-preview'
@@ -15,7 +20,9 @@ type ViewType = 'hub' | 'manage' | 'customer-preview'
 const RewardsHub: React.FC<RewardsHubProps> = ({
   organizationId,
   primaryColor,
-  secondaryColor
+  secondaryColor,
+  organization,
+  customers = []
 }) => {
   const [activeView, setActiveView] = useState<ViewType>('hub')
   const [rewards, setRewards] = useState<Reward[]>([])
@@ -26,6 +33,7 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
     pointsRedeemed: 0,
     topRewards: [] as Reward[]
   })
+  const [showAIGenerator, setShowAIGenerator] = useState(false)
 
   useEffect(() => {
     fetchRewards()
@@ -57,6 +65,22 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
       console.error('Error fetching rewards:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAIRewardsGenerated = async (generatedRewards: RewardData[]) => {
+    try {
+      // Save all generated rewards to database
+      for (const reward of generatedRewards) {
+        await rewardsService.create(organizationId, reward)
+      }
+
+      // Refresh rewards list
+      await fetchRewards()
+
+      console.log(`✅ ${generatedRewards.length} premi AI aggiunti con successo!`)
+    } catch (error) {
+      console.error('Error saving AI generated rewards:', error)
     }
   }
 
@@ -394,7 +418,43 @@ const RewardsHub: React.FC<RewardsHubProps> = ({
           </div>
           <div className="rewards-hub-card-arrow">→</div>
         </div>
+
+        {/* Card: AI Generator */}
+        <div
+          className="rewards-hub-card rewards-hub-card-ai"
+          onClick={() => setShowAIGenerator(true)}
+          style={{
+            background: `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)`,
+            borderColor: primaryColor
+          }}
+        >
+          <div className="rewards-hub-card-icon" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}>
+            <Sparkles size={32} />
+          </div>
+          <div className="rewards-hub-card-content">
+            <h3>🤖 Assistente AI Premi</h3>
+            <p>Genera premi personalizzati con intelligenza artificiale</p>
+            <ul className="rewards-hub-card-features">
+              <li><Brain size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Analisi automatica business</li>
+              <li><Zap size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Suggerimenti intelligenti</li>
+              <li><Sparkles size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Powered by Claude AI</li>
+            </ul>
+          </div>
+          <div className="rewards-hub-card-arrow">→</div>
+        </div>
       </div>
+
+      {/* AI Rewards Generator Modal */}
+      {organization && (
+        <AIRewardsGenerator
+          isOpen={showAIGenerator}
+          onClose={() => setShowAIGenerator(false)}
+          businessContext={aiRewardsService.buildBusinessContext(organization, customers)}
+          organizationId={organizationId}
+          onRewardsGenerated={handleAIRewardsGenerated}
+          primaryColor={primaryColor}
+        />
+      )}
     </div>
   )
 }

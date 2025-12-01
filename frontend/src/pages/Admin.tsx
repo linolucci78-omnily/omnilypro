@@ -40,6 +40,8 @@ const Admin: React.FC = () => {
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [orgToView, setOrgToView] = useState<Organization | null>(null)
 
   useEffect(() => {
     loadOrganizations()
@@ -111,6 +113,11 @@ const Admin: React.FC = () => {
       console.error('Error deleting organization:', error)
       showError('Errore eliminazione', 'Si è verificato un errore durante l\'eliminazione dell\'azienda')
     }
+  }
+
+  const handleViewDetails = (org: Organization) => {
+    setOrgToView(org)
+    setShowDetailsModal(true)
   }
 
   const handleDeleteSelected = async () => {
@@ -369,8 +376,8 @@ const Admin: React.FC = () => {
 
                   <td>
                     <div className="plan-info">
-                      <span className={`plan-badge ${org.plan_type}`}>
-                        {org.plan_type === 'pro' ? 'PRO' : org.plan_type === 'enterprise' ? 'ENT' : 'FREE'}
+                      <span className={`plan-badge ${org.omnilypro_plans?.slug || org.plan_type || 'starter'}`}>
+                        {org.omnilypro_plans?.name || (org.plan_type === 'pro' ? 'PRO' : org.plan_type === 'enterprise' ? 'ENT' : 'FREE')}
                       </span>
                     </div>
                   </td>
@@ -423,6 +430,7 @@ const Admin: React.FC = () => {
                       </button>
                       <button
                         className="action-btn"
+                        onClick={() => handleViewDetails(org)}
                         title="Visualizza Dettagli"
                       >
                         <Eye size={16} />
@@ -440,12 +448,6 @@ const Admin: React.FC = () => {
                         title="Elimina Azienda"
                       >
                         <Trash2 size={16} />
-                      </button>
-                      <button
-                        className="action-btn"
-                        title="Altre Azioni"
-                      >
-                        <MoreVertical size={16} />
                       </button>
                     </div>
                   </td>
@@ -502,6 +504,195 @@ const Admin: React.FC = () => {
         itemName={orgToDelete?.name || ''}
         itemType="azienda"
       />
+
+      {/* Organization Details Modal */}
+      {showDetailsModal && orgToView && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>
+                Dettagli Organizzazione
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false)
+                  setOrgToView(null)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0 8px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px', alignItems: 'start' }}>
+                <span style={{ fontWeight: 600, color: '#666' }}>Nome:</span>
+                <span style={{ color: '#1a1a1a' }}>{orgToView.name}</span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Slug:</span>
+                <span style={{ color: '#1a1a1a', fontFamily: 'monospace' }}>{orgToView.slug}</span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Piano:</span>
+                <span style={{ color: '#1a1a1a' }}>
+                  {orgToView.omnilypro_plans?.name || 'Nessun Piano'}
+                </span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Stato:</span>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '4px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  background: orgToView.is_active ? '#dcfce7' : '#fee2e2',
+                  color: orgToView.is_active ? '#15803d' : '#b91c1c',
+                  width: 'fit-content'
+                }}>
+                  {orgToView.is_active ? 'Attiva' : 'Inattiva'}
+                </span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>POS:</span>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '4px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  background: orgToView.pos_enabled ? '#dbeafe' : '#f3f4f6',
+                  color: orgToView.pos_enabled ? '#1e40af' : '#6b7280',
+                  width: 'fit-content'
+                }}>
+                  {orgToView.pos_enabled ? `Attivo (${orgToView.pos_model || 'Standard'})` : 'Disattivato'}
+                </span>
+
+                {orgToView.email && (
+                  <>
+                    <span style={{ fontWeight: 600, color: '#666' }}>Email:</span>
+                    <span style={{ color: '#1a1a1a' }}>{orgToView.email}</span>
+                  </>
+                )}
+
+                {orgToView.phone && (
+                  <>
+                    <span style={{ fontWeight: 600, color: '#666' }}>Telefono:</span>
+                    <span style={{ color: '#1a1a1a' }}>{orgToView.phone}</span>
+                  </>
+                )}
+
+                {orgToView.website && (
+                  <>
+                    <span style={{ fontWeight: 600, color: '#666' }}>Sito Web:</span>
+                    <span style={{ color: '#1a1a1a' }}>{orgToView.website}</span>
+                  </>
+                )}
+
+                {orgToView.address && (
+                  <>
+                    <span style={{ fontWeight: 600, color: '#666' }}>Indirizzo:</span>
+                    <span style={{ color: '#1a1a1a' }}>{orgToView.address}</span>
+                  </>
+                )}
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Utenti:</span>
+                <span style={{ color: '#1a1a1a' }}>{orgToView.user_count || 0}</span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Clienti:</span>
+                <span style={{ color: '#1a1a1a' }}>{orgToView.customer_count || 0}</span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Ricavi Mensili:</span>
+                <span style={{ color: '#1a1a1a', fontWeight: 600 }}>
+                  €{(orgToView.monthly_revenue || 0).toFixed(2)}
+                </span>
+
+                <span style={{ fontWeight: 600, color: '#666' }}>Creata il:</span>
+                <span style={{ color: '#1a1a1a' }}>
+                  {new Date(orgToView.created_at).toLocaleDateString('it-IT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                <button
+                  onClick={() => handleEnterDashboard(orgToView)}
+                  style={{
+                    flex: 1,
+                    padding: '12px 24px',
+                    background: '#8b5cf6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Monitor size={16} />
+                  Accedi al Dashboard
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false)
+                    setOrgToView(null)
+                    handleEditOrganization(orgToView)
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px 24px',
+                    background: '#f3f4f6',
+                    color: '#1a1a1a',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Edit size={16} />
+                  Modifica
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

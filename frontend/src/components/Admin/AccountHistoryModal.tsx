@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { X, History, Clock, User, CreditCard, Ban, RefreshCw, Mail, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import '../../pages/BusinessOwners.css'
+import '../EditOrganizationModal.css'
 
 interface HistoryEvent {
   id: string
@@ -65,17 +67,17 @@ const AccountHistoryModal: React.FC<AccountHistoryModalProps> = ({
     return icons[type] || History
   }
 
-  const getEventColor = (type: HistoryEvent['type']) => {
-    const colors = {
-      plan_change: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
-      suspension: 'text-red-600 bg-red-100 dark:bg-red-900/30',
-      activation: 'text-green-600 bg-green-100 dark:bg-green-900/30',
-      payment: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30',
-      login: 'text-gray-600 bg-gray-100 dark:bg-gray-900/30',
-      settings: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30',
-      email_sent: 'text-cyan-600 bg-cyan-100 dark:bg-cyan-900/30'
+  const getEventStyle = (type: HistoryEvent['type']) => {
+    const styles = {
+      plan_change: { color: '#2563eb', background: '#dbeafe' },
+      suspension: { color: '#dc2626', background: '#fee2e2' },
+      activation: { color: '#16a34a', background: '#dcfce7' },
+      payment: { color: '#9333ea', background: '#f3e8ff' },
+      login: { color: '#4b5563', background: '#f3f4f6' },
+      settings: { color: '#ca8a04', background: '#fef3c7' },
+      email_sent: { color: '#0891b2', background: '#cffafe' }
     }
-    return colors[type] || 'text-gray-600 bg-gray-100 dark:bg-gray-900/30'
+    return styles[type] || { color: '#4b5563', background: '#f3f4f6' }
   }
 
   const filteredHistory = filter === 'all'
@@ -96,81 +98,88 @@ const AccountHistoryModal: React.FC<AccountHistoryModalProps> = ({
       {isOpen && (
         <>
           {/* Backdrop */}
+          <div className="edit-org-overlay" onClick={onClose} />
+
+          {/* Modal */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50"
-            onClick={onClose}
-          />
-
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-4xl max-h-[90vh]"
+            transition={{ duration: 0.2 }}
+            className="edit-org-modal"
+            style={{ maxWidth: '900px' }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
-              {/* Header */}
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <History size={20} className="text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">Storico Account</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {businessOwner.company} - {businessOwner.email}
-                    </p>
-                  </div>
+            {/* Header */}
+            <div className="edit-org-header">
+              <div className="edit-org-header-content">
+                <History size={24} />
+                <div>
+                  <h2>Storico Account</h2>
+                  <p>{businessOwner.company} - {businessOwner.email}</p>
                 </div>
+              </div>
+              <button onClick={onClose} className="edit-org-close-btn">
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Filter */}
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              gap: '8px',
+              flexWrap: 'wrap'
+            }}>
+              {eventTypes.map(({ value, label }) => (
                 <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  key={value}
+                  onClick={() => setFilter(value)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    background: filter === value ? '#3b82f6' : '#f3f4f6',
+                    color: filter === value ? 'white' : '#374151'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (filter !== value) {
+                      e.currentTarget.style.background = '#e5e7eb'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (filter !== value) {
+                      e.currentTarget.style.background = '#f3f4f6'
+                    }
+                  }}
                 >
-                  <X size={24} />
+                  {label}
                 </button>
-              </div>
+              ))}
+            </div>
 
-              {/* Filter */}
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3 flex-shrink-0 overflow-x-auto">
-                {eventTypes.map(({ value, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => setFilter(value)}
-                    className={`
-                      px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors
-                      ${filter === value
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }
-                    `}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Timeline */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {loading ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">Caricamento storico...</p>
-                  </div>
-                ) : filteredHistory.length === 0 ? (
-                  <div className="text-center py-12">
-                    <History size={48} className="text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {filter === 'all' ? 'Nessun evento registrato' : 'Nessun evento trovato per questo filtro'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
+            {/* Timeline */}
+            <div className="edit-org-content" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                  <div className="spinner" style={{ margin: '0 auto 16px' }} />
+                  <p style={{ color: '#64748b' }}>Caricamento storico...</p>
+                </div>
+              ) : filteredHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                  <History size={48} style={{ color: '#9ca3af', margin: '0 auto 16px' }} />
+                  <p style={{ color: '#64748b' }}>
+                    {filter === 'all' ? 'Nessun evento registrato' : 'Nessun evento trovato per questo filtro'}
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {filteredHistory.map((event, index) => {
                       const Icon = getEventIcon(event.type)
-                      const colorClass = getEventColor(event.type)
 
                       return (
                         <motion.div
@@ -178,44 +187,64 @@ const AccountHistoryModal: React.FC<AccountHistoryModalProps> = ({
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="flex gap-4"
+                          style={{ display: 'flex', gap: '16px' }}
                         >
                           {/* Timeline Line */}
-                          <div className="flex flex-col items-center">
-                            <div className={`w-10 h-10 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0`}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              ...getEventStyle(event.type)
+                            }}>
                               <Icon size={18} />
                             </div>
                             {index < filteredHistory.length - 1 && (
-                              <div className="w-0.5 flex-1 bg-gray-200 dark:bg-gray-700 my-2" />
+                              <div style={{
+                                width: '2px',
+                                flex: 1,
+                                background: '#e5e7eb',
+                                margin: '8px 0'
+                              }} />
                             )}
                           </div>
 
                           {/* Event Content */}
-                          <div className="flex-1 pb-4">
-                            <div className="flex items-start justify-between mb-1">
-                              <h3 className="font-medium">{event.title}</h3>
-                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                          <div style={{ flex: 1, paddingBottom: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <h3 style={{ fontWeight: '500', color: '#1e293b' }}>{event.title}</h3>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748b' }}>
                                 <Clock size={12} />
                                 {new Date(event.timestamp).toLocaleString('it-IT')}
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>
                               {event.description}
                             </p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b' }}>
                               <User size={12} />
                               <span>Eseguito da: {event.performedBy}</span>
                             </div>
 
                             {/* Metadata */}
                             {event.metadata && Object.keys(event.metadata).length > 0 && (
-                              <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg text-xs">
-                                <p className="font-medium mb-1">Dettagli:</p>
-                                <ul className="space-y-1">
+                              <div style={{
+                                marginTop: '8px',
+                                padding: '12px',
+                                background: '#f9fafb',
+                                borderRadius: '8px',
+                                fontSize: '12px'
+                              }}>
+                                <p style={{ fontWeight: '500', marginBottom: '4px', color: '#1e293b' }}>Dettagli:</p>
+                                <ul style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   {Object.entries(event.metadata).map(([key, value]) => (
-                                    <li key={key} className="flex gap-2">
-                                      <span className="text-gray-600 dark:text-gray-400">{key}:</span>
-                                      <span className="font-medium">{String(value)}</span>
+                                    <li key={key} style={{ display: 'flex', gap: '8px' }}>
+                                      <span style={{ color: '#64748b' }}>{key}:</span>
+                                      <span style={{ fontWeight: '500', color: '#1e293b' }}>{String(value)}</span>
                                     </li>
                                   ))}
                                 </ul>
@@ -227,20 +256,37 @@ const AccountHistoryModal: React.FC<AccountHistoryModalProps> = ({
                     })}
                   </div>
                 )}
-              </div>
+            </div>
 
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {filteredHistory.length} {filteredHistory.length === 1 ? 'evento' : 'eventi'} {filter !== 'all' && 'filtrati'}
-                </p>
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Chiudi
-                </button>
-              </div>
+            {/* Footer */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexShrink: 0
+            }}>
+              <p style={{ fontSize: '14px', color: '#64748b' }}>
+                {filteredHistory.length} {filteredHistory.length === 1 ? 'evento' : 'eventi'} {filter !== 'all' && 'filtrati'}
+              </p>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '8px 16px',
+                  background: '#f1f5f9',
+                  color: '#334155',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                  fontWeight: '500'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#f1f5f9'}
+              >
+                Chiudi
+              </button>
             </div>
           </motion.div>
         </>

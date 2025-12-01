@@ -58,9 +58,8 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
         max_workflows: organization.max_workflows,
         primary_color: organization.primary_color,
         secondary_color: organization.secondary_color,
-        is_active: organization.is_active,
-        pos_enabled: organization.pos_enabled,
-        pos_model: organization.pos_model
+        is_active: organization.is_active
+        // pos_enabled and pos_model are now read-only (calculated from devices table)
       });
     }
   }, [organization]);
@@ -180,31 +179,48 @@ const EditOrganizationModal: React.FC<EditOrganizationModalProps> = ({
                 </label>
               </div>
 
+              {/* POS Status - Read Only (calculated from devices table) */}
               <div className="form-group">
-                <label className="form-label">
-                  <input
-                    type="checkbox"
-                    checked={formData.pos_enabled || false}
-                    onChange={(e) => handleChange('pos_enabled', e.target.checked)}
-                    disabled={isSaving}
-                  />
-                  <span>POS Abilitato</span>
-                </label>
-              </div>
-
-              {formData.pos_enabled && (
-                <div className="form-group">
-                  <label className="form-label">Modello POS</label>
-                  <input
-                    type="text"
-                    value={formData.pos_model || ''}
-                    onChange={(e) => handleChange('pos_model', e.target.value)}
-                    className="form-input"
-                    disabled={isSaving}
-                    placeholder="Es: ZCS Printer X1"
-                  />
+                <label className="form-label">Stato POS</label>
+                <div style={{
+                  padding: '12px 16px',
+                  background: organization.pos_enabled ? '#dcfce7' : '#f3f4f6',
+                  border: `1px solid ${organization.pos_enabled ? '#86efac' : '#e5e7eb'}`,
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: organization.pos_enabled ? '#16a34a' : '#9ca3af'
+                  }} />
+                  <span style={{
+                    fontSize: '14px',
+                    color: organization.pos_enabled ? '#15803d' : '#6b7280',
+                    fontWeight: 500
+                  }}>
+                    {organization.pos_enabled ? 'Abilitato' : 'Disabilitato'}
+                  </span>
+                  {organization.pos_model && organization.pos_enabled && (
+                    <span style={{
+                      marginLeft: 'auto',
+                      fontSize: '12px',
+                      color: '#059669',
+                      background: '#d1fae5',
+                      padding: '2px 8px',
+                      borderRadius: '4px'
+                    }}>
+                      {organization.pos_model}
+                    </span>
+                  )}
                 </div>
-              )}
+                <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  Lo stato POS viene calcolato automaticamente in base ai dispositivi configurati
+                </small>
+              </div>
             </div>
           )}
 

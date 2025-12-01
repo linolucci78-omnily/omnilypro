@@ -21,9 +21,12 @@ const ChangePlanModal: React.FC<ChangePlanModalProps> = ({
   businessOwner,
   onConfirm
 }) => {
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro' | 'enterprise'>(businessOwner.planType)
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro' | 'enterprise'>(businessOwner?.planType || 'free')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Return null if businessOwner is not provided
+  if (!businessOwner) return null
 
   const plans = {
     free: {

@@ -9,6 +9,7 @@ import {
   Video, Gauge, Calculator, Code, Database, Wallet
 } from 'lucide-react'
 import { SparklesCore } from '@/components/UI/sparkles'
+import { omnilyProPlansService, type OmnilyProPlan } from '../services/omnilyProPlansService'
 
 const Landing: React.FC = () => {
   // Dark mode state - default light, saved in localStorage
@@ -24,6 +25,9 @@ const Landing: React.FC = () => {
   const [faqOpen, setFaqOpen] = useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [counters, setCounters] = useState({ companies: 0, transactions: 0, retention: 0 })
+  const [plans, setPlans] = useState<any[]>([])
+  const [plansLoading, setPlansLoading] = useState(true)
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   // Save theme preference
   useEffect(() => {
@@ -40,6 +44,64 @@ const Landing: React.FC = () => {
       }))
     }, 30)
     return () => clearInterval(interval)
+  }, [])
+
+  // Load plans from database
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        setPlansLoading(true)
+        const publicPlans = await omnilyProPlansService.getPublicPlans()
+
+        // Map database plans to landing page format
+        const formattedPlans = publicPlans.map((plan: OmnilyProPlan) => {
+          // Build features list based on enabled features
+          const features: string[] = []
+
+          if (plan.features.posEnabled) features.push('Sistema POS completo')
+          if (plan.features.emailMarketing) features.push('Email Marketing')
+          if (plan.features.smsMarketing) features.push('SMS Marketing')
+          if (plan.features.whatsappMarketing) features.push('WhatsApp Marketing')
+          if (plan.features.customBranding) features.push('Custom Branding')
+          if (plan.features.customDomain) features.push('Custom Domain')
+          if (plan.features.apiAccess) features.push('API Access')
+          if (plan.features.advancedAnalytics) features.push('Analytics Avanzate')
+          if (plan.features.automations) features.push('Automazioni')
+          if (plan.features.loyaltyPrograms) features.push('Programmi Fedeltà')
+          if (plan.features.giftCards) features.push('Gift Cards')
+          if (plan.features.subscriptions) features.push('Abbonamenti')
+          if (plan.features.multiLocation) features.push('Multi-location')
+          if (plan.features.teamManagement) features.push('Gestione Team')
+          if (plan.features.prioritySupport) features.push('Supporto Prioritario 24/7')
+          if (plan.features.websiteBuilder) features.push('Website Builder')
+          if (plan.features.mobileApp) features.push('App Mobile')
+
+          // Take first 6 features for display
+          const displayFeatures = features.slice(0, 6)
+
+          return {
+            name: plan.name,
+            priceMonthly: plan.price_monthly,
+            priceYearly: plan.price_yearly,
+            customers: plan.limits.maxCustomers ? plan.limits.maxCustomers.toString() : 'Illimitati',
+            features: displayFeatures,
+            popular: plan.is_popular,
+            badgeText: plan.badge_text || null,
+            color: plan.color
+          }
+        })
+
+        setPlans(formattedPlans)
+      } catch (error) {
+        console.error('Error loading plans:', error)
+        // Fallback to empty array on error
+        setPlans([])
+      } finally {
+        setPlansLoading(false)
+      }
+    }
+
+    loadPlans()
   }, [])
 
   const industries = [
@@ -1269,17 +1331,57 @@ const Landing: React.FC = () => {
             <h2 className={`text-4xl md:text-5xl font-black mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Prezzi <span className="bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">Semplici e Chiari</span>
             </h2>
-            <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-8`}>
               Nessun costo nascosto. Cancella quando vuoi.
             </p>
+
+            {/* Billing Period Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  billingPeriod === 'monthly'
+                    ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg'
+                    : darkMode
+                    ? 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Mensile
+              </button>
+              <button
+                onClick={() => setBillingPeriod('yearly')}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all relative ${
+                  billingPeriod === 'yearly'
+                    ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg'
+                    : darkMode
+                    ? 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Annuale
+                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  -17%
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: 'Basic', price: '€49', period: '/mese', customers: '500', features: ['Dashboard completa', 'App Clienti branded', 'Email automations', 'Hardware Z108 incluso', 'Support via email'], popular: false },
-              { name: 'Pro', price: '€99', period: '/mese', customers: '2.000', features: ['Tutto di Basic +', 'AI Analytics', 'SMS + WhatsApp', 'Multi-location', 'Priority support 24/7', 'Integrazioni avanzate'], popular: true },
-              { name: 'Enterprise', price: '€199', period: '/mese', customers: 'Illimitati', features: ['Tutto di Pro +', 'White-label completo', 'API personalizzate', 'Dedicated account manager', 'SLA 99.9%', 'Custom onboarding'], popular: false }
-            ].map((plan, i) => (
+            {plansLoading ? (
+              <div className="col-span-3 text-center py-12">
+                <div className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Caricamento piani...
+                </div>
+              </div>
+            ) : plans.length === 0 ? (
+              <div className="col-span-3 text-center py-12">
+                <div className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Nessun piano disponibile al momento
+                </div>
+              </div>
+            ) : (
+              plans.map((plan, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -1296,9 +1398,9 @@ const Landing: React.FC = () => {
                   darkMode ? 'bg-white/5' : 'bg-white'
                 } hover:scale-110 transition-all duration-500`}
               >
-                {plan.popular && (
+                {plan.badgeText && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-red-600 to-pink-600 text-white text-sm font-bold rounded-full">
-                    Più Popolare
+                    {plan.badgeText}
                   </div>
                 )}
                 <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -1306,11 +1408,16 @@ const Landing: React.FC = () => {
                 </h3>
                 <div className="mb-6">
                   <span className={`text-5xl font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {plan.price}
+                    €{billingPeriod === 'monthly' ? plan.priceMonthly : plan.priceYearly}
                   </span>
                   <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-                    {plan.period}
+                    {billingPeriod === 'monthly' ? '/mese' : '/anno'}
                   </span>
+                  {billingPeriod === 'yearly' && plan.priceMonthly > 0 && (
+                    <div className="text-sm text-green-500 font-semibold mt-2">
+                      Risparmi €{((plan.priceMonthly * 12) - plan.priceYearly).toFixed(0)}/anno
+                    </div>
+                  )}
                 </div>
                 <div className={`text-sm mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Fino a {plan.customers} clienti
@@ -1339,7 +1446,8 @@ const Landing: React.FC = () => {
                   + €299 setup one-time
                 </p>
               </motion.div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

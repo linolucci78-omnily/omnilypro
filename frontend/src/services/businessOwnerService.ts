@@ -40,12 +40,12 @@ export class BusinessOwnerService {
    */
   async getAllWithOwners(): Promise<any[]> {
     try {
-      // First, get all organizations with user relationships and counts
+      // Get all organizations with owner details from business_owners table
       const { data: orgsData, error: orgsError } = await supabase
         .from('organizations')
         .select(`
           *,
-          organization_users(user_id, role),
+          business_owners(id, first_name, last_name, email, phone, avatar_url),
           customers(count),
           customer_activities(monetary_value, created_at)
         `)
@@ -53,47 +53,42 @@ export class BusinessOwnerService {
 
       if (orgsError) throw orgsError
 
-      // For each organization, get user details from auth.users
-      const enrichedOrgs = await Promise.all(
-        (orgsData || []).map(async (org) => {
-          // Find the owner user (role = 'owner' or first user)
-          const ownerRelation = org.organization_users?.find((ou: any) => ou.role === 'owner') || org.organization_users?.[0]
+      console.log('📊 Raw organizations data:', orgsData)
 
-          let ownerUser = null
-          if (ownerRelation?.user_id) {
-            // Get user details from users table
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', ownerRelation.user_id)
-              .single()
+      // For each organization, enrich with owner details
+      const enrichedOrgs = (orgsData || []).map((org) => {
+        const owner = org.business_owners
 
-            if (!userError) {
-              ownerUser = userData
-            }
-          }
+        // Calculate monthly revenue
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-          // Calculate monthly revenue
-          const thirtyDaysAgo = new Date()
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        const monthlyRevenue = (org.customer_activities || [])
+          .filter((activity: any) => {
+            const activityDate = new Date(activity.created_at)
+            return activityDate >= thirtyDaysAgo && activity.monetary_value
+          })
+          .reduce((sum: number, activity: any) => sum + (activity.monetary_value || 0), 0)
 
-          const monthlyRevenue = (org.customer_activities || [])
-            .filter((activity: any) => {
-              const activityDate = new Date(activity.created_at)
-              return activityDate >= thirtyDaysAgo && activity.monetary_value
-            })
-            .reduce((sum: number, activity: any) => sum + (activity.monetary_value || 0), 0)
+        const ownerName = owner
+          ? `${owner.first_name || ''} ${owner.last_name || ''}`.trim() || owner.email?.split('@')[0] || 'Proprietario'
+          : 'Proprietario'
 
-          return {
-            ...org,
-            owner_name: ownerUser?.full_name || ownerUser?.name || ownerUser?.email?.split('@')[0] || 'Proprietario',
-            owner_email: ownerUser?.email || org.email,
-            customer_count: org.customers?.[0]?.count || 0,
-            monthly_revenue: monthlyRevenue,
-            last_login: ownerUser?.last_login_at || ownerUser?.updated_at
-          }
-        })
-      )
+        const ownerEmail = owner?.email || org.business_email || org.email
+
+        console.log('🔍 Org:', org.name, '- Owner:', ownerName, '- Email:', ownerEmail)
+
+        return {
+          ...org,
+          owner_name: ownerName,
+          owner_email: ownerEmail,
+          customer_count: org.customers?.[0]?.count || 0,
+          monthly_revenue: monthlyRevenue,
+          last_login: null // We don't have this info from business_owners table
+        }
+      })
+
+      console.log('✅ Enriched organizations:', enrichedOrgs.length)
 
       return enrichedOrgs
     } catch (error) {
@@ -375,11 +370,35 @@ export class BusinessOwnerService {
    */
   async sendPasswordReset(email: string): Promise<void> {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      })
+      // Genera token reset password
+      const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
-      if (error) throw error
+      // Calcola data scadenza (24 ore)
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 24)
+
+      // Salva token nel database
+      const { error: dbError } = await supabase
+        .from('password_reset_tokens')
+        .insert({
+          email,
+          token: resetToken,
+          expires_at: expiresAt.toISOString(),
+          used: false
+        })
+
+      if (dbError) {
+        console.error('❌ Errore salvataggio token:', dbError)
+        throw new Error('Errore durante la creazione del token di reset.')
+      }
+
+      // Invia email tramite emailService
+      const { emailService } = await import('./emailService')
+      const result = await emailService.sendPasswordResetEmail(email, resetToken)
+
+      if (!result.success) {
+        throw new Error(result.error || 'Errore durante l\'invio email')
+      }
 
       console.log(`✅ Email reset password inviata a: ${email}`)
     } catch (error) {

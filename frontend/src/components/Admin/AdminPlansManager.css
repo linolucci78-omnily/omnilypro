@@ -1,0 +1,432 @@
+/* UPDATED - Compact Layout with !important */
+.admin-plans-manager {
+  padding: 1.5rem !important;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+}
+
+.plans-manager-header {
+  margin-bottom: 1.5rem !important;
+}
+
+.plans-manager-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  margin: 0 0 0.25rem 0 !important;
+}
+
+.title-icon {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  color: #64748b !important;
+}
+
+.plans-manager-subtitle {
+  color: #64748b !important;
+  font-size: 0.875rem !important;
+  margin: 0 !important;
+}
+
+.plans-manager-content {
+  display: grid !important;
+  grid-template-columns: 280px 1fr !important;
+  gap: 1.5rem !important;
+}
+
+/* Sidebar */
+.plans-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.add-plan-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-plan-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+}
+
+.button-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.plan-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.plan-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.plan-item.active {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: scale(1.01);
+}
+
+.plan-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.plan-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.plan-item-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+}
+
+.plan-item-price {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.plan-item-badges {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.badge-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.badge-icon.popular {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.badge-icon.inactive {
+  color: #94a3b8;
+}
+
+/* Editor */
+.plans-editor {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.editor-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-header {
+  padding: 1rem 1.25rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.delete-button {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.delete-button:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.save-button {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.save-button:hover:not(:disabled) {
+  background: white;
+}
+
+.save-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.editor-body {
+  padding: 1rem !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 180px) !important;
+}
+
+.editor-section {
+  margin-bottom: 1rem !important;
+}
+
+.editor-section:last-child {
+  margin-bottom: 0 !important;
+}
+
+.section-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  margin: 0 0 0.5rem 0 !important;
+}
+
+.section-icon {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+  color: #6366f1 !important;
+}
+
+.section-description {
+  color: #64748b !important;
+  font-size: 0.6875rem !important;
+  margin: -0.25rem 0 0.5rem 0 !important;
+}
+
+.form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+  gap: 0.5rem !important;
+}
+
+.form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1 !important;
+}
+
+.form-group label {
+  font-weight: 500 !important;
+  color: #475569 !important;
+  font-size: 0.6875rem !important;
+}
+
+.form-input {
+  padding: 0.4375rem 0.5rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  font-size: 0.8125rem !important;
+  transition: border-color 0.2s !important;
+}
+
+.form-input:focus {
+  outline: none !important;
+  border-color: #6366f1 !important;
+  border-width: 1.5px !important;
+}
+
+/* Color Picker */
+.color-picker {
+  display: flex !important;
+  gap: 0.3rem !important;
+  margin-bottom: 0.5rem !important;
+  flex-wrap: wrap !important;
+}
+
+.color-swatch {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 4px !important;
+  border: 2px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+}
+
+.color-swatch:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+.color-swatch.active {
+  border-color: #1e293b !important;
+  transform: scale(1.06) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.color-check {
+  width: 8px !important;
+  height: 8px !important;
+  background: white !important;
+  border-radius: 50% !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Checkboxes */
+.checkbox-group {
+  display: flex !important;
+  gap: 0.625rem !important;
+  margin-top: 0.375rem !important;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  font-size: 0.6875rem !important;
+  color: #475569 !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 13px !important;
+  height: 13px !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+/* Features Grid */
+.features-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important;
+  gap: 0.3rem !important;
+}
+
+.feature-checkbox {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  padding: 0.4rem 0.5rem !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  font-weight: 500 !important;
+  font-size: 0.6875rem !important;
+  color: #475569 !important;
+}
+
+.feature-checkbox:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.feature-checkbox input[type="checkbox"] {
+  width: 13px !important;
+  height: 13px !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+/* Limits Grid */
+.limits-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
+  gap: 0.4rem !important;
+}
+
+/* Empty State */
+.editor-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #94a3b8;
+  text-align: center;
+  height: 100%;
+  min-height: 400px;
+}
+
+.empty-icon {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.editor-empty p {
+  font-size: 1.125rem;
+  font-weight: 500;
+  max-width: 300px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .plans-manager-content {
+    grid-template-columns: 1fr;
+  }
+
+  .plans-sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .plan-item {
+    min-width: 250px;
+  }
+}
