@@ -117,7 +117,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
-  
+
   // Recupera dati salvati da localStorage se presenti
   const getSavedFormData = (): FormData => {
     try {
@@ -286,7 +286,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
+
     return {
       x: (e.clientX - rect.left) * scaleX,
       y: (e.clientY - rect.top) * scaleY
@@ -456,7 +456,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     const timestamp = new Date().toLocaleString('it-IT');
     const customerName = `${formData.firstName} ${formData.lastName}`;
     const documentId = `GDPR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return `
 <!DOCTYPE html>
 <html lang="it">
@@ -931,7 +931,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
     try {
       const customers = await customersApi.getAll(organizationId);
-      const duplicate = customers.find(c => 
+      const duplicate = customers.find(c =>
         field === 'email' ? c.email === value : c.phone === value
       );
 
@@ -955,7 +955,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const validateStep = (step: number): boolean => {
     console.log(`🔍 Validazione step ${step}...`);
     console.log('📋 FormData corrente:', formData);
-    
+
     const newErrors: { [key: string]: string } = {};
 
     switch (step) {
@@ -978,15 +978,15 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         console.log('🔐 Controllo privacy consent:', formData.privacyConsent);
         console.log('✍️ Controllo signature:', formData.signature ? `presente (${formData.signature.length} caratteri)` : 'mancante');
         console.log('📋 Signature value:', formData.signature.substring(0, 50) + '...');
-        
+
         if (!formData.privacyConsent) {
           console.log('❌ Privacy consent mancante');
           newErrors.privacyConsent = 'Consenso privacy obbligatorio';
         }
         // Controllo firma più intelligente - un canvas vuoto ha circa 2000-3000 caratteri
         const hasValidSignature = formData.signature &&
-                                  formData.signature.length > 3000 &&
-                                  formData.signature.startsWith('data:image/');
+          formData.signature.length > 3000 &&
+          formData.signature.startsWith('data:image/');
 
         if (!hasValidSignature) {
           const length = formData.signature?.length || 0;
@@ -1125,10 +1125,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           let referralCode = url;
           if (url.includes('ref=')) {
             console.log('📌 Found ref= pattern in URL');
-            // Use regex to extract ref value (supports & character in the code)
-            // Match: ref=ANYTHING (letters, numbers, &, etc.) until end of string or another & parameter
+            // Use regex to extract ref value
+            // Match: ref=ANYTHING until the next & or end of string
             const match = url.match(/[?&]ref=([^&]+)/);
             if (match && match[1]) {
+              // Decode URI component to handle encoded characters (like %26 for &)
               referralCode = decodeURIComponent(match[1]);
               console.log('📌 Extracted referral code:', referralCode);
             } else {
@@ -1141,10 +1142,12 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             }
           } else if (url.includes('/referral/')) {
             console.log('📌 Found /referral/ pattern in URL');
-            // Extract from URL pattern like /referral/ABC123 or /referral/S&C123
-            const match = url.match(/\/referral\/([A-Z0-9&]+)/i);
+            // Extract from URL pattern like /referral/CODE
+            // Capture everything after /referral/ until the next / or ? or end of string
+            const match = url.match(/\/referral\/([^/?]+)/i);
             if (match) {
-              referralCode = match[1];
+              // Decode in case the path segment is encoded
+              referralCode = decodeURIComponent(match[1]);
               console.log('📌 Extracted referral code:', referralCode);
             }
           }
@@ -1190,9 +1193,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             const urlParams = new URLSearchParams(decodedText.split('?')[1]);
             referralCode = urlParams.get('ref') || decodedText;
           } else if (decodedText.includes('/referral/')) {
-            // Match any characters after /referral/ including &, special chars
-            const match = decodedText.match(/\/referral\/([A-Z0-9&]+)/i);
-            if (match) referralCode = match[1];
+            // Match any characters after /referral/ until next separator
+            const match = decodedText.match(/\/referral\/([^/?]+)/i);
+            if (match) referralCode = decodeURIComponent(match[1]);
           }
 
           // Set the referral code
@@ -1337,8 +1340,12 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             addDebugInfo(`✅ Referrer trovato: ${referralProgram.customer_id}`);
 
             // Ottieni i punti dalla tier del referrer
-            const referrerPoints = referralProgram.referral_tiers?.points_per_referral || 20;
-            const refereePoints = referralProgram.referral_tiers?.points_for_referee || 20;
+            // Fix: Handle potential array response from Supabase join
+            const tierData = referralProgram.referral_tiers as any;
+            const tier = Array.isArray(tierData) ? tierData[0] : tierData;
+
+            const referrerPoints = tier?.points_per_referral || 20;
+            const refereePoints = tier?.points_for_referee || 20;
 
             console.log(`🎁 Punti da assegnare - Referrer: ${referrerPoints}, Referee: ${refereePoints}`);
 
@@ -1482,7 +1489,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       setTimeout(() => {
         onClose();
       }, 2000);
-      
+
     } catch (error: any) {
       console.error('❌ Errore durante la registrazione:', error);
       addDebugInfo(`❌ ERRORE API: ${error?.message || 'Unknown'}`);
@@ -1502,15 +1509,15 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         name: error?.name,
         cause: error?.cause
       });
-      
+
       // Controllo specifico per tabella mancante
       if (error?.code === 'PGRST204' || error?.message?.includes('customers')) {
-        setErrors({ 
-          submit: '⚠️ Database non configurato. È necessario eseguire la migrazione per creare la tabella customers. Contatta l\'amministratore.' 
+        setErrors({
+          submit: '⚠️ Database non configurato. È necessario eseguire la migrazione per creare la tabella customers. Contatta l\'amministratore.'
         });
       } else {
-        setErrors({ 
-          submit: `Errore durante la registrazione: ${error?.message || 'Errore sconosciuto'}` 
+        setErrors({
+          submit: `Errore durante la registrazione: ${error?.message || 'Errore sconosciuto'}`
         });
       }
     } finally {
@@ -1896,10 +1903,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             return (
               <div
                 key={step.number}
-                className={`step-indicator ${
-                  currentStep === step.number ? 'active' :
+                className={`step-indicator ${currentStep === step.number ? 'active' :
                   currentStep > step.number ? 'completed' : ''
-                }`}
+                  }`}
               >
                 <div className="step-circle">
                   {currentStep > step.number ? '✓' : <IconComponent size={20} />}
@@ -1924,9 +1930,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               ← Indietro
             </button>
           )}
-          
+
           <div className="flex-spacer" />
-          
+
           {currentStep < 4 ? (
             <button
               type="button"
