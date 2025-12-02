@@ -3,7 +3,7 @@ import { Copy, Sparkles, Clock, Save, ArrowLeft } from 'lucide-react'
 
 interface FlashOfferModalProps {
   offer: {
-    id: number
+    id: string
     title: string
     description: string
     code: string
@@ -11,7 +11,7 @@ interface FlashOfferModalProps {
     expiresInHours: number
   }
   onClose: () => void
-  onSave: (offerId: number) => void
+  onSave: (offerId: string) => void
 }
 
 export default function FlashOfferModal({ offer, onClose, onSave }: FlashOfferModalProps) {

@@ -558,12 +558,18 @@ export default function Rewards() {
 
             <div className="space-y-6">
               {/* Immagine del premio */}
-              <div className="relative w-full h-64 rounded-2xl overflow-hidden shadow-lg">
-                <img
-                  src={selectedReward.image}
-                  alt={selectedReward.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative w-full h-64 rounded-2xl overflow-hidden shadow-lg bg-gray-100">
+                {selectedReward.image_url || selectedReward.image ? (
+                  <img
+                    src={selectedReward.image_url || selectedReward.image}
+                    alt={selectedReward.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Trophy className="w-16 h-16 text-gray-300" />
+                  </div>
+                )}
               </div>
 
               {/* Titolo */}

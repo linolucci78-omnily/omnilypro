@@ -9,7 +9,6 @@ import ChatButton from '../components/ChatButton'
 import { giftCertificatesService, type GiftCertificate } from '../services/giftCertificatesService'
 import { walletService, type WalletTransaction } from '../services/walletService'
 import { Toast } from '../components/Toast'
-import TopUpWalletModal from '../components/TopUpWalletModal'
 
 interface GiftCard {
   id: string
@@ -28,14 +27,12 @@ export default function Wallet() {
   const navigate = useNavigate()
   const { slug } = useParams()
   const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null)
-  const [copiedCode, setCopiedCode] = useState(false)
   const [giftCards, setGiftCards] = useState<GiftCard[]>([])
   const [loading, setLoading] = useState(true)
   const [walletBalance, setWalletBalance] = useState(0)
   const [walletId, setWalletId] = useState<string | null>(null)
   const [redeeming, setRedeeming] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-  const [showTopUpModal, setShowTopUpModal] = useState(false)
 
   if (!customer) {
     navigate(`/${slug}/login`)
@@ -150,41 +147,6 @@ export default function Wallet() {
     }
   }
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedCode(true)
-    setTimeout(() => setCopiedCode(false), 2000)
-  }
-
-  const handleShareCard = () => {
-    // TODO: Implement share logic
-    setSelectedCard(null)
-  }
-
-  const handleTopUp = async (amount: number, paymentMethod: string) => {
-    if (!organization?.id || !customer?.id) return
-
-    const result = await walletService.topUpWallet(
-      organization.id,
-      customer.id,
-      amount,
-      paymentMethod
-    )
-
-    if (result.success && result.newBalance !== undefined) {
-      setWalletBalance(result.newBalance)
-      setToast({
-        message: `€${amount.toFixed(2)} aggiunti al wallet!`,
-        type: 'success'
-      })
-    } else {
-      setToast({
-        message: result.error || 'Errore durante la ricarica',
-        type: 'error'
-      })
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
@@ -214,26 +176,20 @@ export default function Wallet() {
           </div>
 
           {/* Buttons */}
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => setShowTopUpModal(true)}
-              className="flex items-center justify-center gap-2 py-3.5 bg-white text-gray-900 rounded-2xl font-bold text-sm hover:bg-gray-100 transition-colors"
-            >
-              <Plus className="w-5 h-5" strokeWidth={2.5} />
-              Ricarica
-            </button>
+          <div className="grid grid-cols-1 gap-2">
             <button
               onClick={() => navigate(`/${slug}/wallet/transactions`)}
-              className="flex items-center justify-center gap-2 py-3.5 bg-gray-700 text-white rounded-2xl font-bold text-sm hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-center gap-2 py-3.5 bg-white text-gray-900 rounded-2xl font-bold text-sm hover:bg-gray-100 transition-colors"
             >
               <History className="w-5 h-5" strokeWidth={2.5} />
-              Storico
-            </button>
-            <button className="flex items-center justify-center gap-2 py-3.5 bg-gray-700 text-white rounded-2xl font-bold text-sm hover:bg-gray-600 transition-colors opacity-50 cursor-not-allowed" disabled>
-              <Send className="w-5 h-5" strokeWidth={2.5} />
-              Invia
+              Storico Transazioni
             </button>
           </div>
+
+          {/* Info message */}
+          <p className="text-gray-400 text-xs text-center mt-4">
+            La ricarica del wallet sarà disponibile prossimamente
+          </p>
         </div>
 
         {/* Gift Cards Section */}
@@ -259,7 +215,7 @@ export default function Wallet() {
                     key={card.id}
                     onClick={() => !isUsed && setSelectedCard(card)}
                     disabled={isUsed}
-                    className={`relative rounded-2xl p-6 text-left transition-all shadow-lg ${
+                    className={`relative rounded-2xl p-6 text-left shadow-lg transition-all ${
                       isUsed
                         ? 'bg-gradient-to-br from-gray-300 to-gray-400 opacity-60 cursor-not-allowed'
                         : `bg-gradient-to-br ${card.color} hover:scale-105`
@@ -280,7 +236,7 @@ export default function Wallet() {
                       €{card.balance.toFixed(2)}
                     </p>
 
-                    {/* Used Badge */}
+                    {/* Status Badge */}
                     {isUsed && (
                       <div className="absolute top-3 right-3 px-3 py-1 bg-gray-600 rounded-lg">
                         <span className="text-white text-xs font-bold uppercase">Usato</span>
@@ -292,6 +248,11 @@ export default function Wallet() {
             </div>
           )}
 
+          {/* Info message */}
+          <p className="text-gray-400 text-xs text-center mt-2">
+            Tocca un gift certificate per riscattarlo e aggiungerlo al tuo wallet
+          </p>
+
           {/* Empty State */}
           {!loading && giftCards.length === 0 && (
             <div className="text-center py-8">
@@ -301,11 +262,6 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* Add New Card Button */}
-          <button className="w-full py-6 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center gap-2 text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors">
-            <Plus className="w-5 h-5" />
-            <span className="font-semibold text-base">Aggiungi nuova carta</span>
-          </button>
         </div>
       </div>
 
@@ -449,14 +405,6 @@ export default function Wallet() {
           onClose={() => setToast(null)}
         />
       )}
-
-      {/* Top Up Modal */}
-      <TopUpWalletModal
-        isOpen={showTopUpModal}
-        onClose={() => setShowTopUpModal(false)}
-        onTopUp={handleTopUp}
-        currentBalance={walletBalance}
-      />
 
       <BottomNav />
     </div>

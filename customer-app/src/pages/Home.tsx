@@ -8,6 +8,7 @@ import NotificationsPanel from '../components/NotificationsPanel'
 import InviteFriendsModal from '../components/InviteFriendsModal'
 import FlashOfferModal from '../components/FlashOfferModal'
 import ChatButton from '../components/ChatButton'
+import { couponsService } from '../services/couponsService'
 
 export default function Home() {
   const { customer, loading: authLoading } = useAuth()
@@ -17,13 +18,48 @@ export default function Home() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [selectedFlashOffer, setSelectedFlashOffer] = useState<any>(null)
-  const [savedOffers, setSavedOffers] = useState<number[]>([])
+  const [savedOffers, setSavedOffers] = useState<string[]>([])
+  const [flashOffers, setFlashOffers] = useState<any[]>([])
+  const [loadingOffers, setLoadingOffers] = useState(true)
 
   useEffect(() => {
     if (!authLoading && !customer) {
       navigate(`/${slug}/login`, { replace: true })
     }
   }, [customer, authLoading, navigate, slug])
+
+  // Load flash offers from database
+  useEffect(() => {
+    const loadFlashOffers = async () => {
+      if (!customer?.organization_id) return
+
+      console.log('📦 Loading flash offers for organization:', customer.organization_id)
+      setLoadingOffers(true)
+
+      try {
+        const offers = await couponsService.getFlashCoupons(customer.organization_id)
+        console.log('✅ Loaded flash offers:', offers.length)
+
+        // Convert to UI format (max 3 flash offers)
+        const formattedOffers = offers.slice(0, 3).map(offer => ({
+          id: offer.id,
+          title: offer.title,
+          description: offer.description,
+          code: offer.code,
+          discount: couponsService.getBadgeText(offer),
+          expiresInHours: couponsService.getHoursUntilExpiration(offer.valid_until)
+        }))
+
+        setFlashOffers(formattedOffers)
+      } catch (error) {
+        console.error('❌ Error loading flash offers:', error)
+      } finally {
+        setLoadingOffers(false)
+      }
+    }
+
+    loadFlashOffers()
+  }, [customer?.organization_id])
 
   const handleShare = () => {
     if (!customer || !organization) return
@@ -45,63 +81,11 @@ export default function Home() {
     }
   }
 
-  const handleSaveOffer = (offerId: number) => {
+  const handleSaveOffer = (offerId: string) => {
     setSavedOffers(prev => [...prev, offerId])
-
-    // Find the offer that was saved
-    const offer = flashOffers.find(o => o.id === offerId)
-    if (!offer) return
-
-    // Load existing saved offers from localStorage
-    const existingSaved = localStorage.getItem('savedFlashOffers')
-    let savedOffers = []
-
-    if (existingSaved) {
-      try {
-        savedOffers = JSON.parse(existingSaved)
-      } catch (e) {
-        console.error('Error parsing saved offers:', e)
-      }
-    }
-
-    // Convert flash offer to coupon format
-    const couponFormat = {
-      id: Date.now(), // Unique ID based on timestamp
-      title: offer.title,
-      description: offer.description,
-      badgeText: offer.discount,
-      badgeType: 'percentage' as const,
-      code: offer.code,
-      expiryDate: '', // Not used for flash offers
-      status: 'active' as const,
-      isFlash: true,
-      expiresInHours: offer.expiresInHours
-    }
-
-    // Add to saved offers and save to localStorage
-    savedOffers.push(couponFormat)
-    localStorage.setItem('savedFlashOffers', JSON.stringify(savedOffers))
+    // Flash offers are now loaded from database and visible in Coupons page
+    // No need to save to localStorage anymore
   }
-
-  // Mock flash offers data
-  const flashOffers = [
-    {
-      id: 1,
-      title: 'La Tua Pausa Perfetta!',
-      description: 'Goditi uno sconto del 25% sul tuo prossimo caffè preferito. Un piccolo piacere, un grande risparmio!',
-      code: 'PAUSA25',
-      discount: '25%',
-      expiresInHours: 48
-    },
-    {
-      id: 2,
-      title: `${customer?.name?.split(' ')[0] || 'Cliente'}, la tua pausa perfetta!`,
-      description: 'Caffè e pasticcino: l\'accoppiata vincente ti aspetta con uno sconto speciale del 30%!',
-      code: 'COMBO30',
-      discount: '30%',
-      expiresInHours: 96
-    }
-  ]
 
   if (authLoading || !customer) {
     return null
@@ -261,93 +245,66 @@ export default function Home() {
             <h3 className="text-xl font-bold text-gray-900">Per te</h3>
           </div>
 
-          {/* Card offerta personalizzata */}
-          <button
-            onClick={() => setSelectedFlashOffer(flashOffers[0])}
-            className="w-full bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4 hover:scale-[1.02] transition-transform text-left"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-                <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-white text-xs font-semibold">Scelto per te</span>
-              </div>
-              <div className="text-right">
-                <span className="text-yellow-300 text-4xl font-black">-25%</span>
-              </div>
+          {/* Flash Offers Cards - Caricamento dinamico */}
+          {loadingOffers ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Caricamento offerte...</p>
             </div>
-
-            <h4 className="text-white text-xl font-bold mb-2 leading-tight">
-              Caffè Speciale per {customer.name?.split(' ')[0] || 'te'}!
-            </h4>
-            <p className="text-white/90 text-sm mb-5 leading-relaxed">
-              Goditi uno sconto del 25% sul tuo prossimo caffè preferito. Un piccolo piacere, un grande risparmio!
-            </p>
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-white/80 text-xs">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Scade in 48h</span>
-              </div>
+          ) : flashOffers.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Nessuna offerta flash al momento</p>
             </div>
+          ) : (
+            flashOffers.map((offer, index) => (
+              <button
+                key={offer.id}
+                onClick={() => setSelectedFlashOffer(offer)}
+                className="w-full bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4 hover:scale-[1.02] transition-transform text-left"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
+                    <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span className="text-white text-xs font-semibold">Scelto per te</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-yellow-300 text-4xl font-black">{offer.discount}</span>
+                  </div>
+                </div>
 
-            {/* Coupon code card */}
-            <div className="bg-white rounded-xl p-4 flex items-center justify-between shadow-lg">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                <span className="text-red-600 font-bold text-sm tracking-wider">CAFFEOFFERTASS25</span>
-              </div>
-            </div>
-          </button>
+                <h4 className="text-white text-xl font-bold mb-2 leading-tight">
+                  {offer.title}
+                </h4>
+                <p className="text-white/90 text-sm mb-5 leading-relaxed">
+                  {offer.description}
+                </p>
 
-          {/* Seconda card offerta */}
-          <button
-            onClick={() => setSelectedFlashOffer(flashOffers[1])}
-            className="w-full bg-gradient-to-br from-red-600 via-red-500 to-pink-500 rounded-2xl p-6 shadow-xl mb-4 hover:scale-[1.02] transition-transform text-left"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-                <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-white text-xs font-semibold">Scelto per te</span>
-              </div>
-              <div className="text-right">
-                <span className="text-yellow-300 text-4xl font-black">-30%</span>
-              </div>
-            </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-white/80 text-xs">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                      Scade in {offer.expiresInHours < 1
+                        ? `${Math.floor(offer.expiresInHours * 60)}min`
+                        : `${Math.floor(offer.expiresInHours)}h`}
+                    </span>
+                  </div>
+                </div>
 
-            <h4 className="text-white text-xl font-bold mb-2 leading-tight">
-              {customer.name?.split(' ')[0] || 'Cliente'}, la tua pausa perfetta!
-            </h4>
-            <p className="text-white/90 text-sm mb-5 leading-relaxed">
-              Caffè e pasticcino: l'accoppiata vincente ti aspetta con uno sconto speciale del 30%!
-            </p>
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-white/80 text-xs">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Scade in 96h</span>
-              </div>
-            </div>
-
-            {/* Coupon code card */}
-            <div className="bg-white rounded-xl p-4 flex items-center justify-between shadow-lg">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                <span className="text-red-600 font-bold text-sm tracking-wider">COMBOALEX30</span>
-              </div>
-            </div>
-          </button>
+                {/* Coupon code card */}
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span className="text-red-600 font-bold text-sm tracking-wider">{offer.code}</span>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
 
           {/* Card Invita un Amico */}
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl mb-4 relative overflow-hidden">

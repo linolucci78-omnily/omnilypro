@@ -5,9 +5,10 @@ import { QRCodeSVG } from 'qrcode.react'
 import { Ticket, Clock, Copy, Sparkles } from 'lucide-react'
 import BottomNav from '../components/Layout/BottomNav'
 import ChatButton from '../components/ChatButton'
+import { couponsService, type Coupon as CouponData } from '../services/couponsService'
 
 interface Coupon {
-  id: number
+  id: string
   title: string
   description: string
   badgeText: string
@@ -23,22 +24,73 @@ export default function Coupons() {
   const { customer } = useAuth()
   const navigate = useNavigate()
   const { slug } = useParams()
-  const [expandedCoupon, setExpandedCoupon] = useState<number | null>(null)
-  const [copiedCode, setCopiedCode] = useState<number | null>(null)
+  const [expandedCoupon, setExpandedCoupon] = useState<string | null>(null)
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [regularCoupons, setRegularCoupons] = useState<Coupon[]>([])
   const [flashCoupons, setFlashCoupons] = useState<Coupon[]>([])
+  const [loading, setLoading] = useState(true)
+  const [usedCoupons, setUsedCoupons] = useState<Set<string>>(new Set())
 
-  // Load saved flash offers from localStorage
+  // Load coupons from database
   useEffect(() => {
-    const savedOffers = localStorage.getItem('savedFlashOffers')
-    if (savedOffers) {
+    const loadCoupons = async () => {
+      if (!customer?.organization_id) {
+        console.log('❌ No organization_id for customer')
+        return
+      }
+
+      console.log('📦 Loading coupons for organization:', customer.organization_id)
+      setLoading(true)
+
       try {
-        const offers = JSON.parse(savedOffers)
-        setFlashCoupons(offers)
-      } catch (e) {
-        console.error('Error loading flash offers:', e)
+        // Carica tutti i coupon attivi
+        const allCoupons = await couponsService.getActiveCoupons(customer.organization_id)
+        console.log('✅ Loaded coupons:', allCoupons.length)
+
+        // Carica storico utilizzi del cliente
+        const usages = await couponsService.getCustomerCouponUsage(customer.id)
+        const usedCouponIds = new Set(usages.map(u => u.coupon_id))
+        setUsedCoupons(usedCouponIds)
+
+        // Converti in formato UI e separa flash da normali
+        const formattedCoupons: Coupon[] = allCoupons.map(c => {
+          const isUsed = usedCouponIds.has(c.id)
+          const expiresInHours = couponsService.getHoursUntilExpiration(c.valid_until)
+
+          return {
+            id: c.id,
+            title: c.title,
+            description: c.description,
+            badgeText: couponsService.getBadgeText(c),
+            badgeType: couponsService.getBadgeType(c),
+            code: c.code,
+            expiryDate: new Date(c.valid_until).toLocaleDateString('it-IT', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            }),
+            status: isUsed ? 'used' : 'active',
+            isFlash: c.is_flash || false,
+            expiresInHours: c.is_flash ? expiresInHours : undefined
+          }
+        })
+
+        // Separa flash offers da coupon normali
+        const flash = formattedCoupons.filter(c => c.isFlash)
+        const regular = formattedCoupons.filter(c => !c.isFlash)
+
+        setFlashCoupons(flash)
+        setRegularCoupons(regular)
+        console.log('📊 Flash coupons:', flash.length, '| Regular coupons:', regular.length)
+      } catch (error) {
+        console.error('❌ Error loading coupons:', error)
+      } finally {
+        setLoading(false)
       }
     }
-  }, [])
+
+    loadCoupons()
+  }, [customer?.id, customer?.organization_id])
 
   if (!customer) {
     navigate(`/${slug}/login`)
@@ -46,62 +98,19 @@ export default function Coupons() {
   }
 
   const formatTimeLeft = (hours: number) => {
+    if (hours < 1) {
+      const minutes = Math.floor(hours * 60)
+      return `${minutes}min`
+    }
     const h = Math.floor(hours)
     return `${h}h`
   }
 
-  // Mock coupons data
-  const regularCoupons: Coupon[] = [
-    {
-      id: 1,
-      title: 'Sconto Colazione',
-      description: '20% di sconto su tutti i prodotti da colazione entro le 10:00.',
-      badgeText: '-20%',
-      badgeType: 'percentage',
-      code: 'MORNING20',
-      expiryDate: '30 Nov 2023',
-      status: 'active'
-    },
-    {
-      id: 2,
-      title: 'Caffè Omaggio',
-      description: 'Un caffè espresso in omaggio con qualsiasi acquisto di pasticceria.',
-      badgeText: 'FREE',
-      badgeType: 'free',
-      code: 'FREECOFFEE',
-      expiryDate: '15 Dic 2023',
-      status: 'active'
-    },
-    {
-      id: 3,
-      title: 'Happy Hour',
-      description: 'Paghi 1 prendi 2 su tutti gli aperitivi dalle 18:00.',
-      badgeText: '2x1',
-      badgeType: 'promo',
-      code: 'HAPPYHOUR2X1',
-      expiryDate: '31 Dic 2023',
-      status: 'active'
-    },
-    {
-      id: 4,
-      title: 'Buono Compleanno',
-      description: 'Una fetta di torta in omaggio per il tuo compleanno.',
-      badgeText: 'GIFT',
-      badgeType: 'free',
-      code: 'BDAY2023',
-      expiryDate: '31 Gen 2024',
-      status: 'used'
-    }
-  ]
-
-  // Combine flash coupons with regular coupons
-  const allCoupons = [...flashCoupons, ...regularCoupons]
-
-  const handleToggleCoupon = (couponId: number) => {
+  const handleToggleCoupon = (couponId: string) => {
     setExpandedCoupon(expandedCoupon === couponId ? null : couponId)
   }
 
-  const handleCopyCode = (couponId: number, code: string) => {
+  const handleCopyCode = (couponId: string, code: string) => {
     navigator.clipboard.writeText(code)
     setCopiedCode(couponId)
     setTimeout(() => setCopiedCode(null), 2000)
@@ -125,9 +134,18 @@ export default function Coupons() {
         </div>
       </div>
 
-      {/* Coupons List */}
+      {/* Coupons List - Solo Coupon Normali (NO Flash) */}
       <div className="px-6 space-y-3">
-        {allCoupons.map((coupon) => {
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Caricamento coupon...</p>
+          </div>
+        ) : regularCoupons.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Nessun coupon disponibile al momento</p>
+          </div>
+        ) : (
+          regularCoupons.map((coupon) => {
           const isExpanded = expandedCoupon === coupon.id
 
           return (
@@ -261,7 +279,8 @@ export default function Coupons() {
               </div>
             </div>
           )
-        })}
+        })
+        )}
       </div>
 
       {/* Chat button */}

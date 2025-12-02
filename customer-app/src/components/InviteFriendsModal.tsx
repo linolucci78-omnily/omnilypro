@@ -36,7 +36,7 @@ export default function InviteFriendsModal({ onClose }: InviteFriendsModalProps)
   }
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/${organization.slug}/register?ref=${referralCode}`
+    const shareUrl = `${window.location.origin}/${organization.slug}/register?ref=${encodeURIComponent(referralCode)}`
     const shareText = `Unisciti a ${organization.name} con il mio codice ${referralCode} e guadagna punti!`
 
     if (navigator.share) {

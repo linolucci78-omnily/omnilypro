@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams, Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../services/supabase'
 import { useOrganization } from '../contexts/OrganizationContext'
 
@@ -7,6 +7,7 @@ export default function Register() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { organization } = useOrganization()
+  const [searchParams] = useSearchParams()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -16,6 +17,36 @@ export default function Register() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [referrerName, setReferrerName] = useState<string | null>(null)
+
+  // Leggi il codice referral dall'URL
+  useEffect(() => {
+    const refParam = searchParams.get('ref')
+    if (refParam && organization?.id) {
+      setReferralCode(refParam)
+
+      // Trova il nome del referrer
+      const loadReferrer = async () => {
+        try {
+          const { data } = await supabase
+            .from('customers')
+            .select('name')
+            .eq('organization_id', organization.id)
+            .eq('referral_code', refParam)
+            .single()
+
+          if (data) {
+            setReferrerName(data.name)
+          }
+        } catch (err) {
+          console.error('Error loading referrer:', err)
+        }
+      }
+
+      loadReferrer()
+    }
+  }, [searchParams, organization?.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +73,26 @@ export default function Register() {
       if (authError) throw authError
       if (!authData.user) throw new Error('Errore nella creazione dell\'utente')
 
-      // 2. Crea record cliente
+      // 2. Trova l'ID del referrer se c'è un codice referral
+      let referrerId: string | null = null
+      if (referralCode) {
+        try {
+          const { data: referrerData } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('organization_id', organization.id)
+            .eq('referral_code', referralCode)
+            .single()
+
+          if (referrerData) {
+            referrerId = referrerData.id
+          }
+        } catch (err) {
+          console.error('Error finding referrer:', err)
+        }
+      }
+
+      // 3. Crea record cliente
       const { error: customerError } = await supabase
         .from('customers')
         .insert({
@@ -56,7 +106,8 @@ export default function Register() {
           total_spent: 0,
           visits: 0,
           is_active: true,
-          notifications_enabled: true
+          notifications_enabled: true,
+          referred_by: referrerId
         })
 
       if (customerError) throw customerError
@@ -88,6 +139,25 @@ export default function Register() {
         <p style={{ textAlign: 'center', color: 'var(--gray-600)', marginBottom: '2rem' }}>
           Registrati e ottieni la tua carta fedeltà
         </p>
+
+        {/* Messaggio Referral */}
+        {referrerName && (
+          <div style={{
+            backgroundColor: 'var(--primary-50)',
+            border: '2px solid var(--primary)',
+            borderRadius: '0.75rem',
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center'
+          }}>
+            <p style={{ color: 'var(--primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+              🎉 Sei stato invitato da {referrerName}!
+            </p>
+            <p style={{ color: 'var(--gray-600)', fontSize: '0.875rem' }}>
+              Registrandoti guadagnerai punti bonus
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
