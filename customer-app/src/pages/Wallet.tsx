@@ -33,6 +33,7 @@ export default function Wallet() {
   const [walletId, setWalletId] = useState<string | null>(null)
   const [redeeming, setRedeeming] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [copiedCode, setCopiedCode] = useState(false)
 
   if (!customer) {
     navigate(`/${slug}/login`)
@@ -144,6 +145,39 @@ export default function Wallet() {
       })
     } finally {
       setRedeeming(false)
+    }
+  }
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(true)
+    setTimeout(() => setCopiedCode(false), 2000)
+  }
+
+  const handleShareCard = () => {
+    if (!selectedCard) return
+
+    const shareText = `Ho ricevuto una gift card di €${selectedCard.balance.toFixed(2)}! Codice: ${selectedCard.code}`
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Gift Card',
+        text: shareText
+      }).catch(() => {
+        // Fallback: copy to clipboard
+        handleCopyCode(shareText)
+        setToast({
+          message: 'Testo copiato negli appunti!',
+          type: 'success'
+        })
+      })
+    } else {
+      // Fallback: copy to clipboard
+      handleCopyCode(shareText)
+      setToast({
+        message: 'Testo copiato negli appunti!',
+        type: 'success'
+      })
     }
   }
 
