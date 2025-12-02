@@ -7,8 +7,10 @@ import BottomNav from '../components/Layout/BottomNav'
 import NotificationsPanel from '../components/NotificationsPanel'
 import InviteFriendsModal from '../components/InviteFriendsModal'
 import FlashOfferModal from '../components/FlashOfferModal'
+import TierUpgradeModal from '../components/TierUpgradeModal'
 import ChatButton from '../components/ChatButton'
 import { couponsService } from '../services/couponsService'
+import { getPendingTierUpgradeForCustomer, clearTierUpgradeNotification } from '../utils/tierUpgradeHelper'
 
 export default function Home() {
   const { customer, loading: authLoading } = useAuth()
@@ -21,6 +23,12 @@ export default function Home() {
   const [savedOffers, setSavedOffers] = useState<string[]>([])
   const [flashOffers, setFlashOffers] = useState<any[]>([])
   const [loadingOffers, setLoadingOffers] = useState(true)
+  const [showTierUpgradeModal, setShowTierUpgradeModal] = useState(false)
+  const [tierUpgradeData, setTierUpgradeData] = useState<{
+    oldTierName: string;
+    newTierName: string;
+    newTierColor: string;
+  } | null>(null)
 
   useEffect(() => {
     if (!authLoading && !customer) {
@@ -60,6 +68,35 @@ export default function Home() {
 
     loadFlashOffers()
   }, [customer?.organization_id])
+
+  // Check for tier upgrade notifications
+  useEffect(() => {
+    if (!customer) return
+
+    const checkTierUpgrade = async () => {
+      try {
+        console.log('🔍 Checking for tier upgrade notifications for customer:', customer.id)
+        const pendingUpgrade = await getPendingTierUpgradeForCustomer(customer.id)
+
+        if (pendingUpgrade) {
+          console.log('🎊 Tier upgrade notification found!', pendingUpgrade)
+          setTierUpgradeData({
+            oldTierName: pendingUpgrade.oldTierName,
+            newTierName: pendingUpgrade.newTierName,
+            newTierColor: pendingUpgrade.newTierColor
+          })
+          setShowTierUpgradeModal(true)
+
+          // Mark as read after showing
+          await clearTierUpgradeNotification(customer.id)
+        }
+      } catch (error) {
+        console.error('❌ Error checking tier upgrade:', error)
+      }
+    }
+
+    checkTierUpgrade()
+  }, [customer])
 
   const handleShare = () => {
     if (!customer || !organization) return
@@ -383,6 +420,19 @@ export default function Home() {
           offer={selectedFlashOffer}
           onClose={() => setSelectedFlashOffer(null)}
           onSave={handleSaveOffer}
+        />
+      )}
+
+      {/* Tier Upgrade Modal */}
+      {tierUpgradeData && (
+        <TierUpgradeModal
+          isOpen={showTierUpgradeModal}
+          customerName={customer?.name || ''}
+          oldTierName={tierUpgradeData.oldTierName}
+          newTierName={tierUpgradeData.newTierName}
+          newTierColor={tierUpgradeData.newTierColor}
+          pointsName={organization?.points_name || 'Punti'}
+          onClose={() => setShowTierUpgradeModal(false)}
         />
       )}
 

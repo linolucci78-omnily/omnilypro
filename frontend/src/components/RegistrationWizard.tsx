@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X, QrCode, Calendar, Phone, MapPin, MessageSquare, Gift } from 'lucide-react';
+import { User, Mail, FileText, Shield, Printer, Download, ArrowLeft, X, QrCode, Calendar, Phone, MapPin, MessageSquare, Gift, Check } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { customersApi, supabase } from '../lib/supabase';
 import { sendWelcomeEmail } from '../services/emailAutomationService';
@@ -44,6 +44,45 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [duplicateWarning, setDuplicateWarning] = useState('');
+  const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [isCheckingReferral, setIsCheckingReferral] = useState(false);
+
+  const checkReferralCode = async (code: string) => {
+    if (!code || code.length < 3) {
+      setReferrerName(null);
+      return;
+    }
+
+    setIsCheckingReferral(true);
+    try {
+      const { data, error } = await supabase
+        .from('referral_programs')
+        .select(`
+          customer_id,
+          customers (
+            name
+          )
+        `)
+        .eq('referral_code', code)
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        setReferrerName(null);
+      } else {
+        // Handle nested data correctly
+        const customerData = data.customers as any;
+        const name = customerData?.name || 'Cliente OMNILY';
+        setReferrerName(name);
+      }
+    } catch (err) {
+      console.error('Error checking referral code:', err);
+      setReferrerName(null);
+    } finally {
+      setIsCheckingReferral(false);
+    }
+  };
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [organization, setOrganization] = useState<any>(null);
   const [loadingOrganization, setLoadingOrganization] = useState(false);
@@ -52,6 +91,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const addDebugInfo = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -921,6 +961,14 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     if (field === 'email' || field === 'phone') {
       checkDuplicates(field, value as string);
     }
+
+    if (field === 'referralCode') {
+      // Debounce check
+      const timeoutId = setTimeout(() => {
+        checkReferralCode(value as string);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
   };
 
   const checkDuplicates = async (field: 'email' | 'phone', value: string) => {
@@ -1307,6 +1355,26 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         addDebugInfo('⚠️ Programma referral non creato');
       }
 
+      // 📝 LOG WELCOME BONUS (50 punti)
+      try {
+        const { logActivity } = await import('../lib/activityLogger');
+        await logActivity({
+          organizationId,
+          action: 'added_points',
+          entityType: 'customer',
+          entityId: createdCustomer.id,
+          details: {
+            customer_name: `${formData.firstName} ${formData.lastName}`,
+            points: 50,
+            reason: 'welcome_bonus'
+          }
+        });
+        console.log('📝 Welcome bonus (50 punti) loggato nello storico');
+      } catch (logErr) {
+        console.error('❌ Errore logging welcome bonus:', logErr);
+        // Non blocca la registrazione
+      }
+
       // 🎁 Gestisci referral se presente
       if (formData.referralCode && formData.referralCode.trim()) {
         try {
@@ -1353,79 +1421,28 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
             console.log(`🎁 Punti da assegnare - Referrer: ${referrerPoints}, Referee: ${refereePoints}`);
 
-            // 2. Crea record in referral_conversions
-            const { data: conversion, error: conversionError } = await supabase
-              .from('referral_conversions')
-              .insert({
-                organization_id: organizationId,
-                referrer_id: referralProgram.customer_id,
-                referee_id: createdCustomer.id,
-                referral_program_id: referralProgram.id,
-                referral_code: formData.referralCode.trim(),
-                status: 'completed', // Immediately completed
-                points_awarded_referrer: referrerPoints,
-                points_awarded_referee: refereePoints,
-                reward_type: 'points',
-                source: 'registration_wizard',
-                converted_at: new Date().toISOString()
-              })
-              .select()
-              .single();
+            // 2. Chiama RPC sicura per processare il referral
+            const { data: rpcResult, error: rpcError } = await supabase.rpc('process_referral_conversion', {
+              p_organization_id: organizationId,
+              p_referrer_id: referralProgram.customer_id,
+              p_referee_id: createdCustomer.id,
+              p_referral_program_id: referralProgram.id,
+              p_referral_code: formData.referralCode.trim(),
+              p_points_referrer: referrerPoints,
+              p_points_referee: refereePoints
+            });
 
-            if (conversionError) {
-              console.error('❌ Errore creazione referral conversion:', conversionError);
-              addDebugInfo('❌ Errore salvataggio referral');
+            if (rpcError) {
+              console.error('❌ Errore RPC referral:', rpcError);
+              addDebugInfo(`❌ Errore RPC: ${rpcError.message}`);
+            } else if (rpcResult && !rpcResult.success) {
+              console.error('❌ Errore logico referral:', rpcResult.error);
+              addDebugInfo(`❌ Errore referral: ${rpcResult.error}`);
             } else {
-              console.log('✅ Referral conversion creata:', conversion);
-              addDebugInfo('✅ Referral registrato con successo!');
-
-              // 3. Assegna punti bonus al referrer
-              const { data: referrerData, error: referrerFetchError } = await supabase
-                .from('customers')
-                .select('points')
-                .eq('id', referralProgram.customer_id)
-                .single();
-
-              if (referrerFetchError || !referrerData) {
-                console.error('❌ Errore lettura punti referrer:', referrerFetchError);
-              } else {
-                const newReferrerPoints = referrerData.points + referrerPoints;
-                const { error: referrerPointsError } = await supabase
-                  .from('customers')
-                  .update({ points: newReferrerPoints })
-                  .eq('id', referralProgram.customer_id);
-
-                if (referrerPointsError) {
-                  console.error('❌ Errore assegnazione punti al referrer:', referrerPointsError);
-                } else {
-                  console.log(`✅ ${referrerPoints} punti bonus assegnati al referrer (totale: ${newReferrerPoints})`);
-                  addDebugInfo(`✅ ${referrerPoints} punti bonus assegnati al referrer`);
-                }
-              }
-
-              // 4. Assegna punti bonus anche al nuovo cliente
-              const { data: refereeData, error: refereeFetchError } = await supabase
-                .from('customers')
-                .select('points')
-                .eq('id', createdCustomer.id)
-                .single();
-
-              if (refereeFetchError || !refereeData) {
-                console.error('❌ Errore lettura punti nuovo cliente:', refereeFetchError);
-              } else {
-                const newRefereePoints = refereeData.points + refereePoints;
-                const { error: refereePointsError } = await supabase
-                  .from('customers')
-                  .update({ points: newRefereePoints })
-                  .eq('id', createdCustomer.id);
-
-                if (refereePointsError) {
-                  console.error('❌ Errore assegnazione punti al nuovo cliente:', refereePointsError);
-                } else {
-                  console.log(`✅ ${refereePoints} punti bonus assegnati al nuovo cliente (totale: ${newRefereePoints})`);
-                  addDebugInfo(`✅ ${refereePoints} punti bonus assegnati`);
-                }
-              }
+              console.log('✅ Referral processato con successo via RPC:', rpcResult);
+              addDebugInfo('✅ Referral registrato con successo (RPC)!');
+              addDebugInfo(`✅ ${referrerPoints} punti al referrer`);
+              addDebugInfo(`✅ ${refereePoints} punti al nuovo cliente`);
             }
           }
         } catch (referralErr) {
@@ -1759,6 +1776,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                     value={formData.referralCode}
                     onChange={(e) => handleInputChange('referralCode', e.target.value)}
                     placeholder="Inserisci il codice referral"
+                    className={referrerName ? 'success-input' : ''}
                   />
                 </div>
                 <button
@@ -1780,19 +1798,32 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                     boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.5)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
-                  }}
                 >
                   <QrCode size={18} />
                   Scansiona QR
                 </button>
               </div>
+
+              {isCheckingReferral && (
+                <p style={{ fontSize: '13px', color: '#64748b', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="spinner-small"></span> Verifica codice...
+                </p>
+              )}
+
+              {referrerName && !isCheckingReferral && (
+                <p style={{ fontSize: '13px', color: '#10b981', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                  <Check size={14} />
+                  Sei stato invitato da: <strong>{referrerName}</strong>
+                </p>
+              )}
+
+              {formData.referralCode && !referrerName && !isCheckingReferral && formData.referralCode.length > 3 && (
+                <p style={{ fontSize: '13px', color: '#ef4444', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <X size={14} />
+                  Codice non valido o scaduto
+                </p>
+              )}
+
               {scannerError && (
                 <p style={{ color: '#ef4444', fontSize: '13px', marginTop: '8px' }}>
                   {scannerError}
@@ -1817,6 +1848,39 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               }}
               showDetailed={true}
             />
+
+            {/* Pulsante Leggi Privacy */}
+            <div style={{ marginTop: '1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: organization?.primary_color || '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <FileText size={20} />
+                Leggi Privacy Policy Completa
+              </button>
+            </div>
 
             <div className="signature-section">
               <label>Firma Digitale *</label>
@@ -2043,6 +2107,221 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 overflow: 'hidden'
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={() => setShowPrivacyModal(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '24px 32px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexShrink: 0
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#111827', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <FileText size={28} color="#111827" />
+                  Privacy Policy Completa
+                </h2>
+                <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+                  Informativa sul Trattamento dei Dati Personali - GDPR
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPrivacyModal(false)}
+                style={{
+                  background: '#f3f4f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#e5e7eb';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#f3f4f6';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <X size={24} color="#374151" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{
+              padding: '32px',
+              overflowY: 'auto',
+              fontSize: '15px',
+              lineHeight: '1.8',
+              color: '#374151'
+            }}>
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '12px' }}>
+                  I. Identificazione del Titolare del Trattamento
+                </h3>
+                <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', borderLeft: '4px solid ' + (organization?.primary_color || '#ef4444') }}>
+                  <strong>{organization?.legal_name || organization?.name || 'Nome Azienda'}</strong><br/>
+                  Sede Legale: {organization?.address_street || 'Indirizzo non specificato'}, {organization?.address_zip || ''} {organization?.address_city || ''} ({organization?.address_province || ''})<br/>
+                  {organization?.vat_number && <>P.IVA: {organization.vat_number}</>}
+                  {organization?.tax_code && <> - C.F.: {organization.tax_code}</>}<br/>
+                  Email: {organization?.privacy_email || organization?.company_email || organization?.email || 'email@example.com'} - Tel: {organization?.company_phone || organization?.phone || 'N/A'}<br/>
+                  {organization?.legal_representative && <><strong>Rappresentante Legale:</strong> {organization.legal_representative}</>}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '12px' }}>
+                  II. Finalità e Base Giuridica del Trattamento
+                </h3>
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                    A) Trattamenti Necessari (Art. 6, par. 1, lett. b) GDPR)
+                  </h4>
+                  <ul style={{ paddingLeft: '24px', margin: 0 }}>
+                    <li><strong>Gestione del rapporto contrattuale:</strong> Erogazione dei servizi di loyalty management</li>
+                    <li><strong>Adempimenti di legge:</strong> Obblighi fiscali, contabili e amministrativi</li>
+                    <li><strong>Sicurezza:</strong> Prevenzione frodi e attività illecite</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                    B) Trattamenti basati sul consenso (Art. 6, par. 1, lett. a) GDPR)
+                  </h4>
+                  <ul style={{ paddingLeft: '24px', margin: 0 }}>
+                    <li><strong>Marketing diretto:</strong> Invio comunicazioni commerciali e promozionali</li>
+                    <li><strong>Profilazione:</strong> Analisi preferenze per offerte personalizzate</li>
+                    <li><strong>Newsletter:</strong> Invio periodico di informazioni sui servizi</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '12px' }}>
+                  III. Categorie di Dati Trattati
+                </h3>
+                <ul style={{ paddingLeft: '24px', margin: 0 }}>
+                  <li><strong>Dati anagrafici:</strong> Nome, cognome, data di nascita</li>
+                  <li><strong>Dati di contatto:</strong> Email, telefono, indirizzo postale</li>
+                  <li><strong>Dati comportamentali:</strong> Preferenze, cronologia acquisti, interazioni</li>
+                  <li><strong>Dati tecnici:</strong> Indirizzo IP, cookies, dati di navigazione</li>
+                </ul>
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '12px' }}>
+                  IV. Periodo di Conservazione
+                </h3>
+                <ul style={{ paddingLeft: '24px', margin: 0 }}>
+                  <li><strong>Dati contrattuali:</strong> 10 anni dalla cessazione del rapporto</li>
+                  <li><strong>Dati marketing:</strong> Fino a revoca del consenso o 2 anni dall'ultima interazione</li>
+                  <li><strong>Dati tecnici:</strong> 12 mesi dalla raccolta</li>
+                </ul>
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '12px' }}>
+                  V. Diritti dell'Interessato
+                </h3>
+                <div style={{ background: '#eff6ff', padding: '20px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                  <p style={{ margin: '0 0 16px 0', fontWeight: '600' }}>L'interessato ha diritto di ottenere dal Titolare del trattamento:</p>
+                  <ul style={{ paddingLeft: '24px', margin: 0 }}>
+                    <li><strong>Accesso (Art. 15):</strong> Conferma che sia in corso un trattamento e informazioni sui dati</li>
+                    <li><strong>Rettifica (Art. 16):</strong> Correzione dei dati inesatti o integrazione di quelli incompleti</li>
+                    <li><strong>Cancellazione (Art. 17):</strong> Cancellazione dei dati (diritto all'oblio)</li>
+                    <li><strong>Limitazione (Art. 18):</strong> Limitazione del trattamento in specifiche circostanze</li>
+                    <li><strong>Portabilità (Art. 20):</strong> Ricevere i propri dati in formato strutturato</li>
+                    <li><strong>Opposizione (Art. 21):</strong> Opporsi al trattamento per motivi legittimi</li>
+                    <li><strong>Revoca consenso:</strong> Revocare il consenso in qualsiasi momento</li>
+                    <li><strong>Reclamo (Art. 77):</strong> Presentare reclamo all'Autorità di controllo</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{ background: '#fef3c7', padding: '20px', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                <strong style={{ display: 'block', marginBottom: '12px' }}>Per esercitare i tuoi diritti contatta:</strong>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <Mail size={18} color="#92400e" />
+                  <span>Email: {organization?.privacy_email || organization?.company_email || organization?.email || 'privacy@example.com'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <Phone size={18} color="#92400e" />
+                  <span>Telefono: {organization?.company_phone || organization?.phone || 'N/A'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <MapPin size={18} color="#92400e" />
+                  <span>Posta: {organization?.legal_name || organization?.name || 'Nome Azienda'}, {organization?.address_street || 'Indirizzo'}, {organization?.address_zip || ''} {organization?.address_city || ''} ({organization?.address_province || ''})</span>
+                </div>
+                <strong>Autorità Garante:</strong> www.gpdp.it - garante@gpdp.it
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '20px 32px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              flexShrink: 0
+            }}>
+              <button
+                onClick={() => setShowPrivacyModal(false)}
+                style={{
+                  background: organization?.primary_color || '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px 32px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                Ho letto e compreso
+              </button>
+            </div>
           </div>
         </div>
       )}

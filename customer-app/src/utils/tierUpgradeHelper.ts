@@ -1,5 +1,4 @@
-import { sendTierUpgradeEmail } from '../services/emailAutomationService';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../services/supabase';
 
 /**
  * Helper per gestire il cambio tier del cliente
@@ -85,33 +84,8 @@ export async function handleTierChange(params: {
   };
 
   // 3. Invia email di congratulazioni automatica (non-blocking)
-  try {
-    console.log(`📧 Sending automated tier upgrade email to ${customerEmail}...`);
-
-    await sendTierUpgradeEmail(
-      organizationId,
-      {
-        email: customerEmail,
-        name: customerName,
-        points: newPoints
-      },
-      {
-        oldTier: oldTier.name,
-        oldTierIcon: getTierIcon(oldTier.name),
-        newTier: newTier.name,
-        newTierIcon: getTierIcon(newTier.name),
-        newTierColor: newTier.color,
-        multiplier: newTier.multiplier,
-        totalSpent: totalSpent
-      },
-      organizationName
-    );
-
-    console.log(`✅ Automated tier upgrade email sent successfully!`);
-  } catch (error) {
-    // Non-blocking error - don't fail tier upgrade if email fails
-    console.error(`⚠️ Error sending tier upgrade email (non-blocking):`, error);
-  }
+  // NOTE: Email sending is handled in the POS/frontend, not in customer app
+  console.log(`ℹ️ Tier upgrade detected. Email will be sent from POS.`);
 
   // 4. AGGIORNA IL CAMPO TIER NEL DATABASE
   try {

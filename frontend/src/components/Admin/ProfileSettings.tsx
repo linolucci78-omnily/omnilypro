@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   Camera, Save, User as UserIcon, Mail, Phone, Crown,
-  MapPin, Globe, Linkedin, Sparkles, ExternalLink, Copy
+  MapPin, Globe, Linkedin, Sparkles, ExternalLink, Copy, Building2
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { usersService, type SystemUser } from '../../services/usersService'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
+import CompanyDataTab from './CompanyDataTab'
 import './ProfileSettings.css'
 
 const ProfileSettings: React.FC = () => {
   const { user } = useAuth()
   const { showSuccess, showError } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [activeTab, setActiveTab] = useState<'personal' | 'company'>('personal')
 
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -269,8 +271,61 @@ const ProfileSettings: React.FC = () => {
         />
       </div>
 
-      {/* Content Grid */}
-      <form onSubmit={handleSubmit} className="founder-content">
+      {/* Tabs Navigation */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        padding: '0 40px',
+        borderBottom: '2px solid #e5e7eb',
+        marginBottom: '32px'
+      }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('personal')}
+          style={{
+            padding: '12px 24px',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'personal' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'personal' ? '#3b82f6' : '#6b7280',
+            fontSize: '15px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <UserIcon size={18} />
+          Profilo Personale
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('company')}
+          style={{
+            padding: '12px 24px',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'company' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'company' ? '#3b82f6' : '#6b7280',
+            fontSize: '15px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Building2 size={18} />
+          Dati Aziendali
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'personal' ? (
+        <form onSubmit={handleSubmit} className="founder-content">
         <div className="founder-content-left">
           {/* Executive Bio */}
           <div className="founder-card">
@@ -378,6 +433,9 @@ const ProfileSettings: React.FC = () => {
           </button>
         </div>
       </form>
+      ) : (
+        <CompanyDataTab />
+      )}
     </div>
   )
 }

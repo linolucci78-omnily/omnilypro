@@ -171,46 +171,108 @@ export const operatorNFCService = {
       throw new Error('Questa tessera è già associata ad un operatore')
     }
 
-    // IMPORTANTE: Disattiva tutte le altre tessere attive di questo operatore
-    // per evitare violazione del constraint UNIQUE(user_id, organization_id, is_active)
-    console.log('🔄 Disattivazione tessere precedenti per operatore:', card.user_id)
-    const { error: deactivateError } = await supabase
-      .from('operator_nfc_cards')
-      .update({ is_active: false })
-      .eq('user_id', card.user_id)
-      .eq('organization_id', card.organization_id)
-      .eq('is_active', true)
-
-    if (deactivateError) {
-      console.warn('⚠️ Errore disattivazione tessere precedenti (potrebbe non esisterne):', deactivateError)
-      // Non blocchiamo l'operazione, continua comunque
-    }
-
     // Simple base64 encoding for password obfuscation
     // TODO: This should be properly encrypted on the server side with PostgreSQL encryption
     const encryptedPassword = btoa(card.password)
 
-    const { data, error } = await supabase
-      .from('operator_nfc_cards')
-      .insert({
-        user_id: card.user_id,
-        organization_id: card.organization_id,
-        nfc_uid: card.nfc_uid,
-        operator_name: card.operator_name,
-        encrypted_password: encryptedPassword,
-        created_by: card.created_by,
-        is_active: true
-      })
-      .select()
-      .single()
+    // SOLUZIONE: Usa una RPC function per fare tutto in una transazione atomica
+    // Questo evita race conditions e violazioni del constraint UNIQUE
+    console.log('🔄 Creazione tessera operatore con disattivazione automatica delle precedenti...')
+
+    const { data, error } = await supabase.rpc('create_operator_nfc_card', {
+      p_user_id: card.user_id,
+      p_organization_id: card.organization_id,
+      p_nfc_uid: card.nfc_uid,
+      p_operator_name: card.operator_name,
+      p_encrypted_password: encryptedPassword,
+      p_created_by: card.created_by || null
+    })
 
     if (error) {
       console.error('Error creating operator card:', error)
+
+      // Se la RPC non esiste, fallback al metodo vecchio (ma con retry)
+      if (error.code === '42883' || error.message?.includes('does not exist')) {
+        console.warn('⚠️ RPC function not found, using fallback method with manual deactivation')
+        return await this.createWithManualDeactivation(card, encryptedPassword)
+      }
+
       throw error
     }
 
     console.log('✅ Tessera operatore creata con successo:', data)
     return data
+  },
+
+  /**
+   * Fallback method: crea tessera con disattivazione manuale (usato se RPC non esiste)
+   */
+  async createWithManualDeactivation(
+    card: {
+      user_id: string
+      organization_id: string
+      nfc_uid: string
+      operator_name: string
+      created_by?: string
+    },
+    encryptedPassword: string
+  ): Promise<OperatorNFCCard> {
+    // IMPORTANTE: Disattiva tutte le altre tessere attive di questo operatore
+    // per evitare violazione del constraint UNIQUE(user_id, organization_id, is_active)
+    console.log('🔄 Disattivazione tessere precedenti per operatore:', card.user_id)
+
+    // Retry logic: prova fino a 3 volte
+    let lastError: any = null
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        // Prima disattiva
+        const { error: deactivateError } = await supabase
+          .from('operator_nfc_cards')
+          .update({ is_active: false })
+          .eq('user_id', card.user_id)
+          .eq('organization_id', card.organization_id)
+          .eq('is_active', true)
+
+        if (deactivateError) {
+          console.warn(`⚠️ Tentativo ${attempt}: Errore disattivazione:`, deactivateError)
+        }
+
+        // Poi inserisci
+        const { data, error } = await supabase
+          .from('operator_nfc_cards')
+          .insert({
+            user_id: card.user_id,
+            organization_id: card.organization_id,
+            nfc_uid: card.nfc_uid,
+            operator_name: card.operator_name,
+            encrypted_password: encryptedPassword,
+            created_by: card.created_by,
+            is_active: true
+          })
+          .select()
+          .single()
+
+        if (!error) {
+          console.log(`✅ Tessera creata con successo (tentativo ${attempt})`)
+          return data
+        }
+
+        lastError = error
+        console.warn(`⚠️ Tentativo ${attempt} fallito:`, error.message)
+
+        // Aspetta un po' prima di ritentare
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 200 * attempt))
+        }
+      } catch (err) {
+        lastError = err
+        console.error(`❌ Eccezione tentativo ${attempt}:`, err)
+      }
+    }
+
+    // Se arriviamo qui, tutti i tentativi sono falliti
+    console.error('❌ Tutti i tentativi falliti:', lastError)
+    throw lastError || new Error('Impossibile creare la tessera dopo 3 tentativi')
   },
 
   /**
