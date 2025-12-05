@@ -282,7 +282,6 @@ class NotificationService {
         body,
         icon: image || '/logo.png',
         badge: '/badge.png',
-        vibrate: [200, 100, 200],
         data,
         requireInteraction: true, // FORZA la notifica a rimanere finché non viene chiusa
         tag: 'omnilypro-notification-' + Date.now(), // Tag unico per evitare che venga sostituita
