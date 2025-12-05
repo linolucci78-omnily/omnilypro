@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Mic } from 'lucide-react';
 import POSLayout from './POSLayout';
 import OrganizationsDashboard from '../OrganizationsDashboard';
 import NotificationAnimations, { NotificationAnimationsRef } from '../NotificationAnimations';
 import { LotteryTicketSaleModal } from './LotteryTicketSaleModal';
+import OrganizationAssistant from '../Admin/OmnyAssistant/OrganizationAssistant';
 
 interface POSDashboardWrapperProps {
   currentOrganization?: any;
@@ -18,6 +20,7 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
   }>({ primary: null, secondary: null });
   const animationsRef = useRef<NotificationAnimationsRef>(null);
   const [lotteryModalOpen, setLotteryModalOpen] = useState(false);
+  const [showAssistant, setShowAssistant] = useState(false);
 
   /**
    * Invia dati al customer display tramite bridge Android.
@@ -133,6 +136,97 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
           }}
         />
       )}
+
+      {/* Omny Assistant FAB - POS Mode (Gemini Style) */}
+      <button
+        onClick={() => setShowAssistant(true)}
+        className="omny-assistant-fab-pos"
+        style={{
+          position: 'fixed',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '96px',
+          height: '96px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+          border: 'none',
+          boxShadow: '0 8px 32px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: 1000
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateX(-50%) scale(1.1)';
+          e.currentTarget.style.boxShadow = '0 12px 48px rgba(220, 38, 38, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+          e.currentTarget.style.boxShadow = '0 8px 32px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+        }}
+      >
+        {/* Microfono */}
+        <Mic size={32} color="white" strokeWidth={2} />
+
+        {/* Google Color Dots */}
+        <div style={{
+          display: 'flex',
+          gap: '4px',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: '#4285F4'
+          }} />
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: '#DB4437'
+          }} />
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: '#F4B400'
+          }} />
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: '#0F9D58'
+          }} />
+        </div>
+      </button>
+
+      {/* Omny Assistant Modal */}
+      {showAssistant && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+          <OrganizationAssistant
+            onClose={() => setShowAssistant(false)}
+            organizationId={organization?.id}
+          />
+        </div>
+      )}
+
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.5), 0 0 0 4px rgba(102, 126, 234, 0.1);
+          }
+          50% {
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.7), 0 0 0 8px rgba(102, 126, 234, 0.15);
+          }
+        }
+      `}</style>
     </>
   );
 };

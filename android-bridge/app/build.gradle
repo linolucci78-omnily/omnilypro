@@ -10,8 +10,8 @@ android {
         applicationId "com.omnilypro.pos"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 39
-        versionName "3.0"
+        versionCode 40
+        versionName "3.1"
     }
 
     signingConfigs {

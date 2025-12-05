@@ -1304,6 +1304,8 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
       const customerData = {
         organization_id: organizationId,
         name: `${formData.firstName} ${formData.lastName}`,
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         address: formData.address ? `${formData.address}, ${formData.city} ${formData.zipCode}` : undefined,

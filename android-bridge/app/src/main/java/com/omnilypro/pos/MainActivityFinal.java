@@ -128,7 +128,8 @@ public class MainActivityFinal extends AppCompatActivity {
             Manifest.permission.BLUETOOTH_SCAN,
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.RECORD_AUDIO
     };
 
     @Override
@@ -733,6 +734,26 @@ public class MainActivityFinal extends AppCompatActivity {
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
                 Log.w(TAG, "🚫 BLOCCATO window.open() - popup non consentito");
                 return false; // Blocca TUTTI i tentativi di aprire nuove finestre
+            }
+
+            @Override
+            public void onPermissionRequest(android.webkit.PermissionRequest request) {
+                // Gestisci richieste di permessi Web API (microfono, camera, ecc.)
+                Log.d(TAG, "🎤 Permission request from WebView: " + java.util.Arrays.toString(request.getResources()));
+
+                // Accetta automaticamente permessi per microfono e camera (già garantiti a livello app)
+                for (String resource : request.getResources()) {
+                    if (resource.equals(android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE) ||
+                        resource.equals(android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
+                        Log.d(TAG, "✅ Granting permission for: " + resource);
+                        request.grant(new String[]{resource});
+                        return;
+                    }
+                }
+
+                // Nega altri permessi
+                Log.w(TAG, "❌ Denying unknown permission request");
+                request.deny();
             }
 
             @Override
