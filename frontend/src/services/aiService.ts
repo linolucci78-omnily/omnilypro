@@ -124,7 +124,7 @@ class AIService {
                     }
                 } else if (tool_use.name === 'search_customers') {
                     const result = tool_use.result
-                    toolMessage += `🔍 Trovati ${result.count} clienti:\n\n`
+                    toolMessage += `🔍 [v2] Trovati ${result.count} clienti:\n\n`
                     result.customers.slice(0, 5).forEach((c: any, i: number) => {
                         toolMessage += `${i + 1}. **${c.name}** (${c.tier})\n`
                         toolMessage += `   📧 ${c.email} | ⭐ ${c.points} punti\n`
@@ -147,6 +147,17 @@ class AIService {
                         toolMessage += `➕ Punti aggiunti: ${result.points_added}\n`
                         toolMessage += `⭐ Nuovo totale: ${result.new_total} punti\n`
                         toolMessage += `📝 Motivo: ${result.reason}`
+                    } else {
+                        toolMessage += `❌ ${result.error}`
+                    }
+                } else if (tool_use.name === 'register_sale') {
+                    const result = tool_use.result
+                    if (result.success) {
+                        toolMessage += `✅ Vendita registrata con successo!\n\n`
+                        toolMessage += `👤 Cliente: ${result.customer_name}\n`
+                        toolMessage += `💰 Importo: €${result.amount}\n`
+                        toolMessage += `➕ Punti guadagnati: ${result.points_earned}\n`
+                        toolMessage += `⭐ Nuovo totale punti: ${result.new_total_points}`
                     } else {
                         toolMessage += `❌ ${result.error}`
                     }

@@ -963,29 +963,64 @@ export const customerActivitiesApi = {
     }
   },
 
-  // Get activities for a customer
+  // Get activities for a customer (merging customer_activities and transaction tables)
   async getByCustomerId(customerId: string, limit: number = 10): Promise<CustomerActivity[]> {
-    const { data, error } = await supabase
+    // 1. Fetch from customer_activities
+    const { data: activities, error: activitiesError } = await supabase
       .from('customer_activities')
       .select('*')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false })
       .limit(limit)
 
-    if (error) throw error
-    // Map database columns to interface format
-    return (data || []).map(activity => ({
+    if (activitiesError) throw activitiesError
+
+    // 2. Fetch from transaction table
+    const { data: transactions, error: transactionsError } = await supabase
+      .from('transaction')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    // Ignore error if transaction table doesn't exist yet or permission denied
+    if (transactionsError) {
+      console.warn('Error fetching transactions:', transactionsError)
+    }
+
+    // 3. Map transactions to CustomerActivity format
+    const mappedTransactions: CustomerActivity[] = (transactions || []).map(t => ({
+      id: t.id,
+      organization_id: t.organization_id,
+      customer_id: t.customer_id,
+      type: 'transaction', // Map 'sale' to 'transaction' for frontend consistency
+      description: t.description || 'Transazione',
+      amount: t.amount,
+      points: t.points,
+      created_at: t.created_at
+    }))
+
+    // 4. Map activities to CustomerActivity format
+    const mappedActivities: CustomerActivity[] = (activities || []).map(activity => ({
       ...activity,
       type: activity.activity_type,
       description: activity.activity_description,
       amount: activity.monetary_value,
       points: activity.points_earned || (activity.points_spent ? -activity.points_spent : 0)
     }))
+
+    // 5. Merge and sort
+    const allActivities = [...mappedTransactions, ...mappedActivities]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, limit)
+
+    return allActivities
   },
 
-  // Get recent activities for organization
+  // Get recent activities for organization (merging customer_activities and transaction tables)
   async getByOrganizationId(organizationId: string, limit: number = 50): Promise<CustomerActivity[]> {
-    const { data, error } = await supabase
+    // 1. Fetch from customer_activities
+    const { data: activities, error: activitiesError } = await supabase
       .from('customer_activities')
       .select(`
         *,
@@ -995,15 +1030,52 @@ export const customerActivitiesApi = {
       .order('created_at', { ascending: false })
       .limit(limit)
 
-    if (error) throw error
-    // Map database columns to interface format
-    return (data || []).map(activity => ({
+    if (activitiesError) throw activitiesError
+
+    // 2. Fetch from transaction table
+    const { data: transactions, error: transactionsError } = await supabase
+      .from('transaction')
+      .select(`
+        *,
+        customer:customers(name)
+      `)
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    // Ignore error if transaction table doesn't exist yet or permission denied
+    if (transactionsError) {
+      console.warn('Error fetching transactions:', transactionsError)
+    }
+
+    // 3. Map transactions to CustomerActivity format
+    const mappedTransactions: CustomerActivity[] = (transactions || []).map(t => ({
+      id: t.id,
+      organization_id: t.organization_id,
+      customer_id: t.customer_id,
+      type: 'transaction', // Map 'sale' to 'transaction' for frontend consistency
+      description: t.description || 'Transazione',
+      amount: t.amount,
+      points: t.points,
+      created_at: t.created_at,
+      customer: t.customer // Include customer relation
+    }))
+
+    // 4. Map activities to CustomerActivity format
+    const mappedActivities: CustomerActivity[] = (activities || []).map(activity => ({
       ...activity,
       type: activity.activity_type,
       description: activity.activity_description,
       amount: activity.monetary_value,
       points: activity.points_earned || (activity.points_spent ? -activity.points_spent : 0)
     }))
+
+    // 5. Merge and sort
+    const allActivities = [...mappedTransactions, ...mappedActivities]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, limit)
+
+    return allActivities
   }
 }
 

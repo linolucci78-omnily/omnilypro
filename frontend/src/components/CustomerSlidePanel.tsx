@@ -28,7 +28,7 @@ interface CustomerSlidePanelProps {
   isOpen: boolean;
   onClose: () => void;
   onAddPoints?: (customerId: string, points: number) => void;
-  onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string}>;
+  onNewTransaction?: (customerId: string, amount: number, pointsEarned: number) => Promise<{ success: boolean; customer?: any; amount?: number; pointsEarned?: number; error?: string }>;
   onUpdateCustomer?: (customerId: string, updates: Partial<Customer>) => Promise<void>;
   pointsPerEuro?: number; // Configurazione dinamica punti per euro dall'organizzazione
   loyaltyTiers?: any[]; // Tiers di fedeltà per calcolo moltiplicatori dinamici
@@ -109,37 +109,37 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
       // Controlla se c'è una notifica pending per questo cliente
       const pendingUpgrade = await getPendingTierUpgradeForCustomer(customer.id);
 
-    if (pendingUpgrade) {
-      console.log(`🎊 Tier upgrade pending trovato per ${customer.name}:`, pendingUpgrade);
+      if (pendingUpgrade) {
+        console.log(`🎊 Tier upgrade pending trovato per ${customer.name}:`, pendingUpgrade);
 
-      // Mostra modale celebrativo
-      setTierUpgradeData({
-        oldTierName: pendingUpgrade.oldTierName,
-        newTierName: pendingUpgrade.newTierName,
-        newTierColor: pendingUpgrade.newTierColor
-      });
-      setShowTierUpgradeModal(true);
-
-      // 📺 INVIA TIER_UPGRADE al customer display 4"
-      if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
-        console.log('👑 Inviando TIER_UPGRADE al customer display...');
-
-        // Trova moltiplicatore del nuovo tier
-        const newTier = loyaltyTiers?.find(t => t.name === pendingUpgrade.newTierName);
-        const multiplier = newTier ? parseFloat(newTier.multiplier) : 1;
-
-        (window as any).updateCustomerDisplay({
-          type: 'TIER_UPGRADE',
-          tierUpgrade: {
-            customerName: customer.name,
-            oldTierName: pendingUpgrade.oldTierName,
-            newTierName: pendingUpgrade.newTierName,
-            newTierColor: pendingUpgrade.newTierColor,
-            multiplier: multiplier
-          }
+        // Mostra modale celebrativo
+        setTierUpgradeData({
+          oldTierName: pendingUpgrade.oldTierName,
+          newTierName: pendingUpgrade.newTierName,
+          newTierColor: pendingUpgrade.newTierColor
         });
-        console.log('✅ Messaggio TIER_UPGRADE inviato al customer display');
-      }
+        setShowTierUpgradeModal(true);
+
+        // 📺 INVIA TIER_UPGRADE al customer display 4"
+        if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+          console.log('👑 Inviando TIER_UPGRADE al customer display...');
+
+          // Trova moltiplicatore del nuovo tier
+          const newTier = loyaltyTiers?.find(t => t.name === pendingUpgrade.newTierName);
+          const multiplier = newTier ? parseFloat(newTier.multiplier) : 1;
+
+          (window as any).updateCustomerDisplay({
+            type: 'TIER_UPGRADE',
+            tierUpgrade: {
+              customerName: customer.name,
+              oldTierName: pendingUpgrade.oldTierName,
+              newTierName: pendingUpgrade.newTierName,
+              newTierColor: pendingUpgrade.newTierColor,
+              multiplier: multiplier
+            }
+          });
+          console.log('✅ Messaggio TIER_UPGRADE inviato al customer display');
+        }
 
         // Rimuovi notifica dopo averla mostrata
         await clearTierUpgradeNotification(customer.id);
@@ -706,7 +706,7 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
             const oldPoints = targetCustomer.points;
             const newPoints = result.customer?.points || (targetCustomer.points + pointsEarned);
 
-            await handleTierChange({
+            const upgradeResult = await handleTierChange({
               customerId: targetCustomer.id,
               customerName: targetCustomer.name,
               customerEmail: targetCustomer.email || '',
@@ -717,6 +717,20 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               loyaltyTiers,
               pointsName
             });
+
+            // 🎊 MOSTRA MODALE SE TIER CAMBIATO
+            if (upgradeResult.tierChanged && upgradeResult.newTier) {
+              console.log('🎊 Tier changed! Showing modal immediately...');
+              setTierUpgradeData({
+                oldTierName: upgradeResult.oldTier?.name || '',
+                newTierName: upgradeResult.newTier.name,
+                newTierColor: upgradeResult.newTier.color
+              });
+              setShowTierUpgradeModal(true);
+
+              // Pulisci la notifica dal DB visto che la stiamo mostrando ora
+              await clearTierUpgradeNotification(targetCustomer.id);
+            }
           } catch (error) {
             console.error('❌ Errore controllo tier change dopo vendita:', error);
           }

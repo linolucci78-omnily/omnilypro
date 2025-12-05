@@ -3,6 +3,7 @@ import { Mic } from 'lucide-react';
 import Overlay from './Overlay';
 import AssistantVisualizer, { AssistantState } from './AssistantVisualizer';
 import { OrganizationAssistantService, AssistantMessage } from './organizationAssistantService';
+import styles from './OrganizationAssistant.module.css';
 
 interface OrganizationAssistantProps {
   onClose?: () => void;
@@ -47,7 +48,7 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
 
     // Check if we're running in Android WebView with TTS bridge
     const hasAndroidBridge = typeof (window as any).OmnilyPOS !== 'undefined' &&
-                             typeof (window as any).OmnilyPOS.speak === 'function';
+      typeof (window as any).OmnilyPOS.speak === 'function';
 
     if (hasAndroidBridge) {
       console.log('🔊 Using Android native TTS via OmnilyPOS bridge');
@@ -86,7 +87,9 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
     utterance.pitch = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const italianVoice = voices.find(v => v.lang === 'it-IT' && v.name.includes('Google')) || voices.find(v => v.lang === 'it-IT');
+    // Prioritize Google, Premium, or Enhanced voices
+    const italianVoice = voices.find(v => v.lang === 'it-IT' && (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Enhanced'))) ||
+      voices.find(v => v.lang === 'it-IT');
     if (italianVoice) {
       utterance.voice = italianVoice;
     }
@@ -121,6 +124,34 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
         if (message.role === 'assistant') {
           speak(message.content);
         }
+      },
+      (toolName, result) => {
+        console.log('🛠️ Tool executed:', toolName, result);
+
+        // Handle register_sale success
+        if (toolName === 'register_sale' && result.success) {
+          console.log('🎉 Sale registered! Triggering visual effects...');
+
+          // Trigger confetti/coins rain if available globally or via event
+          if (typeof window !== 'undefined' && (window as any).updateCustomerDisplay) {
+            (window as any).updateCustomerDisplay({
+              type: 'SALE_CELEBRATION',
+              celebration: {
+                customerName: result.customer_name,
+                amount: result.amount,
+                pointsEarned: result.points_earned,
+                newTotalPoints: result.new_total_points,
+                showCoinsRain: true,
+                duration: 4000
+              }
+            });
+          }
+
+          // Play sound
+          const audio = new Audio('/sounds/slot-machine-coin-payout-1-188227.mp3');
+          audio.volume = 1.0;
+          audio.play().catch(e => console.error('Error playing sound:', e));
+        }
       }
     );
 
@@ -131,23 +162,31 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
     };
   }, [speak]);
 
+  const organizationIdRef = useRef(organizationId);
+
+  // Update ref when organizationId changes
+  useEffect(() => {
+    organizationIdRef.current = organizationId;
+  }, [organizationId]);
+
   const handleStart = useCallback(async () => {
-    console.log('🚀 handleStart called with organizationId:', organizationId);
+    const currentOrgId = organizationIdRef.current;
+    console.log('🚀 handleStart called with organizationId:', currentOrgId);
     setIsOverlayOpen(true);
     setAssistantState(AssistantState.CONNECTING);
     setErrorMsg(null);
 
     try {
       if (serviceRef.current) {
-        console.log('📞 Calling connect with organizationId:', organizationId);
-        await serviceRef.current.connect(organizationId);
+        console.log('📞 Calling connect with organizationId:', currentOrgId);
+        await serviceRef.current.connect(currentOrgId);
       }
     } catch (err: any) {
       console.error('Failed to connect:', err);
       setErrorMsg(err.message || 'Connessione fallita');
       setAssistantState(AssistantState.ERROR);
     }
-  }, [organizationId]);
+  }, []);
 
   // Auto-open overlay when organizationId is provided (opened from dashboard)
   useEffect(() => {
@@ -336,47 +375,43 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className={styles.overlay}>
 
-      {/* Background decorations */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px]" />
-      </div>
+      {/* Main UI - Hidden when overlay is open */}
+      {!isOverlayOpen && (
+        <div className="z-10 text-center max-w-md w-full">
+          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
+            Omny Assistant
+          </h1>
+          <p className="text-gray-400 mb-12">
+            Il tuo assistente intelligente per l'organizzazione
+          </p>
 
-      {/* Main UI */}
-      <div className="z-10 text-center max-w-md w-full">
-        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-          Omny Assistant
-        </h1>
-        <p className="text-gray-400 mb-12">
-          Il tuo assistente intelligente per l'organizzazione
-        </p>
+          {/* Trigger Button */}
+          <button
+            onClick={handleStart}
+            className="group relative flex items-center justify-center w-24 h-24 mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-full shadow-2xl border border-white/5 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+          >
+            {/* Breathing glow effect */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
 
-        {/* Trigger Button */}
-        <button
-          onClick={handleStart}
-          className="group relative flex items-center justify-center w-24 h-24 mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-full shadow-2xl border border-white/5 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
-        >
-          {/* Breathing glow effect */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
+            {/* Icon */}
+            <Mic className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
 
-          {/* Icon */}
-          <Mic className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
+            {/* Color indicators */}
+            <div className="absolute bottom-4 flex gap-1">
+              <div className="w-1 h-1 rounded-full bg-[#4285F4]" />
+              <div className="w-1 h-1 rounded-full bg-[#DB4437]" />
+              <div className="w-1 h-1 rounded-full bg-[#F4B400]" />
+              <div className="w-1 h-1 rounded-full bg-[#0F9D58]" />
+            </div>
+          </button>
 
-          {/* Color indicators */}
-          <div className="absolute bottom-4 flex gap-1">
-            <div className="w-1 h-1 rounded-full bg-[#4285F4]" />
-            <div className="w-1 h-1 rounded-full bg-[#DB4437]" />
-            <div className="w-1 h-1 rounded-full bg-[#F4B400]" />
-            <div className="w-1 h-1 rounded-full bg-[#0F9D58]" />
-          </div>
-        </button>
-
-        <p className="mt-8 text-sm text-gray-500 font-medium">
-          Clicca per iniziare
-        </p>
-      </div>
+          <p className="mt-8 text-sm text-gray-500 font-medium">
+            Clicca per iniziare
+          </p>
+        </div>
+      )}
 
       {/* Full Screen Assistant Overlay */}
       <Overlay
@@ -389,7 +424,7 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
         <div className="w-full h-full relative flex flex-col items-center justify-end pb-8">
 
           {/* Messages Display - Chat Style - MASSIMO SCHERMO */}
-          <div className="omny-chat-container">
+          <div className={styles.chatContainer}>
 
             {/* Error Message (se presente) */}
             {errorMsg && (
@@ -429,11 +464,10 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div
-                      className={`max-w-[80%] px-6 py-4 rounded-3xl shadow-xl ${
-                        msg.role === 'user'
-                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                          : 'bg-gradient-to-br from-purple-500/40 to-purple-600/40 text-white border border-purple-400/30'
-                      }`}
+                      className={`max-w-[80%] px-6 py-4 rounded-3xl shadow-xl ${msg.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                        : 'bg-gradient-to-br from-purple-500/40 to-purple-600/40 text-white border border-purple-400/30'
+                        }`}
                     >
                       {msg.role === 'assistant' && (
                         <div className="flex items-center gap-2 mb-2 opacity-80">
@@ -465,37 +499,3 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
 };
 
 export default OrganizationAssistant;
-
-// Stili CSS dedicati per evitare conflitti
-const styles = `
-  .omny-chat-container {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    background: rgba(0, 0, 0, 0.75) !important;
-    backdrop-filter: blur(24px) !important;
-    border-radius: 0 !important;
-    padding-top: 130px !important;
-    padding-left: 24px !important;
-    padding-right: 24px !important;
-    padding-bottom: 120px !important;
-    border: none !important;
-    box-shadow: none !important;
-    z-index: 10 !important;
-  }
-
-  .omny-chat-container > * + * {
-    margin-top: 20px !important;
-  }
-`;
-
-// Inietta gli stili
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = styles;
-  document.head.appendChild(styleSheet);
-}

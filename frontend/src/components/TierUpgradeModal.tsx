@@ -27,6 +27,11 @@ const TierUpgradeModal: React.FC<TierUpgradeModalProps> = ({
     if (isOpen) {
       // Attiva animazione dopo un piccolo delay
       setTimeout(() => setIsAnimating(true), 100);
+
+      // Suona le trombe! 🎺
+      const audio = new Audio('/sounds/celebration.mp3');
+      audio.volume = 0.8;
+      audio.play().catch(e => console.error('Error playing celebration sound:', e));
     } else {
       setIsAnimating(false);
     }

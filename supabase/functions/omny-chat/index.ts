@@ -18,10 +18,31 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_ANON_KEY') ?? '',
             { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
         )
+        let { messages, organizationId } = await req.json()
 
-        const { messages, organizationId } = await req.json()
+        // Robust Sanitization of organizationId
+        const originalOrgId = organizationId;
+        if (
+            organizationId === 'null' ||
+            organizationId === 'undefined' ||
+            organizationId === null ||
+            organizationId === undefined ||
+            (typeof organizationId === 'string' && organizationId.trim() === '')
+        ) {
+            organizationId = null
+        }
 
-        console.log('📥 Request received. Organization ID:', organizationId || 'NULL')
+        console.log(`📨 Request received.`)
+        console.log(`🆔 OrgID Raw: "${originalOrgId}" (type: ${typeof originalOrgId})`)
+        console.log(`🆔 OrgID Sanitized: ${organizationId}`)
+        console.log(`💬 Messages count: ${messages?.length}`)
+
+        if (!messages) {
+            return new Response(JSON.stringify({ error: 'Missing messages in request body' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 400,
+            })
+        }
 
         // 1. Retrieve Anthropic API Key
         // Query by key_name instead of service
@@ -58,7 +79,13 @@ serve(async (req) => {
         console.log('✅ API Key retrieved successfully')
 
         // 2. Prepare System Prompt
-        const systemPrompt = `Sei Omny, assistente AI per OMNILY PRO.
+        const systemPrompt = `REGOLA ASSOLUTA:
+Quando usi il tool get_birthday_customers, la risposta contiene SOLO il campo "message".
+Il campo "message" è il testo COMPLETO da mostrare all'utente.
+NON aggiungere NULLA. NON formattare. NON creare intestazioni.
+Copia ESATTAMENTE il valore di "message" come risposta.
+
+Sei Omny, assistente AI per OMNILY PRO.
 
 Tono di voce:
 - Professionale ma amichevole
@@ -88,6 +115,49 @@ Quando l'utente dice frasi come:
 Devi SEMPRE usare il tool record_sale con:
 - customer_name: il nome del cliente (es. "Mario Rossi")
 - amount: l'importo in euro (es. 25)
+
+IMPORTANTE - Formattazione Risultati Compleanni:
+Il tool get_birthday_customers restituisce SOLO un campo "message" che è il messaggio COMPLETO da mostrare all'utente.
+NON devi formattare, NON devi aggiungere testo, NON devi creare intestazioni.
+Copia ESATTAMENTE il contenuto di "message" nella tua risposta e BASTA.
+
+Esempi CORRETTI:
+- Tool ritorna: {"message": "🎂 Oggi compie gli anni: Mario Rossi"}
+  Tu rispondi: "🎂 Oggi compie gli anni: Mario Rossi"
+
+- Tool ritorna: {"message": "Nessun compleanno oggi! 🎈"}
+  Tu rispondi: "Nessun compleanno oggi! 🎈"
+
+Esempi SBAGLIATI (NON FARE MAI COSÌ):
+❌ "**🎂 Compleanni in arrivo (1)** Mario Rossi"
+❌ "Data target: 05/12/2025 - Mario Rossi"
+❌ Qualsiasi testo diverso dal campo "message"
+
+IMPORTANTE - Formattazione Risultati Ricerca Clienti:
+Il tool search_customers restituisce un array di oggetti con questa struttura:
+{
+  "name": "Mario Rossi",  // ← Nome completo GIA' formattato
+  "email": "mario@example.com",
+  "points": 100,
+  "tier": "Gold"
+}
+
+DEVI usare customer.name direttamente per il nome del cliente.
+NON esistono i campi first_name o last_name nella risposta del tool.
+
+Formato risposta:
+"Trovati {count} clienti:
+
+1. {customer.name}
+   Email: {customer.email} | Tier: {customer.tier} | Punti: {customer.points}"
+
+Esempio concreto:
+Se il tool restituisce {"name": "Lucci Lino", "email": "lucci@example.com", "points": 75, "tier": "Gold"}
+La tua risposta DEVE essere:
+"Trovati 1 clienti:
+
+1. Lucci Lino
+   Email: lucci@example.com | Tier: Gold | Punti: 75"
 
 Esempio risposta corretta per analisi:
 "Ecco 3 azioni per aumentare le vendite:
@@ -227,22 +297,112 @@ Quale vuoi attivare?"`
                     required: ["customer_id", "points", "reason"]
                 }
             },
+
             {
-                name: "record_sale",
-                description: "Registra una nuova vendita per un cliente. Usa quando l'utente vuole registrare una vendita dicendo ad esempio 'registra 25 euro per Mario Rossi' o 'nuova vendita di 30 euro per cliente X'.",
+                name: "register_sale",
+                description: "Registra una vendita per un cliente. Cerca il cliente per nome e aggiunge la transazione. Usa quando l'utente dice 'registra vendita X euro a Nome Cognome'.",
                 input_schema: {
                     type: "object",
                     properties: {
                         customer_name: {
                             type: "string",
-                            description: "Nome completo del cliente (es. 'Mario Rossi')"
+                            description: "Nome e cognome del cliente da cercare"
                         },
                         amount: {
                             type: "number",
                             description: "Importo della vendita in euro"
+                        },
+                        description: {
+                            type: "string",
+                            description: "Descrizione della vendita (opzionale)"
                         }
                     },
                     required: ["customer_name", "amount"]
+                }
+            },
+            {
+                name: "get_customer_transactions",
+                description: "Recupera lo storico delle transazioni di un cliente. Usa quando l'utente chiede 'visualizza transazioni di X' o 'storico acquisti'.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        customer_id: {
+                            type: "string",
+                            description: "ID del cliente (ottenuto da search_customers)"
+                        },
+                        limit: {
+                            type: "number",
+                            description: "Numero di transazioni da mostrare (default 5)"
+                        }
+                    },
+                    required: ["customer_id"]
+                }
+            },
+            {
+                name: "create_coupon",
+                description: "Crea un nuovo coupon sconto. Usa quando l'utente dice 'crea coupon CODICE del X%'.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        code: {
+                            type: "string",
+                            description: "Codice del coupon (es. ESTATE20)"
+                        },
+                        discount_value: {
+                            type: "number",
+                            description: "Valore dello sconto (es. 20)"
+                        },
+                        type: {
+                            type: "string",
+                            enum: ["percentage", "fixed_amount"],
+                            description: "Tipo di sconto (percentuale o fisso)"
+                        },
+                        duration_days: {
+                            type: "number",
+                            description: "Durata in giorni (default 7)"
+                        },
+                        title: {
+                            type: "string",
+                            description: "Titolo del coupon (opzionale)"
+                        }
+                    },
+                    required: ["code", "discount_value", "type"]
+                }
+            },
+            {
+                name: "get_churn_risk_customers",
+                description: "Trova i clienti a rischio abbandono (che non vengono da X giorni).",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        days_since_last_visit: {
+                            type: "number",
+                            description: "Giorni dall'ultima visita (default 30)"
+                        },
+                        limit: {
+                            type: "number",
+                            description: "Numero massimo di clienti da mostrare (default 10)"
+                        }
+                    },
+                    required: []
+                }
+            },
+            {
+                name: "get_birthday_customers",
+                description: "Trova i clienti che compiono gli anni oggi o nei prossimi giorni. Usa questo tool quando l'utente chiede 'chi compie gli anni', 'compleanni oggi', 'c'è qualche compleanno', ecc. IMPORTANTE: Il tool restituisce SOLO un campo 'message' che contiene il messaggio completo già formattato. NON aggiungere intestazioni, conteggi, date o altre informazioni. Mostra SOLO il contenuto del campo 'message' così com'è.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        days_ahead: {
+                            type: "number",
+                            description: "Giorni di anticipo (0 = oggi, 7 = prossima settimana)"
+                        },
+                        limit: {
+                            type: "number",
+                            description: "Numero massimo di clienti da mostrare (default 10)"
+                        }
+                    },
+                    required: []
                 }
             }
         ]
@@ -329,10 +489,7 @@ Quale vuoi attivare?"`
         console.error('Error:', error)
         return new Response(
             JSON.stringify({ error: error.message }),
-            {
-                status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         )
     }
 })
@@ -363,11 +520,205 @@ async function executeTool(toolName: string, input: any, supabaseClient: any, or
         case 'assign_bonus_points':
             return await assignBonusPoints(input, supabaseClient, organizationId)
 
-        case 'record_sale':
-            return await recordSale(input, supabaseClient, organizationId)
+        case 'register_sale':
+            return await registerSale(input, supabaseClient, organizationId)
+
+        case 'get_customer_transactions':
+            return await getCustomerTransactions(input, supabaseClient, organizationId)
+
+        case 'create_coupon':
+            return await createCoupon(input, supabaseClient, organizationId)
+
+        case 'get_churn_risk_customers':
+            return await getChurnRiskCustomers(input, supabaseClient, organizationId)
+
+        case 'get_birthday_customers':
+            return await getBirthdayCustomers(input, supabaseClient, organizationId)
 
         default:
             throw new Error(`Unknown tool: ${toolName}`)
+    }
+}
+
+// Helper function to apply organization_id filter correctly
+// Handles both null and UUID values properly
+function applyOrgFilter(queryBuilder: any, organizationId: string | null) {
+    if (organizationId === null) {
+        return queryBuilder.is('organization_id', null)
+    } else {
+        return queryBuilder.eq('organization_id', organizationId)
+    }
+}
+
+async function registerSale(input: any, supabaseClient: any, organizationId: string | null) {
+    const { customer_name, amount, description } = input
+
+    // 1. Find customer by name - Robust JS Logic
+    const nameParts = customer_name.trim().split(/\s+/).map(p => p.toLowerCase())
+
+    // Build a broad query to get potential matches
+    let queryBuilder = supabaseClient
+        .from('customers')
+        .select('id, name, first_name, last_name, points, email, total_spent, visits')
+
+    queryBuilder = applyOrgFilter(queryBuilder, organizationId)
+
+    // Create an OR condition for each part of the name against name/first/last/email
+    const orConditions = []
+    for (const part of nameParts) {
+        orConditions.push(`name.ilike.%${part}%`)
+        orConditions.push(`first_name.ilike.%${part}%`)
+        orConditions.push(`last_name.ilike.%${part}%`)
+        orConditions.push(`email.ilike.%${part}%`)
+    }
+
+    // Join all with comma for OR
+    queryBuilder = queryBuilder.or(orConditions.join(','))
+
+    const { data: candidates, error } = await queryBuilder.limit(20)
+
+    if (error) {
+        console.error('❌ DB Error in registerSale:', error)
+        return { success: false, error: `Errore database: ${error.message}` }
+    }
+
+    console.log(`🔍 DEBUG registerSale - Candidates for "${customer_name}":`, candidates?.length)
+
+    // Filter candidates in JS to find the best match
+    let bestMatch = null
+
+    if (candidates && candidates.length > 0) {
+        // Score candidates
+        const scored = candidates.map(c => {
+            let score = 0
+            const cName = (c.name || '').toLowerCase()
+            const cFirst = (c.first_name || '').toLowerCase()
+            const cLast = (c.last_name || '').toLowerCase()
+            const cEmail = (c.email || '').toLowerCase()
+
+            // Check each part of the input name
+            let allPartsMatched = true
+            for (const part of nameParts) {
+                const found = cName.includes(part) || cFirst.includes(part) || cLast.includes(part) || cEmail.includes(part)
+                if (found) score += 1
+                else allPartsMatched = false
+            }
+
+            // Bonus for exact matches
+            if (cFirst === nameParts[0] && cLast === nameParts[nameParts.length - 1]) score += 2
+            if (cFirst === nameParts[nameParts.length - 1] && cLast === nameParts[0]) score += 2 // Reversed
+
+            return { customer: c, score, allPartsMatched }
+        })
+
+        // Sort by score descending
+        scored.sort((a, b) => b.score - a.score)
+
+        console.log('🔍 DEBUG registerSale - Scored candidates:', JSON.stringify(scored.map(s => ({ name: s.customer.name, score: s.score })), null, 2))
+
+        // Pick best if it matches reasonably well (at least all parts matched or high score)
+        if (scored[0].score >= nameParts.length) {
+            bestMatch = scored[0].customer
+        }
+    }
+
+    if (!bestMatch) {
+        return {
+            success: false,
+            error: `Non ho trovato nessun cliente con nome "${customer_name}". Prova a cercare con un nome diverso.`
+        }
+    }
+
+    const customer = bestMatch
+    const displayName = formatCustomerName(customer)
+
+    // 2. Calculate points (1 point per euro, standard rule)
+    const pointsEarned = Math.floor(amount)
+    const newTotalPoints = (customer.points || 0) + pointsEarned
+
+    // 3. Register transaction
+    const { error: txError } = await supabaseClient
+        .from('transaction')
+        .insert({
+            customer_id: customer.id,
+            organization_id: organizationId,
+            amount: amount,
+            points: pointsEarned,
+            type: 'sale',
+            description: description || `Vendita registrata da Assistant`,
+            created_at: new Date().toISOString()
+        })
+
+    if (txError) {
+        return { success: false, error: `Errore registrazione transazione: ${txError.message}` }
+    }
+
+    // 4. Calculate Tier Upgrade
+    let newTierName = customer.tier
+    let tierChanged = false
+    let newTierColor = '#a3a3a3'
+    let oldTierName = customer.tier || 'Bronze'
+
+    // Fetch loyalty tiers
+    let loyaltyQuery = supabaseClient
+        .from('loyalty_tiers')
+        .select('*')
+
+    loyaltyQuery = applyOrgFilter(loyaltyQuery, organizationId)
+
+    const { data: loyaltyTiers } = await loyaltyQuery
+        .order('threshold', { ascending: false })
+
+    const newTier = calculateTier(newTotalPoints, loyaltyTiers || [])
+
+    if (newTier.name !== oldTierName) {
+        tierChanged = true
+        newTierName = newTier.name
+        newTierColor = newTier.color
+        console.log(`🎉 Tier Upgrade detected: ${oldTierName} -> ${newTierName}`)
+    }
+
+    // 5. Update customer points and tier
+    await supabaseClient
+        .from('customers')
+        .update({
+            points: newTotalPoints,
+            tier: newTierName, // Update tier
+            total_spent: (customer.total_spent || 0) + amount,
+            last_visit: new Date().toISOString(),
+            visits: (customer.visits || 0) + 1
+        })
+        .eq('id', customer.id)
+
+    // 6. Create Notification for Popup if tier changed
+    if (tierChanged) {
+        await supabaseClient
+            .from('customer_notifications')
+            .insert({
+                customer_id: customer.id,
+                organization_id: organizationId,
+                category: 'tier_upgrade',
+                title: `Congratulazioni! Sei ${newTierName}!`,
+                message: `Sei passato da ${oldTierName} a ${newTierName}! Continua così!`,
+                is_read: false,
+                metadata: {
+                    oldTierName: oldTierName,
+                    newTierName: newTierName,
+                    newTierColor: newTierColor,
+                    multiplier: newTier.multiplier
+                },
+                animation_type: 'tier_upgrade',
+                created_at: new Date().toISOString()
+            })
+    }
+
+    return {
+        success: true,
+        customer_name: displayName,
+        amount: amount,
+        points_earned: pointsEarned,
+        new_total_points: newTotalPoints,
+        transaction_id: 'generated'
     }
 }
 
@@ -378,18 +729,24 @@ async function sendPushNotification(input: any, supabaseClient: any, organizatio
     let targetUsers: string[] = []
 
     if (target === 'all') {
-        const { data: users } = await supabaseClient
+        let query = supabaseClient
             .from('customers')
             .select('id')
-            .eq('organization_id', organizationId)
+
+        query = applyOrgFilter(query, organizationId)
+
+        const { data: users } = await query
 
         targetUsers = users?.map((u: any) => u.id) || []
     } else if (target.startsWith('tier_')) {
         const tierName = target.replace('tier_', '')
-        const { data: users } = await supabaseClient
+        let query = supabaseClient
             .from('customers')
             .select('id')
-            .eq('organization_id', organizationId)
+
+        query = applyOrgFilter(query, organizationId)
+
+        const { data: users } = await query
             .eq('tier', tierName)
 
         targetUsers = users?.map((u: any) => u.id) || []
@@ -397,10 +754,13 @@ async function sendPushNotification(input: any, supabaseClient: any, organizatio
         const thirtyDaysAgo = new Date()
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-        const { data: users } = await supabaseClient
+        let query = supabaseClient
             .from('customers')
             .select('id')
-            .eq('organization_id', organizationId)
+
+        query = applyOrgFilter(query, organizationId)
+
+        const { data: users } = await query
             .lt('last_visit', thirtyDaysAgo.toISOString())
 
         targetUsers = users?.map((u: any) => u.id) || []
@@ -444,10 +804,13 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
     const result: any = {}
 
     // Get transactions
-    const { data: transactions } = await supabaseClient
+    let txQuery = supabaseClient
         .from('transaction')
         .select('amount, created_at')
-        .eq('organization_id', organizationId)
+
+    txQuery = applyOrgFilter(txQuery, organizationId)
+
+    const { data: transactions } = await txQuery
         .gte('created_at', startDate.toISOString())
         .lte('created_at', now.toISOString())
 
@@ -479,6 +842,41 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
     }
 }
 
+function formatCustomerName(c: any) {
+    // Check for invalid name strings
+    let name = c.name
+
+    // Normalize to check for bad values
+    const lowerName = String(name).toLowerCase().trim()
+
+    if (!name ||
+        lowerName === 'undefined' ||
+        lowerName === 'null' ||
+        lowerName === 'undefined undefined' ||
+        lowerName === 'null null' ||
+        lowerName.includes('undefined')) {
+        name = null
+    }
+
+    if (name) return name
+
+    // Fallback to first/last name
+    if (c.first_name || c.last_name) {
+        const first = c.first_name || ''
+        const last = c.last_name || ''
+        const combined = `${first} ${last}`.trim()
+
+        if (combined && combined !== 'undefined undefined') {
+            return combined
+        }
+    }
+
+    // Fallback to email
+    if (c.email) return c.email
+
+    return 'Cliente senza nome'
+}
+
 async function getCustomerInfo(input: any, supabaseClient: any, organizationId: string | null) {
     const { customer_id } = input
 
@@ -486,7 +884,8 @@ async function getCustomerInfo(input: any, supabaseClient: any, organizationId: 
     let query = supabaseClient
         .from('customers')
         .select('*')
-        .eq('organization_id', organizationId)
+
+    query = applyOrgFilter(query, organizationId)
 
     // Check if input looks like email
     if (customer_id.includes('@')) {
@@ -504,7 +903,9 @@ async function getCustomerInfo(input: any, supabaseClient: any, organizationId: 
     return {
         success: true,
         customer: {
-            name: `${customer.first_name} ${customer.last_name}`,
+            name: formatCustomerName(customer),
+            first_name: customer.first_name,
+            last_name: customer.last_name,
             email: customer.email,
             phone: customer.phone,
             points: customer.points || 0,
@@ -517,18 +918,292 @@ async function getCustomerInfo(input: any, supabaseClient: any, organizationId: 
     }
 }
 
+function calculateTier(points: number, loyaltyTiers: any[]): any {
+    if (!loyaltyTiers || loyaltyTiers.length === 0) {
+        // Fallback defaults
+        if (points >= 1000) return { name: 'Platinum', multiplier: 2, color: '#e5e7eb' }
+        if (points >= 500) return { name: 'Gold', multiplier: 1.5, color: '#f59e0b' }
+        if (points >= 200) return { name: 'Silver', multiplier: 1.2, color: '#64748b' }
+        return { name: 'Bronze', multiplier: 1, color: '#a3a3a3' }
+    }
+
+    // Tiers are already sorted by threshold desc
+    for (const tier of loyaltyTiers) {
+        if (points >= parseFloat(tier.threshold)) {
+            return {
+                name: tier.name,
+                multiplier: parseFloat(tier.multiplier) || 1,
+                color: tier.color || '#64748b',
+                threshold: parseFloat(tier.threshold)
+            }
+        }
+    }
+
+    // Fallback to lowest
+    const firstTier = loyaltyTiers[loyaltyTiers.length - 1]
+    return {
+        name: firstTier.name,
+        multiplier: parseFloat(firstTier.multiplier) || 1,
+        color: firstTier.color || '#64748b',
+        threshold: parseFloat(firstTier.threshold)
+    }
+}
+
+async function getCustomerTransactions(input: any, supabaseClient: any, organizationId: string | null) {
+    let { customer_id, limit = 5 } = input
+
+    // If customer_id is an email, resolve it to UUID
+    if (customer_id && customer_id.includes('@')) {
+        let emailQuery = supabaseClient
+            .from('customers')
+            .select('id')
+
+        emailQuery = applyOrgFilter(emailQuery, organizationId)
+
+        const { data: customer, error: customerError } = await emailQuery
+            .eq('email', customer_id)
+            .single()
+
+        if (customerError || !customer) {
+            return { success: false, error: `Cliente con email ${customer_id} non trovato` }
+        }
+
+        customer_id = customer.id
+    }
+
+    // Fetch from transaction table
+    let txQuery = supabaseClient
+        .from('transaction')
+        .select('*')
+        .eq('customer_id', customer_id)
+
+    txQuery = applyOrgFilter(txQuery, organizationId)
+
+    const { data: transactions, error } = await txQuery
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+    if (error) {
+        console.error('❌ DB Error in getCustomerTransactions:', error)
+        return { success: false, error: `Errore database: ${error.message}` }
+    }
+
+    return {
+        success: true,
+        count: transactions.length,
+        transactions: transactions.map(t => ({
+            date: new Date(t.created_at).toLocaleDateString('it-IT'),
+            amount: t.amount,
+            points: t.points,
+            description: t.description || 'Transazione'
+        }))
+    }
+}
+
+async function createCoupon(input: any, supabaseClient: any, organizationId: string | null) {
+    const { code, discount_value, type, duration_days = 7, title } = input
+
+    const validFrom = new Date()
+    const validUntil = new Date()
+    validUntil.setDate(validUntil.getDate() + duration_days)
+
+    const couponTitle = title || `Sconto ${code}`
+    const description = `Sconto del ${discount_value}${type === 'percentage' ? '%' : '€'} valido per ${duration_days} giorni`
+
+    const { data: coupon, error } = await supabaseClient
+        .from('coupons')
+        .insert({
+            organization_id: organizationId,
+            code: code.toUpperCase(),
+            type: type,
+            value: discount_value.toString(),
+            duration_type: 'standard',
+            valid_from: validFrom.toISOString(),
+            valid_until: validUntil.toISOString(),
+            status: 'active',
+            title: couponTitle,
+            description: description,
+            usage_limit: 100, // Default limit
+            is_flash: false
+        })
+        .select()
+        .single()
+
+    if (error) {
+        console.error('❌ DB Error in createCoupon:', error)
+        return { success: false, error: `Errore creazione coupon: ${error.message}` }
+    }
+
+    return {
+        success: true,
+        coupon_code: coupon.code,
+        discount: `${discount_value}${type === 'percentage' ? '%' : '€'}`,
+        valid_until: validUntil.toLocaleDateString('it-IT')
+    }
+}
+
+async function getChurnRiskCustomers(input: any, supabaseClient: any, organizationId: string | null) {
+    const { days_since_last_visit = 30, limit = 10 } = input
+
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - days_since_last_visit)
+
+    let query = supabaseClient
+        .from('customers')
+        .select('id, name, first_name, last_name, email, last_visit, total_spent')
+
+    query = applyOrgFilter(query, organizationId)
+
+    const { data: customers, error } = await query
+        .lt('last_visit', cutoffDate.toISOString())
+        .order('last_visit', { ascending: true }) // Mostra prima chi manca da più tempo
+        .limit(limit)
+
+    if (error) {
+        console.error('❌ DB Error in getChurnRiskCustomers:', error)
+        return { success: false, error: `Errore database: ${error.message}` }
+    }
+
+    return {
+        success: true,
+        count: customers.length,
+        days_threshold: days_since_last_visit,
+        customers: customers.map(c => ({
+            name: c.first_name ? `${c.first_name} ${c.last_name}` : c.name,
+            email: c.email,
+            last_visit: new Date(c.last_visit).toLocaleDateString('it-IT'),
+            days_absent: Math.floor((new Date().getTime() - new Date(c.last_visit).getTime()) / (1000 * 3600 * 24))
+        }))
+    }
+}
+
+async function getBirthdayCustomers(input: any, supabaseClient: any, organizationId: string | null) {
+    const { days_ahead = 0, limit = 10 } = input
+
+    // Logic to find birthdays is tricky in SQL/Supabase without raw SQL functions for date parts
+    // We will fetch customers with birth_date not null and filter in JS for simplicity/robustness with small datasets
+    // For large datasets, a proper RPC or SQL view would be better.
+
+    console.log(`🔍 Searching birthdays for organization: ${organizationId}`)
+
+    let query = supabaseClient
+        .from('customers')
+        .select('id, name, first_name, last_name, email, birth_date, points, organization_id')
+
+    query = applyOrgFilter(query, organizationId)
+
+    const { data: customers, error } = await query
+        .not('birth_date', 'is', null)
+        .limit(1000) // Fetch a reasonable batch to filter
+
+    console.log(`📊 Query returned ${customers?.length || 0} customers with birth_date`)
+
+    if (error) {
+        console.error('❌ DB Error in getBirthdayCustomers:', error)
+        return { success: false, error: `Errore database: ${error.message}` }
+    }
+
+    if (customers && customers.length > 0) {
+        console.log(`📝 Sample customers:`, customers.slice(0, 3).map(c => ({
+            name: c.first_name || c.name,
+            birth_date: c.birth_date,
+            org_id: c.organization_id
+        })))
+    }
+
+    // Convert to Italian timezone (Europe/Rome, UTC+1)
+    const nowUTC = new Date()
+
+    // Get Italy time string and parse it
+    const italyTimeString = nowUTC.toLocaleString('en-US', { timeZone: 'Europe/Rome' })
+    const nowItaly = new Date(italyTimeString)
+    nowItaly.setDate(nowItaly.getDate() + days_ahead)
+
+    // Extract month and day in Italian timezone
+    const targetMonth = nowItaly.getMonth() + 1 // 0-indexed, returns 1-12
+    const targetDay = nowItaly.getDate()
+
+    console.log(`🎂 Looking for birthdays on ${targetDay}/${targetMonth}`)
+    console.log(`🎂 UTC: ${nowUTC.toISOString()}, Italy: ${nowItaly.toLocaleString('it-IT')}`)
+
+    // Filter for matching day/month
+    const birthdayCustomers = customers.filter((c: any) => {
+        if (!c.birth_date) return false
+
+        // Parse date as UTC to avoid timezone issues
+        // birth_date format is typically "YYYY-MM-DD"
+        const dateParts = c.birth_date.split('T')[0].split('-') // Get just the date part
+        const birthMonth = parseInt(dateParts[1], 10)
+        const birthDay = parseInt(dateParts[2], 10)
+
+        console.log(`  Customer: ${c.first_name || c.name}, birth: ${birthDay}/${birthMonth}`)
+
+        return birthMonth === targetMonth && birthDay === targetDay
+    }).slice(0, limit)
+
+    console.log(`🎂 Found ${birthdayCustomers.length} birthday(s)`)
+
+    // Helper to calculate age
+    const calculateAge = (birthDate: string): number => {
+        const dateParts = birthDate.split('T')[0].split('-')
+        const birthYear = parseInt(dateParts[0], 10)
+        const currentYear = nowItaly.getFullYear()
+        return currentYear - birthYear
+    }
+
+    const message = birthdayCustomers.length === 0
+        ? `Nessun compleanno oggi! 🎈`
+        : birthdayCustomers.length === 1
+        ? (() => {
+            const customer = birthdayCustomers[0]
+            const name = customer.first_name ? `${customer.first_name} ${customer.last_name}` : customer.name
+            const age = calculateAge(customer.birth_date)
+            return `🎂 Oggi compie gli anni: ${name} (${age} anni)`
+          })()
+        : `🎂 Oggi compiono gli anni: ${birthdayCustomers.map(c => {
+            const name = c.first_name ? `${c.first_name} ${c.last_name}` : c.name
+            const age = calculateAge(c.birth_date)
+            return `${name} (${age} anni)`
+          }).join(', ')}`
+
+    return {
+        success: true,
+        message: message
+    }
+}
+
 async function searchCustomers(input: any, supabaseClient: any, organizationId: string | null) {
     const { query, tier, inactive_days, limit = 10 } = input
 
     let dbQuery = supabaseClient
         .from('customers')
-        .select('id, first_name, last_name, email, points, tier, last_visit')
-        .eq('organization_id', organizationId)
-        .limit(limit)
+        .select('id, name, first_name, last_name, email, points, tier, last_visit')
 
-    // Search by name or email
+    dbQuery = applyOrgFilter(dbQuery, organizationId)
+
+    dbQuery = dbQuery.limit(limit)
+
+    // Search by name or email - Robust Logic
     if (query) {
-        dbQuery = dbQuery.or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%`)
+        // Check if it's an email
+        if (query.includes('@')) {
+            dbQuery = dbQuery.ilike('email', `%${query}%`)
+        } else {
+            // Split name into parts
+            const nameParts = query.trim().split(/\s+/).map(p => p.toLowerCase())
+
+            // Build OR conditions for each part
+            const orConditions = []
+            for (const part of nameParts) {
+                orConditions.push(`name.ilike.%${part}%`)
+                orConditions.push(`first_name.ilike.%${part}%`)
+                orConditions.push(`last_name.ilike.%${part}%`)
+                orConditions.push(`email.ilike.%${part}%`)
+            }
+
+            // Join with comma for OR
+            dbQuery = dbQuery.or(orConditions.join(','))
+        }
     }
 
     // Filter by tier
@@ -543,19 +1218,34 @@ async function searchCustomers(input: any, supabaseClient: any, organizationId: 
         dbQuery = dbQuery.lt('last_visit', cutoffDate.toISOString())
     }
 
-    const { data: customers } = await dbQuery
+    // Fetch more candidates for JS filtering
+    const { data: customers, error } = await dbQuery.limit(50)
+
+    if (error) {
+        console.error('❌ DB Error in searchCustomers:', error)
+        return {
+            success: false,
+            error: `Errore database: ${error.message}`
+        }
+    }
+
+    console.log('🔍 DEBUG searchCustomers - Raw customers from DB:', JSON.stringify(customers, null, 2))
+
+    const formattedCustomers = customers?.map(c => ({
+        id: c.id,
+        name: formatCustomerName(c),
+        first_name: c.first_name,
+        last_name: c.last_name,
+        email: c.email,
+        points: c.points || 0,
+        tier: c.tier || 'bronze',
+        last_visit: c.last_visit
+    })) || []
 
     return {
         success: true,
         count: customers?.length || 0,
-        customers: customers?.map(c => ({
-            id: c.id,
-            name: `${c.first_name} ${c.last_name}`,
-            email: c.email,
-            points: c.points || 0,
-            tier: c.tier || 'bronze',
-            last_visit: c.last_visit
-        })) || []
+        customers: formattedCustomers
     }
 }
 
@@ -564,10 +1254,13 @@ async function getTopCustomers(input: any, supabaseClient: any, organizationId: 
 
     const orderBy = metric === 'points' ? 'points' : 'total_spent'
 
-    const { data: customers } = await supabaseClient
+    let query = supabaseClient
         .from('customers')
-        .select('id, first_name, last_name, email, points, total_spent, tier')
-        .eq('organization_id', organizationId)
+        .select('id, name, first_name, last_name, email, points, total_spent, tier')
+
+    query = applyOrgFilter(query, organizationId)
+
+    const { data: customers } = await query
         .order(orderBy, { ascending: false })
         .limit(limit)
 
@@ -576,7 +1269,9 @@ async function getTopCustomers(input: any, supabaseClient: any, organizationId: 
         metric,
         count: customers?.length || 0,
         customers: customers?.map(c => ({
-            name: `${c.first_name} ${c.last_name}`,
+            name: formatCustomerName(c),
+            first_name: c.first_name,
+            last_name: c.last_name,
             email: c.email,
             points: c.points || 0,
             total_spent: c.total_spent || 0,
@@ -589,12 +1284,14 @@ async function assignBonusPoints(input: any, supabaseClient: any, organizationId
     const { customer_id, points, reason } = input
 
     // Get current customer points
-    const { data: customer } = await supabaseClient
+    let query = supabaseClient
         .from('customers')
         .select('points, first_name, last_name')
         .eq('id', customer_id)
-        .eq('organization_id', organizationId)
-        .single()
+
+    query = applyOrgFilter(query, organizationId)
+
+    const { data: customer } = await query.single()
 
     if (!customer) {
         return { success: false, error: 'Cliente non trovato' }
@@ -639,8 +1336,8 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
         return { success: false, error: 'Organization ID mancante' }
     }
 
-    // Search for customer by name - be more strict with matching
-    const nameParts = customer_name.trim().split(/\s+/) // Use regex to handle multiple spaces
+    // Search for customer by name using first_name and last_name fields
+    const nameParts = customer_name.trim().split(/\s+/)
     const firstName = nameParts[0]
     const lastName = nameParts.slice(1).join(' ')
 
@@ -654,114 +1351,92 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
     })
 
     // DEBUG: Get all customers for this organization to see what's in the database
-    const { data: allCustomers, error: debugError } = await supabaseClient
+    let debugQuery = supabaseClient
         .from('customers')
-        .select('id, first_name, last_name, email, points, total_spent')
-        .eq('organization_id', organizationId)
+        .select('id, first_name, last_name, name, email, points, total_spent')
+
+    debugQuery = applyOrgFilter(debugQuery, organizationId)
+
+    const { data: allCustomers, error: debugError } = await debugQuery
         .order('created_at', { ascending: false })
         .limit(20)
 
-    console.log('📋 DEBUG - Tutti i clienti nell\'organizzazione:', JSON.stringify(allCustomers, null, 2))
+    console.log('📋 DEBUG - Tutti i clienti:', JSON.stringify(allCustomers, null, 2))
     if (debugError) {
         console.error('📋 DEBUG - Errore query:', debugError)
     }
 
-    // Try exact match first
+    // Level 1: Try exact match on first_name + last_name
     if (lastName) {
-        const { data, error } = await supabaseClient
+        let level1Query = supabaseClient
             .from('customers')
             .select('*')
-            .eq('organization_id', organizationId)
+
+        level1Query = applyOrgFilter(level1Query, organizationId)
+
+        const { data, error } = await level1Query
             .ilike('first_name', firstName)
             .ilike('last_name', lastName)
             .limit(1)
 
-        console.log('🔍 Tentativo 1 (exact match):', { data, error })
+        console.log('🔍 Level 1 (exact match first+last):', { firstName, lastName, data, error })
         if (data && data.length > 0) {
             customer = data[0]
         }
     }
 
-    // If not found, try searching in both first_name and last_name with wildcards
-    if (!customer) {
-        const { data, error } = await supabaseClient
+    // Level 2: Try reversed order (e.g., "Lino Lucci" finds "Lucci Lino")
+    if (!customer && lastName) {
+        let level2Query = supabaseClient
             .from('customers')
             .select('*')
-            .eq('organization_id', organizationId)
-            .or(`first_name.ilike.%${customer_name}%,last_name.ilike.%${customer_name}%`)
+
+        level2Query = applyOrgFilter(level2Query, organizationId)
+
+        const { data, error } = await level2Query
+            .ilike('first_name', lastName)
+            .ilike('last_name', firstName)
             .limit(1)
 
-        console.log('🔍 Tentativo 2 (wildcard search):', { data, error })
+        console.log('🔍 Level 2 (reversed first+last):', { firstName: lastName, lastName: firstName, data, error })
         if (data && data.length > 0) {
             customer = data[0]
         }
     }
 
-    // If still not found, try searching by firstName only
+    // Level 3: Search by first_name only with wildcards
     if (!customer && firstName) {
-        const { data, error } = await supabaseClient
+        let level3Query = supabaseClient
             .from('customers')
             .select('*')
-            .eq('organization_id', organizationId)
+
+        level3Query = applyOrgFilter(level3Query, organizationId)
+
+        const { data, error } = await level3Query
             .ilike('first_name', `%${firstName}%`)
             .limit(1)
 
-        console.log('🔍 Tentativo 3 (first name only):', { data, error })
+        console.log('🔍 Level 3 (first_name wildcard):', { firstName, data, error })
         if (data && data.length > 0) {
             customer = data[0]
         }
     }
 
-    // If still not found, try searching by lastName only
+    // Level 4: Search by last_name only with wildcards
     if (!customer && lastName) {
-        const { data, error } = await supabaseClient
+        let level4Query = supabaseClient
             .from('customers')
             .select('*')
-            .eq('organization_id', organizationId)
+
+        level4Query = applyOrgFilter(level4Query, organizationId)
+
+        const { data, error } = await level4Query
             .ilike('last_name', `%${lastName}%`)
             .limit(1)
 
-        console.log('🔍 Tentativo 4 (last name only):', { data, error })
+        console.log('🔍 Level 4 (last_name wildcard):', { lastName, data, error })
         if (data && data.length > 0) {
             customer = data[0]
-        }
-    }
-
-    // If still not found, try searching in email (for customers without first/last name)
-    if (!customer) {
-        // Remove spaces and search in email
-        const nameWithoutSpaces = customer_name.toLowerCase().replace(/\s+/g, '')
-
-        const { data, error } = await supabaseClient
-            .from('customers')
-            .select('*')
-            .eq('organization_id', organizationId)
-            .ilike('email', `%${nameWithoutSpaces}%`)
-            .limit(1)
-
-        console.log('🔍 Tentativo 5 (email search):', { query: nameWithoutSpaces, data, error })
-        if (data && data.length > 0) {
-            customer = data[0]
-        }
-    }
-
-    // Last resort: try searching each word in email separately
-    if (!customer && nameParts.length > 0) {
-        for (const part of nameParts) {
-            if (part.length < 3) continue // Skip very short parts
-
-            const { data, error } = await supabaseClient
-                .from('customers')
-                .select('*')
-                .eq('organization_id', organizationId)
-                .ilike('email', `%${part.toLowerCase()}%`)
-                .limit(1)
-
-            console.log(`🔍 Tentativo 6 (email part "${part}"):`, { data, error })
-            if (data && data.length > 0) {
-                customer = data[0]
-                break
-            }
         }
     }
 
@@ -777,9 +1452,10 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
 
     console.log('✅ Cliente trovato:', {
         id: customer.id,
-        name: customer.first_name && customer.last_name
-            ? `${customer.first_name} ${customer.last_name}`
-            : customer.email
+        first_name: customer.first_name,
+        last_name: customer.last_name,
+        name: customer.name,
+        email: customer.email
     })
 
     // Get organization settings for points calculation
@@ -865,11 +1541,32 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
 
     console.log('✅ Transazione registrata con successo')
 
+    // Also log to customer_activities table for history display
+    const customerName = customer.first_name && customer.last_name
+        ? `${customer.first_name} ${customer.last_name}`
+        : customer.email
+
+    const { error: activityError } = await supabaseClient
+        .from('customer_activities')
+        .insert({
+            organization_id: organizationId,
+            customer_id: customer.id,
+            type: 'sale',
+            description: `Vendita registrata tramite assistente vocale - €${amount.toFixed(2)} (+${pointsEarned} punti)`,
+            amount: amount,
+            points: pointsEarned
+        })
+
+    if (activityError) {
+        console.error('⚠️ Errore registrazione activity log:', activityError)
+        // Non bloccare l'operazione, il log activity è secondario
+    } else {
+        console.log('✅ Activity log registrato con successo')
+    }
+
     const result = {
         success: true,
-        customer_name: customer.first_name && customer.last_name
-            ? `${customer.first_name} ${customer.last_name}`
-            : customer.email,
+        customer_name: customerName,
         amount: amount,
         points_earned: pointsEarned,
         previous_points: customerPoints,

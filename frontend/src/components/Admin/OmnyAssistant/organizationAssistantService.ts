@@ -13,16 +13,19 @@ export class OrganizationAssistantService {
   private onStateChange?: (state: AssistantState) => void;
   private onError?: (error: string) => void;
   private onMessage?: (message: AssistantMessage) => void;
+  private onToolResult?: (toolName: string, result: any) => void;
   private organizationId: string | null = null;
 
   constructor(
     onStateChange?: (state: AssistantState) => void,
     onError?: (error: string) => void,
-    onMessage?: (message: AssistantMessage) => void
+    onMessage?: (message: AssistantMessage) => void,
+    onToolResult?: (toolName: string, result: any) => void
   ) {
     this.onStateChange = onStateChange;
     this.onError = onError;
     this.onMessage = onMessage;
+    this.onToolResult = onToolResult;
   }
 
   async connect(providedOrgId?: string | null) {
@@ -113,6 +116,9 @@ export class OrganizationAssistantService {
       if (data.tool_use) {
         const { tool_use } = data;
         responseText = this.formatToolResponse(tool_use);
+
+        // Notify listener about tool result (for UI effects)
+        this.onToolResult?.(tool_use.name, tool_use.result);
       } else {
         // Claude risponde con 'content' non 'message'
         responseText = data.content || data.message || 'Nessuna risposta';
@@ -144,7 +150,7 @@ export class OrganizationAssistantService {
   }
 
   private formatToolResponse(tool_use: any): string {
-    let message = `**${tool_use.name}**\n\n`;
+    let message = '';
 
     switch (tool_use.name) {
       case 'get_sales_analytics': {
@@ -166,73 +172,127 @@ export class OrganizationAssistantService {
 
       case 'get_customer_info': {
         const result = tool_use.result;
-        message += `**${result.first_name} ${result.last_name}**\n`;
-        message += `Email: ${result.email}\n`;
-        message += `Tier: ${result.tier}\n`;
-        message += `Punti: ${result.points}\n`;
-        message += `Spesa totale: €${result.total_spent?.toFixed(2) || '0.00'}\n`;
-        message += `Visite: ${result.total_visits || 0}\n`;
+        const name = result.customer.first_name ? `${result.customer.first_name} ${result.customer.last_name}` : result.customer.name;
+        message += `**${name}**\n`;
+        message += `Email: ${result.customer.email}\n`;
+        message += `Tier: ${result.customer.tier}\n`;
+        message += `Punti: ${result.customer.points}\n`;
+        message += `Spesa totale: €${result.customer.total_spent?.toFixed(2) || '0.00'}\n`;
+        message += `Visite: ${result.customer.visits || 0}\n`;
         break;
       }
 
       case 'search_customers': {
         const result = tool_use.result;
-        message += `**Trovati ${result.total_count} clienti**\n\n`;
+        message += `**Trovati ${result.count} clienti**\n\n`;
 
         if (result.customers && result.customers.length > 0) {
           result.customers.forEach((customer: any, index: number) => {
-            message += `${index + 1}. ${customer.first_name} ${customer.last_name}\n`;
+            const name = customer.first_name ? `${customer.first_name} ${customer.last_name}` : customer.name;
+            message += `${index + 1}. **${name}**\n`;
             message += `   Email: ${customer.email} | Tier: ${customer.tier} | Punti: ${customer.points}\n`;
           });
         }
         break;
       }
 
+      case 'get_customer_transactions': {
+        const result = tool_use.result;
+        if (result.success) {
+          message += `**Storico Transazioni (${result.count})**\n\n`;
+          if (result.transactions && result.transactions.length > 0) {
+            result.transactions.forEach((t: any) => {
+              message += `• ${t.date}: **€${t.amount}** (${t.points} punti)\n`;
+              message += `  _${t.description}_\n`;
+            });
+          } else {
+            message += `Nessuna transazione trovata.\n`;
+          }
+        } else {
+          message += `❌ Errore: ${result.error}\n`;
+        }
+        break;
+      }
+
+      case 'create_coupon': {
+        const result = tool_use.result;
+        if (result.success) {
+          message += `**✅ Coupon Creato!**\n\n`;
+          message += `Codice: **${result.coupon_code}**\n`;
+          message += `Sconto: ${result.discount}\n`;
+          message += `Scadenza: ${result.valid_until}\n`;
+        } else {
+          message += `❌ Errore creazione coupon: ${result.error}\n`;
+        }
+        break;
+      }
+
+      case 'get_churn_risk_customers': {
+        const result = tool_use.result;
+        if (result.success) {
+          message += `**⚠️ Clienti a Rischio (${result.count})**\n`;
+          message += `Assenti da oltre ${result.days_threshold} giorni:\n\n`;
+
+          if (result.customers && result.customers.length > 0) {
+            result.customers.forEach((c: any, index: number) => {
+              message += `${index + 1}. **${c.name}**\n`;
+              message += `   Assente da: ${c.days_absent} giorni (${c.last_visit})\n`;
+              message += `   Email: ${c.email}\n`;
+            });
+          } else {
+            message += `Nessun cliente a rischio trovato! 🎉\n`;
+          }
+        } else {
+          message += `❌ Errore: ${result.error}\n`;
+        }
+        break;
+      }
+
+      case 'get_birthday_customers': {
+        const result = tool_use.result;
+        // The tool returns a pre-formatted message - use it directly
+        message = result.message || result.error || 'Errore sconosciuto';
+        break;
+      }
+
       case 'get_top_customers': {
         const result = tool_use.result;
-        message += `**Top ${result.customers.length} Clienti**\n`;
-        message += `Ordinati per: ${result.sort_by}\n\n`;
+        message += `**Top ${result.count} Clienti**\n`;
+        message += `Ordinati per: ${result.metric === 'points' ? 'punti' : 'spesa'}\n\n`;
 
         result.customers.forEach((customer: any, index: number) => {
-          message += `${index + 1}. ${customer.first_name} ${customer.last_name}\n`;
-          message += `   Punti: ${customer.points} | Totale speso: €${customer.total_spent?.toFixed(2)}\n`;
+          const name = customer.first_name ? `${customer.first_name} ${customer.last_name}` : customer.name;
+          message += `${index + 1}. **${name}**\n`;
+          const value = result.metric === 'points' ? `${customer.points} punti` : `€${customer.total_spent?.toFixed(2)}`;
+          message += `   ${value} | Tier: ${customer.tier}\n`;
         });
         break;
       }
 
       case 'assign_bonus_points': {
         const result = tool_use.result;
-        message += `**Punti assegnati con successo**\n\n`;
-        message += `Cliente: ${result.customer_name}\n`;
-        message += `Punti bonus: +${result.points_assigned}\n`;
-        message += `Motivo: ${result.reason}\n`;
-        message += `Nuovo totale: ${result.new_total} punti\n`;
+        if (result.success) {
+          message += `**✅ Punti assegnati con successo**\n\n`;
+          message += `Cliente: ${result.customer_name}\n`;
+          message += `Punti bonus: +${result.points_added}\n`;
+          message += `Motivo: ${result.reason}\n`;
+          message += `Nuovo totale: ${result.new_total} punti\n`;
+        } else {
+          message += `❌ ${result.error}\n`;
+        }
         break;
       }
 
-      case 'send_push_notification': {
-        const result = tool_use.result;
-        message += `**Notifica Preparata**\n\n`;
-        message += `Titolo: "${result.title}"\n`;
-        message += `Messaggio: "${result.message}"\n`;
-        message += `Target: ${result.target_segment}\n`;
-        message += `Destinatari: ${result.target_count} clienti\n`;
-        break;
-      }
-
-      case 'record_sale': {
+      case 'register_sale': {
         const result = tool_use.result;
         if (result.success) {
-          message += `**Vendita Registrata**\n\n`;
+          message += `**✅ Vendita Registrata**\n\n`;
           message += `Cliente: ${result.customer_name}\n`;
-          message += `Importo: €${result.amount.toFixed(2)}\n`;
+          message += `Importo: €${result.amount}\n`;
           message += `Punti guadagnati: +${result.points_earned}\n`;
-          if (result.tier_multiplier > 1) {
-            message += `Moltiplicatore ${result.tier}: ${result.tier_multiplier}x\n`;
-          }
-          message += `Punti totali: ${result.new_total_points}\n`;
+          message += `Nuovo totale: ${result.new_total_points} punti\n`;
         } else {
-          message += `**Errore**\n\n`;
+          message += `**❌ Errore**\n\n`;
           message += `${result.error}\n`;
         }
         break;
