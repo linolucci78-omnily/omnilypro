@@ -39,37 +39,60 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
 
   // Text-to-Speech function
   const speak = useCallback((text: string) => {
-    if ('speechSynthesis' in window) {
-      // Cancel any current speech
-      window.speechSynthesis.cancel();
+    console.log('🔊 speak() called with text:', text);
 
-      // Strip markdown symbols for cleaner speech
-      const cleanText = text.replace(/[*#_`]/g, '').replace(/\n/g, ' ');
-
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'it-IT';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-
-      // Try to find Italian voice
-      const voices = window.speechSynthesis.getVoices();
-      const italianVoice = voices.find(v => v.lang === 'it-IT' && v.name.includes('Google')) || voices.find(v => v.lang === 'it-IT');
-      if (italianVoice) {
-        utterance.voice = italianVoice;
-      }
-
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-        setAssistantState(AssistantState.SPEAKING);
-      };
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        setAssistantState(AssistantState.LISTENING);
-      };
-
-      console.log('🔊 Speaking:', cleanText);
-      window.speechSynthesis.speak(utterance);
+    if (!('speechSynthesis' in window)) {
+      console.error('❌ speechSynthesis NOT available in window');
+      return;
     }
+
+    console.log('✅ speechSynthesis available');
+
+    // Cancel any current speech
+    window.speechSynthesis.cancel();
+
+    // Strip markdown symbols for cleaner speech
+    const cleanText = text.replace(/[*#_`]/g, '').replace(/\n/g, ' ');
+    console.log('🔊 Clean text:', cleanText);
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'it-IT';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    // Try to find Italian voice
+    const voices = window.speechSynthesis.getVoices();
+    console.log('🔊 Available voices:', voices.length, voices.map(v => `${v.name} (${v.lang})`));
+
+    const italianVoice = voices.find(v => v.lang === 'it-IT' && v.name.includes('Google')) || voices.find(v => v.lang === 'it-IT');
+    if (italianVoice) {
+      console.log('🔊 Using Italian voice:', italianVoice.name);
+      utterance.voice = italianVoice;
+    } else {
+      console.warn('⚠️ No Italian voice found, using default');
+    }
+
+    utterance.onstart = () => {
+      console.log('🔊 TTS started');
+      setIsSpeaking(true);
+      setAssistantState(AssistantState.SPEAKING);
+    };
+
+    utterance.onend = () => {
+      console.log('🔊 TTS ended');
+      setIsSpeaking(false);
+      setAssistantState(AssistantState.LISTENING);
+    };
+
+    utterance.onerror = (event) => {
+      console.error('❌ TTS error:', event);
+      setIsSpeaking(false);
+      setAssistantState(AssistantState.LISTENING);
+    };
+
+    console.log('🔊 Calling speechSynthesis.speak()...');
+    window.speechSynthesis.speak(utterance);
+    console.log('🔊 speechSynthesis.speak() called');
   }, []);
 
   // Initialize service
