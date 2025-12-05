@@ -445,7 +445,7 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
 
     // Get transactions
     const { data: transactions } = await supabaseClient
-        .from('transactions')
+        .from('transaction')
         .select('amount, created_at')
         .eq('organization_id', organizationId)
         .gte('created_at', startDate.toISOString())
@@ -610,7 +610,7 @@ async function assignBonusPoints(input: any, supabaseClient: any, organizationId
 
     // Log the transaction
     await supabaseClient
-        .from('transactions')
+        .from('transaction')
         .insert({
             customer_id,
             organization_id: organizationId,
@@ -844,7 +844,7 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
 
     // Record transaction
     const { error: transactionError } = await supabaseClient
-        .from('transactions')
+        .from('transaction')
         .insert({
             customer_id: customer.id,
             organization_id: organizationId,
