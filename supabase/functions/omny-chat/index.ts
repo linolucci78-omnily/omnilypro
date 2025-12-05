@@ -828,8 +828,7 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
         .update({
             points: newTotalPoints,
             total_spent: newTotalSpent,
-            last_visit: new Date().toISOString(),
-            visit_count: (customer.visit_count || 0) + 1
+            last_visit: new Date().toISOString()
         })
         .eq('id', customer.id)
 
