@@ -184,7 +184,7 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
   }, []);
 
   // Voice Recognition
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     console.log('🔍 Inizio test riconoscimento vocale...');
 
     // Test if API exists
@@ -197,7 +197,24 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
 
     console.log('✅ API Speech Recognition disponibile');
 
-    // Initialize speech recognition directly (permissions already granted on Android)
+    // Check if running in Android WebView (permissions already granted at app level)
+    const isAndroidWebView = typeof (window as any).OmnilyPOS !== 'undefined';
+
+    // Request microphone permission for web browsers (not needed for Android WebView)
+    if (!isAndroidWebView && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        console.log('🎤 Richiesta permesso microfono (browser web)...');
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Permesso microfono concesso');
+      } catch (err) {
+        console.error('❌ Permesso microfono negato:', err);
+        setErrorMsg('Permesso microfono negato. Abilita il microfono nelle impostazioni del browser.');
+        setAssistantState(AssistantState.ERROR);
+        return;
+      }
+    }
+
+    // Initialize speech recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.lang = 'it-IT';
