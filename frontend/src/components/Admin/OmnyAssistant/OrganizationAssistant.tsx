@@ -159,114 +159,100 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
 
     console.log('✅ API Speech Recognition disponibile');
 
-    // Request microphone permission first
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then((stream) => {
-        console.log('✅ Permesso microfono ottenuto');
+    // Initialize speech recognition directly (permissions already granted on Android)
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.lang = 'it-IT';
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.maxAlternatives = 1;
 
-        // Stop the stream immediately (we just needed permission)
-        stream.getTracks().forEach(track => track.stop());
+    recognitionRef.current.onstart = () => {
+      console.log('✅ 🎤 Ascolto ATTIVATO - Parla ora!');
+      setIsListening(true);
+      setAssistantState(AssistantState.LISTENING);
+      setErrorMsg(null);
+    };
 
-        // Now start speech recognition
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.lang = 'it-IT';
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.maxAlternatives = 1;
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+      // Torna a LISTENING dopo aver processato, non a IDLE
+      if (assistantState !== AssistantState.THINKING && assistantState !== AssistantState.SPEAKING) {
+        setAssistantState(AssistantState.LISTENING);
+      }
+      console.log('🎤 Ascolto terminato');
+    };
 
-        recognitionRef.current.onstart = () => {
-          console.log('✅ 🎤 Ascolto ATTIVATO - Parla ora!');
-          setIsListening(true);
-          setAssistantState(AssistantState.LISTENING);
-          setErrorMsg(null);
-        };
+    recognitionRef.current.onresult = (event: any) => {
+      console.log('📥 onresult triggered! Event:', event);
+      console.log('📊 Results length:', event.results.length);
 
-      recognitionRef.current.onend = () => {
+      let interim = '';
+      let final = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        const isFinal = event.results[i].isFinal;
+        console.log(`Result [${i}]: "${transcript}" (isFinal: ${isFinal})`);
+
+        if (isFinal) {
+          final += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+
+      // Show interim results as user speaks
+      if (interim) {
+        console.log('✏️ 🎤 Interim (stai parlando):', interim);
+        setInterimTranscript(interim);
+      }
+
+      // When final result is ready, send message
+      if (final) {
+        console.log('✅ 🎤 Final riconosciuto:', final);
+        setInterimTranscript('');
         setIsListening(false);
-        // Torna a LISTENING dopo aver processato, non a IDLE
-        if (assistantState !== AssistantState.THINKING && assistantState !== AssistantState.SPEAKING) {
-          setAssistantState(AssistantState.LISTENING);
-        }
-        console.log('🎤 Ascolto terminato');
-      };
+        handleSendText(final);
+      }
+    };
 
-      recognitionRef.current.onresult = (event: any) => {
-        console.log('📥 onresult triggered! Event:', event);
-        console.log('📊 Results length:', event.results.length);
+    recognitionRef.current.onerror = (event: any) => {
+      console.error('❌ 🎤 ERRORE riconoscimento:', event.error);
+      setIsListening(false);
+      setInterimTranscript('');
 
-        let interim = '';
-        let final = '';
-
-        for (let i = 0; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          const isFinal = event.results[i].isFinal;
-          console.log(`Result [${i}]: "${transcript}" (isFinal: ${isFinal})`);
-
-          if (isFinal) {
-            final += transcript;
-          } else {
-            interim += transcript;
-          }
-        }
-
-        // Show interim results as user speaks
-        if (interim) {
-          console.log('✏️ 🎤 Interim (stai parlando):', interim);
-          setInterimTranscript(interim);
-        }
-
-        // When final result is ready, send message
-        if (final) {
-          console.log('✅ 🎤 Final riconosciuto:', final);
-          setInterimTranscript('');
-          setIsListening(false);
-          handleSendText(final);
-        }
-      };
-
-        recognitionRef.current.onerror = (event: any) => {
-          console.error('❌ 🎤 ERRORE riconoscimento:', event.error);
-          setIsListening(false);
-          setInterimTranscript('');
-
-          // Handle specific errors
-          if (event.error === 'no-speech') {
-            console.log('⏳ Nessun parlato rilevato, riprova...');
-            setAssistantState(AssistantState.LISTENING);
-            // Non mostrare errore per no-speech, è normale
-          } else if (event.error === 'aborted') {
-            console.log('🛑 Riconoscimento interrotto');
-            setAssistantState(AssistantState.LISTENING);
-          } else if (event.error === 'not-allowed') {
-            console.error('❌ Permesso microfono NEGATO');
-            setErrorMsg('Permesso microfono negato. Abilita il microfono nelle impostazioni del browser.');
-            setAssistantState(AssistantState.ERROR);
-          } else if (event.error === 'network') {
-            console.error('❌ Errore di rete');
-            setErrorMsg('Errore di connessione. Verifica la connessione internet.');
-            setAssistantState(AssistantState.ERROR);
-          } else {
-            console.error('❌ Errore sconosciuto:', event.error);
-            setErrorMsg(`Errore: ${event.error}`);
-            setAssistantState(AssistantState.ERROR);
-          }
-        };
-
-        try {
-          console.log('🚀 Avvio riconoscimento vocale...');
-          recognitionRef.current.start();
-        } catch (err) {
-          console.error('❌ Errore start recognition:', err);
-          setErrorMsg('Impossibile avviare il riconoscimento vocale');
-          setAssistantState(AssistantState.ERROR);
-        }
-      })
-      .catch((err) => {
-        console.error('❌ Errore permesso microfono:', err);
-        setErrorMsg('Permesso microfono negato. Controlla le impostazioni del browser.');
+      // Handle specific errors
+      if (event.error === 'no-speech') {
+        console.log('⏳ Nessun parlato rilevato, riprova...');
+        setAssistantState(AssistantState.LISTENING);
+        // Non mostrare errore per no-speech, è normale
+      } else if (event.error === 'aborted') {
+        console.log('🛑 Riconoscimento interrotto');
+        setAssistantState(AssistantState.LISTENING);
+      } else if (event.error === 'not-allowed') {
+        console.error('❌ Permesso microfono NEGATO');
+        setErrorMsg('Permesso microfono negato. Abilita il microfono nelle impostazioni del browser.');
         setAssistantState(AssistantState.ERROR);
-      });
+      } else if (event.error === 'network') {
+        console.error('❌ Errore di rete');
+        setErrorMsg('Errore di connessione. Verifica la connessione internet.');
+        setAssistantState(AssistantState.ERROR);
+      } else {
+        console.error('❌ Errore sconosciuto:', event.error);
+        setErrorMsg(`Errore: ${event.error}`);
+        setAssistantState(AssistantState.ERROR);
+      }
+    };
+
+    try {
+      console.log('🚀 Avvio riconoscimento vocale...');
+      recognitionRef.current.start();
+    } catch (err) {
+      console.error('❌ Errore start recognition:', err);
+      setErrorMsg('Impossibile avviare il riconoscimento vocale');
+      setAssistantState(AssistantState.ERROR);
+    }
   }, [handleSendText, assistantState]);
 
   const stopListening = useCallback(() => {
