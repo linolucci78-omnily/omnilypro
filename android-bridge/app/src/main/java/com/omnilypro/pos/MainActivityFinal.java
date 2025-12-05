@@ -27,6 +27,7 @@ import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.text.Layout;
 import android.text.Layout.Alignment;
 import android.util.Log;
@@ -112,6 +113,10 @@ public class MainActivityFinal extends AppCompatActivity {
     private ComponentName mAdminComponent;
     private BroadcastReceiver mdmCommandReceiver;
 
+    // Text-to-Speech
+    private TextToSpeech textToSpeech;
+    private boolean ttsInitialized = false;
+
     private static final int REQUEST_PERMISSIONS_CODE = 101;
     private static final int FILE_CHOOSER_REQUEST_CODE = 102;
     private android.webkit.ValueCallback<android.net.Uri[]> filePathCallback;
@@ -155,6 +160,9 @@ public class MainActivityFinal extends AppCompatActivity {
 
         // Inizializza Device Admin per MDM. Questo metodo ora gestirà i permessi.
         setupDeviceAdmin();
+
+        // Initialize Text-to-Speech
+        setupTextToSpeech();
 
         // Il resto della logica di avvio che dipende dai permessi va qui.
         Log.i(TAG, "Initializing MDM system...");
@@ -1956,6 +1964,38 @@ public class MainActivityFinal extends AppCompatActivity {
                 }
             }
         }
+
+        @JavascriptInterface
+        public void speak(String text) {
+            Log.d(TAG, "🔊 speak() called with text: " + text);
+
+            if (!ttsInitialized) {
+                Log.e(TAG, "❌ TTS not initialized");
+                return;
+            }
+
+            if (textToSpeech == null) {
+                Log.e(TAG, "❌ textToSpeech is null");
+                return;
+            }
+
+            runOnUiThread(() -> {
+                try {
+                    // Stop any current speech
+                    textToSpeech.stop();
+
+                    // Speak the text
+                    int result = textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "TTS_ID");
+                    if (result == TextToSpeech.SUCCESS) {
+                        Log.d(TAG, "✅ TTS started successfully");
+                    } else {
+                        Log.e(TAG, "❌ TTS speak() failed with result: " + result);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "❌ Error in TTS speak()", e);
+                }
+            });
+        }
     }
 
     // ============================================================================
@@ -2010,6 +2050,27 @@ public class MainActivityFinal extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "❌ Error setting up Device Admin", e);
         }
+    }
+
+    private void setupTextToSpeech() {
+        Log.d(TAG, "🔊 Initializing Text-to-Speech...");
+
+        textToSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = textToSpeech.setLanguage(java.util.Locale.ITALIAN);
+
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e(TAG, "❌ Italian language not supported for TTS");
+                    ttsInitialized = false;
+                } else {
+                    Log.d(TAG, "✅ TTS initialized successfully with Italian language");
+                    ttsInitialized = true;
+                }
+            } else {
+                Log.e(TAG, "❌ TTS initialization failed");
+                ttsInitialized = false;
+            }
+        });
     }
 
     private void registerMdmCommandReceiver() {
@@ -2220,6 +2281,13 @@ public class MainActivityFinal extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e(TAG, "Error unregistering MDM receiver", e);
             }
+        }
+
+        // Shutdown Text-to-Speech
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+            Log.d(TAG, "🔊 TTS shutdown");
         }
 
         if (customerPresentation != null) {

@@ -143,64 +143,64 @@ const POSDashboardWrapper: React.FC<POSDashboardWrapperProps> = ({ currentOrgani
         className="omny-assistant-fab-pos"
         style={{
           position: 'fixed',
-          bottom: '2rem',
+          bottom: '1.5rem',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '96px',
-          height: '96px',
+          width: '64px',
+          height: '64px',
           borderRadius: '50%',
           background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
           border: 'none',
-          boxShadow: '0 8px 32px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 6px 24px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
           cursor: 'pointer',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '8px',
+          gap: '4px',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           zIndex: 1000
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateX(-50%) scale(1.1)';
-          e.currentTarget.style.boxShadow = '0 12px 48px rgba(220, 38, 38, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15)';
+          e.currentTarget.style.boxShadow = '0 8px 32px rgba(220, 38, 38, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
-          e.currentTarget.style.boxShadow = '0 8px 32px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+          e.currentTarget.style.boxShadow = '0 6px 24px rgba(220, 38, 38, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
         }}
       >
         {/* Microfono */}
-        <Mic size={32} color="white" strokeWidth={2} />
+        <Mic size={22} color="white" strokeWidth={2} />
 
         {/* Google Color Dots */}
         <div style={{
           display: 'flex',
-          gap: '4px',
+          gap: '3px',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
           <div style={{
-            width: '6px',
-            height: '6px',
+            width: '4px',
+            height: '4px',
             borderRadius: '50%',
             background: '#4285F4'
           }} />
           <div style={{
-            width: '6px',
-            height: '6px',
+            width: '4px',
+            height: '4px',
             borderRadius: '50%',
             background: '#DB4437'
           }} />
           <div style={{
-            width: '6px',
-            height: '6px',
+            width: '4px',
+            height: '4px',
             borderRadius: '50%',
             background: '#F4B400'
           }} />
           <div style={{
-            width: '6px',
-            height: '6px',
+            width: '4px',
+            height: '4px',
             borderRadius: '50%',
             background: '#0F9D58'
           }} />

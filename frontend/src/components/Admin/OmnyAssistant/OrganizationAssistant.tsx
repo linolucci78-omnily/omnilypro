@@ -41,45 +41,62 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
   const speak = useCallback((text: string) => {
     console.log('🔊 speak() called with text:', text);
 
-    if (!('speechSynthesis' in window)) {
-      console.error('❌ speechSynthesis NOT available in window');
-      return;
-    }
-
-    console.log('✅ speechSynthesis available');
-
-    // Cancel any current speech
-    window.speechSynthesis.cancel();
-
     // Strip markdown symbols for cleaner speech
     const cleanText = text.replace(/[*#_`]/g, '').replace(/\n/g, ' ');
     console.log('🔊 Clean text:', cleanText);
+
+    // Check if we're running in Android WebView with TTS bridge
+    const hasAndroidBridge = typeof (window as any).Android !== 'undefined' &&
+                             typeof (window as any).Android.speak === 'function';
+
+    if (hasAndroidBridge) {
+      console.log('🔊 Using Android native TTS');
+      try {
+        setIsSpeaking(true);
+        setAssistantState(AssistantState.SPEAKING);
+        (window as any).Android.speak(cleanText);
+
+        // Since Android TTS doesn't have callbacks, simulate end after estimated duration
+        const estimatedDuration = cleanText.length * 50; // ~50ms per character
+        setTimeout(() => {
+          setIsSpeaking(false);
+          setAssistantState(AssistantState.LISTENING);
+        }, estimatedDuration);
+
+        console.log('✅ Android TTS called');
+        return;
+      } catch (err) {
+        console.error('❌ Error calling Android TTS:', err);
+        // Fall through to web TTS
+      }
+    }
+
+    // Fallback to Web Speech API
+    if (!('speechSynthesis' in window)) {
+      console.error('❌ speechSynthesis NOT available and no Android bridge');
+      return;
+    }
+
+    console.log('✅ Using web speechSynthesis');
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'it-IT';
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
 
-    // Try to find Italian voice
     const voices = window.speechSynthesis.getVoices();
-    console.log('🔊 Available voices:', voices.length, voices.map(v => `${v.name} (${v.lang})`));
-
     const italianVoice = voices.find(v => v.lang === 'it-IT' && v.name.includes('Google')) || voices.find(v => v.lang === 'it-IT');
     if (italianVoice) {
-      console.log('🔊 Using Italian voice:', italianVoice.name);
       utterance.voice = italianVoice;
-    } else {
-      console.warn('⚠️ No Italian voice found, using default');
     }
 
     utterance.onstart = () => {
-      console.log('🔊 TTS started');
       setIsSpeaking(true);
       setAssistantState(AssistantState.SPEAKING);
     };
 
     utterance.onend = () => {
-      console.log('🔊 TTS ended');
       setIsSpeaking(false);
       setAssistantState(AssistantState.LISTENING);
     };
@@ -90,9 +107,7 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
       setAssistantState(AssistantState.LISTENING);
     };
 
-    console.log('🔊 Calling speechSynthesis.speak()...');
     window.speechSynthesis.speak(utterance);
-    console.log('🔊 speechSynthesis.speak() called');
   }, []);
 
   // Initialize service
