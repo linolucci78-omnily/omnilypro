@@ -632,28 +632,39 @@ async function assignBonusPoints(input: any, supabaseClient: any, organizationId
 async function recordSale(input: any, supabaseClient: any, organizationId: string | null) {
     const { customer_name, amount } = input
 
+    console.log('🎯 recordSale called:', { customer_name, amount, organizationId })
+
     if (!organizationId) {
+        console.error('❌ Organization ID mancante')
         return { success: false, error: 'Organization ID mancante' }
     }
 
-    // Search for customer by name
-    const nameParts = customer_name.trim().split(' ')
+    // Search for customer by name - be more strict with matching
+    const nameParts = customer_name.trim().split(/\s+/) // Use regex to handle multiple spaces
     const firstName = nameParts[0]
     const lastName = nameParts.slice(1).join(' ')
 
     let customer = null
 
-    console.log('🔍 Ricerca cliente:', { customer_name, firstName, lastName, organizationId })
+    console.log('🔍 Ricerca cliente:', {
+        input_name: customer_name,
+        parsed_firstName: firstName,
+        parsed_lastName: lastName,
+        organizationId
+    })
 
     // DEBUG: Get all customers for this organization to see what's in the database
     const { data: allCustomers, error: debugError } = await supabaseClient
         .from('customers')
-        .select('id, first_name, last_name, email')
+        .select('id, first_name, last_name, email, points, total_spent')
         .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
         .limit(20)
 
-    console.log('📋 DEBUG - Tutti i clienti nell\'organizzazione:', allCustomers)
-    console.log('📋 DEBUG - Errore query:', debugError)
+    console.log('📋 DEBUG - Tutti i clienti nell\'organizzazione:', JSON.stringify(allCustomers, null, 2))
+    if (debugError) {
+        console.error('📋 DEBUG - Errore query:', debugError)
+    }
 
     // Try exact match first
     if (lastName) {
@@ -801,8 +812,18 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
     const newTotalPoints = customerPoints + pointsEarned
     const newTotalSpent = (customer.total_spent || 0) + amount
 
+    console.log('💰 Calculating points:', {
+        amount,
+        pointsPerEuro,
+        tierMultiplier,
+        pointsEarned,
+        customerPoints,
+        newTotalPoints,
+        newTotalSpent
+    })
+
     // Update customer
-    await supabaseClient
+    const { error: updateError } = await supabaseClient
         .from('customers')
         .update({
             points: newTotalPoints,
@@ -812,8 +833,18 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
         })
         .eq('id', customer.id)
 
+    if (updateError) {
+        console.error('❌ Errore aggiornamento cliente:', updateError)
+        return {
+            success: false,
+            error: `Errore durante l'aggiornamento del cliente: ${updateError.message}`
+        }
+    }
+
+    console.log('✅ Cliente aggiornato con successo')
+
     // Record transaction
-    await supabaseClient
+    const { error: transactionError } = await supabaseClient
         .from('transactions')
         .insert({
             customer_id: customer.id,
@@ -825,7 +856,17 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
             created_at: new Date().toISOString()
         })
 
-    return {
+    if (transactionError) {
+        console.error('❌ Errore creazione transazione:', transactionError)
+        return {
+            success: false,
+            error: `Errore durante la registrazione della transazione: ${transactionError.message}`
+        }
+    }
+
+    console.log('✅ Transazione registrata con successo')
+
+    const result = {
         success: true,
         customer_name: customer.first_name && customer.last_name
             ? `${customer.first_name} ${customer.last_name}`
@@ -837,4 +878,8 @@ async function recordSale(input: any, supabaseClient: any, organizationId: strin
         tier: tierName,
         tier_multiplier: tierMultiplier
     }
+
+    console.log('🎉 recordSale completato:', result)
+
+    return result
 }
