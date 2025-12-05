@@ -82,12 +82,14 @@ import ReceiptLayoutEditorPage from './pages/ReceiptLayoutEditorPage'
 import GamingTest from './pages/GamingTest'
 import LotteryDisplayPage from './pages/LotteryDisplayPage'
 import OmnyWalletTestPage from './pages/OmnyWalletTestPage'
+import PushNotifications from './pages/PushNotifications'
 import AdminOmnyDashboard from './components/Admin/Omny/AdminOmnyDashboard'
 import SystemOverview from './components/Admin/SystemOverview'
 import RootAccessControl from './components/Admin/RootAccessControl'
 import FounderManagement from './components/Admin/FounderManagement'
 import StripeConfigDashboard from './components/Admin/StripeConfigDashboard'
 import SuperAdminControlCenter from './components/Admin/SuperAdminControlCenter'
+import OrganizationAssistant from './components/Admin/OmnyAssistant/OrganizationAssistant'
 
 function App() {
   // Registra handler MDM per comandi da Android
@@ -261,6 +263,7 @@ function App() {
                 <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
+                <Route path="/dashboard/push-notifications" element={<ProtectedRoute><><Navbar /><PushNotifications /></></ProtectedRoute>} />
                 <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
                 <Route path="/gaming-test" element={<GamingTest />} />
                 <Route path="/omny-wallet-test" element={<OmnyWalletTestPage />} />
@@ -306,6 +309,7 @@ function App() {
                   <Route path="downloads" element={<Downloads />} />
                   <Route path="omny" element={<AdminOmnyDashboard />} />
                   <Route path="omny-wallet" element={<OmnyWalletTestPage />} />
+                  <Route path="omny-assistant" element={<OrganizationAssistant />} />
                   <Route path="stripe-config" element={<StripeConfigDashboard />} />
                 </Route>
                 <Route path="/sign/:signatureId" element={

@@ -181,9 +181,15 @@ function calculateTier(points: number, loyaltyTiers: any[]): any {
 
 /**
  * Ottieni notifica tier upgrade per un cliente specifico dal DATABASE
+ * TODO: Implementare con notification_log table quando il sistema di notifiche sarà completo
  */
 export async function getPendingTierUpgradeForCustomer(customerId: string): Promise<TierUpgradeNotification | null> {
   try {
+    // Temporaneamente disabilitato - la tabella customer_notifications non esiste ancora
+    // Verrà implementato con il sistema di notifiche Firebase/notification_log
+    return null;
+
+    /*
     const { data, error } = await supabase
       .from('customer_notifications')
       .select('*')
@@ -215,6 +221,7 @@ export async function getPendingTierUpgradeForCustomer(customerId: string): Prom
       newTierColor: data.metadata?.newTierColor || '#64748b',
       timestamp: new Date(data.created_at).getTime()
     };
+    */
   } catch (error) {
     console.error('Error getting tier upgrade notification:', error);
     return null;

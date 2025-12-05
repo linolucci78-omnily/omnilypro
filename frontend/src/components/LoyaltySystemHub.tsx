@@ -242,20 +242,38 @@ const LoyaltySystemHub: React.FC<LoyaltySystemHubProps> = ({
               <span className="form-hint">Dopo quanti mesi i punti scadono (0 = mai)</span>
             </div>
 
-            <div className="form-group">
-              <label className="toggle-label">
-                <input
-                  type="checkbox"
-                  checked={formData.enable_tier_system}
-                  onChange={(e) => setFormData({ ...formData, enable_tier_system: e.target.checked })}
-                />
-                <span>Abilita Sistema Tier/Livelli</span>
-              </label>
-              <span className="form-hint">Attiva i livelli di fedeltà (Bronze, Silver, Gold, etc.)</span>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <div className="switch-container">
+                <div className="switch-content">
+                  <div className="switch-text">
+                    <label style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.25rem' }}>
+                      <Award size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary-color, #dc2626)' }} />
+                      Abilita Sistema Tier/Livelli
+                    </label>
+                    <span className="form-hint" style={{ marginLeft: '28px' }}>Attiva i livelli di fedeltà (Bronze, Silver, Gold, etc.)</span>
+                  </div>
+                  <label className="modern-switch">
+                    <input
+                      type="checkbox"
+                      checked={formData.enable_tier_system}
+                      onChange={(e) => setFormData({ ...formData, enable_tier_system: e.target.checked })}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
-          <button className="btn-save" onClick={handleSave} disabled={saving}>
+          <button
+            className="btn-save"
+            onClick={(e) => {
+              console.log('🔘 Pulsante Salva Configurazione cliccato!', formData)
+              handleSave()
+            }}
+            disabled={saving}
+            style={{ cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 100 }}
+          >
             {saving ? <RefreshCw size={20} className="spin" /> : <Save size={20} />}
             {saving ? 'Salvataggio...' : 'Salva Configurazione'}
           </button>

@@ -311,10 +311,12 @@ export class EmailService {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="color-scheme" content="light dark">
+          <meta name="supported-color-schemes" content="light dark">
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .header { background-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
             .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
             .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
             .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
@@ -372,10 +374,12 @@ export class EmailService {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="color-scheme" content="light dark">
+          <meta name="supported-color-schemes" content="light dark">
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, ${newTierColor} 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; border-radius: 10px 10px 0 0; }
+            .header { background-color: ${newTierColor}; background: linear-gradient(135deg, ${newTierColor} 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; border-radius: 10px 10px 0 0; }
             .badge { font-size: 80px; margin: 20px 0; }
             .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
             .tier-badge { display: inline-block; background: ${newTierColor}; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; }
@@ -514,6 +518,8 @@ export class EmailService {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light dark">
+        <meta name="supported-color-schemes" content="light dark">
         <style>
           @keyframes twinkle {
             0%, 100% { opacity: 0.3; }
@@ -527,8 +533,8 @@ export class EmailService {
           }
         </style>
       </head>
-      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); padding: 60px 20px; position: relative;">
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0f172a; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); padding: 60px 20px; position: relative;">
           <tr>
             <td align="center">
               <!-- Logo -->
@@ -539,27 +545,27 @@ export class EmailService {
               ` : ''}
 
               <!-- Main Card -->
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.85) 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(59, 130, 246, 0.2); backdrop-filter: blur(20px);">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #1e293b; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(59, 130, 246, 0.2); backdrop-filter: blur(20px);">
 
                 <!-- Header with Icon -->
                 <tr>
                   <td style="padding: 40px 40px 30px 40px; text-align: center;">
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 4px 12px ${primaryColor}40;">
+                    <div style="width: 64px; height: 64px; background-color: ${primaryColor}; background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 4px 12px ${primaryColor}40;">
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="12" cy="7" r="4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                       </svg>
                     </div>
                     <h1 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Attiva il tuo Account</h1>
-                    <p style="margin: 0; font-size: 16px; color: rgba(255,255,255,0.9); line-height: 1.5;">Benvenuto <strong style="color: #60a5fa; font-weight: 600;">${customerName}</strong></p>
-                    <p style="margin: 5px 0 0 0; font-size: 14px; color: rgba(255,255,255,0.6);">Imposta una password sicura per proteggere il tuo account</p>
+                    <p style="margin: 0; font-size: 16px; color: #e2e8f0; line-height: 1.5;">Benvenuto <strong style="color: #60a5fa; font-weight: 600;">${customerName}</strong></p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px; color: #94a3b8;">Imposta una password sicura per proteggere il tuo account</p>
                   </td>
                 </tr>
 
                 <!-- Content -->
                 <tr>
                   <td style="padding: 0 40px 40px 40px;">
-                    <p style="margin: 0 0 25px 0; font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.6; text-align: center;">
+                    <p style="margin: 0 0 25px 0; font-size: 15px; color: #cbd5e1; line-height: 1.6; text-align: center;">
                       Sei stato registrato nel programma fedeltà di <strong style="color: #ffffff;">${organizationName}</strong>!<br/>
                       Per completare la registrazione, imposta la tua password.
                     </p>
@@ -568,25 +574,25 @@ export class EmailService {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td align="center" style="padding: 10px 0 30px 0;">
-                          <a href="${activationLink}" style="display: inline-block; background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 8px 20px ${primaryColor}40; transition: all 0.3s;">
+                          <a href="${activationLink}" style="display: inline-block; background-color: ${primaryColor}; background: linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 8px 20px ${primaryColor}40; transition: all 0.3s;">
                             Attiva Account
                           </a>
                         </td>
                       </tr>
                     </table>
 
-                    <p style="margin: 0 0 15px 0; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; text-align: center;">
+                    <p style="margin: 0 0 15px 0; font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: center;">
                       Oppure copia e incolla questo link nel tuo browser:
                     </p>
 
-                    <p style="margin: 0 0 30px 0; padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 12px; color: #60a5fa; word-break: break-all; font-family: monospace; text-align: center;">
+                    <p style="margin: 0 0 30px 0; padding: 12px; background-color: #0f172a; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 12px; color: #60a5fa; word-break: break-all; font-family: monospace; text-align: center;">
                       ${activationLink}
                     </p>
 
                     <!-- Benefits Box -->
-                    <div style="margin: 0; padding: 25px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid ${primaryColor}; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                    <div style="margin: 0; padding: 25px; background-color: #1e3a8a; background: rgba(59, 130, 246, 0.1); border-left: 4px solid ${primaryColor}; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2);">
                       <h3 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;">Cosa puoi fare dopo l'attivazione:</h3>
-                      <ul style="margin: 0; padding-left: 20px; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 2;">
+                      <ul style="margin: 0; padding-left: 20px; color: #e2e8f0; font-size: 14px; line-height: 2;">
                         <li>Accumula punti ad ogni acquisto</li>
                         <li>Sblocca premi esclusivi</li>
                         <li>Raggiungi livelli superiori per vantaggi speciali</li>
@@ -594,7 +600,7 @@ export class EmailService {
                       </ul>
                     </div>
 
-                    <p style="margin: 25px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; text-align: center; font-style: italic;">
+                    <p style="margin: 25px 0 0 0; font-size: 12px; color: #64748b; line-height: 1.6; text-align: center; font-style: italic;">
                       Questo link è valido per 48 ore. Se non hai richiesto questa registrazione, ignora questa email.
                     </p>
                   </td>
@@ -603,8 +609,8 @@ export class EmailService {
                 <!-- Powered by -->
                 <tr>
                   <td style="padding: 0 0 30px 0; text-align: center;">
-                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 500;">
-                      Powered by <span style="color: rgba(255,255,255,0.7); font-weight: 600;">OmnilyPro</span>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; font-weight: 500;">
+                      Powered by <span style="color: #94a3b8; font-weight: 600;">OmnilyPro</span>
                     </p>
                   </td>
                 </tr>
@@ -659,6 +665,8 @@ export class EmailService {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light dark">
+        <meta name="supported-color-schemes" content="light dark">
       </head>
       <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 0;">
@@ -667,7 +675,7 @@ export class EmailService {
               <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 <!-- Header -->
                 <tr>
-                  <td style="background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                  <td style="background-color: ${plan.color}; background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
                     <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: 0.5px;">🎉 Benvenuto in OMNILY PRO!</h1>
                     <p style="margin: 15px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">Il tuo sistema POS completo</p>
                   </td>
@@ -681,7 +689,7 @@ export class EmailService {
                     </p>
 
                     <!-- Piano selezionato -->
-                    <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, ${plan.color}10 0%, ${plan.color}05 100%); border-left: 4px solid ${plan.color}; border-radius: 8px;">
+                    <div style="margin: 30px 0; padding: 25px; background-color: ${plan.color}10; background: linear-gradient(135deg, ${plan.color}10 0%, ${plan.color}05 100%); border-left: 4px solid ${plan.color}; border-radius: 8px;">
                       <h2 style="margin: 0 0 15px 0; font-size: 24px; color: ${plan.color};">Piano ${plan.name}</h2>
                       <p style="margin: 0 0 15px 0; font-size: 32px; font-weight: 700; color: #333;">${plan.price}<span style="font-size: 16px; font-weight: 400; color: #666;">/mese</span></p>
                       <h3 style="margin: 20px 0 10px 0; font-size: 16px; color: #333;">✨ Caratteristiche incluse:</h3>
@@ -698,7 +706,7 @@ export class EmailService {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td align="center" style="padding: 20px 0;">
-                          <a href="${registerLink}" style="display: inline-block; background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                          <a href="${registerLink}" style="display: inline-block; background-color: ${plan.color}; background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
                             Registrati e Paga
                           </a>
                         </td>
@@ -731,7 +739,7 @@ export class EmailService {
 
                 <!-- Footer -->
                 <tr>
-                  <td style="background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                  <td style="background-color: ${plan.color}; background: linear-gradient(135deg, ${plan.color} 0%, #764ba2 100%); padding: 30px; text-align: center;">
                     <p style="color: white; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">Grazie per aver scelto OMNILY PRO!</p>
                     <p style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 0;">Il sistema POS che fa crescere il tuo business</p>
                   </td>

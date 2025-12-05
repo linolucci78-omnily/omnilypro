@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog, Trophy } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog, Trophy, Send } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
@@ -12,6 +12,7 @@ import SaleSuccessModal from './SaleSuccessModal';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi, supabase } from '../lib/supabase';
+import { emailService } from '../services/emailService';
 import { createPrintService } from '../services/printService';
 import { rewardsService, type Reward } from '../services/rewardsService';
 import {
@@ -83,6 +84,8 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     customerName: string;
     pointsEarned: number;
   } | null>(null);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [showResendEmailModal, setShowResendEmailModal] = useState(false);
 
   // State locale per tenere traccia dei dati customer aggiornati in tempo reale
   const [localCustomer, setLocalCustomer] = useState<Customer | null>(customer);
@@ -99,11 +102,12 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   useEffect(() => {
     if (!customer || !isOpen) return;
 
-    // Cleanup vecchie notifiche (> 24h)
-    cleanupOldTierUpgrades();
+    const checkTierUpgrade = async () => {
+      // Cleanup vecchie notifiche (> 7 giorni)
+      await cleanupOldTierUpgrades();
 
-    // Controlla se c'è una notifica pending per questo cliente
-    const pendingUpgrade = getPendingTierUpgradeForCustomer(customer.id);
+      // Controlla se c'è una notifica pending per questo cliente
+      const pendingUpgrade = await getPendingTierUpgradeForCustomer(customer.id);
 
     if (pendingUpgrade) {
       console.log(`🎊 Tier upgrade pending trovato per ${customer.name}:`, pendingUpgrade);
@@ -137,9 +141,12 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         console.log('✅ Messaggio TIER_UPGRADE inviato al customer display');
       }
 
-      // Rimuovi notifica dopo averla mostrata
-      clearTierUpgradeNotification(customer.id);
-    }
+        // Rimuovi notifica dopo averla mostrata
+        await clearTierUpgradeNotification(customer.id);
+      }
+    };
+
+    checkTierUpgrade();
   }, [customer, isOpen]);
 
   // Carica attività del cliente quando il pannello si apre o cambia cliente
@@ -765,6 +772,79 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
+  /**
+   * Invia nuovamente l'email di registrazione/attivazione
+   */
+  const handleResendActivationEmailConfirm = async () => {
+    if (!customer || !customer.email) {
+      console.error('❌ Cliente non ha email');
+      return;
+    }
+
+    setShowResendEmailModal(false);
+    setResendingEmail(true);
+
+    try {
+      console.log('📧 Rinvio email di attivazione a:', customer.email);
+
+      // Carica i dati dell'organizzazione per ottenere lo slug
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .select('name, slug')
+        .eq('id', customer.organization_id)
+        .single();
+
+      if (orgError || !org) {
+        console.error('❌ Errore caricamento organizzazione:', orgError);
+        // Mostra errore visivo (potrebbero esserci toast o altro feedback)
+        return;
+      }
+
+      if (!org.slug) {
+        console.error('❌ Organizzazione non ha uno slug configurato');
+        return;
+      }
+
+      // Genera un nuovo activation token
+      const newActivationToken = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      console.log('🔑 Nuovo token di attivazione generato');
+
+      // Aggiorna il token nel database
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          activation_token: newActivationToken,
+          is_activated: false // Assicurati che sia marcato come non attivato
+        })
+        .eq('id', customer.id);
+
+      if (updateError) {
+        console.error('❌ Errore aggiornamento token:', updateError);
+        return;
+      }
+
+      // Invia l'email di attivazione
+      const emailResult = await emailService.sendActivationEmail(
+        customer.email,
+        customer.name,
+        customer.organization_id,
+        org.name,
+        newActivationToken,
+        org.slug
+      );
+
+      if (emailResult.success) {
+        console.log('✅ Email di attivazione inviata con successo');
+      } else {
+        console.error('❌ Errore invio email:', emailResult.error);
+      }
+    } catch (error) {
+      console.error('❌ Errore durante il rinvio email:', error);
+    } finally {
+      setResendingEmail(false);
+    }
+  };
+
   // NON aggiorniamo automaticamente il customer display quando apriamo il pannello
   // Questo causava interferenze con popup indesiderati sul display principale
   // L'aggiornamento del customer display avviene solo tramite azioni specifiche
@@ -934,6 +1014,33 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
                 <div className="action-btn-text">
                   <div className="action-btn-title">Gaming Zone</div>
                   <div className="action-btn-subtitle">Gioca e vinci</div>
+                </div>
+              </div>
+              <div className="action-btn-arrow">›</div>
+            </button>
+          )}
+
+          {customer.email && (
+            <button
+              className="customer-slide-panel-action-btn"
+              onClick={() => setShowResendEmailModal(true)}
+              disabled={resendingEmail}
+              style={{
+                opacity: resendingEmail ? 0.6 : 1,
+                cursor: resendingEmail ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <div className="action-btn-content">
+                <div className="action-btn-icon">
+                  <Send size={24} />
+                </div>
+                <div className="action-btn-text">
+                  <div className="action-btn-title">
+                    {resendingEmail ? 'Invio in corso...' : 'Invia Registrazione'}
+                  </div>
+                  <div className="action-btn-subtitle">
+                    {resendingEmail ? 'Attendere...' : 'Rinvia email attivazione'}
+                  </div>
                 </div>
               </div>
               <div className="action-btn-arrow">›</div>
@@ -1329,6 +1436,18 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
           }}
         />
       )}
+
+      {/* Resend Activation Email Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showResendEmailModal}
+        title="Invia Email di Registrazione"
+        message={`Vuoi inviare l'email di attivazione a ${customer?.email}?\n\nIl cliente riceverà un link per completare la registrazione e attivare il proprio account.`}
+        confirmText="Invia Email"
+        cancelText="Annulla"
+        onConfirm={handleResendActivationEmailConfirm}
+        onCancel={() => setShowResendEmailModal(false)}
+        type="info"
+      />
 
     </>
   );

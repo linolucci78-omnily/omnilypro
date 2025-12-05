@@ -49,6 +49,7 @@ export interface PlanFeatures {
   teamManagement: boolean
   posIntegration: boolean
   notifications: boolean
+  pushNotifications: boolean
   analyticsReports: boolean
   brandingSocial: boolean
   channelsIntegration: boolean
@@ -101,6 +102,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     teamManagement: true,      // ✅ Abilitato per testing
     posIntegration: true,      // ✅ Sempre disponibile
     notifications: false,      // ❌ Solo Basic+
+    pushNotifications: false,  // ❌ Solo Pro+
     analyticsReports: false,   // ❌ Solo Pro+
     brandingSocial: false,     // ❌ Solo Pro+
     channelsIntegration: false,// ❌ Solo Enterprise
@@ -152,6 +154,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     teamManagement: true,      // ✅ Abilitato per testing
     posIntegration: true,      // ✅ Sempre disponibile
     notifications: true,       // ✅ Basic+
+    pushNotifications: false,  // ❌ Solo Pro+
     analyticsReports: false,   // ❌ Solo Pro+
     brandingSocial: false,     // ❌ Solo Pro+
     channelsIntegration: false,// ❌ Solo Enterprise
@@ -203,6 +206,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     teamManagement: true,      // ✅ Pro+
     posIntegration: true,      // ✅ Sempre disponibile
     notifications: true,       // ✅ Basic+
+    pushNotifications: true,   // ✅ Pro+
     analyticsReports: true,    // ✅ Pro+
     brandingSocial: true,      // ✅ Pro+
     channelsIntegration: false,// ❌ Solo Enterprise
@@ -254,6 +258,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     teamManagement: true,
     posIntegration: true,
     notifications: true,
+    pushNotifications: true,   // ✅ Enterprise
     analyticsReports: true,
     brandingSocial: true,
     channelsIntegration: true, // ✅ Solo Enterprise

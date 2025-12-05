@@ -440,7 +440,7 @@
 .modal-amount-input input {
   flex: 1;
   border: none;
-  background: none;
+  background: white;
   outline: none;
   font-size: 1.125rem;
   font-weight: 600;
@@ -467,6 +467,53 @@
 .modal-preset-btn:hover {
   border-color: #3b82f6;
   color: #3b82f6;
+}
+
+.modal-payment-methods {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.modal-payment-method-btn {
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.modal-payment-method-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-reason-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  color: #1f2937;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modal-reason-input:focus {
+  border-color: #3b82f6;
+}
+
+.modal-reason-input::placeholder {
+  color: #9ca3af;
 }
 
 .modal-footer {
@@ -508,4 +555,183 @@
 .modal-btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .wallet-management-panel {
+    padding: 1.5rem;
+  }
+
+  .wallet-panel-container {
+    grid-template-columns: 350px 1fr;
+    gap: 1.5rem;
+  }
+
+  .wallet-details-section {
+    padding: 1.5rem;
+  }
+
+  .wallet-actions {
+    gap: 0.75rem;
+  }
+
+  .wallet-balance-card {
+    min-width: 180px;
+    padding: 1.25rem;
+  }
+
+  .wallet-balance-card .wallet-balance-value {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .wallet-panel-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .wallet-list-section {
+    max-height: 400px;
+  }
+
+  .wallet-details-section {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .wallet-management-panel {
+    padding: 1rem;
+  }
+
+  .wallet-panel-container {
+    gap: 1rem;
+  }
+
+  .wallet-list-section {
+    max-height: 300px;
+  }
+
+  .wallet-details-header {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .wallet-customer-info {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .wallet-balance-card {
+    width: 100%;
+    text-align: left;
+  }
+
+  .wallet-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-transaction-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .wallet-transaction-amount {
+    text-align: left;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .modal-content {
+    width: 95%;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-btn {
+    width: 100%;
+  }
+}
+
+/* POS Tablet Optimization (800x1280) */
+@media (min-width: 768px) and (max-width: 900px) and (min-height: 1200px) {
+  .wallet-management-panel {
+    padding: 1.25rem;
+  }
+
+  .wallet-panel-container {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-list-section {
+    max-height: 350px;
+  }
+
+  .wallet-details-section {
+    padding: 1.5rem;
+  }
+
+  .wallet-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .wallet-details-header {
+    flex-direction: row;
+  }
+
+  .wallet-balance-card {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wallet-management-panel {
+    padding: 0.75rem;
+  }
+
+  .wallet-item {
+    padding: 1rem;
+  }
+
+  .wallet-details-section {
+    padding: 1rem;
+  }
+
+  .wallet-search-bar {
+    padding: 1rem;
+  }
+
+  .wallet-customer-avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .wallet-customer-info h2 {
+    font-size: 1.25rem;
+  }
+
+  .wallet-action-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .wallet-preset-amounts {
+    flex-direction: column;
+  }
+
+  .modal-preset-btn {
+    width: 100%;
+  }
+
+  .modal-payment-methods {
+    grid-template-columns: 1fr;
+  }
 }

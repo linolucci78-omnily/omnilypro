@@ -275,6 +275,95 @@
 }
 
 /* ============================================
+   MODERN SWITCH
+   ============================================ */
+
+.switch-container {
+  width: 100%;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.switch-container:hover {
+  border-color: var(--primary-color, #dc2626);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+.switch-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.switch-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modern-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.modern-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  transition: 0.4s;
+  border-radius: 32px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modern-switch input:checked + .slider {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+.modern-switch input:checked + .slider:before {
+  transform: translateX(28px);
+}
+
+.modern-switch input:focus + .slider {
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+.modern-switch input:not(:checked):focus + .slider {
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
+}
+
+/* ============================================
    BUTTONS
    ============================================ */
 

@@ -7,7 +7,7 @@ import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 // REMOVED: useGamingNotifications - using console.log instead for stability
 // import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet, Coins } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet, Coins, Sparkles } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -64,10 +64,12 @@ import ReferralHub from './ReferralHub'
 import GamingSettings from './Gaming/GamingSettings'
 import GamingHubWrapper from './Gaming/GamingHubWrapper'
 import WebsiteHub from './WebsiteHub'
+import PushNotificationsHub from './PushNotificationsHub'
 import { ContactMessagesPanel } from './ContactMessagesPanel'
 import { hasAccessSync, getUpgradePlan, PlanType, getPlanFeaturesSync, PLAN_NAMES, fetchPlanOverrides } from '../utils/planPermissions'
 import UpgradeModal from './UI/UpgradeModal'
 import OrganizationSelectorModal from './OrganizationSelectorModal'
+import OrganizationAssistant from './Admin/OmnyAssistant/OrganizationAssistant'
 import './OrganizationsDashboard.css'
 import './RewardCard.css'
 
@@ -141,6 +143,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
   const [nfcStatus, setNfcStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
   const [nfcResult, setNfcResult] = useState<any>(null);
   const [qrStatus, setQrStatus] = useState<'idle' | 'reading' | 'success' | 'error'>('idle');
+  const [showAssistant, setShowAssistant] = useState(false);
 
   // Preview Colors State - per vedere i colori su tutta la dashboard prima di salvare
   const [previewColors, setPreviewColors] = useState<{
@@ -2538,6 +2541,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'omny-wallet', icon: Coins, label: 'OMNY Wallet', feature: 'omnyWallet' },
       { id: 'coupons', icon: Ticket, label: 'Coupons', feature: 'coupons' },
       { id: 'email-automations', icon: Mail, label: 'Email Automations', feature: 'notifications' },
+      { id: 'push-notifications', icon: Bell, label: 'Push Notifications', feature: 'pushNotifications' },
       { id: 'subscriptions', icon: Package, label: 'Membership', feature: null },
       { id: 'categories', icon: Package, label: 'Categorie', feature: 'categories' },
       { id: 'marketing-campaigns', icon: Mail, label: 'Campagne Marketing', feature: 'marketingCampaigns' },
@@ -3078,6 +3082,26 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
             } as React.CSSProperties}
           >
             <MarketingCampaignsHub
+              organizationId={currentOrganization.id}
+              organizationName={currentOrganization.name}
+              primaryColor={getActiveColors().primary}
+              secondaryColor={getActiveColors().secondary}
+            />
+          </div>
+        ) : null
+
+      case 'push-notifications':
+        return currentOrganization ? (
+          <div
+            className="dashboard-content"
+            style={{
+              height: 'calc(100vh - 140px)',
+              overflowY: 'auto',
+              '--primary-color': getActiveColors().primary,
+              '--secondary-color': getActiveColors().secondary
+            } as React.CSSProperties}
+          >
+            <PushNotificationsHub
               organizationId={currentOrganization.id}
               organizationName={currentOrganization.name}
               primaryColor={getActiveColors().primary}
@@ -5162,6 +5186,53 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               Tocca ovunque per annullare
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Omny Assistant FAB - Floating Action Button */}
+      {!isPOSMode && (
+        <button
+          onClick={() => setShowAssistant(true)}
+          className="omny-assistant-fab"
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            boxShadow: '0 4px 20px rgba(102, 126, 234, 0.4), 0 0 0 4px rgba(102, 126, 234, 0.1)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            zIndex: 1000,
+            animation: 'pulse 2s ease-in-out infinite'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1.1)';
+            e.currentTarget.style.boxShadow = '0 6px 30px rgba(102, 126, 234, 0.6), 0 0 0 6px rgba(102, 126, 234, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+            e.currentTarget.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.4), 0 0 0 4px rgba(102, 126, 234, 0.1)';
+          }}
+        >
+          <Sparkles size={28} color="white" />
+        </button>
+      )}
+
+      {/* Omny Assistant Modal - Full Interface */}
+      {showAssistant && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+          <OrganizationAssistant
+            onClose={() => setShowAssistant(false)}
+            organizationId={currentOrganization?.id}
+          />
         </div>
       )}
     </div>

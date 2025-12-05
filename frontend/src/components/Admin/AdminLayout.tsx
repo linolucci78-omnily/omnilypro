@@ -40,6 +40,7 @@ import {
   ChevronDown,
   Coins
 } from 'lucide-react'
+import OmnyAssistant from '../OmnyAssistant/OmnyAssistant'
 import './AdminLayout.css'
 
 interface MenuItem {
@@ -147,7 +148,8 @@ const AdminLayout = () => {
         { path: '/admin/subscriptions', icon: CreditCard, label: 'Abbonamenti' },
         { path: '/admin/memberships', icon: Ticket, label: 'Membership' },
         { path: '/admin/gift-certificates', icon: Gift, label: 'Gift Certificates' },
-        { path: '/admin/omny', icon: Coins, label: 'OMNY Management' }
+        { path: '/admin/omny', icon: Coins, label: 'OMNY Management' },
+        { path: '/admin/omny-assistant', icon: Sparkles, label: 'Omny Assistant' }
       ]
     },
     {
@@ -398,6 +400,9 @@ const AdminLayout = () => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Global AI Assistant */}
+      <OmnyAssistant />
     </div>
   )
 }

@@ -46,15 +46,15 @@ const OrganizationAssistant: React.FC<OrganizationAssistantProps> = ({ onClose, 
     console.log('🔊 Clean text:', cleanText);
 
     // Check if we're running in Android WebView with TTS bridge
-    const hasAndroidBridge = typeof (window as any).Android !== 'undefined' &&
-                             typeof (window as any).Android.speak === 'function';
+    const hasAndroidBridge = typeof (window as any).OmnilyPOS !== 'undefined' &&
+                             typeof (window as any).OmnilyPOS.speak === 'function';
 
     if (hasAndroidBridge) {
-      console.log('🔊 Using Android native TTS');
+      console.log('🔊 Using Android native TTS via OmnilyPOS bridge');
       try {
         setIsSpeaking(true);
         setAssistantState(AssistantState.SPEAKING);
-        (window as any).Android.speak(cleanText);
+        (window as any).OmnilyPOS.speak(cleanText);
 
         // Since Android TTS doesn't have callbacks, simulate end after estimated duration
         const estimatedDuration = cleanText.length * 50; // ~50ms per character

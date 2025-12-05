@@ -1,0 +1,582 @@
+/* Enterprise Notification Editor Styles */
+
+.enterprise-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: transparent;
+}
+
+.enterprise-header {
+  background: white;
+  padding: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.progress-steps {
+  display: flex;
+  background: white;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.step-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.step-button:hover {
+  background: #f3f4f6;
+}
+
+.step-button.active {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #dc2626;
+}
+
+.step-button.active .step-icon {
+  color: white;
+}
+
+.step-button.active .step-label {
+  color: white;
+  font-weight: 600;
+}
+
+.step-button.completed .step-icon {
+  background: #10b981;
+  color: white;
+  border-radius: 50%;
+  padding: 0.25rem;
+}
+
+.step-icon {
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.enterprise-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.enterprise-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Elements */
+.enterprise-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.enterprise-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.enterprise-input:focus {
+  outline: none;
+  border-color: #ef4444;
+  ring: 4px;
+  ring-color: rgba(239, 68, 68, 0.1);
+}
+
+.enterprise-input:hover {
+  border-color: #d1d5db;
+}
+
+/* Channel Buttons */
+.channel-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.channel-button:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.channel-button.active {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Segment Buttons */
+.segment-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.segment-button:hover {
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.segment-button.active {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Delivery Type Buttons */
+.delivery-type-button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.delivery-type-button:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.delivery-type-button.active {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.delivery-type-button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.delivery-type-button.active svg {
+  color: #dc2626;
+}
+
+/* Preview Device Buttons */
+.preview-device-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preview-device-button:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.preview-device-button.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+/* Notification Preview */
+.notification-preview {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.notification-preview.ios .ios-notification {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.ios-notification .notification-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.ios-notification .notification-content {
+  padding: 1rem;
+}
+
+.ios-notification .notification-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ios-notification .app-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ios-notification .app-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ios-notification .notification-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-left: auto;
+}
+
+.ios-notification .notification-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.ios-notification .notification-subtitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.ios-notification .notification-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.ios-notification .notification-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.ios-notification .action-button {
+  flex: 1;
+  padding: 0.5rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+  cursor: pointer;
+}
+
+/* Android Notification */
+.android-notification {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.android-notification .notification-content {
+  padding: 1rem;
+}
+
+.android-notification .notification-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.android-notification .app-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.android-notification .header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.android-notification .app-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.android-notification .notification-time {
+  font-size: 0.65rem;
+  color: #9ca3af;
+}
+
+.android-notification .notification-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.android-notification .notification-text {
+  font-size: 0.8125rem;
+  color: #4b5563;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.android-notification .notification-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  margin-top: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.android-notification .notification-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.android-notification .action-button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+/* Web Notification */
+.web-notification {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 400px;
+}
+
+.web-notification-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.web-app-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.375rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.web-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.web-app-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.web-notification-domain {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.web-notification .notification-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.web-notification .notification-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.web-notification .notification-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.web-notification .notification-text {
+  font-size: 0.8125rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* Buttons */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px -1px rgba(239, 68, 68, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .enterprise-content {
+    padding: 1rem;
+  }
+
+  .enterprise-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .progress-steps {
+    padding: 1rem;
+  }
+
+  .step-button {
+    min-width: 80px;
+    padding: 0.75rem;
+  }
+
+  .step-label {
+    font-size: 0.625rem;
+  }
+}

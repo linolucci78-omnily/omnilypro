@@ -163,37 +163,31 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
 
   // Handle Save Tier
   const handleSaveTier = async (tierData: LoyaltyTier) => {
-    try {
-      const currentTiers = organization?.loyalty_tiers || []
-      let updatedTiers: LoyaltyTier[]
+    const currentTiers = organization?.loyalty_tiers || []
+    let updatedTiers: LoyaltyTier[]
 
-      if (editingTierIndex !== null) {
-        // Update existing tier
-        updatedTiers = [...currentTiers]
-        updatedTiers[editingTierIndex] = tierData
-      } else {
-        // Add new tier
-        updatedTiers = [...currentTiers, tierData]
-      }
-
-      // Save to database
-      const { error } = await supabase
-        .from('organizations')
-        .update({ loyalty_tiers: updatedTiers })
-        .eq('id', organizationId)
-
-      if (error) throw error
-
-      // Reload and navigate back
-      await onUpdate()
-      await loadTierStats()
-      setEditingTier(null)
-      setEditingTierIndex(null)
-      setViewMode('manage')
-    } catch (error) {
-      console.error('Error saving tier:', error)
-      alert('Errore nel salvataggio del livello')
+    if (editingTierIndex !== null) {
+      // Update existing tier
+      updatedTiers = [...currentTiers]
+      updatedTiers[editingTierIndex] = tierData
+    } else {
+      // Add new tier
+      updatedTiers = [...currentTiers, tierData]
     }
+
+    // Save to database
+    const { error } = await supabase
+      .from('organizations')
+      .update({ loyalty_tiers: updatedTiers })
+      .eq('id', organizationId)
+
+    if (error) {
+      console.error('Error saving tier:', error)
+      throw error // Propagate error to show toast
+    }
+
+    // Success! Data will be reloaded when user navigates back
+    // Don't call onUpdate() here as it causes component to unmount
   }
 
   // Render Manage View
@@ -342,7 +336,11 @@ const LoyaltyTiersHub: React.FC<LoyaltyTiersHubProps> = ({
         organizationId={organizationId}
         primaryColor={primaryColor}
         secondaryColor={secondaryColor}
-        onBack={() => setViewMode('manage')}
+        onBack={() => {
+          setViewMode('manage')
+          onUpdate() // Refresh data when going back
+          loadTierStats()
+        }}
         onSave={handleSaveTier}
       />
     )

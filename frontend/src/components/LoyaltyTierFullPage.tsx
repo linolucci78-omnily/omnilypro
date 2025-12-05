@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Star, Award, Crown, Trophy, Zap, Plus, Trash2, Target, Gift } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
+import Toast from './UI/Toast';
 import './LoyaltyTierFullPage.css';
 
 interface LoyaltyTier {
@@ -55,6 +57,7 @@ const LoyaltyTierFullPage: React.FC<LoyaltyTierFullPageProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [newBenefit, setNewBenefit] = useState('');
+  const { toast, showSuccess, showError, hideToast } = useToast();
 
   useEffect(() => {
     if (tier) {
@@ -85,9 +88,10 @@ const LoyaltyTierFullPage: React.FC<LoyaltyTierFullPageProps> = ({
 
     try {
       await onSave(formData);
-      onBack();
+      showSuccess('✅ Livello salvato con successo!');
     } catch (error) {
       console.error('Error saving tier:', error);
+      showError('❌ Errore durante il salvataggio');
     } finally {
       setLoading(false);
     }
@@ -113,7 +117,7 @@ const LoyaltyTierFullPage: React.FC<LoyaltyTierFullPageProps> = ({
   return (
     <div className="loyalty-tier-fullpage" style={{ '--primary-color': primaryColor, '--secondary-color': secondaryColor } as React.CSSProperties}>
       {/* Header */}
-      <div className="loyalty-tier-fullpage-header" style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}>
+      <div className="loyalty-tier-fullpage-header" style={{ background: `linear - gradient(135deg, ${primaryColor} 0 %, ${secondaryColor} 100 %)` }}>
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={20} />
           Indietro
@@ -312,6 +316,14 @@ const LoyaltyTierFullPage: React.FC<LoyaltyTierFullPageProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
     </div>
   );
 };

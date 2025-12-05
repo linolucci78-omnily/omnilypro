@@ -12,7 +12,8 @@ import {
   Mail,
   TrendingUp,
   TrendingDown,
-  Printer
+  Printer,
+  RotateCcw
 } from 'lucide-react'
 import { walletService } from '../services/walletService'
 import type { CustomerWallet, WalletTransaction } from '../services/walletService'
@@ -33,6 +34,7 @@ interface WalletManagementPanelProps {
 const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
   organizationId,
   primaryColor,
+  secondaryColor,
   staffId
 }) => {
   const [wallets, setWallets] = useState<any[]>([])
@@ -42,7 +44,11 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
   const [transactions, setTransactions] = useState<WalletTransaction[]>([])
   const [showTopUpModal, setShowTopUpModal] = useState(false)
   const [topUpAmount, setTopUpAmount] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('Contanti') // Metodo di pagamento
   const [printReceipt, setPrintReceipt] = useState(true) // Toggle stampa ricevuta
+  const [showRefundModal, setShowRefundModal] = useState(false)
+  const [refundAmount, setRefundAmount] = useState('')
+  const [refundReason, setRefundReason] = useState('')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   useEffect(() => {
@@ -126,7 +132,7 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
           new_balance: newBalance,
           transaction_id: transaction?.id || '',
           timestamp: new Date().toISOString(),
-          payment_method: 'Carta di Credito'
+          payment_method: transaction?.payment_method || 'Contanti'
         },
         timestamp: new Date().toISOString(),
         receipt_number: `WLT-${Date.now()}`
@@ -158,7 +164,7 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
         organizationId,
         selectedWallet.customer_id,
         amount,
-        'Carta di Credito',
+        paymentMethod,
         staffId
       )
 
@@ -183,6 +189,47 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
         }
       } else {
         setToast({ message: result.error || 'Errore durante la ricarica', type: 'error' })
+      }
+    } catch (error) {
+      setToast({ message: 'Errore imprevisto', type: 'error' })
+    }
+  }
+
+  const handleRefund = async () => {
+    if (!selectedWallet || !refundAmount) return
+
+    const amount = parseFloat(refundAmount)
+    if (isNaN(amount) || amount <= 0) {
+      setToast({ message: 'Importo non valido', type: 'error' })
+      return
+    }
+
+    try {
+      const result = await walletService.topUpWallet(
+        organizationId,
+        selectedWallet.customer_id,
+        amount,
+        'Rimborso',
+        staffId,
+        refundReason || 'Rimborso manuale'
+      )
+
+      if (result.success) {
+        setToast({ message: `Rimborso di €${amount.toFixed(2)} completato!`, type: 'success' })
+        setShowRefundModal(false)
+        setRefundAmount('')
+        setRefundReason('')
+        await loadWallets()
+        if (selectedWallet) {
+          await loadTransactions(selectedWallet.id)
+          // Aggiorna il saldo del wallet selezionato
+          setSelectedWallet({
+            ...selectedWallet,
+            balance: result.newBalance || selectedWallet.balance
+          })
+        }
+      } else {
+        setToast({ message: result.error || 'Errore durante il rimborso', type: 'error' })
       }
     } catch (error) {
       setToast({ message: 'Errore imprevisto', type: 'error' })
@@ -331,9 +378,12 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
                   <Plus size={20} />
                   Ricarica
                 </button>
-                <button className="wallet-action-btn wallet-action-secondary" disabled>
-                  <CreditCard size={20} />
-                  Processa Pagamento
+                <button
+                  className="wallet-action-btn wallet-action-secondary"
+                  onClick={() => setShowRefundModal(true)}
+                >
+                  <RotateCcw size={20} />
+                  Rimborso
                 </button>
               </div>
 
@@ -396,14 +446,26 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
       {showTopUpModal && (
         <div className="modal-overlay" onClick={() => setShowTopUpModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+            <div
+              className="modal-header"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                color: 'white'
+              }}
+            >
               <h2>Ricarica Wallet</h2>
-              <button onClick={() => setShowTopUpModal(false)}>
+              <button onClick={() => setShowTopUpModal(false)} style={{ color: 'white' }}>
                 <X size={24} />
               </button>
             </div>
             <div className="modal-body">
-              <div className="modal-customer-info">
+              <div
+                className="modal-customer-info"
+                style={{
+                  background: `${primaryColor}10`,
+                  border: `2px solid ${primaryColor}30`
+                }}
+              >
                 <strong>{selectedWallet?.customer?.name}</strong>
                 <span>Saldo attuale: {formatCurrency(selectedWallet?.balance || 0)}</span>
               </div>
@@ -411,7 +473,7 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
               <div className="modal-input-group">
                 <label>Importo Ricarica</label>
                 <div className="modal-amount-input">
-                  <Euro size={20} />
+                  <Euro size={20} style={{ color: primaryColor }} />
                   <input
                     type="number"
                     step="0.01"
@@ -430,10 +492,35 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
                     key={amount}
                     onClick={() => setTopUpAmount(amount.toString())}
                     className="modal-preset-btn"
+                    style={{
+                      borderColor: topUpAmount === amount.toString() ? primaryColor : '#e5e7eb',
+                      color: topUpAmount === amount.toString() ? primaryColor : '#374151'
+                    }}
                   >
                     €{amount}
                   </button>
                 ))}
+              </div>
+
+              {/* Metodo di Pagamento */}
+              <div className="modal-input-group" style={{ marginTop: '1.5rem' }}>
+                <label>Metodo di Pagamento</label>
+                <div className="modal-payment-methods">
+                  {['Contanti', 'Carta di Credito', 'Carta di Debito', 'Bancomat', 'Bonifico'].map((method) => (
+                    <button
+                      key={method}
+                      onClick={() => setPaymentMethod(method)}
+                      className="modal-payment-method-btn"
+                      style={{
+                        background: paymentMethod === method ? primaryColor : 'white',
+                        color: paymentMethod === method ? 'white' : '#374151',
+                        borderColor: paymentMethod === method ? primaryColor : '#e5e7eb'
+                      }}
+                    >
+                      {method}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Toggle Stampa Ricevuta */}
@@ -500,6 +587,98 @@ const WalletManagementPanel: React.FC<WalletManagementPanelProps> = ({
                 style={{ background: primaryColor }}
               >
                 Conferma Ricarica
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refund Modal */}
+      {showRefundModal && (
+        <div className="modal-overlay" onClick={() => setShowRefundModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="modal-header"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                color: 'white'
+              }}
+            >
+              <h2>Rimborso Wallet</h2>
+              <button onClick={() => setShowRefundModal(false)} style={{ color: 'white' }}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div
+                className="modal-customer-info"
+                style={{
+                  background: `${primaryColor}10`,
+                  border: `2px solid ${primaryColor}30`
+                }}
+              >
+                <strong>{selectedWallet?.customer?.name}</strong>
+                <span>Saldo attuale: {formatCurrency(selectedWallet?.balance || 0)}</span>
+              </div>
+
+              <div className="modal-input-group">
+                <label>Importo Rimborso</label>
+                <div className="modal-amount-input">
+                  <Euro size={20} style={{ color: primaryColor }} />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={refundAmount}
+                    onChange={(e) => setRefundAmount(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="modal-preset-amounts">
+                {[5, 10, 20, 50].map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => setRefundAmount(amount.toString())}
+                    className="modal-preset-btn"
+                    style={{
+                      borderColor: refundAmount === amount.toString() ? primaryColor : '#e5e7eb',
+                      color: refundAmount === amount.toString() ? primaryColor : '#374151'
+                    }}
+                  >
+                    €{amount}
+                  </button>
+                ))}
+              </div>
+
+              {/* Motivo Rimborso */}
+              <div className="modal-input-group" style={{ marginTop: '1.5rem' }}>
+                <label>Motivo Rimborso (opzionale)</label>
+                <input
+                  type="text"
+                  placeholder="es: Reso prodotto, Errore di addebito, etc."
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  className="modal-reason-input"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-btn modal-btn-secondary"
+                onClick={() => setShowRefundModal(false)}
+              >
+                Annulla
+              </button>
+              <button
+                className="modal-btn modal-btn-primary"
+                onClick={handleRefund}
+                disabled={!refundAmount || parseFloat(refundAmount) <= 0}
+                style={{ background: primaryColor }}
+              >
+                Conferma Rimborso
               </button>
             </div>
           </div>

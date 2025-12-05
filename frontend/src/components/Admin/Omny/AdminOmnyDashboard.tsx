@@ -230,7 +230,7 @@ const AdminOmnyDashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <OmnyAssistant />
+            {/* <OmnyAssistant /> moved to AdminLayout */}
         </div>
     )
 }
