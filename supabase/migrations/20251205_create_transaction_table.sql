@@ -20,32 +20,20 @@ CREATE INDEX IF NOT EXISTS idx_transaction_type ON public.transaction(type);
 ALTER TABLE public.transaction ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
--- Allow authenticated users to read transactions for their organization
-CREATE POLICY "Users can view transactions for their organization"
-ON public.transaction
-FOR SELECT
-USING (
-    organization_id IN (
-        SELECT organization_id
-        FROM public.staff
-        WHERE user_id = auth.uid()
-    )
-);
-
--- Allow authenticated users to insert transactions for their organization
-CREATE POLICY "Users can create transactions for their organization"
-ON public.transaction
-FOR INSERT
-WITH CHECK (
-    organization_id IN (
-        SELECT organization_id
-        FROM public.staff
-        WHERE user_id = auth.uid()
-    )
-);
-
--- Allow service role to do everything (for Edge Functions)
-CREATE POLICY "Service role has full access"
+-- Allow service role full access (for Edge Functions)
+CREATE POLICY "Service role has full access to transactions"
 ON public.transaction
 FOR ALL
-USING (auth.jwt() ->> 'role' = 'service_role');
+USING (true);
+
+-- Allow authenticated users to read their own organization's transactions
+CREATE POLICY "Users can view transactions"
+ON public.transaction
+FOR SELECT
+USING (auth.role() = 'authenticated');
+
+-- Allow authenticated users to insert transactions
+CREATE POLICY "Users can create transactions"
+ON public.transaction
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated');
