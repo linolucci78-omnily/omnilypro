@@ -209,9 +209,19 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
         const existingIds = new Set(allStaffMembers.map(s => s.id))
 
         staffMembersData.forEach((staff: any) => {
-          if (!existingIds.has(staff.id)) {
+          // ⭐ IMPORTANTE: Usa user_id invece di staff.id
+          // perché operator_nfc_cards ha FK a auth.users(id)
+          const staffUserId = staff.user_id
+
+          // Skip se non ha user_id (vecchi operatori non migrati)
+          if (!staffUserId) {
+            console.warn('⚠️ Staff member senza user_id:', staff.name)
+            return
+          }
+
+          if (!existingIds.has(staffUserId)) {
             allStaffMembers.push({
-              id: staff.id,
+              id: staffUserId, // ⭐ Usa user_id, non staff.id
               organization_id: staff.organization_id,
               name: staff.name || staff.email?.split('@')[0] || 'Operatore',
               email: staff.email || '',
