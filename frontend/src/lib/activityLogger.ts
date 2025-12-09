@@ -113,16 +113,23 @@ export async function logActivity({
       return
     }
 
+    // Get current user info for staff name
+    const { data: { user } } = await supabase.auth.getUser()
+    const staffName = user?.user_metadata?.full_name || user?.email || 'Operatore Sconosciuto'
+
     // Log the activity (non-blocking - don't fail if logging fails)
     try {
-      await staffApi.logActivity(
-        organizationId,
-        staffId,
-        action,
-        entityType,
-        entityId,
-        details
-      )
+      await staffApi.logActivity({
+        organization_id: organizationId,
+        staff_user_id: user?.id,
+        staff_name: staffName,
+        action_type: action,
+        description: `${action} ${entityType ? `- ${entityType}` : ''}${details?.customer_name ? `: ${details.customer_name}` : ''}`,
+        customer_id: entityType === 'customer' ? entityId : undefined,
+        customer_name: details?.customer_name,
+        action_data: details ? JSON.parse(JSON.stringify(details)) : undefined,
+        device_id: typeof window !== 'undefined' ? (window as any).deviceId : undefined
+      })
       console.log('✅ [ACTIVITY LOGGER] Activity logged successfully')
     } catch (logError) {
       console.error('❌ [ACTIVITY LOGGER] Failed to log activity (non-blocking):', logError)

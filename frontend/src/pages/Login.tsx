@@ -255,25 +255,44 @@ const Login: React.FC = () => {
         // Attendi 1 secondo per mostrare il riconoscimento
         setTimeout(async () => {
           try {
-            console.log('🔐 Tentativo login NFC per:', operatorAuth.user_email);
+            // Distingui tra operatore con account auth e operatore locale (solo staff)
+            const isAuthUser = !!operatorAuth.user_id;
 
-            // NFC Login automatico con password dell'operatore
-            // La password è salvata in modo criptato (base64) nel database
+            if (isAuthUser) {
+              // SCENARIO 1: Operatore con account auth (user_id)
+              console.log('🔐 Login NFC con account auth per:', operatorAuth.user_email);
 
-            // Decodifica la password dall'operatore
-            const operatorPassword = atob(operatorAuth.encrypted_password);
+              // Decodifica la password dall'operatore
+              if (!operatorAuth.encrypted_password) {
+                throw new Error('Password non configurata per questo operatore');
+              }
+              const operatorPassword = atob(operatorAuth.encrypted_password);
 
-            // 🔑 IMPORTANTE: Salva l'organization_id della card PRIMA del login
-            // Questo assicura che il redirect vada all'organizzazione della card, non a quella di default dell'utente
-            console.log('💾 Storing NFC card organization_id for redirect:', operatorAuth.organization_id);
-            localStorage.setItem('nfc_target_organization_id', operatorAuth.organization_id);
+              // 🔑 IMPORTANTE: Salva l'organization_id della card PRIMA del login
+              console.log('💾 Storing NFC card organization_id for redirect:', operatorAuth.organization_id);
+              localStorage.setItem('nfc_target_organization_id', operatorAuth.organization_id);
 
-            await signIn(operatorAuth.user_email, operatorPassword);
+              await signIn(operatorAuth.user_email!, operatorPassword);
+            } else {
+              // SCENARIO 2: Operatore locale (staff_id) - Login diretto senza auth
+              console.log('🔐 Login NFC per operatore locale (solo PIN):', operatorAuth.operator_name);
+
+              // Crea una sessione locale per l'operatore
+              localStorage.setItem('staff_local_session', JSON.stringify({
+                staff_id: operatorAuth.staff_id,
+                operator_name: operatorAuth.operator_name,
+                organization_id: operatorAuth.organization_id,
+                login_time: new Date().toISOString()
+              }));
+
+              // Redirect alla dashboard dell'organizzazione
+              navigate(`/dashboard?org=${operatorAuth.organization_id}`);
+            }
 
             // Log del login (dual logging)
             await operatorNFCService.logLogin({
               operator_card_id: operatorAuth.card_id,
-              user_id: operatorAuth.user_id,
+              user_id: operatorAuth.user_id || undefined,
               organization_id: operatorAuth.organization_id,
               nfc_uid: nfcUid,
               success: true
@@ -283,7 +302,7 @@ const Login: React.FC = () => {
             try {
               await staffActivityService.logLogin({
                 organizationId: operatorAuth.organization_id,
-                staffUserId: operatorAuth.user_id,
+                staffUserId: operatorAuth.user_id || operatorAuth.staff_id!,
                 staffName: operatorAuth.operator_name,
                 deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
               });
