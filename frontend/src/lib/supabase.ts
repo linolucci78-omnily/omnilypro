@@ -1376,24 +1376,26 @@ export const staffApi = {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('')
 
-      // Crea utente auth usando Admin API
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: authEmail,
-        password: randomPassword,
-        email_confirm: true, // Auto-conferma email
-        user_metadata: {
-          full_name: staffMember.name,
-          organization_id: staffMember.organization_id,
-          is_pos_only: isPosOnly
+      // Chiama Edge Function per creare utente auth (ha Service Role Key)
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('create-staff-auth-user', {
+        body: {
+          email: authEmail,
+          password: randomPassword,
+          fullName: staffMember.name,
+          organizationId: staffMember.organization_id,
+          isPosOnly: isPosOnly
         }
       })
 
-      if (authError) {
-        console.error('❌ [STAFF API] Auth account creation failed:', authError.message)
-        throw new Error(`Impossibile creare account auth: ${authError.message}`)
+      if (functionError || !functionData?.success) {
+        const errorMsg = functionError?.message || functionData?.error || 'Unknown error'
+        console.error('❌ [STAFF API] Auth account creation failed:', errorMsg)
+        throw new Error(`Impossibile creare account auth: ${errorMsg}`)
       }
 
-      console.log('✅ [STAFF API] Auth account created:', authUser.user.id)
+      const authUserId = functionData.userId
+
+      console.log('✅ [STAFF API] Auth account created:', authUserId)
 
       // Step 2: Determina ruolo organization_users
       let orgRole = 'pos_only_staff' // Default per operatori locali
@@ -1415,7 +1417,7 @@ export const staffApi = {
       const { error: orgUserError } = await supabase
         .from('organization_users')
         .insert({
-          user_id: authUser.user.id,
+          user_id: authUserId,
           org_id: staffMember.organization_id,
           role: orgRole,
           created_at: new Date().toISOString()
@@ -1423,8 +1425,6 @@ export const staffApi = {
 
       if (orgUserError) {
         console.error('❌ [STAFF API] Failed to link to organization_users:', orgUserError.message)
-        // Rollback: elimina auth user
-        await supabase.auth.admin.deleteUser(authUser.user.id)
         throw new Error(`Impossibile collegare a organizzazione: ${orgUserError.message}`)
       }
 
@@ -1436,15 +1436,13 @@ export const staffApi = {
         .insert([{
           ...staffMember,
           email: authEmail, // Usa email (vera o auto-generata)
-          user_id: authUser.user.id // ⭐ COLLEGA user_id
+          user_id: authUserId // ⭐ COLLEGA user_id
         }])
         .select()
         .single()
 
       if (error) {
         console.error('❌ [STAFF API] Failed to create staff_member:', error.message)
-        // Rollback: elimina auth user e org link
-        await supabase.auth.admin.deleteUser(authUser.user.id)
         throw error
       }
 
