@@ -1377,6 +1377,13 @@ export const staffApi = {
         .join('')
 
       // Chiama Edge Function per creare utente auth (ha Service Role Key)
+      console.log('📤 [STAFF API] Calling Edge Function with payload:', {
+        email: authEmail,
+        fullName: staffMember.name,
+        organizationId: staffMember.organization_id,
+        isPosOnly: isPosOnly
+      })
+
       const { data: functionData, error: functionError } = await supabase.functions.invoke('create-staff-auth-user', {
         body: {
           email: authEmail,
@@ -1387,9 +1394,13 @@ export const staffApi = {
         }
       })
 
+      console.log('📥 [STAFF API] Edge Function response:', { functionData, functionError })
+
       if (functionError || !functionData?.success) {
         const errorMsg = functionError?.message || functionData?.error || 'Unknown error'
         console.error('❌ [STAFF API] Auth account creation failed:', errorMsg)
+        console.error('❌ [STAFF API] Full error:', functionError)
+        console.error('❌ [STAFF API] Full response:', functionData)
         throw new Error(`Impossibile creare account auth: ${errorMsg}`)
       }
 
