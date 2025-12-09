@@ -80,6 +80,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Function error:', error)
 
+    // ⚠️ IMPORTANTE: Ritorna sempre status 200 anche in caso di errore
+    // perché il client Supabase scarta il body se status !== 2xx
     return new Response(
       JSON.stringify({
         success: false,
@@ -87,7 +89,7 @@ serve(async (req) => {
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 200, // ⭐ Cambiato da 400 a 200
       },
     )
   }
