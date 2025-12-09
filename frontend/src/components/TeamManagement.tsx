@@ -465,7 +465,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                       <tr key={log.id}>
                         <td>{formatDateTime(log.created_at)}</td>
                         <td>
-                          <strong>{(log as any).staff_member?.name || 'Sconosciuto'}</strong>
+                          <strong>{log.staff_name || 'Sconosciuto'}</strong>
                         </td>
                         <td>
                           <span className={`action-badge action-${log.action_type}`}>
@@ -522,9 +522,9 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                     <tr>
                       <th>Data/Ora</th>
                       <th>Membro</th>
-                      <th>Azione</th>
-                      <th>Tipo</th>
-                      <th>Dettagli</th>
+                      <th>Tipo Azione</th>
+                      <th>Cliente</th>
+                      <th>Descrizione</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -532,12 +532,12 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                       <tr key={log.id}>
                         <td>{formatDateTime(log.created_at)}</td>
                         <td>
-                          <strong>{(log as any).staff_member?.name || 'Sconosciuto'}</strong>
+                          <strong>{log.staff_name || 'Sconosciuto'}</strong>
                         </td>
-                        <td>{log.action}</td>
-                        <td>{log.entity_type || '-'}</td>
+                        <td>{log.action_type || '-'}</td>
+                        <td>{log.customer_name || '-'}</td>
                         <td className="details-cell">
-                          {log.details ? JSON.stringify(log.details).substring(0, 50) + '...' : '-'}
+                          {log.description || '-'}
                         </td>
                       </tr>
                     ))}

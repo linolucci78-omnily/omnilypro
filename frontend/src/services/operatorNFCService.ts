@@ -2,7 +2,8 @@ import { supabase } from '../lib/supabase'
 
 export interface OperatorNFCCard {
   id: string
-  user_id: string
+  user_id?: string
+  staff_id?: string
   organization_id: string
   nfc_uid: string
   operator_name: string
@@ -15,12 +16,13 @@ export interface OperatorNFCCard {
 }
 
 export interface OperatorAuthResult {
-  user_id: string
-  user_email: string
+  user_id?: string
+  staff_id?: string
+  user_email?: string
   operator_name: string
   organization_id: string
   card_id: string
-  encrypted_password: string
+  encrypted_password?: string
 }
 
 export interface OperatorNFCLoginLog {
@@ -158,32 +160,38 @@ export const operatorNFCService = {
    * Crea una nuova tessera operatore
    */
   async create(card: {
-    user_id: string
+    user_id?: string
+    staff_id?: string
     organization_id: string
     nfc_uid: string
     operator_name: string
-    password: string
+    password?: string
     created_by?: string
   }): Promise<OperatorNFCCard> {
+    // Validazione: almeno uno tra user_id e staff_id deve essere presente
+    if (!card.user_id && !card.staff_id) {
+      throw new Error('Deve essere specificato user_id o staff_id')
+    }
+
     // Prima controlla se esiste già una tessera con questo UID
     const existing = await this.getByNFCUid(card.nfc_uid)
     if (existing) {
       throw new Error('Questa tessera è già associata ad un operatore')
     }
 
-    // Simple base64 encoding for password obfuscation
-    // TODO: This should be properly encrypted on the server side with PostgreSQL encryption
-    const encryptedPassword = btoa(card.password)
+    // Simple base64 encoding for password obfuscation (opzionale per operatori senza account)
+    const encryptedPassword = card.password ? btoa(card.password) : null
 
     // SOLUZIONE: Usa una RPC function per fare tutto in una transazione atomica
     // Questo evita race conditions e violazioni del constraint UNIQUE
     console.log('🔄 Creazione tessera operatore con disattivazione automatica delle precedenti...')
 
     const { data, error } = await supabase.rpc('create_operator_nfc_card', {
-      p_user_id: card.user_id,
       p_organization_id: card.organization_id,
       p_nfc_uid: card.nfc_uid,
       p_operator_name: card.operator_name,
+      p_user_id: card.user_id || null,
+      p_staff_id: card.staff_id || null,
       p_encrypted_password: encryptedPassword,
       p_created_by: card.created_by || null
     })
@@ -209,39 +217,53 @@ export const operatorNFCService = {
    */
   async createWithManualDeactivation(
     card: {
-      user_id: string
+      user_id?: string
+      staff_id?: string
       organization_id: string
       nfc_uid: string
       operator_name: string
       created_by?: string
     },
-    encryptedPassword: string
+    encryptedPassword: string | null
   ): Promise<OperatorNFCCard> {
     // IMPORTANTE: Disattiva tutte le altre tessere attive di questo operatore
-    // per evitare violazione del constraint UNIQUE(user_id, organization_id, is_active)
-    console.log('🔄 Disattivazione tessere precedenti per operatore:', card.user_id)
+    console.log('🔄 Disattivazione tessere precedenti per operatore:', card.user_id || card.staff_id)
 
     // Retry logic: prova fino a 3 volte
     let lastError: any = null
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        // Prima disattiva
-        const { error: deactivateError } = await supabase
-          .from('operator_nfc_cards')
-          .update({ is_active: false })
-          .eq('user_id', card.user_id)
-          .eq('organization_id', card.organization_id)
-          .eq('is_active', true)
+        // Prima disattiva le tessere precedenti
+        if (card.user_id) {
+          const { error: deactivateError } = await supabase
+            .from('operator_nfc_cards')
+            .update({ is_active: false })
+            .eq('user_id', card.user_id)
+            .eq('organization_id', card.organization_id)
+            .eq('is_active', true)
 
-        if (deactivateError) {
-          console.warn(`⚠️ Tentativo ${attempt}: Errore disattivazione:`, deactivateError)
+          if (deactivateError) {
+            console.warn(`⚠️ Tentativo ${attempt}: Errore disattivazione:`, deactivateError)
+          }
+        } else if (card.staff_id) {
+          const { error: deactivateError } = await supabase
+            .from('operator_nfc_cards')
+            .update({ is_active: false })
+            .eq('staff_id', card.staff_id)
+            .eq('organization_id', card.organization_id)
+            .eq('is_active', true)
+
+          if (deactivateError) {
+            console.warn(`⚠️ Tentativo ${attempt}: Errore disattivazione:`, deactivateError)
+          }
         }
 
-        // Poi inserisci
+        // Poi inserisci la nuova tessera
         const { data, error } = await supabase
           .from('operator_nfc_cards')
           .insert({
-            user_id: card.user_id,
+            user_id: card.user_id || null,
+            staff_id: card.staff_id || null,
             organization_id: card.organization_id,
             nfc_uid: card.nfc_uid,
             operator_name: card.operator_name,

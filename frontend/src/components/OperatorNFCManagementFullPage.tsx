@@ -228,7 +228,7 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
       console.log('✅ Totale operatori caricati:', allStaffMembers.length)
 
       if (allStaffMembers.length === 0) {
-        showError('Nessun Operatore', 'Non ci sono operatori. Vai in Gestione Team per creare operatori.')
+        showError('Nessun Utente Autenticato', 'Non ci sono utenti con account. Le tessere NFC richiedono utenti con email/password. Vai in Gestione Team → Invita Utenti.')
         setOrganizationUsers([])
         return
       }
@@ -274,19 +274,32 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
   }
 
   const handleAssignCard = async () => {
-    if (!scannedNFCUid || !selectedUser || !operatorName.trim() || !operatorPassword.trim()) {
-      showError('Campi Mancanti', 'Compila tutti i campi richiesti, inclusa la password')
+    if (!scannedNFCUid || !selectedUser || !operatorName.trim()) {
+      showError('Campi Mancanti', 'Compila tutti i campi richiesti')
       return
     }
 
     try {
       setLoading(true)
+
+      // Determina se è un utente auth (con account) o staff (solo PIN)
+      // Gli utenti auth vengono da organization_users, gli staff da staff_members
+      // Controllo: se l'ID esiste in orgUsers, è un user_id, altrimenti è uno staff_id
+      const { data: orgUsers } = await supabase
+        .from('organization_users')
+        .select('user_id')
+        .eq('user_id', selectedUser.id)
+        .eq('org_id', organizationId)
+        .maybeSingle()
+
+      const isAuthUser = !!orgUsers
+
       await operatorNFCService.create({
-        user_id: selectedUser.id,
+        ...(isAuthUser ? { user_id: selectedUser.id } : { staff_id: selectedUser.id }),
         organization_id: organizationId,
         nfc_uid: scannedNFCUid,
         operator_name: operatorName.trim(),
-        password: operatorPassword.trim()
+        ...(operatorPassword.trim() && { password: operatorPassword.trim() })
       })
 
       showSuccess('Tessera Associata!', `La tessera è stata associata a ${operatorName}`)

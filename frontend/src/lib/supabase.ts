@@ -237,14 +237,17 @@ export interface StaffAccessLog {
 export interface StaffActivityLog {
   id: string
   organization_id: string
-  staff_id: string
-  action: string
-  entity_type?: string
-  entity_id?: string
-  details?: Record<string, any>
+  staff_user_id?: string
+  staff_name: string
+  action_type: string
+  description: string
+  customer_id?: string
+  customer_name?: string
+  action_data?: Record<string, any>
+  ip_address?: string
+  user_agent?: string
+  device_id?: string
   created_at: string
-  // Relazioni
-  staff_member?: StaffMember
 }
 
 export interface RolePermission {
@@ -1492,10 +1495,7 @@ export const staffApi = {
   ): Promise<StaffAccessLog[]> {
     let query = supabase
       .from('staff_access_logs')
-      .select(`
-        *,
-        staff_member:staff_members(*)
-      `)
+      .select('*')
       .eq('organization_id', organizationId)
 
     if (filters?.staffId) {
@@ -1540,18 +1540,15 @@ export const staffApi = {
   ): Promise<StaffActivityLog[]> {
     let query = supabase
       .from('staff_activity_logs')
-      .select(`
-        *,
-        staff_member:staff_members(*)
-      `)
+      .select('*')
       .eq('organization_id', organizationId)
 
     if (filters?.staffId) {
-      query = query.eq('staff_id', filters.staffId)
+      query = query.eq('staff_user_id', filters.staffId)
     }
 
     if (filters?.action) {
-      query = query.eq('action', filters.action)
+      query = query.eq('action_type', filters.action)
     }
 
     if (filters?.entityType) {
