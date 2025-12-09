@@ -122,7 +122,7 @@ export class BadgeService {
 
       // Award rewards if any
       if (badge.unlock_rewards) {
-        await this.awardBadgeRewards(customerId, badge.unlock_rewards)
+        await this.awardBadgeRewards(customerId, badge.unlock_rewards, badge.name)
       }
 
       // Create notification
@@ -317,7 +317,8 @@ export class BadgeService {
    */
   private async awardBadgeRewards(
     customerId: string,
-    rewards: any
+    rewards: any,
+    badgeName?: string
   ): Promise<void> {
     try {
       // Award points
@@ -332,7 +333,7 @@ export class BadgeService {
           // Fallback: update points directly
           const { data: customer } = await supabase
             .from('customers')
-            .select('points')
+            .select('points, organization_id')
             .eq('id', customerId)
             .single()
 
@@ -341,6 +342,23 @@ export class BadgeService {
               .from('customers')
               .update({ points: customer.points + rewards.points })
               .eq('id', customerId)
+
+            // LOG BADGE POINTS in customer_activities for visibility
+            try {
+              await supabase
+                .from('customer_activities')
+                .insert({
+                  organization_id: customer.organization_id,
+                  customer_id: customerId,
+                  activity_type: 'badge_reward',
+                  activity_description: `Badge sbloccato: ${badgeName || 'Badge'} - Bonus punti`,
+                  points_earned: rewards.points,
+                  monetary_value: 0
+                })
+              console.log(`📝 Badge reward logged in customer_activities`)
+            } catch (logError) {
+              console.error('⚠️ Error logging badge reward (non-blocking):', logError)
+            }
           }
         }
 
