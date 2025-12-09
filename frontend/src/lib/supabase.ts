@@ -1371,8 +1371,8 @@ export const staffApi = {
       // Step 1: Crea account auth.users (SEMPRE, anche per POS-only)
       console.log('🔐 [STAFF API] Creating auth account for:', authEmail)
 
-      // Genera password casuale sicura (64 caratteri)
-      const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(48)))
+      // Genera password casuale sicura (32 caratteri - limite Supabase Auth)
+      const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('')
 

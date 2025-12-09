@@ -24,18 +24,33 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🔵 Edge Function called')
+
     // Get request body
     const { email, password, fullName, organizationId, isPosOnly }: CreateStaffAuthRequest = await req.json()
+
+    console.log('📥 Received payload:', { email, fullName, organizationId, isPosOnly, passwordLength: password?.length })
 
     // Validate input
     if (!email || !password || !fullName || !organizationId) {
       throw new Error('Missing required fields: email, password, fullName, organizationId')
     }
 
+    console.log('✅ Validation passed')
+
     // Create Supabase client with Service Role Key (has admin privileges)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    console.log('🔑 Env check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      urlPreview: supabaseUrl?.substring(0, 30) + '...'
+    })
+
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      supabaseUrl ?? '',
+      supabaseKey ?? '',
       {
         auth: {
           autoRefreshToken: false,
@@ -44,7 +59,7 @@ serve(async (req) => {
       }
     )
 
-    console.log('Creating auth user:', email)
+    console.log('🔐 Creating auth user:', email)
 
     // Create auth user
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -59,11 +74,12 @@ serve(async (req) => {
     })
 
     if (authError) {
-      console.error('Auth creation error:', authError)
-      throw authError
+      console.error('❌ Auth creation error:', authError)
+      console.error('❌ Error details:', JSON.stringify(authError, null, 2))
+      throw new Error(`Auth error: ${authError.message || JSON.stringify(authError)}`)
     }
 
-    console.log('Auth user created successfully:', authUser.user.id)
+    console.log('✅ Auth user created successfully:', authUser.user.id)
 
     return new Response(
       JSON.stringify({
