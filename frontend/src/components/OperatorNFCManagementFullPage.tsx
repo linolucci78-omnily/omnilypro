@@ -137,7 +137,27 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
       const allStaffMembers: StaffMember[] = []
 
-      // Step 1: Carica organization_users (utenti con account auth)
+      // Step 1: Carica PRIMA staff_members per avere i nomi
+      const { data: staffMembersData, error: staffError } = await supabase
+        .from('staff_members')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+
+      if (staffError) {
+        console.error('Errore caricamento staff_members:', staffError)
+      }
+
+      console.log('👥 Staff members trovati:', staffMembersData?.length || 0)
+
+      // Crea mappa staff_members per user_id (per lookup veloce)
+      const staffByUserId = new Map(
+        (staffMembersData || [])
+          .filter(s => s.user_id)
+          .map(s => [s.user_id, s])
+      )
+
+      // Step 2: Carica organization_users (tutti gli utenti con account auth)
       const { data: orgUsers, error: orgError } = await supabase
         .from('organization_users')
         .select('user_id, role, created_at')
@@ -149,87 +169,38 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
 
       console.log('📋 Organization users trovati:', orgUsers?.length || 0)
 
-      // Step 2: Carica dettagli utenti dalla tabella users
+      // Step 3: Combina i dati, usando staff_members come fonte primaria per nome/email
       if (orgUsers && orgUsers.length > 0) {
-        const userIds = orgUsers.map(ou => ou.user_id)
-        const { data: usersData, error: usersError } = await supabase
-          .from('users')
-          .select('id, email, full_name')
-          .in('id', userIds)
+        orgUsers.forEach((ou: any) => {
+          const staffData = staffByUserId.get(ou.user_id)
 
-        if (usersError) {
-          console.error('Errore caricamento users:', usersError)
-        }
-
-        console.log('👥 User details trovati:', usersData?.length || 0)
-
-        // Combina i dati
-        const usersMap = new Map((usersData || []).map(u => [u.id, u]))
-
-        const authStaffMembers = orgUsers.map((ou: any) => {
-          const userData = usersMap.get(ou.user_id)
-
-          // Determina il nome: priorità a full_name se esiste e non è vuoto
-          let displayName = 'Utente Sconosciuto'
-          if (userData?.full_name && userData.full_name.trim() !== '') {
-            displayName = userData.full_name.trim()
-          } else if (userData?.email) {
-            displayName = userData.email.split('@')[0]
-          }
-
-          return {
-            id: ou.user_id,
-            organization_id: organizationId,
-            name: displayName,
-            email: userData?.email || '',
-            role: ou.role as any,
-            pin_code: '',
-            is_active: true,
-            created_at: ou.created_at || '',
-            updated_at: ou.created_at || ''
-          }
-        })
-
-        allStaffMembers.push(...authStaffMembers)
-      }
-
-      // Step 3: Carica ANCHE dalla tabella staff_members (operatori creati da TeamManagement)
-      const { data: staffMembersData, error: staffError } = await supabase
-        .from('staff_members')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .eq('is_active', true)
-
-      if (staffError) {
-        console.error('Errore caricamento staff_members:', staffError)
-      } else if (staffMembersData && staffMembersData.length > 0) {
-        console.log('👥 Staff members trovati:', staffMembersData.length)
-
-        // Aggiungi gli staff members, evitando duplicati per ID
-        const existingIds = new Set(allStaffMembers.map(s => s.id))
-
-        staffMembersData.forEach((staff: any) => {
-          // ⭐ IMPORTANTE: Usa user_id invece di staff.id
-          // perché operator_nfc_cards ha FK a auth.users(id)
-          const staffUserId = staff.user_id
-
-          // Skip se non ha user_id (vecchi operatori non migrati)
-          if (!staffUserId) {
-            console.warn('⚠️ Staff member senza user_id:', staff.name)
-            return
-          }
-
-          if (!existingIds.has(staffUserId)) {
+          if (staffData) {
+            // ✅ Trovato in staff_members - usa quei dati
             allStaffMembers.push({
-              id: staffUserId, // ⭐ Usa user_id, non staff.id
-              organization_id: staff.organization_id,
-              name: staff.name || staff.email?.split('@')[0] || 'Operatore',
-              email: staff.email || '',
-              role: staff.role || 'staff',
-              pin_code: staff.pin_code || '',
-              is_active: staff.is_active !== false,
-              created_at: staff.created_at || '',
-              updated_at: staff.updated_at || ''
+              id: ou.user_id,
+              organization_id: organizationId,
+              name: staffData.name || staffData.email?.split('@')[0] || 'Operatore',
+              email: staffData.email || '',
+              role: staffData.role || ou.role,
+              pin_code: staffData.pin_code || '',
+              is_active: true,
+              created_at: staffData.created_at || ou.created_at,
+              updated_at: staffData.updated_at || ou.created_at
+            })
+          } else {
+            // ⚠️ Non trovato in staff_members - probabilmente utente non-staff
+            // (es. owner, admin che non è in staff_members)
+            console.warn('⚠️ Org user senza staff_member:', ou.user_id)
+            allStaffMembers.push({
+              id: ou.user_id,
+              organization_id: organizationId,
+              name: 'Amministratore',
+              email: '',
+              role: ou.role,
+              pin_code: '',
+              is_active: true,
+              created_at: ou.created_at || '',
+              updated_at: ou.created_at || ''
             })
           }
         })
