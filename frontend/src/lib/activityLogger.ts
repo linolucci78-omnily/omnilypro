@@ -113,15 +113,21 @@ export async function logActivity({
       return
     }
 
-    // Log the activity
-    await staffApi.logActivity(
-      organizationId,
-      staffId,
-      action,
-      entityType,
-      entityId,
-      details
-    )
+    // Log the activity (non-blocking - don't fail if logging fails)
+    try {
+      await staffApi.logActivity(
+        organizationId,
+        staffId,
+        action,
+        entityType,
+        entityId,
+        details
+      )
+      console.log('✅ [ACTIVITY LOGGER] Activity logged successfully')
+    } catch (logError) {
+      console.error('❌ [ACTIVITY LOGGER] Failed to log activity (non-blocking):', logError)
+      // Don't re-throw - activity logging should never block main operations
+    }
   } catch (error) {
     console.error('❌ [ACTIVITY LOGGER] Error logging activity:', error)
     // Don't throw - logging errors shouldn't break the main flow

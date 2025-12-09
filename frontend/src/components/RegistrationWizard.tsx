@@ -1311,8 +1311,8 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         address: formData.address ? `${formData.address}, ${formData.city} ${formData.zipCode}` : undefined,
         gender: formData.gender as 'male' | 'female',
         birth_date: formData.birthDate || undefined,
-        points: 50,
-        tier: calculateTier(50) || 'Base', // Usa il tier dinamico dall'organizzazione o 'Base' come fallback
+        points: organization?.welcome_bonus || 0, // USA IL VALORE DINAMICO DAL PANNELLO (default 0 se non configurato)
+        tier: calculateTier(organization?.welcome_bonus || 0) || 'Base', // Usa il tier dinamico dall'organizzazione o 'Base' come fallback
         total_spent: 0,
         visits: 0,
         is_active: true,
@@ -1357,8 +1357,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         addDebugInfo('⚠️ Programma referral non creato');
       }
 
-      // 📝 LOG WELCOME BONUS (50 punti)
+      // 📝 LOG WELCOME BONUS (punti dinamici da configurazione)
       try {
+        const welcomePoints = organization?.welcome_bonus || 0;
         const { logActivity } = await import('../lib/activityLogger');
         await logActivity({
           organizationId,
@@ -1367,11 +1368,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           entityId: createdCustomer.id,
           details: {
             customer_name: `${formData.firstName} ${formData.lastName}`,
-            points: 50,
+            points: welcomePoints,
             reason: 'welcome_bonus'
           }
         });
-        console.log('📝 Welcome bonus (50 punti) loggato nello storico');
+        console.log(`📝 Welcome bonus (${welcomePoints} punti) loggato nello storico`);
       } catch (logErr) {
         console.error('❌ Errore logging welcome bonus:', logErr);
         // Non blocca la registrazione
@@ -2202,11 +2203,11 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                   I. Identificazione del Titolare del Trattamento
                 </h3>
                 <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', borderLeft: '4px solid ' + (organization?.primary_color || '#ef4444') }}>
-                  <strong>{organization?.legal_name || organization?.name || 'Nome Azienda'}</strong><br/>
-                  Sede Legale: {organization?.address_street || 'Indirizzo non specificato'}, {organization?.address_zip || ''} {organization?.address_city || ''} ({organization?.address_province || ''})<br/>
+                  <strong>{organization?.legal_name || organization?.name || 'Nome Azienda'}</strong><br />
+                  Sede Legale: {organization?.address_street || 'Indirizzo non specificato'}, {organization?.address_zip || ''} {organization?.address_city || ''} ({organization?.address_province || ''})<br />
                   {organization?.vat_number && <>P.IVA: {organization.vat_number}</>}
-                  {organization?.tax_code && <> - C.F.: {organization.tax_code}</>}<br/>
-                  Email: {organization?.privacy_email || organization?.company_email || organization?.email || 'email@example.com'} - Tel: {organization?.company_phone || organization?.phone || 'N/A'}<br/>
+                  {organization?.tax_code && <> - C.F.: {organization.tax_code}</>}<br />
+                  Email: {organization?.privacy_email || organization?.company_email || organization?.email || 'email@example.com'} - Tel: {organization?.company_phone || organization?.phone || 'N/A'}<br />
                   {organization?.legal_representative && <><strong>Rappresentante Legale:</strong> {organization.legal_representative}</>}
                 </div>
               </div>

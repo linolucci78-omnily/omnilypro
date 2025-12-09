@@ -59,7 +59,35 @@ export async function handleTierChange(params: {
     return { tierChanged: false };
   }
 
-  console.log(`🎊 TIER UPGRADE DETECTED! ${oldTier.name} -> ${newTier.name}`);
+  // ✨ NUOVO: Rileva se è upgrade o downgrade confrontando threshold
+  const isUpgrade = (newTier.threshold || 0) > (oldTier.threshold || 0);
+  const tierChangeType = isUpgrade ? 'UPGRADE' : 'DOWNGRADE';
+  const emoji = isUpgrade ? '🎊' : '📉';
+
+  console.log(`${emoji} TIER ${tierChangeType} DETECTED! ${oldTier.name} -> ${newTier.name}`);
+
+  // Se è un DOWNGRADE (perdita livello), NON inviare email celebrative
+  if (!isUpgrade) {
+    console.log(`⚠️ Tier downgrade detected - skipping celebration email and notifications`);
+
+    // Aggiorna solo il tier nel database senza celebrazioni
+    try {
+      console.log(`💾 Updating tier in database (downgrade): ${newTier.name}`);
+      await supabase
+        .from('customers')
+        .update({
+          tier: newTier.name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', customerId);
+
+      console.log(`✅ Customer tier updated (downgrade): ${oldTier.name} -> ${newTier.name}`);
+    } catch (error) {
+      console.error('⚠️ Error updating tier:', error);
+    }
+
+    return { tierChanged: true, oldTier, newTier };
+  }
 
   // 1. Ottieni total_spent del cliente per l'email
   let totalSpent = 0;
@@ -84,7 +112,7 @@ export async function handleTierChange(params: {
     return '🥉';
   };
 
-  // 3. Invia email di congratulazioni automatica (non-blocking)
+  // 3. Invia email di congratulazioni automatica (SOLO per upgrade)
   try {
     console.log(`📧 Sending automated tier upgrade email to ${customerEmail}...`);
 
@@ -134,7 +162,7 @@ export async function handleTierChange(params: {
     console.error('⚠️ Error updating tier (non-blocking):', error);
   }
 
-  // 5. Salva notifica nel DATABASE (non più localStorage)
+  // 5. Salva notifica nel DATABASE (SOLO per upgrade - celebrazione)
   try {
     console.log(`💾 Saving tier upgrade notification to database for ${customerName}...`);
 
@@ -144,7 +172,7 @@ export async function handleTierChange(params: {
         customer_id: customerId,
         organization_id: organizationId,
         category: 'tier_upgrade',
-        title: `Congratulazioni! Sei ${newTier.name}!`,
+        title: `🎊 Congratulazioni! Sei ${newTier.name}!`,
         message: `Sei passato da ${oldTier.name} a ${newTier.name}! Continua così!`,
         is_read: false,
         metadata: {

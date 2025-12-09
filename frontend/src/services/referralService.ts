@@ -352,10 +352,10 @@ class ReferralProgramsService {
 
     const referralCode = codeData as string;
 
-    // Create program
+    // Create program with UPSERT to handle re-registration
     const { data, error } = await supabase
       .from('referral_programs')
-      .insert({
+      .upsert({
         organization_id: organizationId,
         customer_id: customerId,
         referral_code: referralCode,
@@ -366,6 +366,9 @@ class ReferralProgramsService {
         total_points_earned: 0,
         total_rewards_claimed: 0,
         is_active: true,
+      }, {
+        onConflict: 'organization_id,customer_id', // Unique constraint
+        ignoreDuplicates: false // Update se esiste
       })
       .select(`
         *,
