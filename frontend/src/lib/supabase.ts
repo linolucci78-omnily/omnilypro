@@ -1347,69 +1347,116 @@ export const staffApi = {
 
   // Create staff member
   async create(staffMember: Omit<StaffMember, 'id' | 'created_at' | 'updated_at'>): Promise<StaffMember> {
-    console.log('👤 [STAFF API] Creating staff member with dual auth system...')
+    console.log('👤 [STAFF API] Creating staff member with Shopify POS-Only model...')
 
-    // Step 1: Create staff_member record (per PIN login)
-    const { data, error } = await supabase
-      .from('staff_members')
-      .insert([staffMember])
-      .select()
-      .single()
+    // ========================================
+    // MODELLO SHOPIFY POS-ONLY STAFF
+    // ========================================
+    // TUTTI gli operatori hanno un account auth.users (per RLS)
+    // Ma solo alcuni possono accedere al web (blocco UI tramite role)
 
-    if (error) throw error
-    console.log('✅ [STAFF API] Staff member created:', data.id)
+    // Determina se è email vera o auto-generata
+    let authEmail = staffMember.email && staffMember.email.trim()
+    let isPosOnly = false
 
-    // Step 2: Create auth account (per NFC e login completo) - SOLO se ha email
-    if (staffMember.email && staffMember.email.trim()) {
-      try {
-        console.log('🔐 [STAFF API] Creating auth account for:', staffMember.email)
-
-        // Genera password temporanea (PIN + email per sicurezza)
-        const tempPassword = `${staffMember.pin_code}-${staffMember.email.split('@')[0]}`
-
-        // Crea utente auth usando Admin API
-        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-          email: staffMember.email,
-          password: tempPassword,
-          email_confirm: true, // Auto-conferma email
-          user_metadata: {
-            full_name: staffMember.name,
-            staff_member_id: data.id,
-            organization_id: staffMember.organization_id
-          }
-        })
-
-        if (authError) {
-          console.warn('⚠️ [STAFF API] Could not create auth account:', authError.message)
-          // Non bloccare la creazione dello staff se l'auth fallisce
-        } else {
-          console.log('✅ [STAFF API] Auth account created:', authUser.user.id)
-
-          // Step 3: Collega utente auth a organization_users
-          const { error: orgUserError } = await supabase
-            .from('organization_users')
-            .insert({
-              user_id: authUser.user.id,
-              org_id: staffMember.organization_id,
-              role: staffMember.role === 'admin' ? 'org_admin' : 'staff',
-              created_at: new Date().toISOString()
-            })
-
-          if (orgUserError) {
-            console.warn('⚠️ [STAFF API] Could not link to organization_users:', orgUserError.message)
-          } else {
-            console.log('✅ [STAFF API] Linked to organization_users')
-          }
-        }
-      } catch (authException) {
-        console.warn('⚠️ [STAFF API] Auth creation exception:', authException)
-        // Non bloccare - lo staff member esiste comunque con PIN
-      }
-    } else {
-      console.log('ℹ️ [STAFF API] No email provided - skipping auth account creation')
+    if (!authEmail) {
+      // Email auto-generata per operatore POS-only
+      const uuid = crypto.randomUUID()
+      authEmail = `staff-${uuid}@${staffMember.organization_id}.omnily.local`
+      isPosOnly = true
+      console.log('🏷️ [STAFF API] Auto-generated email for POS-only staff:', authEmail)
     }
 
-    return data
+    try {
+      // Step 1: Crea account auth.users (SEMPRE, anche per POS-only)
+      console.log('🔐 [STAFF API] Creating auth account for:', authEmail)
+
+      // Genera password casuale sicura (64 caratteri)
+      const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(48)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+
+      // Crea utente auth usando Admin API
+      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+        email: authEmail,
+        password: randomPassword,
+        email_confirm: true, // Auto-conferma email
+        user_metadata: {
+          full_name: staffMember.name,
+          organization_id: staffMember.organization_id,
+          is_pos_only: isPosOnly
+        }
+      })
+
+      if (authError) {
+        console.error('❌ [STAFF API] Auth account creation failed:', authError.message)
+        throw new Error(`Impossibile creare account auth: ${authError.message}`)
+      }
+
+      console.log('✅ [STAFF API] Auth account created:', authUser.user.id)
+
+      // Step 2: Determina ruolo organization_users
+      let orgRole = 'pos_only_staff' // Default per operatori locali
+
+      if (!isPosOnly) {
+        // Email vera fornita → ruolo basato su role staff
+        if (staffMember.role === 'admin') {
+          orgRole = 'org_admin'
+        } else if (staffMember.role === 'manager') {
+          orgRole = 'manager'
+        } else {
+          orgRole = 'cashier' // Email vera ma ruolo base
+        }
+      }
+
+      console.log('👔 [STAFF API] Organization role:', orgRole)
+
+      // Step 3: Collega a organization_users
+      const { error: orgUserError } = await supabase
+        .from('organization_users')
+        .insert({
+          user_id: authUser.user.id,
+          org_id: staffMember.organization_id,
+          role: orgRole,
+          created_at: new Date().toISOString()
+        })
+
+      if (orgUserError) {
+        console.error('❌ [STAFF API] Failed to link to organization_users:', orgUserError.message)
+        // Rollback: elimina auth user
+        await supabase.auth.admin.deleteUser(authUser.user.id)
+        throw new Error(`Impossibile collegare a organizzazione: ${orgUserError.message}`)
+      }
+
+      console.log('✅ [STAFF API] Linked to organization_users with role:', orgRole)
+
+      // Step 4: Crea staff_member record con user_id collegato
+      const { data, error } = await supabase
+        .from('staff_members')
+        .insert([{
+          ...staffMember,
+          email: authEmail, // Usa email (vera o auto-generata)
+          user_id: authUser.user.id // ⭐ COLLEGA user_id
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('❌ [STAFF API] Failed to create staff_member:', error.message)
+        // Rollback: elimina auth user e org link
+        await supabase.auth.admin.deleteUser(authUser.user.id)
+        throw error
+      }
+
+      console.log('✅ [STAFF API] Staff member created and linked:', data.id)
+      console.log('🎯 [STAFF API] Model: ' + (isPosOnly ? 'POS-Only (no web access)' : 'Full Access (web + POS)'))
+
+      return data
+
+    } catch (createException: any) {
+      console.error('❌ [STAFF API] Creation failed:', createException)
+      throw createException
+    }
   },
 
   // Update staff member

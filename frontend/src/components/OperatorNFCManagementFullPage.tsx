@@ -282,20 +282,10 @@ const OperatorNFCManagementFullPage: React.FC<OperatorNFCManagementFullPageProps
     try {
       setLoading(true)
 
-      // Determina se è un utente auth (con account) o staff (solo PIN)
-      // Gli utenti auth vengono da organization_users, gli staff da staff_members
-      // Controllo: se l'ID esiste in orgUsers, è un user_id, altrimenti è uno staff_id
-      const { data: orgUsers } = await supabase
-        .from('organization_users')
-        .select('user_id')
-        .eq('user_id', selectedUser.id)
-        .eq('org_id', organizationId)
-        .maybeSingle()
-
-      const isAuthUser = !!orgUsers
-
+      // ⭐ MODELLO SEMPLIFICATO: Tutti gli operatori hanno user_id
+      // (staffApi.create crea automaticamente auth account per tutti)
       await operatorNFCService.create({
-        ...(isAuthUser ? { user_id: selectedUser.id } : { staff_id: selectedUser.id }),
+        user_id: selectedUser.id, // ⭐ Sempre user_id (no più staff_id)
         organization_id: organizationId,
         nfc_uid: scannedNFCUid,
         operator_name: operatorName.trim(),

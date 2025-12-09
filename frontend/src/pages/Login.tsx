@@ -255,54 +255,36 @@ const Login: React.FC = () => {
         // Attendi 1 secondo per mostrare il riconoscimento
         setTimeout(async () => {
           try {
-            // Distingui tra operatore con account auth e operatore locale (solo staff)
-            const isAuthUser = !!operatorAuth.user_id;
+            // ⭐ MODELLO SEMPLIFICATO: Tutti gli operatori hanno account auth
+            console.log('🔐 Login NFC per:', operatorAuth.user_email);
 
-            if (isAuthUser) {
-              // SCENARIO 1: Operatore con account auth (user_id)
-              console.log('🔐 Login NFC con account auth per:', operatorAuth.user_email);
-
-              // Decodifica la password dall'operatore
-              if (!operatorAuth.encrypted_password) {
-                throw new Error('Password non configurata per questo operatore');
-              }
-              const operatorPassword = atob(operatorAuth.encrypted_password);
-
-              // 🔑 IMPORTANTE: Salva l'organization_id della card PRIMA del login
-              console.log('💾 Storing NFC card organization_id for redirect:', operatorAuth.organization_id);
-              localStorage.setItem('nfc_target_organization_id', operatorAuth.organization_id);
-
-              await signIn(operatorAuth.user_email!, operatorPassword);
-            } else {
-              // SCENARIO 2: Operatore locale (staff_id) - Login diretto senza auth
-              console.log('🔐 Login NFC per operatore locale (solo PIN):', operatorAuth.operator_name);
-
-              // Crea una sessione locale per l'operatore
-              localStorage.setItem('staff_local_session', JSON.stringify({
-                staff_id: operatorAuth.staff_id,
-                operator_name: operatorAuth.operator_name,
-                organization_id: operatorAuth.organization_id,
-                login_time: new Date().toISOString()
-              }));
-
-              // Redirect alla dashboard dell'organizzazione
-              navigate(`/dashboard?org=${operatorAuth.organization_id}`);
+            // Decodifica la password dall'operatore
+            if (!operatorAuth.encrypted_password) {
+              throw new Error('Password non configurata per questo operatore');
             }
+            const operatorPassword = atob(operatorAuth.encrypted_password);
 
-            // Log del login (dual logging)
+            // 🔑 IMPORTANTE: Salva l'organization_id della card PRIMA del login
+            console.log('💾 Storing NFC card organization_id for redirect:', operatorAuth.organization_id);
+            localStorage.setItem('nfc_target_organization_id', operatorAuth.organization_id);
+
+            // Login con Supabase auth (funziona per tutti gli operatori)
+            await signIn(operatorAuth.user_email, operatorPassword);
+
+            // Log del login
             await operatorNFCService.logLogin({
               operator_card_id: operatorAuth.card_id,
-              user_id: operatorAuth.user_id || undefined,
+              user_id: operatorAuth.user_id,
               organization_id: operatorAuth.organization_id,
               nfc_uid: nfcUid,
               success: true
             });
 
-            // Log to staff_activity_logs (new system)
+            // Log to staff_activity_logs
             try {
               await staffActivityService.logLogin({
                 organizationId: operatorAuth.organization_id,
-                staffUserId: operatorAuth.user_id || operatorAuth.staff_id!,
+                staffUserId: operatorAuth.user_id,
                 staffName: operatorAuth.operator_name,
                 deviceId: typeof window !== 'undefined' ? (window as any).deviceId : undefined
               });
