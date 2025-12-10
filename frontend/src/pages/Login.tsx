@@ -7,6 +7,7 @@ import { useToast } from '../contexts/ToastContext';
 import { getAdminPermissions, type AdminRole } from '../utils/adminPermissions';
 import { operatorNFCService, type OperatorAuthResult } from '../services/operatorNFCService';
 import { staffActivityService } from '../services/staffActivityService';
+import { supabase } from '../lib/supabase';
 import { SparklesCore } from '@/components/UI/sparkles';
 import styles from './Login.module.css'; // Importa gli stili del modulo
 
@@ -136,6 +137,16 @@ const Login: React.FC = () => {
         showSuccess('Registrazione completata', 'Controlla la tua email per confermare l\'account');
       } else {
         await signIn(email, password);
+
+        // 🔒 SICUREZZA MULTI-TENANT: Blocca POS-only staff dal web
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.user_metadata?.is_pos_only && !isPosMode) {
+          console.warn('🚫 Tentativo di login web da account POS-only:', session.user.email);
+          // Logout immediato
+          await supabase.auth.signOut();
+          throw new Error('Accesso negato: questo account può accedere solo dal POS tramite tessera NFC');
+        }
+
         showSuccess('Login effettuato con successo');
       }
     } catch (error) {
@@ -144,6 +155,8 @@ const Login: React.FC = () => {
         showError('Credenziali non valide', 'Email o password non corretti');
       } else if (errorMessage.includes('Email not confirmed')) {
         showError('Email non confermata', 'Controlla la tua email per confermare l\'account');
+      } else if (errorMessage.includes('Accesso negato')) {
+        showError('Accesso Negato', errorMessage);
       } else {
         showError('Errore di autenticazione', errorMessage);
       }
