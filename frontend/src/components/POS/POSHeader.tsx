@@ -75,7 +75,12 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
       {/* User Info + Quick Logout */}
       <div className="pos-header-user">
         <div className="pos-user-info">
-          <span className="pos-user-name">{user?.email?.split('@')[0]}</span>
+          <span className="pos-user-name">
+            {user?.user_metadata?.full_name ||
+             localStorage.getItem('staffName') ||
+             user?.email?.split('@')[0] ||
+             'Operatore'}
+          </span>
           <span className="pos-user-status">🟢 Online</span>
         </div>
         <button

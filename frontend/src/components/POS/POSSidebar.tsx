@@ -196,9 +196,15 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
           )}
           <div className="pos-sidebar-user">
             <div className="pos-user-role">POS Operator</div>
-            <div className="pos-user-email">{user?.user_metadata?.first_name && user?.user_metadata?.last_name
-              ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-              : user?.user_metadata?.first_name || user?.user_metadata?.last_name || user?.email || 'Operatore'}</div>
+            <div className="pos-user-email">
+              {user?.user_metadata?.full_name ||
+               localStorage.getItem('staffName') ||
+               (user?.user_metadata?.first_name && user?.user_metadata?.last_name
+                 ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                 : user?.user_metadata?.first_name || user?.user_metadata?.last_name) ||
+               user?.email?.split('@')[0] ||
+               'Operatore'}
+            </div>
             <div className="pos-user-org">{currentOrganization?.name || 'OMNILY PRO'}</div>
           </div>
         </div>
