@@ -779,32 +779,50 @@ async function sendPushNotification(input: any, supabaseClient: any, organizatio
 async function getSalesAnalytics(input: any, supabaseClient: any, organizationId: string | null) {
     const { date_range, metrics } = input
 
-    // Calculate date range
-    const now = new Date()
-    let startDate = new Date()
+    // Calculate dates in Italian timezone (UTC+1 in December)
+    const nowUTC = new Date()
+
+    // Italy is UTC+1 in winter, UTC+2 in summer
+    // For December, use UTC+1
+    const italyOffsetMs = 1 * 60 * 60 * 1000 // 1 hour in milliseconds
+
+    // Get midnight today in Italy (00:00 Italy time)
+    const nowItalyMs = nowUTC.getTime() + italyOffsetMs
+    const nowItaly = new Date(nowItalyMs)
+
+    const midnightItaly = new Date(nowItaly)
+    midnightItaly.setHours(0, 0, 0, 0)
+
+    // Convert midnight Italy to UTC for database query
+    const midnightUTC = new Date(midnightItaly.getTime() - italyOffsetMs)
+
+    let startDate = midnightUTC
+    let endDate = nowUTC // Current time
 
     switch (date_range) {
         case 'today':
-            startDate.setHours(0, 0, 0, 0)
+            // From 00:00 Italy (23:00 UTC yesterday) to now
+            // Already set correctly
             break
         case 'yesterday':
-            startDate.setDate(now.getDate() - 1)
-            startDate.setHours(0, 0, 0, 0)
-            now.setDate(now.getDate() - 1)
-            now.setHours(23, 59, 59, 999)
+            // From 00:00 to 23:59:59 yesterday in Italy
+            startDate = new Date(midnightUTC.getTime() - (24 * 60 * 60 * 1000))
+            endDate = new Date(midnightUTC.getTime() - 1) // 1ms before midnight
             break
         case 'last_7_days':
-            startDate.setDate(now.getDate() - 7)
+            startDate = new Date(midnightUTC.getTime() - (7 * 24 * 60 * 60 * 1000))
             break
         case 'last_30_days':
-            startDate.setDate(now.getDate() - 30)
+            startDate = new Date(midnightUTC.getTime() - (30 * 24 * 60 * 60 * 1000))
             break
     }
 
     console.log('📊 getSalesAnalytics - Query params:', {
         date_range,
-        startDate: startDate.toISOString(),
-        endDate: now.toISOString(),
+        nowItaly: nowItaly.toLocaleString('it-IT'),
+        midnightItaly: midnightItaly.toLocaleString('it-IT'),
+        startDateUTC: startDate.toISOString(),
+        endDateUTC: endDate.toISOString(),
         organizationId
     })
 
@@ -817,7 +835,7 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
 
     const { data: transactions, error: txError } = await txQuery
         .gte('created_at', startDate.toISOString())
-        .lte('created_at', now.toISOString())
+        .lte('created_at', endDate.toISOString())
 
     if (txError) {
         console.error('❌ Error fetching transactions:', txError)
@@ -833,7 +851,7 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
     return {
         success: true,
         date_range,
-        period: `${startDate.toLocaleDateString('it-IT')} - ${now.toLocaleDateString('it-IT')}`,
+        period: `${startDate.toLocaleDateString('it-IT')} - ${endDate.toLocaleDateString('it-IT')}`,
         total_revenue: totalRevenue,
         transaction_count: transactionCount,
         average_transaction: averageTransaction
