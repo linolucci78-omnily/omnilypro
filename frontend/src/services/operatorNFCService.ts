@@ -182,6 +182,26 @@ export const operatorNFCService = {
 
     console.log('🔄 Creazione tessera operatore (modello semplificato user_id only)...')
 
+    // ⭐ IMPORTANTE: Se c'è una password, aggiorna anche auth.users
+    if (card.password) {
+      console.log('🔐 Aggiornamento password in auth.users per user:', card.user_id)
+
+      const { data: updateData, error: updateError } = await supabase.functions.invoke('update-user-password', {
+        body: {
+          userId: card.user_id,
+          newPassword: card.password
+        }
+      })
+
+      if (updateError || !updateData?.success) {
+        const errorMsg = updateError?.message || updateData?.error || 'Unknown error'
+        console.error('❌ Errore aggiornamento password:', errorMsg)
+        throw new Error(`Impossibile aggiornare password utente: ${errorMsg}`)
+      }
+
+      console.log('✅ Password aggiornata in auth.users')
+    }
+
     // Disattiva tessere precedenti dello stesso operatore
     const { error: deactivateError } = await supabase
       .from('operator_nfc_cards')
