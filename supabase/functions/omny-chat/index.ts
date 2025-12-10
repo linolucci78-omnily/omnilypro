@@ -801,7 +801,12 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
             break
     }
 
-    const result: any = {}
+    console.log('📊 getSalesAnalytics - Query params:', {
+        date_range,
+        startDate: startDate.toISOString(),
+        endDate: now.toISOString(),
+        organizationId
+    })
 
     // Get transactions
     let txQuery = supabaseClient
@@ -810,35 +815,28 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
 
     txQuery = applyOrgFilter(txQuery, organizationId)
 
-    const { data: transactions } = await txQuery
+    const { data: transactions, error: txError } = await txQuery
         .gte('created_at', startDate.toISOString())
         .lte('created_at', now.toISOString())
 
-    if (metrics.includes('revenue')) {
-        const total = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0
-        result.revenue = `€${total.toFixed(2)}`
+    if (txError) {
+        console.error('❌ Error fetching transactions:', txError)
     }
 
-    if (metrics.includes('transactions')) {
-        result.transactions = transactions?.length || 0
-    }
+    console.log('📊 getSalesAnalytics - Transactions found:', transactions?.length || 0)
 
-    if (metrics.includes('avg_ticket')) {
-        const total = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0
-        const count = transactions?.length || 1
-        result.avg_ticket = `€${(total / count).toFixed(2)}`
-    }
-
-    if (metrics.includes('top_products')) {
-        // This would require a products table join - for now return placeholder
-        result.top_products = ['Prodotto A', 'Prodotto B', 'Prodotto C']
-    }
+    // Calculate metrics as NUMBERS (not formatted strings)
+    const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0
+    const transactionCount = transactions?.length || 0
+    const averageTransaction = transactionCount > 0 ? totalRevenue / transactionCount : 0
 
     return {
         success: true,
         date_range,
         period: `${startDate.toLocaleDateString('it-IT')} - ${now.toLocaleDateString('it-IT')}`,
-        data: result
+        total_revenue: totalRevenue,
+        transaction_count: transactionCount,
+        average_transaction: averageTransaction
     }
 }
 
