@@ -18,7 +18,10 @@ import {
 import { useToast } from '../../hooks/useToast'
 import { useConfirm } from '../../hooks/useConfirm'
 import PageLoader from '../UI/PageLoader'
+import ConfirmModal from '../UI/ConfirmModal'
+import Toast from '../UI/Toast'
 import './AdminLayout.css'
+import './AppPushUpdate.css'
 
 interface App {
   id: string
@@ -70,8 +73,8 @@ const AppPushUpdate: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [selectedApp, setSelectedApp] = useState<App | null>(null)
   const [showPushModal, setShowPushModal] = useState(false)
-  const { showSuccess, showError, showWarning } = useToast()
-  const { showConfirm } = useConfirm()
+  const { toast, showSuccess, showError, showWarning, hideToast } = useToast()
+  const { confirmState, showConfirm, hideConfirm, handleConfirm } = useConfirm()
 
   const [pushForm, setPushForm] = useState({
     target: 'all' as 'all' | 'organization' | 'specific',
@@ -193,10 +196,15 @@ const AppPushUpdate: React.FC = () => {
       return
     }
 
+    // Show confirmation dialog
+    const confirmMessage = `Confermi l'avvio del push update di "${selectedApp.app_name}" v${selectedApp.version_name} su ${targetDevices.length} dispositivo/i?`
+
     showConfirm(
-      `Avviare push update di "${selectedApp.app_name}" v${selectedApp.version_name} su ${targetDevices.length} dispositivi?`,
+      confirmMessage,
       async () => {
         try {
+          console.log('Starting push update...', { selectedApp, targetDevices })
+
           // Create commands for each device
           const commands = targetDevices.map(device => ({
             device_id: device.id,
@@ -214,11 +222,18 @@ const AppPushUpdate: React.FC = () => {
             scheduled_for: pushForm.schedule_type === 'scheduled' ? pushForm.scheduled_time : null
           }))
 
+          console.log('Commands to insert:', commands)
+
           const { error } = await supabase
             .from('device_commands')
             .insert(commands)
 
-          if (error) throw error
+          if (error) {
+            console.error('Insert error:', error)
+            throw error
+          }
+
+          console.log('Commands inserted successfully')
 
           // Log campaign
           await supabase
@@ -232,19 +247,20 @@ const AppPushUpdate: React.FC = () => {
               organization_id: pushForm.organization_id || null
             }])
 
-          showSuccess(`Push update avviato su ${targetDevices.length} dispositivi`)
+          showSuccess(`Push update avviato su ${targetDevices.length} dispositivi!`)
           setShowPushModal(false)
           resetPushForm()
           loadCampaigns()
 
         } catch (error) {
           console.error('Error starting push:', error)
-          showError('Errore durante l\'avvio del push update')
+          showError('Errore durante l\'avvio del push update: ' + (error as any).message)
         }
       },
       {
-        title: 'Avvia Push Update',
-        confirmText: 'Avvia',
+        title: 'Conferma Push Update',
+        confirmText: 'Avvia Aggiornamento',
+        cancelText: 'Annulla',
         type: 'info'
       }
     )
@@ -555,193 +571,199 @@ const AppPushUpdate: React.FC = () => {
 
       {/* Push Modal */}
       {showPushModal && selectedApp && (
-        <div className="device-modal-overlay" onClick={() => setShowPushModal(false)}>
-          <div className="device-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="app-push-modal-overlay" onClick={() => setShowPushModal(false)}>
+          <div className="app-push-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="app-push-modal-header">
               <h2>🚀 Configura Push Update</h2>
-              <button className="close-btn" onClick={() => setShowPushModal(false)}>×</button>
+              <button className="app-push-close-btn" onClick={() => setShowPushModal(false)}>×</button>
             </div>
 
-            <div className="modal-content">
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#f0f9ff',
-                border: '1px solid #0284c7',
-                borderRadius: '8px',
-                marginBottom: '1.5rem'
-              }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#0369a1' }}>
-                  {selectedApp.app_name} v{selectedApp.version_name}
-                </h4>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: '#0369a1' }}>
-                  {selectedApp.package_name} • {selectedApp.apk_size_mb || 'N/A'} MB
-                </p>
+            <div className="app-push-info-box">
+              <h4>{selectedApp.app_name} v{selectedApp.version_name}</h4>
+              <p>{selectedApp.package_name} • {selectedApp.apk_size_mb || 'N/A'} MB</p>
+            </div>
+
+            <div className="app-push-form-section">
+              <h4>🎯 Target Dispositivi</h4>
+              <div className="app-push-form-row">
+                <label>
+                  <input
+                    type="radio"
+                    checked={pushForm.target === 'all'}
+                    onChange={() => setPushForm({ ...pushForm, target: 'all' })}
+                  />
+                  Tutti i dispositivi online ({devices.filter(d => d.status === 'online').length})
+                </label>
               </div>
-
-              <div className="add-device-form">
-                <div className="form-section">
-                  <h4>🎯 Target Dispositivi</h4>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="radio"
-                        checked={pushForm.target === 'all'}
-                        onChange={() => setPushForm({ ...pushForm, target: 'all' })}
-                      />
-                      Tutti i dispositivi online ({devices.filter(d => d.status === 'online').length})
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="radio"
-                        checked={pushForm.target === 'organization'}
-                        onChange={() => setPushForm({ ...pushForm, target: 'organization' })}
-                      />
-                      Per organizzazione
-                    </label>
-                  </div>
-                  {pushForm.target === 'organization' && (
-                    <div className="form-row" style={{ marginLeft: '2rem' }}>
-                      <select
-                        value={pushForm.organization_id}
-                        onChange={(e) => setPushForm({ ...pushForm, organization_id: e.target.value })}
-                      >
-                        <option value="">Seleziona organizzazione...</option>
-                        {Array.from(new Set(devices.map(d => d.organization_id))).map(orgId => {
-                          const org = devices.find(d => d.organization_id === orgId)?.organization
-                          return (
-                            <option key={orgId} value={orgId}>
-                              {org?.name || orgId}
-                            </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-                  )}
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="radio"
-                        checked={pushForm.target === 'specific'}
-                        onChange={() => setPushForm({ ...pushForm, target: 'specific', device_ids: [] })}
-                      />
-                      Dispositivi specifici
-                    </label>
-                  </div>
-                  {pushForm.target === 'specific' && (
-                    <div style={{ marginLeft: '2rem', maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.5rem' }}>
-                      {devices.filter(d => d.status === 'online').map(device => (
-                        <div key={device.id} className="form-row" style={{ marginBottom: '0.5rem' }}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={pushForm.device_ids.includes(device.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setPushForm({ ...pushForm, device_ids: [...pushForm.device_ids, device.id] })
-                                } else {
-                                  setPushForm({ ...pushForm, device_ids: pushForm.device_ids.filter(id => id !== device.id) })
-                                }
-                              }}
-                            />
-                            {device.name} ({device.store_location || 'N/A'})
-                          </label>
-                        </div>
-                      ))}
-                      {devices.filter(d => d.status === 'online').length === 0 && (
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>
-                          Nessun dispositivo online disponibile
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="form-section">
-                  <h4>⚡ Velocità Rollout</h4>
-                  <div className="form-row">
-                    <select
-                      value={pushForm.rollout_speed}
-                      onChange={(e) => setPushForm({ ...pushForm, rollout_speed: e.target.value as any })}
-                    >
-                      <option value="slow">{getRolloutSpeedLabel('slow')}</option>
-                      <option value="medium">{getRolloutSpeedLabel('medium')}</option>
-                      <option value="fast">{getRolloutSpeedLabel('fast')}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h4>⚙️ Opzioni</h4>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={pushForm.is_mandatory}
-                        onChange={(e) => setPushForm({ ...pushForm, is_mandatory: e.target.checked })}
-                      />
-                      Aggiornamento obbligatorio
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h4>📅 Programmazione</h4>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="radio"
-                        checked={pushForm.schedule_type === 'immediate'}
-                        onChange={() => setPushForm({ ...pushForm, schedule_type: 'immediate' })}
-                      />
-                      Immediato
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="radio"
-                        checked={pushForm.schedule_type === 'scheduled'}
-                        onChange={() => setPushForm({ ...pushForm, schedule_type: 'scheduled' })}
-                      />
-                      Programmato
-                    </label>
-                  </div>
-                  {pushForm.schedule_type === 'scheduled' && (
-                    <div className="form-row" style={{ marginLeft: '2rem' }}>
-                      <input
-                        type="datetime-local"
-                        value={pushForm.scheduled_time}
-                        onChange={(e) => setPushForm({ ...pushForm, scheduled_time: e.target.value })}
-                      />
-                    </div>
-                  )}
-                </div>
+              <div className="app-push-form-row">
+                <label>
+                  <input
+                    type="radio"
+                    checked={pushForm.target === 'organization'}
+                    onChange={() => setPushForm({ ...pushForm, target: 'organization' })}
+                  />
+                  Per organizzazione
+                </label>
               </div>
+              {pushForm.target === 'organization' && (
+                <div className="app-push-form-row" style={{ marginLeft: '2rem' }}>
+                  <select
+                    value={pushForm.organization_id}
+                    onChange={(e) => setPushForm({ ...pushForm, organization_id: e.target.value })}
+                  >
+                    <option value="">Seleziona organizzazione...</option>
+                    {Array.from(new Set(devices.map(d => d.organization_id))).map(orgId => {
+                      const org = devices.find(d => d.organization_id === orgId)?.organization
+                      return (
+                        <option key={orgId} value={orgId}>
+                          {org?.name || orgId}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+              )}
+              <div className="app-push-form-row">
+                <label>
+                  <input
+                    type="radio"
+                    checked={pushForm.target === 'specific'}
+                    onChange={() => setPushForm({ ...pushForm, target: 'specific', device_ids: [] })}
+                  />
+                  Dispositivi specifici
+                </label>
+              </div>
+              {pushForm.target === 'specific' && (
+                <div className="app-push-device-list">
+                  {devices.filter(d => d.status === 'online').map(device => (
+                    <div key={device.id} className="app-push-device-item">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={pushForm.device_ids.includes(device.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setPushForm({ ...pushForm, device_ids: [...pushForm.device_ids, device.id] })
+                            } else {
+                              setPushForm({ ...pushForm, device_ids: pushForm.device_ids.filter(id => id !== device.id) })
+                            }
+                          }}
+                        />
+                        {device.name} ({device.store_location || 'N/A'})
+                      </label>
+                    </div>
+                  ))}
+                  {devices.filter(d => d.status === 'online').length === 0 && (
+                    <p className="app-push-no-devices">
+                      Nessun dispositivo online disponibile
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
 
-              <div className="modal-actions">
-                <button
-                  className="action-btn secondary"
-                  onClick={() => {
-                    setShowPushModal(false)
-                    resetPushForm()
-                  }}
+            <div className="app-push-form-section">
+              <h4>⚡ Velocità Rollout</h4>
+              <div className="app-push-form-row">
+                <select
+                  value={pushForm.rollout_speed}
+                  onChange={(e) => setPushForm({ ...pushForm, rollout_speed: e.target.value as any })}
                 >
-                  Annulla
-                </button>
-                <button
-                  className="action-btn success"
-                  onClick={handleStartPush}
-                >
-                  <Play size={16} />
-                  Avvia Push Update
-                </button>
+                  <option value="slow">{getRolloutSpeedLabel('slow')}</option>
+                  <option value="medium">{getRolloutSpeedLabel('medium')}</option>
+                  <option value="fast">{getRolloutSpeedLabel('fast')}</option>
+                </select>
               </div>
+            </div>
+
+            <div className="app-push-form-section">
+              <h4>⚙️ Opzioni</h4>
+              <div className="app-push-form-row">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={pushForm.is_mandatory}
+                    onChange={(e) => setPushForm({ ...pushForm, is_mandatory: e.target.checked })}
+                  />
+                  Aggiornamento obbligatorio
+                </label>
+              </div>
+            </div>
+
+            <div className="app-push-form-section">
+              <h4>📅 Programmazione</h4>
+              <div className="app-push-form-row">
+                <label>
+                  <input
+                    type="radio"
+                    checked={pushForm.schedule_type === 'immediate'}
+                    onChange={() => setPushForm({ ...pushForm, schedule_type: 'immediate' })}
+                  />
+                  Immediato
+                </label>
+              </div>
+              <div className="app-push-form-row">
+                <label>
+                  <input
+                    type="radio"
+                    checked={pushForm.schedule_type === 'scheduled'}
+                    onChange={() => setPushForm({ ...pushForm, schedule_type: 'scheduled' })}
+                  />
+                  Programmato
+                </label>
+              </div>
+              {pushForm.schedule_type === 'scheduled' && (
+                <div className="app-push-form-row" style={{ marginLeft: '2rem' }}>
+                  <input
+                    type="datetime-local"
+                    value={pushForm.scheduled_time}
+                    onChange={(e) => setPushForm({ ...pushForm, scheduled_time: e.target.value })}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="app-push-modal-actions">
+              <button
+                className="app-push-btn app-push-btn-secondary"
+                onClick={() => {
+                  setShowPushModal(false)
+                  resetPushForm()
+                }}
+              >
+                Annulla
+              </button>
+              <button
+                className="app-push-btn app-push-btn-success"
+                onClick={handleStartPush}
+              >
+                <Play size={16} />
+                Avvia Push Update
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        type={confirmState.type}
+        onConfirm={handleConfirm}
+        onCancel={hideConfirm}
+      />
+
+      {/* Toast Notifications */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
     </div>
   )
 }

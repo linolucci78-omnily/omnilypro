@@ -84,7 +84,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
     thank_you_message: 'Grazie per la visita!',
     paper_width: 384,
     font_family: 'courier',
-    header_text: 'SCONTRINO FISCALE',
+    header_text: 'SCONTRINO DI CORTESIA',
     show_store_info: true,
     qr_size: 'medium',
     bold_totals: true,
@@ -357,7 +357,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
       show_thank_you_message: true,
       thank_you_message: 'Grazie per la visita!',
       font_family: 'courier',
-      header_text: 'SCONTRINO FISCALE',
+      header_text: 'SCONTRINO DI CORTESIA',
       show_store_info: true,
       qr_size: 'medium',
       bold_totals: true
@@ -823,7 +823,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
                   type="text"
                   value={settings.header_text}
                   onChange={(e) => setSettings({ ...settings, header_text: e.target.value })}
-                  placeholder="SCONTRINO FISCALE"
+                  placeholder="SCONTRINO DI CORTESIA"
                   className="receipt-editor-input"
                 />
               </div>
@@ -969,7 +969,7 @@ const ReceiptLayoutEditor: React.FC<ReceiptLayoutEditorProps> = ({
                 <div style={{ marginBottom: `${settings.section_spacing * 0.5}rem`, fontSize: `${settings.font_size_small}px` }}>
                   <div style={{ marginBottom: `${settings.line_spacing * 0.25}rem` }}>N. 0001</div>
                   <div style={{ marginBottom: `${settings.line_spacing * 0.25}rem` }}>Data: {new Date().toLocaleString('it-IT')}</div>
-                  <div>Operatore: Demo</div>
+                  <div>Operatore: Admin</div>
                 </div>
 
                 {settings.show_separator_lines && <div className="receipt-preview-separator"></div>}

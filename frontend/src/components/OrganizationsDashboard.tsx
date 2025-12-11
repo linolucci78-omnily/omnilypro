@@ -1206,6 +1206,33 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         return { success: false, error: 'Errore aggiornamento punti' };
       }
 
+      // 💳 NUOVO: Registra la transazione nella tabella transaction per analytics
+      if (currentOrganization) {
+        try {
+          const { error: txError } = await supabase
+            .from('transaction')
+            .insert({
+              customer_id: customerId,
+              organization_id: currentOrganization.id,
+              amount: amount,
+              points: pointsEarned,
+              type: 'sale',
+              description: 'Vendita POS',
+              created_at: new Date().toISOString()
+            });
+
+          if (txError) {
+            console.error('⚠️ Errore registrazione transaction (non-blocking):', txError);
+            // Non blocchiamo la vendita per questo errore
+          } else {
+            console.log('✅ Transaction record creato per analytics');
+          }
+        } catch (txError) {
+          console.error('⚠️ Errore registrazione transaction (non-blocking):', txError);
+          // Non blocchiamo la vendita per questo errore
+        }
+      }
+
       // Aggiorna il state locale immediatamente
       setCustomers(prevCustomers =>
         prevCustomers.map(customer =>
@@ -3766,7 +3793,9 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
         organizationTax={currentOrganization?.partita_iva || ''}
         primaryColor={currentOrganization?.primary_color || '#dc2626'}
         secondaryColor={currentOrganization?.secondary_color || '#ef4444'}
-        operatorName={user?.email || 'Operatore'}
+        operatorName={user?.user_metadata?.first_name && user?.user_metadata?.last_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+          : user?.email?.split('@')[0] || 'Operatore'}
         organizationId={currentOrganization?.id}
         onOpenGamingHub={() => {
           setSelectedCustomerForGaming(selectedCustomer)

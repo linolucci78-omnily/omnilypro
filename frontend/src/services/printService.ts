@@ -101,7 +101,7 @@ export class ZCSPrintService {
         thank_you_message: data.thank_you_message || 'Grazie per la visita!',
         paper_width: data.paper_width || 384,
         font_family: data.font_family || 'courier',
-        header_text: data.header_text || 'SCONTRINO FISCALE',
+        header_text: data.header_text || 'SCONTRINO DI CORTESIA',
         show_store_info: data.show_store_info !== false,
         qr_size: data.qr_size || 'medium',
         bold_totals: data.bold_totals !== false
@@ -169,14 +169,14 @@ export class ZCSPrintService {
   }
 
   private centerText(text: string, width: number = 40): string {
-    const padding = Math.max(0, width - text.length)
-    const leftPad = Math.floor(padding / 2)
-    return ' '.repeat(leftPad) + text
+    // Use ESC/POS command for center alignment (ESC a 1)
+    // This is more reliable than calculating spaces
+    return '\x1B\x61\x01' + text + '\x1B\x61\x00'
   }
 
   private rightAlignText(text: string, width: number = 40): string {
-    const padding = Math.max(0, width - text.length)
-    return ' '.repeat(padding) + text
+    // Use ESC/POS command for right alignment (ESC a 2)
+    return '\x1B\x61\x02' + text + '\x1B\x61\x00'
   }
 
   private formatItemLine(name: string, qty: number, price: string): string {
@@ -1159,7 +1159,7 @@ export class ZCSPrintService {
       addSectionSpacing()
       lines.push(alignText(this.printConfig.storeName, layout?.header_alignment || 'center'))
       addLineSpacing()
-      lines.push(alignText(layout?.header_text || 'SCONTRINO FISCALE', layout?.header_alignment || 'center'))
+      lines.push(alignText(layout?.header_text || 'SCONTRINO DI CORTESIA', layout?.header_alignment || 'center'))
       addSectionSpacing()
       addSeparator()
       addSectionSpacing()
@@ -1172,7 +1172,11 @@ export class ZCSPrintService {
 
       // Show operator if enabled
       if (layout?.show_operator !== false) {
-        lines.push(alignText(`Operatore: ${receipt.cashierName}`, layout?.header_alignment || 'left'))
+        // Extract operator name (remove email domain if present)
+        const operatorName = receipt.cashierName.includes('@')
+          ? receipt.cashierName.split('@')[0]
+          : receipt.cashierName
+        lines.push(alignText(`Operatore: ${operatorName}`, layout?.header_alignment || 'left'))
         addLineSpacing()
       }
 

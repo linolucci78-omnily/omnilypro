@@ -1363,6 +1363,72 @@ public class MainActivityFinal extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void printTextWithAlignment(String text, String alignment, String callbackName) {
+            Log.d(TAG, "printTextWithAlignment called with alignment: " + alignment + ", callback: " + callbackName);
+
+            if (mPrinter == null) {
+                Log.e(TAG, "Printer not initialized");
+                try {
+                    JSONObject result = new JSONObject();
+                    result.put("success", false);
+                    result.put("error", "Printer not available");
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating JSON error response", e);
+                }
+                return;
+            }
+
+            mExecutor.submit(() -> {
+                try {
+                    // Add extra lines for manual paper tearing (using spaces instead of empty lines)
+                    String textWithFeed = text + "\n \n \n \n \n \n ";
+
+                    // Create format object with specified alignment
+                    PrnStrFormat format = new PrnStrFormat();
+                    format.setTextSize(24);
+
+                    // Set alignment based on parameter
+                    if ("center".equalsIgnoreCase(alignment)) {
+                        format.setAli(Layout.Alignment.ALIGN_CENTER);
+                    } else if ("right".equalsIgnoreCase(alignment)) {
+                        format.setAli(Layout.Alignment.ALIGN_OPPOSITE);
+                    } else {
+                        format.setAli(Layout.Alignment.ALIGN_NORMAL); // left
+                    }
+
+                    // Print text using proper format
+                    mPrinter.setPrintAppendString(textWithFeed, format);
+
+                    // Start printing
+                    int printStatus = mPrinter.setPrintStart();
+                    JSONObject result = new JSONObject();
+                    if (printStatus == SdkResult.SDK_OK) {
+                        result.put("success", true);
+                        result.put("message", "Text printed successfully with alignment: " + alignment);
+                        Log.d(TAG, "Text printed successfully with alignment: " + alignment);
+                    } else {
+                        result.put("success", false);
+                        result.put("error", "Print start failed with status: " + printStatus);
+                        Log.e(TAG, "Print start failed with status: " + printStatus);
+                    }
+
+                    runJsCallback(callbackName, result.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error printing text", e);
+                    try {
+                        JSONObject result = new JSONObject();
+                        result.put("success", false);
+                        result.put("error", "Print error: " + e.getMessage());
+                        runJsCallback(callbackName, result.toString());
+                    } catch (Exception jsonE) {
+                        Log.e(TAG, "Error creating error response", jsonE);
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void printQRCode(String data, String callbackName) {
             Log.d(TAG, "printQRCode called with data: " + data + ", callback: " + callbackName);
 

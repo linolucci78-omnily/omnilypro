@@ -54,6 +54,8 @@ const AppRepositoryManager: React.FC = () => {
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('active')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingApp, setEditingApp] = useState<App | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const { toast, showSuccess, showError, showWarning, hideToast } = useToast()
   const { confirmState, showConfirm, hideConfirm, handleConfirm } = useConfirm()
 
@@ -92,6 +94,77 @@ const AppRepositoryManager: React.FC = () => {
       showError('Errore nel caricamento delle app')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.apk')) {
+      showError('Seleziona un file APK valido')
+      return
+    }
+
+    setUploading(true)
+    setUploadProgress(0)
+
+    try {
+      // 1. Calculate file size
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2)
+
+      // 2. Calculate SHA256 checksum
+      showWarning('Calcolo checksum in corso...')
+      const arrayBuffer = await file.arrayBuffer()
+      const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      const checksum = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+      setUploadProgress(30)
+
+      // 3. Generate filename
+      const timestamp = Date.now()
+      const fileName = `${formData.package_name || 'app'}-v${formData.version_name || '1.0'}-${formData.version_code || timestamp}.apk`
+
+      showWarning('Caricamento APK in corso...')
+
+      // 4. Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('apks')
+        .upload(fileName, file, {
+          contentType: 'application/vnd.android.package-archive',
+          upsert: true
+        })
+
+      if (uploadError) throw uploadError
+
+      setUploadProgress(70)
+
+      // 5. Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('apks')
+        .getPublicUrl(fileName)
+
+      const apkUrl = publicUrlData.publicUrl
+
+      setUploadProgress(100)
+
+      // 6. Update form data
+      setFormData({
+        ...formData,
+        apk_url: apkUrl,
+        apk_size_mb: parseFloat(sizeMB),
+        apk_hash_sha256: checksum
+      })
+
+      showSuccess(`APK caricato con successo! Size: ${sizeMB} MB`)
+
+    } catch (error: any) {
+      console.error('Error uploading APK:', error)
+      showError(error.message || 'Errore durante il caricamento dell\'APK')
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -483,23 +556,87 @@ const AppRepositoryManager: React.FC = () => {
                 <div className="form-section">
                   <h4>📦 File APK</h4>
                   <div className="form-row">
-                    <label>URL APK:</label>
+                    <label>Carica APK:</label>
                     <input
-                      type="text"
-                      placeholder="https://storage.supabase.co/..."
-                      value={formData.apk_url}
-                      onChange={(e) => setFormData({...formData, apk_url: e.target.value})}
+                      type="file"
+                      accept=".apk"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      style={{
+                        padding: '0.5rem',
+                        border: '2px dashed #d1d5db',
+                        borderRadius: '8px',
+                        cursor: uploading ? 'not-allowed' : 'pointer'
+                      }}
                     />
+                    {uploading && (
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <div style={{
+                          width: '100%',
+                          height: '8px',
+                          backgroundColor: '#e5e7eb',
+                          borderRadius: '4px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${uploadProgress}%`,
+                            height: '100%',
+                            backgroundColor: '#3b82f6',
+                            transition: 'width 0.3s'
+                          }} />
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                          Caricamento in corso... {uploadProgress}%
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="form-row">
-                    <label>Dimensione (MB):</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={formData.apk_size_mb}
-                      onChange={(e) => setFormData({...formData, apk_size_mb: parseFloat(e.target.value)})}
-                    />
-                  </div>
+                  {formData.apk_url && (
+                    <>
+                      <div className="form-row">
+                        <label>URL APK:</label>
+                        <input
+                          type="text"
+                          value={formData.apk_url}
+                          readOnly
+                          style={{
+                            backgroundColor: '#f9fafb',
+                            fontSize: '0.75rem',
+                            fontFamily: 'monospace',
+                            cursor: 'not-allowed'
+                          }}
+                        />
+                      </div>
+                      <div className="form-row">
+                        <label>Dimensione:</label>
+                        <input
+                          type="text"
+                          value={`${formData.apk_size_mb} MB`}
+                          readOnly
+                          style={{
+                            backgroundColor: '#f9fafb',
+                            cursor: 'not-allowed'
+                          }}
+                        />
+                      </div>
+                      {formData.apk_hash_sha256 && (
+                        <div className="form-row">
+                          <label>SHA256:</label>
+                          <input
+                            type="text"
+                            value={formData.apk_hash_sha256}
+                            readOnly
+                            style={{
+                              backgroundColor: '#f9fafb',
+                              fontSize: '0.65rem',
+                              fontFamily: 'monospace',
+                              cursor: 'not-allowed'
+                            }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="form-section">
