@@ -169,14 +169,13 @@ export class ZCSPrintService {
   }
 
   private centerText(text: string, width: number = 40): string {
-    // Use ESC/POS command for center alignment (ESC a 1)
-    // This is more reliable than calculating spaces
-    return '\x1B\x61\x01' + text + '\x1B\x61\x00'
+    const padding = Math.max(0, Math.floor((width - text.length) / 2))
+    return ' '.repeat(padding) + text
   }
 
   private rightAlignText(text: string, width: number = 40): string {
-    // Use ESC/POS command for right alignment (ESC a 2)
-    return '\x1B\x61\x02' + text + '\x1B\x61\x00'
+    const padding = Math.max(0, width - text.length)
+    return ' '.repeat(padding) + text
   }
 
   private formatItemLine(name: string, qty: number, price: string): string {
