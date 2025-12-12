@@ -94,6 +94,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [initialViewportHeight, setInitialViewportHeight] = useState<number>(0);
+  const [birthDateDisplay, setBirthDateDisplay] = useState<string>(''); // Valore formattato per display
 
   const addDebugInfo = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -1765,35 +1766,32 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 <input
                   type="text"
                   inputMode="numeric"
-                  value={formData.birthDate}
+                  value={birthDateDisplay}
                   onChange={(e) => {
                     let value = e.target.value.replace(/\D/g, ''); // Solo numeri
+
+                    // Formatta mentre digiti
+                    let formatted = value;
                     if (value.length >= 2) {
-                      value = value.slice(0, 2) + '/' + value.slice(2);
+                      formatted = value.slice(0, 2) + '/' + value.slice(2);
                     }
-                    if (value.length >= 5) {
-                      value = value.slice(0, 5) + '/' + value.slice(5, 9);
+                    if (value.length >= 4) {
+                      formatted = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8);
                     }
-                    // Converti in formato YYYY-MM-DD per compatibilità
-                    if (value.length === 10) {
-                      const [day, month, year] = value.split('/');
-                      if (day && month && year && year.length === 4) {
-                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                        handleInputChange('birthDate', isoDate);
-                        return;
-                      }
-                    }
-                    // Salva il valore formattato temporaneo
-                    e.target.value = value;
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value;
-                    if (value.length === 10) {
-                      const [day, month, year] = value.split('/');
-                      if (day && month && year && year.length === 4) {
-                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                        handleInputChange('birthDate', isoDate);
-                      }
+
+                    // Aggiorna il display
+                    setBirthDateDisplay(formatted);
+
+                    // Se completo, salva in formato ISO
+                    if (value.length === 8) {
+                      const day = value.slice(0, 2);
+                      const month = value.slice(2, 4);
+                      const year = value.slice(4, 8);
+                      const isoDate = `${year}-${month}-${day}`;
+                      handleInputChange('birthDate', isoDate);
+                    } else {
+                      // Pulisci se incompleto
+                      handleInputChange('birthDate', '');
                     }
                   }}
                   placeholder="GG/MM/AAAA"
@@ -2142,35 +2140,32 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={formData.birthDate}
+                    value={birthDateDisplay}
                     onChange={(e) => {
                       let value = e.target.value.replace(/\D/g, ''); // Solo numeri
+
+                      // Formatta mentre digiti
+                      let formatted = value;
                       if (value.length >= 2) {
-                        value = value.slice(0, 2) + '/' + value.slice(2);
+                        formatted = value.slice(0, 2) + '/' + value.slice(2);
                       }
-                      if (value.length >= 5) {
-                        value = value.slice(0, 5) + '/' + value.slice(5, 9);
+                      if (value.length >= 4) {
+                        formatted = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8);
                       }
-                      // Converti in formato YYYY-MM-DD per compatibilità
-                      if (value.length === 10) {
-                        const [day, month, year] = value.split('/');
-                        if (day && month && year && year.length === 4) {
-                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                          handleInputChange('birthDate', isoDate);
-                          return;
-                        }
-                      }
-                      // Salva il valore formattato temporaneo
-                      e.target.value = value;
-                    }}
-                    onBlur={(e) => {
-                      const value = e.target.value;
-                      if (value.length === 10) {
-                        const [day, month, year] = value.split('/');
-                        if (day && month && year && year.length === 4) {
-                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                          handleInputChange('birthDate', isoDate);
-                        }
+
+                      // Aggiorna il display
+                      setBirthDateDisplay(formatted);
+
+                      // Se completo, salva in formato ISO
+                      if (value.length === 8) {
+                        const day = value.slice(0, 2);
+                        const month = value.slice(2, 4);
+                        const year = value.slice(4, 8);
+                        const isoDate = `${year}-${month}-${day}`;
+                        handleInputChange('birthDate', isoDate);
+                      } else {
+                        // Pulisci se incompleto
+                        handleInputChange('birthDate', '');
                       }
                     }}
                     placeholder="GG/MM/AAAA"

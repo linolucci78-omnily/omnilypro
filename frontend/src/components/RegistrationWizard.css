@@ -90,27 +90,64 @@
   flex-shrink: 0;
 }
 
-/* NASCONDI COMPLETAMENTE HEADER quando input focused */
+/* MINIMIZZA HEADER quando input focused - NON nascondere */
 .wizard-header.header-minimized {
-  display: none !important;
+  padding: 0.5rem 1rem !important;
+  min-height: 35px !important;
+  transition: all 0.3s ease !important;
 }
 
-/* NASCONDI COMPLETAMENTE PROGRESS BAR quando input focused */
+.wizard-header.header-minimized h2 {
+  font-size: 0.85rem !important;
+}
+
+.wizard-header.header-minimized .back-btn {
+  padding: 0.3rem 0.5rem !important;
+  font-size: 0.7rem !important;
+  min-height: 26px !important;
+  gap: 4px !important;
+}
+
+.wizard-header.header-minimized .back-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.wizard-header.header-minimized .close-btn {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 14px !important;
+}
+
+/* MINIMIZZA PROGRESS BAR quando input focused - NON nascondere */
 .wizard-progress.progress-minimized {
-  display: none !important;
+  padding: 0.5rem 1rem !important;
+  min-height: 40px !important;
+  transition: all 0.3s ease !important;
+}
+
+.wizard-progress.progress-minimized .step-circle {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 11px !important;
+  border-width: 2px !important;
+}
+
+.wizard-progress.progress-minimized .step-title {
+  font-size: 0.65rem !important;
 }
 
 /* COMPATTA IL CONTENT quando input focused - riduci spacing tra campi E BLOCCA POSIZIONE */
 .wizard-content-compact {
   position: fixed !important;
-  top: 0 !important;
+  top: 75px !important; /* Sotto header minimizzato (35px) + progress minimizzata (40px) */
   left: 0 !important;
   right: 0 !important;
-  bottom: 100px !important; /* Spazio per il footer fisso */
+  bottom: 90px !important; /* Spazio per il footer fisso */
   max-width: 1200px !important;
   margin: 0 auto !important;
-  padding: 20px !important;
-  padding-bottom: 120px !important;
+  padding: 15px !important;
+  padding-bottom: 15px !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   background: white !important;
@@ -759,19 +796,67 @@
     overflow: hidden !important;
   }
 
+  /* MINIMIZZA HEADER quando input focused - POS MODE (override per specificità) */
+  .wizard-header.header-minimized {
+    padding: 0.5rem 1rem !important;
+    min-height: 35px !important;
+    display: flex !important; /* Assicura che non sparisca */
+    transition: all 0.3s ease !important;
+  }
+
+  .wizard-header.header-minimized h2 {
+    font-size: 0.85rem !important;
+  }
+
+  .wizard-header.header-minimized .back-btn {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    min-height: 26px !important;
+  }
+
+  .wizard-header.header-minimized .back-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .wizard-header.header-minimized .close-btn {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 14px !important;
+  }
+
+  /* MINIMIZZA PROGRESS quando input focused - POS MODE (override per specificità) */
+  .wizard-progress.progress-minimized {
+    padding: 0.5rem 1rem !important;
+    min-height: 40px !important;
+    display: flex !important; /* Assicura che non sparisca */
+    transition: all 0.3s ease !important;
+  }
+
+  .wizard-progress.progress-minimized .step-circle {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+    border-width: 2px !important;
+  }
+
+  .wizard-progress.progress-minimized .step-title {
+    font-size: 0.65rem !important;
+  }
+
   /* BLOCCA COMPLETAMENTE IL CONTENT QUANDO INPUT FOCUSED - POS MODE */
   .wizard-content-compact {
     position: absolute !important;
-    top: 0 !important;
+    top: 75px !important; /* Sotto header (35px) + progress (40px) minimizzate */
     left: 0 !important;
     right: 0 !important;
-    bottom: 85px !important; /* Spazio per il footer - ridotto da 100px */
+    bottom: 85px !important; /* Spazio per il footer */
     max-width: 100vw !important;
     width: 100vw !important;
-    height: calc(var(--initial-vh, 100vh) - 85px) !important; /* Altezza fissa basata su vh iniziale */
+    height: calc(var(--initial-vh, 100vh) - 160px) !important; /* vh - (header+progress+footer) */
     margin: 0 !important;
-    padding: 1.5rem !important;
-    padding-bottom: 20px !important; /* Ridotto drasticamente per eliminare spazio bianco */
+    padding: 1rem !important;
+    padding-bottom: 1rem !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     background: white !important;
@@ -793,6 +878,18 @@
     padding: 1rem 1.5rem !important;
     min-height: 70px !important;
     flex-shrink: 0;
+  }
+
+  /* RIDUCI back-btn anche in modalità normale su POS */
+  .back-btn {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.9rem !important;
+    gap: 6px !important;
+  }
+
+  .back-btn svg {
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .wizard-header h2 {
