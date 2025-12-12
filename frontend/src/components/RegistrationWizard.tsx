@@ -41,6 +41,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   onCustomerCreated
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isQuickMode, setIsQuickMode] = useState(true); // Default to quick mode
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [duplicateWarning, setDuplicateWarning] = useState('');
@@ -190,12 +191,18 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
   const [formData, setFormData] = useState<FormData>(getSavedFormData());
 
-  const steps = [
-    { number: 1, title: 'Dati Personali', icon: User },
-    { number: 2, title: 'Contatti', icon: Mail },
-    { number: 3, title: 'Note', icon: FileText },
-    { number: 4, title: 'Privacy & Consensi', icon: Shield }
-  ];
+  // Steps change based on mode
+  const steps = isQuickMode
+    ? [
+        { number: 1, title: 'Dati Principali', icon: User },
+        { number: 2, title: 'Privacy & Consensi', icon: Shield }
+      ]
+    : [
+        { number: 1, title: 'Dati Personali', icon: User },
+        { number: 2, title: 'Contatti', icon: Mail },
+        { number: 3, title: 'Note', icon: FileText },
+        { number: 4, title: 'Privacy & Consensi', icon: Shield }
+      ];
 
   // Warning quando prova a chiudere/ricaricare la pagina se ci sono dati compilati
   useEffect(() => {
@@ -1001,37 +1008,34 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   };
 
   const validateStep = (step: number): boolean => {
-    console.log(`🔍 Validazione step ${step}...`);
+    console.log(`🔍 Validazione step ${step} (Quick mode: ${isQuickMode})...`);
     console.log('📋 FormData corrente:', formData);
 
     const newErrors: { [key: string]: string } = {};
 
-    switch (step) {
-      case 1:
+    // Quick mode validation
+    if (isQuickMode) {
+      if (step === 1) {
+        // In quick mode, step 1 validates all basic fields
         if (!formData.firstName.trim()) newErrors.firstName = 'Nome richiesto';
         if (!formData.lastName.trim()) newErrors.lastName = 'Cognome richiesto';
         if (!formData.gender) newErrors.gender = 'Genere richiesto';
-        break;
-
-      case 2:
         if (!formData.email.trim()) {
           newErrors.email = 'Email richiesta';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = 'Email non valida';
         }
         if (!formData.phone.trim()) newErrors.phone = 'Telefono richiesto';
-        break;
-
-      case 4:
+      } else if (step === 2) {
+        // In quick mode, step 2 is privacy & signature
         console.log('🔐 Controllo privacy consent:', formData.privacyConsent);
         console.log('✍️ Controllo signature:', formData.signature ? `presente (${formData.signature.length} caratteri)` : 'mancante');
-        console.log('📋 Signature value:', formData.signature.substring(0, 50) + '...');
 
         if (!formData.privacyConsent) {
           console.log('❌ Privacy consent mancante');
           newErrors.privacyConsent = 'Consenso privacy obbligatorio';
         }
-        // Controllo firma più intelligente - un canvas vuoto ha circa 2000-3000 caratteri
+
         const hasValidSignature = formData.signature &&
           formData.signature.length > 3000 &&
           formData.signature.startsWith('data:image/');
@@ -1044,7 +1048,49 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         } else {
           addDebugInfo(`✅ FIRMA VALIDA: ${formData.signature.length} caratteri`);
         }
-        break;
+      }
+    } else {
+      // Full mode validation (original 4-step)
+      switch (step) {
+        case 1:
+          if (!formData.firstName.trim()) newErrors.firstName = 'Nome richiesto';
+          if (!formData.lastName.trim()) newErrors.lastName = 'Cognome richiesto';
+          if (!formData.gender) newErrors.gender = 'Genere richiesto';
+          break;
+
+        case 2:
+          if (!formData.email.trim()) {
+            newErrors.email = 'Email richiesta';
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = 'Email non valida';
+          }
+          if (!formData.phone.trim()) newErrors.phone = 'Telefono richiesto';
+          break;
+
+        case 4:
+          console.log('🔐 Controllo privacy consent:', formData.privacyConsent);
+          console.log('✍️ Controllo signature:', formData.signature ? `presente (${formData.signature.length} caratteri)` : 'mancante');
+          console.log('📋 Signature value:', formData.signature.substring(0, 50) + '...');
+
+          if (!formData.privacyConsent) {
+            console.log('❌ Privacy consent mancante');
+            newErrors.privacyConsent = 'Consenso privacy obbligatorio';
+          }
+          // Controllo firma più intelligente - un canvas vuoto ha circa 2000-3000 caratteri
+          const hasValidSignature = formData.signature &&
+            formData.signature.length > 3000 &&
+            formData.signature.startsWith('data:image/');
+
+          if (!hasValidSignature) {
+            const length = formData.signature?.length || 0;
+            const isValidFormat = formData.signature?.startsWith('data:image/') || false;
+            addDebugInfo(`❌ FIRMA INVALIDA: ${length} caratteri, formato OK: ${isValidFormat}`);
+            newErrors.signature = 'Firma digitale richiesta - firmare nel riquadro bianco';
+          } else {
+            addDebugInfo(`✅ FIRMA VALIDA: ${formData.signature.length} caratteri`);
+          }
+          break;
+      }
     }
 
     console.log('❌ Errori trovati:', JSON.stringify(newErrors, null, 2));
@@ -1085,27 +1131,44 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const isCurrentStepValid = useMemo(() => {
     const newErrors: { [key: string]: string } = {};
 
-    switch (currentStep) {
-      case 1:
+    // Quick mode validation
+    if (isQuickMode) {
+      if (currentStep === 1) {
+        // In quick mode, step 1 requires all basic fields
         if (!formData.firstName.trim()) newErrors.firstName = 'Nome richiesto';
         if (!formData.lastName.trim()) newErrors.lastName = 'Cognome richiesto';
         if (!formData.gender) newErrors.gender = 'Genere richiesto';
-        break;
-      case 2:
         if (!formData.email.trim()) newErrors.email = 'Email richiesta';
         if (!formData.phone.trim()) newErrors.phone = 'Telefono richiesto';
-        break;
-      case 3:
-        // Note step - always valid (no required fields)
-        break;
-      case 4:
+      } else if (currentStep === 2) {
+        // In quick mode, step 2 is privacy & signature
         if (!formData.privacyConsent) newErrors.privacyConsent = 'Consenso privacy richiesto';
         if (!formData.signature) newErrors.signature = 'Firma richiesta';
-        break;
+      }
+    } else {
+      // Full mode validation (original 4-step)
+      switch (currentStep) {
+        case 1:
+          if (!formData.firstName.trim()) newErrors.firstName = 'Nome richiesto';
+          if (!formData.lastName.trim()) newErrors.lastName = 'Cognome richiesto';
+          if (!formData.gender) newErrors.gender = 'Genere richiesto';
+          break;
+        case 2:
+          if (!formData.email.trim()) newErrors.email = 'Email richiesta';
+          if (!formData.phone.trim()) newErrors.phone = 'Telefono richiesto';
+          break;
+        case 3:
+          // Note step - always valid (no required fields)
+          break;
+        case 4:
+          if (!formData.privacyConsent) newErrors.privacyConsent = 'Consenso privacy richiesto';
+          if (!formData.signature) newErrors.signature = 'Firma richiesta';
+          break;
+      }
     }
 
     return Object.keys(newErrors).length === 0;
-  }, [formData, currentStep]);
+  }, [formData, currentStep, isQuickMode]);
 
   const calculateTier = (points: number) => {
     console.log('🏆 calculateTier called with points:', points);
@@ -1551,6 +1614,286 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   };
 
   const renderStepContent = () => {
+    // Quick mode: Step 1 combines personal data + contact info
+    if (isQuickMode && currentStep === 1) {
+      return (
+        <div className="wizard-step-content" style={{ maxHeight: '60vh', overflowY: 'auto', overflowX: 'hidden' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a' }}>
+            <User size={24} color="#ef4444" />
+            Dati Principali
+          </h3>
+
+          {/* Loading indicator for organization data */}
+          {loadingOrganization && (
+            <div style={{
+              padding: '10px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              border: '1px solid #bae6fd',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid #3b82f6',
+                borderTop: '2px solid transparent',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              <span style={{ color: '#1e40af', fontSize: '14px' }}>
+                Caricamento dati organizzazione...
+              </span>
+            </div>
+          )}
+
+          {/* Show organization info when loaded */}
+          {organization && !loadingOrganization && (
+            <div style={{
+              padding: '10px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              border: '1px solid #bae6fd'
+            }}>
+              <div style={{ color: '#1e40af', fontSize: '14px', fontWeight: '600' }}>
+                🏢 {organization.name}
+              </div>
+              {organization.loyalty_tiers && organization.loyalty_tiers.length > 0 && (
+                <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                  🏆 {organization.loyalty_tiers.length} livelli loyalty personalizzati
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Personal Data */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Nome *</label>
+              <div className="input-with-icon">
+                <User size={18} className="input-icon" />
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  className={errors.firstName ? 'error' : ''}
+                  placeholder="Inserisci nome"
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Cognome *</label>
+              <div className="input-with-icon">
+                <User size={18} className="input-icon" />
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  className={errors.lastName ? 'error' : ''}
+                  placeholder="Inserisci cognome"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Data di Nascita</label>
+              <div className="input-with-icon">
+                <Calendar size={18} className="input-icon" />
+                <input
+                  type="date"
+                  value={formData.birthDate}
+                  onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Genere *</label>
+              <div className="input-with-icon">
+                <User size={18} className="input-icon" />
+                <select
+                  value={formData.gender}
+                  onChange={(e) => handleInputChange('gender', e.target.value)}
+                  className={errors.gender ? 'error' : ''}
+                >
+                  <option value="">Seleziona...</option>
+                  <option value="male">Maschio</option>
+                  <option value="female">Femmina</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '2px solid #e5e7eb' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a', marginBottom: '16px' }}>
+              <Mail size={20} color="#ef4444" />
+              Contatti
+            </h4>
+
+            <div className="form-group">
+              <label>Email *</label>
+              <div className="input-with-icon">
+                <Mail size={18} className="input-icon" />
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={errors.email ? 'error' : ''}
+                  autoComplete="off"
+                  name="customer-email-registration"
+                  form="customer-registration-form"
+                  data-form="customer-wizard"
+                  spellCheck="false"
+                  placeholder="esempio@email.com"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Telefono *</label>
+              <div className="input-with-icon">
+                <Phone size={18} className="input-icon" />
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className={errors.phone ? 'error' : ''}
+                  placeholder="+39 123 456 7890"
+                />
+              </div>
+            </div>
+
+            {duplicateWarning && (
+              <div className="duplicate-warning">{duplicateWarning}</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Quick mode: Step 2 shows privacy (same as full mode step 4)
+    if (isQuickMode && currentStep === 2) {
+      return (
+        <div className="wizard-step-content">
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a', marginBottom: '20px' }}>
+            <Shield size={24} color="#ef4444" />
+            Privacy & Consensi
+          </h3>
+          <GDPRConsent
+            onConsentChange={(consents) => {
+              console.log('🔐 GDPR Consents changed:', consents);
+              handleInputChange('privacyConsent', consents.privacyAccepted);
+              handleInputChange('marketingConsent', consents.marketing);
+            }}
+            showDetailed={true}
+          />
+
+          {/* Pulsante Leggi Privacy */}
+          <div style={{ marginTop: '1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={() => setShowPrivacyModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                backgroundColor: organization?.primary_color || '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <FileText size={20} />
+              Leggi Privacy Policy Completa
+            </button>
+          </div>
+
+          <div className="signature-section">
+            <label>Firma Digitale *</label>
+            <p className="signature-help">Firma nel riquadro sottostante usando il mouse o il dito su dispositivi touch</p>
+            <div className="signature-container">
+              <canvas
+                ref={canvasRef}
+                className="signature-canvas"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              />
+              <button
+                type="button"
+                className="clear-signature"
+                onClick={clearSignature}
+              >
+                Cancella
+              </button>
+            </div>
+          </div>
+
+          {/* Debug Panel for POS - only show on privacy step */}
+          {window.innerWidth <= 1024 && debugInfo.length > 0 && (
+            <div className="debug-panel">
+              <h4>🔧 Debug Info (POS)</h4>
+              <div className="debug-messages">
+                {debugInfo.map((info, index) => (
+                  <div key={index} className="debug-message">
+                    {info}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {formData.signature && formData.privacyConsent && (
+            <div className="document-actions">
+              <h4>Documento Consensi Privacy</h4>
+              <p>Una volta completata la registrazione, potrai stampare o scaricare il modulo firmato.</p>
+              <div className="action-buttons">
+                <button
+                  type="button"
+                  className="btn-print"
+                  onClick={printConsentForm}
+                >
+                  <Printer size={16} />
+                  Stampa Modulo
+                </button>
+                <button
+                  type="button"
+                  className="btn-download"
+                  onClick={downloadConsentPDF}
+                >
+                  <Download size={16} />
+                  Scarica HTML
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Full mode: Original 4-step wizard
     switch (currentStep) {
       case 1:
         return (
@@ -1964,7 +2307,50 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             <ArrowLeft size={20} />
             Torna Indietro
           </button>
-          <h2>Registrazione Nuovo Cliente</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <h2>Registrazione Nuovo Cliente</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
+              <span style={{ color: isQuickMode ? '#059669' : '#6b7280', fontWeight: isQuickMode ? 600 : 400 }}>
+                Rapida
+              </span>
+              <label style={{ position: 'relative', display: 'inline-block', width: '50px', height: '24px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={!isQuickMode}
+                  onChange={(e) => {
+                    setIsQuickMode(!e.target.checked);
+                    setCurrentStep(1);
+                  }}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: isQuickMode ? '#059669' : '#d1d5db',
+                  borderRadius: '12px',
+                  transition: 'background-color 0.3s',
+                  cursor: 'pointer'
+                }}>
+                  <span style={{
+                    position: 'absolute',
+                    height: '18px',
+                    width: '18px',
+                    left: isQuickMode ? '3px' : '29px',
+                    bottom: '3px',
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    transition: 'left 0.3s'
+                  }} />
+                </span>
+              </label>
+              <span style={{ color: !isQuickMode ? '#059669' : '#6b7280', fontWeight: !isQuickMode ? 600 : 400 }}>
+                Completa
+              </span>
+            </div>
+          </div>
           <div style={{ width: '120px' }}></div>
         </div>
 
@@ -2004,7 +2390,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
 
           <div className="flex-spacer" />
 
-          {currentStep < 4 ? (
+          {currentStep < steps.length ? (
             <button
               type="button"
               className="btn-primary"
