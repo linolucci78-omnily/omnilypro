@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog, Trophy, Send } from 'lucide-react';
+import { X, Star, Gift, ShoppingBag, Plus, Phone, Mail, MapPin, Calendar, Award, Euro, Users, TrendingUp, Sparkles, Crown, QrCode, Target, Edit3, UserCog, Trophy, Send, StickyNote } from 'lucide-react';
 import './CustomerSlidePanel.css';
 import QRCodeGenerator from './QRCodeGenerator';
 import SaleModal from './SaleModal';
@@ -9,12 +9,16 @@ import TierUpgradeModal from './TierUpgradeModal';
 import EditCustomerModal from './EditCustomerModal';
 import RewardsModal from './RewardsModal';
 import SaleSuccessModal from './SaleSuccessModal';
+import CustomerNotePopup from './CustomerNotePopup';
+import CreateNoteModal from './CreateNoteModal';
+import CustomerNotesPanel from './CustomerNotesPanel';
 
 import type { Customer, CustomerActivity } from '../lib/supabase';
 import { customerActivitiesApi, supabase } from '../lib/supabase';
 import { emailService } from '../services/emailService';
 import { createPrintService } from '../services/printService';
 import { rewardsService, type Reward } from '../services/rewardsService';
+import staffNotesService, { type StaffNote } from '../services/staffNotesService';
 import {
   handleTierChange,
   getPendingTierUpgradeForCustomer,
@@ -86,6 +90,14 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
   } | null>(null);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [showResendEmailModal, setShowResendEmailModal] = useState(false);
+
+  // Staff Notes
+  const [customerNotes, setCustomerNotes] = useState<StaffNote[]>([]);
+  const [showNotePopup, setShowNotePopup] = useState(false);
+  const [popupNotes, setPopupNotes] = useState<StaffNote[]>([]);
+  const [showCreateNoteModal, setShowCreateNoteModal] = useState(false);
+  const [showNotesPanel, setShowNotesPanel] = useState(false);
+  const [noteError, setNoteError] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
 
   // State locale per tenere traccia dei dati customer aggiornati in tempo reale
   const [localCustomer, setLocalCustomer] = useState<Customer | null>(customer);
@@ -172,6 +184,40 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     loadCustomerActivities();
   }, [customer, isOpen]);
 
+  // Load customer notes and show popup if needed
+  useEffect(() => {
+    const loadCustomerNotes = async () => {
+      if (!customer || !isOpen) return;
+
+      try {
+        // Load all notes for this customer
+        const notes = await staffNotesService.getCustomerNotes(customer.id);
+        setCustomerNotes(notes);
+
+        // Check for active popup notes (show_popup = true AND status = 'active')
+        // Il popup continua a comparire finché la nota non viene segnata come letta/completata
+        const activePopupNotes = notes.filter(
+          note => note.show_popup && note.status === 'active'
+        );
+
+        if (activePopupNotes.length > 0) {
+          setPopupNotes(activePopupNotes);
+          setShowNotePopup(true);
+        }
+      } catch (error) {
+        console.error('Error loading customer notes:', error);
+      }
+    };
+
+    loadCustomerNotes();
+  }, [customer, isOpen]);
+
+  // Close notes panel when main panel closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowNotesPanel(false);
+    }
+  }, [isOpen]);
 
   if (!customer || !localCustomer) return null;
 
@@ -859,6 +905,145 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
     }
   };
 
+  /**
+   * Crea nuova nota per il cliente
+   */
+  const handleCreateNote = async (noteData: {
+    title: string;
+    content: string;
+    priority: 'low' | 'normal' | 'high' | 'urgent';
+    show_popup: boolean;
+  }) => {
+    if (!customer) {
+      console.error('Missing customer');
+      setNoteError({ show: true, message: 'Errore: cliente non trovato' });
+      throw new Error('Missing customer');
+    }
+
+    if (!organizationId) {
+      console.error('Missing organizationId');
+      setNoteError({ show: true, message: 'Errore: ID organizzazione non disponibile' });
+      throw new Error('Missing organizationId');
+    }
+
+    try {
+      console.log('Creating note for customer:', customer.id, noteData);
+      console.log('Organization ID:', organizationId);
+
+      // Get current staff member ID from auth
+      const { data: { user } } = await supabase.auth.getUser();
+      let staffId: string | undefined;
+
+      if (user) {
+        console.log('Current user ID:', user.id);
+        const { data: staffMember, error: staffError } = await supabase
+          .from('staff_members')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (staffError) {
+          console.warn('Could not find staff member:', staffError);
+        }
+
+        staffId = staffMember?.id;
+        console.log('Staff member ID:', staffId);
+      }
+
+      // Create the note using supabase directly to get better error messages
+      const { data: newNote, error: createError } = await supabase
+        .from('staff_notes')
+        .insert({
+          organization_id: organizationId,
+          note_type: 'customer',
+          customer_id: customer.id,
+          title: noteData.title,
+          content: noteData.content,
+          priority: noteData.priority,
+          status: 'active',
+          show_popup: noteData.show_popup,
+          popup_shown: false,
+          created_by_staff_id: staffId
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('❌ Database error:', createError);
+        throw createError;
+      }
+
+      console.log('✅ Note created successfully:', newNote);
+
+      // Reload customer notes
+      const updatedNotes = await staffNotesService.getCustomerNotes(customer.id);
+      setCustomerNotes(updatedNotes);
+
+      console.log('✅ Notes reloaded successfully');
+    } catch (error: any) {
+      console.error('❌ Error creating note:', error);
+
+      let errorMessage = 'Errore sconosciuto durante la creazione della nota';
+
+      if (error.message?.includes('row-level security')) {
+        errorMessage = 'Permessi insufficienti per creare note. Assicurati di essere registrato come membro dello staff.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setNoteError({ show: true, message: errorMessage });
+      throw error;
+    }
+  };
+
+  /**
+   * Elimina nota
+   */
+  const handleDeleteNote = async (noteId: string) => {
+    if (!customer) return;
+
+    try {
+      await staffNotesService.deleteNote(noteId);
+      const updatedNotes = await staffNotesService.getCustomerNotes(customer.id);
+      setCustomerNotes(updatedNotes);
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Archivia nota
+   */
+  const handleArchiveNote = async (noteId: string) => {
+    if (!customer) return;
+
+    try {
+      await staffNotesService.archiveNote(noteId);
+      const updatedNotes = await staffNotesService.getCustomerNotes(customer.id);
+      setCustomerNotes(updatedNotes);
+    } catch (error) {
+      console.error('Error archiving note:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Segna nota come letta
+   */
+  const handleMarkNoteAsRead = async (noteId: string) => {
+    if (!customer) return;
+
+    try {
+      await staffNotesService.markAsRead(noteId);
+      const updatedNotes = await staffNotesService.getCustomerNotes(customer.id);
+      setCustomerNotes(updatedNotes);
+    } catch (error) {
+      console.error('Error marking note as read:', error);
+      throw error;
+    }
+  };
+
   // NON aggiorniamo automaticamente il customer display quando apriamo il pannello
   // Questo causava interferenze con popup indesiderati sul display principale
   // L'aggiornamento del customer display avviene solo tramite azioni specifiche
@@ -1060,6 +1245,24 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
               <div className="action-btn-arrow">›</div>
             </button>
           )}
+
+          <button
+            className="customer-slide-panel-action-btn"
+            onClick={() => setShowNotesPanel(true)}
+          >
+            <div className="action-btn-content">
+              <div className="action-btn-icon">
+                <StickyNote size={24} />
+              </div>
+              <div className="action-btn-text">
+                <div className="action-btn-title">Note Staff</div>
+                <div className="action-btn-subtitle">
+                  {customerNotes.length > 0 ? `${customerNotes.length} nota${customerNotes.length > 1 ? 'e' : ''}` : 'Nessuna nota'}
+                </div>
+              </div>
+            </div>
+            <div className="action-btn-arrow">›</div>
+          </button>
         </div>
 
 
@@ -1461,6 +1664,46 @@ const CustomerSlidePanel: React.FC<CustomerSlidePanelProps> = ({
         onConfirm={handleResendActivationEmailConfirm}
         onCancel={() => setShowResendEmailModal(false)}
         type="info"
+      />
+
+      {/* Customer Note Popup */}
+      {showNotePopup && popupNotes.length > 0 && (
+        <CustomerNotePopup
+          notes={popupNotes}
+          onClose={() => setShowNotePopup(false)}
+          onMarkShown={async (noteId: string) => {
+            try {
+              await staffNotesService.markPopupShown(noteId);
+            } catch (error) {
+              console.error('Error marking note as shown:', error);
+            }
+          }}
+        />
+      )}
+
+      {/* Customer Notes Panel */}
+      <CustomerNotesPanel
+        isOpen={showNotesPanel}
+        onClose={() => setShowNotesPanel(false)}
+        customerName={customer.name}
+        notes={customerNotes}
+        onCreateNote={handleCreateNote}
+        onDeleteNote={handleDeleteNote}
+        onArchiveNote={handleArchiveNote}
+        onMarkAsRead={handleMarkNoteAsRead}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+      />
+
+      {/* Note Error Modal */}
+      <ConfirmModal
+        isOpen={noteError.show}
+        title="Errore Nota"
+        message={noteError.message}
+        confirmText="OK"
+        onConfirm={() => setNoteError({ show: false, message: '' })}
+        onCancel={() => setNoteError({ show: false, message: '' })}
+        type="danger"
       />
 
     </>

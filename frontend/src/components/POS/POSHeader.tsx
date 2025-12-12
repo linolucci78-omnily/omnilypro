@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { MdLogout } from 'react-icons/md';
+import { MdLogout, MdNotifications } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
+import staffNotesService from '../../services/staffNotesService';
 import ConfirmModal from '../UI/ConfirmModal';
 import './POSHeader.css';
 
 interface POSHeaderProps {
   onMenuToggle: () => void;
+  organizationId?: string;
 }
 
-const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
+const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle, organizationId }) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [unreadNotesCount, setUnreadNotesCount] = useState(0);
 
   const handleMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -44,6 +49,35 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
     setShowLogoutConfirm(false);
   };
 
+  // Load unread notes count for this staff member
+  useEffect(() => {
+    const loadUnreadNotes = async () => {
+      if (!user?.id || !organizationId) return;
+
+      try {
+        // Get notes for this staff member that haven't been read
+        const notes = await staffNotesService.getNotesForStaff(user.id, organizationId);
+
+        // Count unread notes (status = 'active' and not read by this user)
+        const unreadCount = notes.filter(note => note.status === 'active').length;
+        setUnreadNotesCount(unreadCount);
+      } catch (error) {
+        console.error('Error loading unread notes:', error);
+      }
+    };
+
+    loadUnreadNotes();
+
+    // Refresh every 30 seconds
+    const interval = setInterval(loadUnreadNotes, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id, organizationId]);
+
+  const handleNotificationsClick = () => {
+    // Navigate to chat/notes section
+    navigate('/pos?section=chat');
+  };
+
   return (
     <header className="pos-header">
       {/* Hamburger Menu Button */}
@@ -71,6 +105,17 @@ const POSHeader: React.FC<POSHeaderProps> = ({ onMenuToggle }) => {
         />
       </div>
 
+      {/* Notifications Bell */}
+      <button
+        className="pos-notifications-btn"
+        onClick={handleNotificationsClick}
+        title="Note Staff"
+      >
+        <MdNotifications size={28} />
+        {unreadNotesCount > 0 && (
+          <span className="pos-notifications-badge">{unreadNotesCount}</span>
+        )}
+      </button>
 
       {/* User Info + Quick Logout */}
       <div className="pos-header-user">

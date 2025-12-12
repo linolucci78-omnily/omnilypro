@@ -109,6 +109,27 @@ class AnalyticsService {
       const previousStartDate = new Date()
       previousStartDate.setDate(previousStartDate.getDate() - (days * 2))
 
+      // 💰 REVENUE dalle transazioni (periodo corrente)
+      const { data: currentTransactions } = await supabase
+        .from('transaction')
+        .select('amount')
+        .eq('organization_id', organizationId)
+        .gte('created_at', startDate.toISOString())
+
+      const totalRevenue = currentTransactions?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0
+      const totalTransactions = currentTransactions?.length || 0
+
+      // 💰 REVENUE periodo precedente
+      const { data: previousTransactions } = await supabase
+        .from('transaction')
+        .select('amount')
+        .eq('organization_id', organizationId)
+        .gte('created_at', previousStartDate.toISOString())
+        .lt('created_at', startDate.toISOString())
+
+      const previousRevenue = previousTransactions?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0
+      const previousTotalTransactions = previousTransactions?.length || 0
+
       // Clienti attivi (hanno fatto almeno 1 transazione nel periodo)
       const { count: activeCustomers } = await supabase
         .from('customers')
@@ -145,7 +166,15 @@ class AnalyticsService {
         .gte('created_at', previousStartDate.toISOString())
         .lt('created_at', startDate.toISOString())
 
-      // Calcola variazioni percentuali
+      // ✅ Calcola variazioni percentuali REALI
+      const revenueChange = previousRevenue && previousRevenue > 0
+        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+        : 0
+
+      const transactionsChange = previousTotalTransactions && previousTotalTransactions > 0
+        ? ((totalTransactions - previousTotalTransactions) / previousTotalTransactions) * 100
+        : 0
+
       const customersChange = previousActiveCustomers && previousActiveCustomers > 0
         ? ((activeCustomers || 0) - previousActiveCustomers) / previousActiveCustomers * 100
         : 0
@@ -165,7 +194,7 @@ class AnalyticsService {
         ? (returningCustomers || 0) / activeCustomers * 100
         : 0
 
-      // Customer LTV medio (basato su punti = euro spesi)
+      // Customer LTV medio (basato su total_spent reale)
       const { data: customers } = await supabase
         .from('customers')
         .select('total_spent')
@@ -174,23 +203,79 @@ class AnalyticsService {
       const totalSpent = customers?.reduce((sum, c) => sum + (c.total_spent || 0), 0) || 0
       const customerLTV = customers && customers.length > 0 ? totalSpent / customers.length : 0
 
+      // ✅ Average ticket REALE (revenue / numero transazioni)
+      const averageTicket = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
+
+      // Calcola ticketChange basato su periodo precedente
+      const previousAverageTicket = previousTotalTransactions > 0
+        ? previousRevenue / previousTotalTransactions
+        : 0
+      const ticketChange = previousAverageTicket > 0
+        ? ((averageTicket - previousAverageTicket) / previousAverageTicket) * 100
+        : 0
+
+      // Calcola pointsChange e ltvChange reali (periodo precedente vs corrente)
+      const { data: previousPointsData } = await supabase
+        .from('customers')
+        .select('points')
+        .eq('organization_id', organizationId)
+        .gte('updated_at', previousStartDate.toISOString())
+        .lt('updated_at', startDate.toISOString())
+
+      const previousTotalPoints = previousPointsData?.reduce((sum, c) => sum + (c.points || 0), 0) || 0
+      const pointsChange = previousTotalPoints > 0
+        ? ((totalPoints - previousTotalPoints) / previousTotalPoints) * 100
+        : 0
+
+      // LTV change
+      const { data: previousCustomers } = await supabase
+        .from('customers')
+        .select('total_spent')
+        .eq('organization_id', organizationId)
+        .gte('updated_at', previousStartDate.toISOString())
+        .lt('updated_at', startDate.toISOString())
+
+      const previousTotalSpent = previousCustomers?.reduce((sum, c) => sum + (c.total_spent || 0), 0) || 0
+      const previousCustomerLTV = previousCustomers && previousCustomers.length > 0
+        ? previousTotalSpent / previousCustomers.length
+        : 0
+      const ltvChange = previousCustomerLTV > 0
+        ? ((customerLTV - previousCustomerLTV) / previousCustomerLTV) * 100
+        : 0
+
+      // Retention change
+      const { count: previousReturningCustomers } = await supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', organizationId)
+        .gt('visit_count', 1)
+        .gte('updated_at', previousStartDate.toISOString())
+        .lt('updated_at', startDate.toISOString())
+
+      const previousRetentionRate = previousActiveCustomers && previousActiveCustomers > 0
+        ? (previousReturningCustomers || 0) / previousActiveCustomers * 100
+        : 0
+      const retentionChange = previousRetentionRate > 0
+        ? retentionRate - previousRetentionRate
+        : 0
+
       return {
-        totalRevenue: totalSpent,
-        revenueChange: 12.5,
+        totalRevenue,
+        revenueChange,
         activeCustomers: activeCustomers || 0,
         customersChange,
-        totalTransactions: activeCustomers || 0, // Approssimazione
-        transactionsChange: customersChange,
-        averageTicket: customerLTV,
-        ticketChange: 5.8,
+        totalTransactions,
+        transactionsChange,
+        averageTicket,
+        ticketChange,
         pointsDistributed: totalPoints,
-        pointsChange: 18.7,
+        pointsChange,
         rewardsRedeemed: rewardsRedeemed || 0,
         rewardsChange,
         retentionRate,
-        retentionChange: 3.2,
+        retentionChange,
         customerLTV,
-        ltvChange: 11.8
+        ltvChange
       }
     } catch (error) {
       console.error('Error fetching KPIs:', error)
@@ -203,10 +288,20 @@ class AnalyticsService {
    */
   async getTopProducts(organizationId: string, limit: number = 5): Promise<TopProduct[]> {
     try {
-      const { data: redemptions } = await supabase
+      // Periodo corrente (ultimi 30 giorni)
+      const currentStartDate = new Date()
+      currentStartDate.setDate(currentStartDate.getDate() - 30)
+
+      // Periodo precedente (60-30 giorni fa)
+      const previousStartDate = new Date()
+      previousStartDate.setDate(previousStartDate.getDate() - 60)
+
+      // ✅ Redemption periodo corrente
+      const { data: currentRedemptions } = await supabase
         .from('reward_redemptions')
         .select(`
           reward_id,
+          created_at,
           rewards (
             id,
             name,
@@ -215,16 +310,29 @@ class AnalyticsService {
           )
         `)
         .eq('organization_id', organizationId)
+        .gte('created_at', currentStartDate.toISOString())
         .limit(1000)
 
-      if (!redemptions || redemptions.length === 0) {
+      // ✅ Redemption periodo precedente (per calcolare trend)
+      const { data: previousRedemptions } = await supabase
+        .from('reward_redemptions')
+        .select(`
+          reward_id,
+          created_at
+        `)
+        .eq('organization_id', organizationId)
+        .gte('created_at', previousStartDate.toISOString())
+        .lt('created_at', currentStartDate.toISOString())
+        .limit(1000)
+
+      if (!currentRedemptions || currentRedemptions.length === 0) {
         return []
       }
 
-      // Aggrega per reward
+      // Aggrega per reward (periodo corrente)
       const productMap = new Map<string, { name: string; count: number; value: number }>()
 
-      redemptions.forEach((r: any) => {
+      currentRedemptions.forEach((r: any) => {
         if (r.rewards) {
           const key = r.rewards.id
           const existing = productMap.get(key)
@@ -240,14 +348,28 @@ class AnalyticsService {
         }
       })
 
-      // Converti in array e ordina
-      const products: TopProduct[] = Array.from(productMap.entries()).map(([id, data]) => ({
-        id,
-        name: data.name,
-        sales: data.count,
-        revenue: data.count * data.value,
-        trend: Math.random() * 30 - 10 // Trend casuale per ora
-      }))
+      // Aggrega periodo precedente per trend
+      const previousProductMap = new Map<string, number>()
+      previousRedemptions?.forEach((r: any) => {
+        const count = previousProductMap.get(r.reward_id) || 0
+        previousProductMap.set(r.reward_id, count + 1)
+      })
+
+      // ✅ Converti in array e calcola trend REALE
+      const products: TopProduct[] = Array.from(productMap.entries()).map(([id, data]) => {
+        const previousCount = previousProductMap.get(id) || 0
+        const trend = previousCount > 0
+          ? ((data.count - previousCount) / previousCount) * 100
+          : data.count > 0 ? 100 : 0 // Se non c'era prima, +100% growth
+
+        return {
+          id,
+          name: data.name,
+          sales: data.count,
+          revenue: data.count * data.value,
+          trend
+        }
+      })
 
       return products
         .sort((a, b) => b.sales - a.sales)
@@ -260,39 +382,31 @@ class AnalyticsService {
 
   /**
    * Revenue per categoria
+   *
+   * ⚠️ NOTA: Questa funzionalità richiede il tracking delle categorie nelle transazioni.
+   * Attualmente la tabella `transaction` non ha un campo `category`.
+   *
+   * Per implementare questa feature serve:
+   * 1. Aggiungere campo `category` alla tabella `transaction`
+   * 2. Modificare il POS per salvare la categoria quando crea una transazione
+   * 3. Aggiornare questa query per aggregare per categoria reale
+   *
+   * Per ora ritorna array vuoto per non mostrare dati fake.
    */
   async getCategoryRevenue(organizationId: string): Promise<CategoryRevenue[]> {
     try {
-      // Ottieni le categorie dall'organizzazione
-      const { data: org } = await supabase
-        .from('organizations')
-        .select('product_categories')
-        .eq('id', organizationId)
-        .single()
+      console.warn('⚠️ getCategoryRevenue: Category tracking not implemented yet')
 
-      if (!org || !org.product_categories) {
-        return []
-      }
+      // TODO: Quando implementato, la query sarà:
+      // const { data: transactions } = await supabase
+      //   .from('transaction')
+      //   .select('amount, category')
+      //   .eq('organization_id', organizationId)
+      //   .gte('created_at', startDate.toISOString())
+      //
+      // Poi aggregare per category e calcolare percentuali reali
 
-      const categories = Array.isArray(org.product_categories)
-        ? org.product_categories
-        : []
-
-      // Per ora ritorna dati mock basati sulle categorie reali
-      // In futuro si possono tracciare vendite per categoria
-      const totalRevenue = 24580
-      const categoryData: CategoryRevenue[] = categories.map((cat: any, index: number) => {
-        const name = typeof cat === 'string' ? cat : cat.name
-        const percentage = [42, 28, 18, 12][index % 4] || 10
-        return {
-          name,
-          revenue: (totalRevenue * percentage) / 100,
-          percentage,
-          transactions: Math.floor(Math.random() * 500) + 100
-        }
-      })
-
-      return categoryData
+      return []
     } catch (error) {
       console.error('Error fetching category revenue:', error)
       return []
@@ -349,14 +463,12 @@ class AnalyticsService {
       console.log(`📊 Loading revenue chart for org ${organizationId}, last ${days} days`)
       console.log(`📅 Start date: ${startDate.toISOString()}`)
 
-      // QUERY SINGOLA: Ottieni tutte le transazioni degli ultimi N giorni
+      // ✅ QUERY TRANSACTION TABLE: Ottieni tutte le transazioni degli ultimi N giorni
       const { data: transactions, error } = await supabase
-        .from('customer_activities')
-        .select('created_at, monetary_value')
+        .from('transaction')
+        .select('created_at, amount')
         .eq('organization_id', organizationId)
-        .eq('activity_type', 'transaction')
         .gte('created_at', startDate.toISOString())
-        .not('monetary_value', 'is', null)
 
       if (error) {
         console.error('❌ Error fetching transactions for revenue chart:', error)
@@ -381,7 +493,7 @@ class AnalyticsService {
         const dateStr = t.created_at.split('T')[0]
         const existing = dataMap.get(dateStr)
         if (existing) {
-          existing.revenue += t.monetary_value || 0
+          existing.revenue += t.amount || 0
           existing.count += 1
         }
       })

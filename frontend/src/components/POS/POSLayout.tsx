@@ -7,7 +7,7 @@ interface POSLayoutProps {
   children: React.ReactNode;
   activeSection?: string;
   onSectionChange?: (section: string) => void;
-  currentOrganization?: { plan_type?: string; primary_color?: string; secondary_color?: string; logo_url?: string; name?: string } | null;
+  currentOrganization?: { id?: string; plan_type?: string; primary_color?: string; secondary_color?: string; logo_url?: string; name?: string } | null;
   previewColors?: { primary: string | null; secondary: string | null };
 }
 
@@ -69,7 +69,10 @@ const POSLayout: React.FC<POSLayoutProps> = ({ children, activeSection = 'dashbo
       } as React.CSSProperties}
     >
       {/* Header fisso */}
-      <POSHeader onMenuToggle={toggleSidebar} />
+      <POSHeader
+        onMenuToggle={toggleSidebar}
+        organizationId={currentOrganization?.id}
+      />
 
       {/* Sidebar a scomparsa */}
       <POSSidebar

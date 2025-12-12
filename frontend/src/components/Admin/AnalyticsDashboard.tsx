@@ -134,77 +134,185 @@ const AnalyticsDashboard: React.FC = () => {
       }
       const days = timeRangeMap[timeRange]
       const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      const previousStartDate = new Date(now.getTime() - (days * 2) * 24 * 60 * 60 * 1000)
 
-      // Try to load real data, fallback to mock data
-      const [subscriptionsResult, organizationsResult] = await Promise.allSettled([
-        supabase
-          .from('subscriptions')
-          .select('*')
-          .gte('created_at', startDate.toISOString()),
-        supabase
-          .from('organizations')
-          .select('*')
-          .gte('created_at', startDate.toISOString())
-      ])
+      console.log('📊 Loading Admin Analytics...', { timeRange, days, startDate: startDate.toISOString() })
 
-      // Generate comprehensive mock data
-      const mockData: AnalyticsData = {
+      // ✅ LOAD REAL DATA FROM DATABASE
+
+      // 💰 REVENUE & TRANSACTIONS - periodo corrente
+      const { data: currentTransactions } = await supabase
+        .from('transaction')
+        .select('amount, created_at')
+        .gte('created_at', startDate.toISOString())
+
+      const totalRevenue = currentTransactions?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0
+      const totalTransactions = currentTransactions?.length || 0
+      const avgValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
+
+      // 💰 REVENUE & TRANSACTIONS - periodo precedente
+      const { data: previousTransactions } = await supabase
+        .from('transaction')
+        .select('amount')
+        .gte('created_at', previousStartDate.toISOString())
+        .lt('created_at', startDate.toISOString())
+
+      const previousRevenue = previousTransactions?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0
+      const previousTotalTransactions = previousTransactions?.length || 0
+
+      const revenueGrowth = previousRevenue > 0
+        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+        : 0
+
+      const transactionsGrowth = previousTotalTransactions > 0
+        ? ((totalTransactions - previousTotalTransactions) / previousTotalTransactions) * 100
+        : 0
+
+      // 👥 CUSTOMERS
+      const { count: totalCustomers } = await supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+
+      const { count: newCustomers } = await supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', startDate.toISOString())
+
+      const { count: activeCustomers } = await supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .gte('updated_at', startDate.toISOString())
+
+      const { count: previousNewCustomers } = await supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', previousStartDate.toISOString())
+        .lt('created_at', startDate.toISOString())
+
+      const customersGrowth = previousNewCustomers && previousNewCustomers > 0
+        ? ((newCustomers || 0) - previousNewCustomers) / previousNewCustomers * 100
+        : 0
+
+      // 📦 SUBSCRIPTIONS
+      const { count: totalSubs } = await supabase
+        .from('subscriptions')
+        .select('id', { count: 'exact', head: true })
+
+      const { count: activeSubs } = await supabase
+        .from('subscriptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'active')
+
+      const { count: trialSubs } = await supabase
+        .from('subscriptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'trial')
+
+      const { count: canceledSubs } = await supabase
+        .from('subscriptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'canceled')
+
+      const conversionRate = totalSubs && totalSubs > 0
+        ? (activeSubs || 0) / totalSubs * 100
+        : 0
+
+      // Plan distribution
+      const { data: subscriptionsByPlan } = await supabase
+        .from('subscriptions')
+        .select('plan_id')
+        .eq('status', 'active')
+
+      const planDistribution: { plan: string; count: number; percentage: number }[] = []
+      if (subscriptionsByPlan && subscriptionsByPlan.length > 0) {
+        const planCounts = subscriptionsByPlan.reduce((acc, s) => {
+          const plan = s.plan_id || 'Unknown'
+          acc[plan] = (acc[plan] || 0) + 1
+          return acc
+        }, {} as Record<string, number>)
+
+        Object.entries(planCounts).forEach(([plan, count]) => {
+          planDistribution.push({
+            plan,
+            count,
+            percentage: (count / (activeSubs || 1)) * 100
+          })
+        })
+      }
+
+      // Aggregazioni giornaliere per grafici
+      const dailyRevenue = new Map<string, number>()
+      const dailyTransactions = new Map<string, number>()
+
+      // Inizializza tutti i giorni
+      for (let i = 0; i < days; i++) {
+        const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000)
+        const dateStr = date.toISOString().split('T')[0]
+        dailyRevenue.set(dateStr, 0)
+        dailyTransactions.set(dateStr, 0)
+      }
+
+      // Popola con dati reali
+      currentTransactions?.forEach(t => {
+        const dateStr = t.created_at.split('T')[0]
+        dailyRevenue.set(dateStr, (dailyRevenue.get(dateStr) || 0) + (t.amount || 0))
+        dailyTransactions.set(dateStr, (dailyTransactions.get(dateStr) || 0) + 1)
+      })
+
+      const realData: AnalyticsData = {
         revenue: {
-          current: 24750,
-          previous: 19200,
-          growth: 28.9,
-          monthly: [15000, 16500, 18200, 19800, 21500, 23100, 24750],
-          daily: Array.from({ length: days }, (_, i) => 400 + Math.random() * 400)
+          current: totalRevenue,
+          previous: previousRevenue,
+          growth: revenueGrowth,
+          monthly: [], // TODO: calcolare per mese
+          daily: Array.from(dailyRevenue.values())
         },
         customers: {
-          total: 1247,
-          new: 156,
-          active: 892,
-          growth: 23.4,
-          retention: 94.2,
-          churn: 5.8
+          total: totalCustomers || 0,
+          new: newCustomers || 0,
+          active: activeCustomers || 0,
+          growth: customersGrowth,
+          retention: 0, // TODO: calcolare retention reale
+          churn: 0
         },
         subscriptions: {
-          total: 127,
-          active: 98,
-          trials: 23,
-          canceled: 6,
-          conversionRate: 87.3,
-          planDistribution: [
-            { plan: 'Basic', count: 42, percentage: 42.9 },
-            { plan: 'Premium', count: 38, percentage: 38.8 },
-            { plan: 'Enterprise', count: 18, percentage: 18.3 }
-          ]
+          total: totalSubs || 0,
+          active: activeSubs || 0,
+          trials: trialSubs || 0,
+          canceled: canceledSubs || 0,
+          conversionRate,
+          planDistribution
         },
         transactions: {
-          total: 15689,
-          volume: 1250000,
-          avgValue: 79.67,
-          growth: 34.2,
-          success_rate: 98.4,
-          daily: Array.from({ length: days }, (_, i) => 300 + Math.random() * 200)
+          total: totalTransactions,
+          volume: totalRevenue,
+          avgValue,
+          growth: transactionsGrowth,
+          success_rate: 100, // Assumiamo 100% success per ora
+          daily: Array.from(dailyTransactions.values())
         },
-        geography: [
-          { country: 'Italia', users: 523, revenue: 12450 },
-          { country: 'Germania', users: 287, revenue: 8920 },
-          { country: 'Francia', users: 198, revenue: 6780 },
-          { country: 'Spagna', users: 145, revenue: 4560 },
-          { country: 'Paesi Bassi', users: 94, revenue: 2890 }
-        ],
+        // ⚠️ Queste metriche richiedono tracking aggiuntivo non implementato
+        geography: [],
         devices: {
-          desktop: 58.3,
-          mobile: 32.7,
-          tablet: 9.0
+          desktop: 0,
+          mobile: 0,
+          tablet: 0
         },
         performance: {
-          avgResponseTime: 245,
-          uptime: 99.97,
-          errorRate: 0.03,
-          pageViews: 45670
+          avgResponseTime: 0,
+          uptime: 0,
+          errorRate: 0,
+          pageViews: 0
         }
       }
 
-      setData(mockData)
+      console.log('✅ Admin Analytics loaded:', {
+        revenue: totalRevenue,
+        customers: totalCustomers,
+        transactions: totalTransactions
+      })
+
+      setData(realData)
 
     } catch (err) {
       console.error('Error loading analytics data:', err)

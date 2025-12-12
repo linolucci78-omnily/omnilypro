@@ -48,11 +48,13 @@ class AIService {
             // Fetch organization ID
             // For super admins or users with multiple orgs, get the first one
             // For users with no org, we'll pass null and use a global API key
-            const { data: orgMembers } = await supabase
-                .from('organization_members')
+            const { data: orgMembers, error: orgError } = await supabase
+                .from('organizations_users')
                 .select('organization_id')
                 .eq('user_id', user.id)
                 .limit(1)
+
+            console.log('🔍 DEBUG - orgMembers query result:', { orgMembers, orgError, userId: user.id })
 
             const organizationId = orgMembers?.[0]?.organization_id || null
 

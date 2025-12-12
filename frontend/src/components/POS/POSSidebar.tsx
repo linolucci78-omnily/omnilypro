@@ -29,7 +29,8 @@ import {
   MdNotificationsActive,
   MdConfirmationNumber,
   MdLocalOffer,
-  MdAccountBalanceWallet
+  MdAccountBalanceWallet,
+  MdChat
 } from 'react-icons/md';
 import './POSSidebar.css';
 
@@ -111,6 +112,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
     { id: 'website-editor', icon: MdLanguage, label: 'Il Mio Sito Web', feature: null },
     { id: 'channels', icon: MdPublic, label: 'Canali Integrazione', feature: 'channelsIntegration' },
     { id: 'communications', icon: MdCampaign, label: 'Comunicazioni', feature: null },
+    { id: 'chat', icon: MdChat, label: 'Chat Staff', feature: null },
     { id: 'settings', icon: MdSettings, label: 'Impostazioni', feature: null },
     { id: 'support', icon: MdHelp, label: 'Aiuto & Supporto', feature: null }
   ];
@@ -147,6 +149,7 @@ const POSSidebar: React.FC<POSSidebarProps> = ({ isOpen, onClose, activeSection,
       'website-editor': '#10b981',
       'channels': '#6b7280',
       'communications': '#f59e0b',
+      'chat': '#3b82f6',
       'settings': '#6b7280',
       'support': '#ef4444'
     };

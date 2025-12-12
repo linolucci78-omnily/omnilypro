@@ -599,18 +599,26 @@ class ReferralAnalyticsService {
    * Get real-time stats for organization
    */
   async getStats(organizationId: string): Promise<ReferralStats> {
-    // Get programs count
+    // Get programs count with customer data
     const { data: programs } = await supabase
       .from('referral_programs')
-      .select('*')
+      .select(`
+        *,
+        customer:customers(*),
+        current_tier:referral_tiers(*)
+      `)
       .eq('organization_id', organizationId);
 
     const activePrograms = programs?.filter((p) => p.is_active) || [];
 
-    // Get conversions
+    // Get conversions with customer data
     const { data: conversions } = await supabase
       .from('referral_conversions')
-      .select('*')
+      .select(`
+        *,
+        referrer:customers!referrer_id(*),
+        referee:customers!referee_id(*)
+      `)
       .eq('organization_id', organizationId);
 
     const completedConversions = conversions?.filter((c) => c.status === 'completed') || [];

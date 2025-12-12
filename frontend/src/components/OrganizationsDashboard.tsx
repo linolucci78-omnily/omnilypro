@@ -54,6 +54,7 @@ import BrandingSocialHub from './BrandingSocialHub'
 import SettingsHub from './SettingsHub'
 import ChannelsHub from './ChannelsHub'
 import SupportHub from './SupportHub'
+import StaffNotesHub from './StaffNotesHub'
 import LoyaltySystemHub from './LoyaltySystemHub'
 import BusinessDetailsHub from './BusinessDetailsHub'
 import GiftCertificatesSettingsHub from './GiftCertificatesSettingsHub'
@@ -3326,6 +3327,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
               onOpenGamingSettings={() => setShowGamingSettings(true)}
               onOpenReceiptLayout={() => setShowReceiptLayoutEditor(true)}
               onNavigateToSection={(sectionId) => handleSectionChange(sectionId)}
+            />
+          </div>
+        ) : null
+
+      case 'chat':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <StaffNotesHub
+              organizationId={currentOrganization.id}
+              onClose={() => handleSectionChange('dashboard')}
+              primaryColor={currentOrganization.brand_colors?.primary || '#dc2626'}
+              secondaryColor={currentOrganization.brand_colors?.secondary || '#b91c1c'}
             />
           </div>
         ) : null

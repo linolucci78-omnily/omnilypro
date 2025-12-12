@@ -380,7 +380,7 @@ const ReferralHub: React.FC<ReferralHubProps> = ({ organizationId, primaryColor,
                   {index > 2 && <span>#{index + 1}</span>}
                 </div>
                 <div className="performer-info">
-                  <div className="performer-name">{performer.customer?.name || 'Unknown'}</div>
+                  <div className="performer-name">{performer.customer?.name || `Cliente ${performer.customer?.email?.split('@')[0] || 'Anonimo'}`}</div>
                   <div className="performer-tier">
                     {performer.tier ? (
                       <span
@@ -390,7 +390,12 @@ const ReferralHub: React.FC<ReferralHubProps> = ({ organizationId, primaryColor,
                         {performer.tier.name}
                       </span>
                     ) : (
-                      <span className="tier-badge">Nessun Tier</span>
+                      <span
+                        className="tier-badge"
+                        style={{ background: '#6b7280', color: '#fff' }}
+                      >
+                        #{index + 1}° posto
+                      </span>
                     )}
                   </div>
                 </div>
@@ -636,12 +641,19 @@ const ReferralHub: React.FC<ReferralHubProps> = ({ organizationId, primaryColor,
                 </div>
               </div>
 
-              {program.current_tier && (
+              {program.current_tier ? (
                 <div
                   className="leaderboard-tier"
                   style={{ background: program.current_tier.color }}
                 >
                   {program.current_tier.name}
+                </div>
+              ) : (
+                <div
+                  className="leaderboard-tier"
+                  style={{ background: '#6b7280', color: '#fff' }}
+                >
+                  #{index + 1}° posto
                 </div>
               )}
             </div>

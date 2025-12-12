@@ -13,11 +13,19 @@ serve(async (req) => {
     }
 
     try {
+        // Client autenticato con le credenziali dell'utente (per verificare permessi)
         const supabaseClient = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_ANON_KEY') ?? '',
             { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
         )
+
+        // Client con service_role per operazioni analytics (bypass RLS)
+        const supabaseAdmin = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        )
+
         let { messages, organizationId } = await req.json()
 
         // Robust Sanitization of organizationId
@@ -446,7 +454,7 @@ Quale vuoi attivare?"`
                 // Execute the tool
                 let toolResult
                 try {
-                    toolResult = await executeTool(toolUse.name, toolUse.input, supabaseClient, organizationId)
+                    toolResult = await executeTool(toolUse.name, toolUse.input, supabaseClient, supabaseAdmin, organizationId)
                 } catch (toolError: any) {
                     toolResult = { error: toolError.message }
                 }
@@ -498,7 +506,7 @@ Quale vuoi attivare?"`
 // TOOL EXECUTION FUNCTIONS
 // ============================================================================
 
-async function executeTool(toolName: string, input: any, supabaseClient: any, organizationId: string | null) {
+async function executeTool(toolName: string, input: any, supabaseClient: any, supabaseAdmin: any, organizationId: string | null) {
     console.log(`🔧 Executing tool: ${toolName}`)
 
     switch (toolName) {
@@ -506,7 +514,7 @@ async function executeTool(toolName: string, input: any, supabaseClient: any, or
             return await sendPushNotification(input, supabaseClient, organizationId)
 
         case 'get_sales_analytics':
-            return await getSalesAnalytics(input, supabaseClient, organizationId)
+            return await getSalesAnalytics(input, supabaseAdmin, organizationId)
 
         case 'get_customer_info':
             return await getCustomerInfo(input, supabaseClient, organizationId)
@@ -823,14 +831,17 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
         midnightItaly: midnightItaly.toLocaleString('it-IT'),
         startDateUTC: startDate.toISOString(),
         endDateUTC: endDate.toISOString(),
-        organizationId
+        organizationId,
+        organizationIdType: typeof organizationId,
+        organizationIdIsNull: organizationId === null
     })
 
     // Get transactions
     let txQuery = supabaseClient
         .from('transaction')
-        .select('amount, created_at')
+        .select('amount, created_at, organization_id')
 
+    console.log('🔍 Applying org filter with organizationId:', organizationId)
     txQuery = applyOrgFilter(txQuery, organizationId)
 
     const { data: transactions, error: txError } = await txQuery
@@ -843,15 +854,39 @@ async function getSalesAnalytics(input: any, supabaseClient: any, organizationId
 
     console.log('📊 getSalesAnalytics - Transactions found:', transactions?.length || 0)
 
+    // Log first few transactions for debugging
+    if (transactions && transactions.length > 0) {
+        console.log('📊 Sample transactions:', JSON.stringify(transactions.slice(0, 3), null, 2))
+    } else {
+        console.log('⚠️ No transactions found with current filter. Trying without org filter...')
+        // Try without org filter to see if transactions exist
+        const { data: allTx } = await supabaseClient
+            .from('transaction')
+            .select('amount, created_at, organization_id')
+            .gte('created_at', startDate.toISOString())
+            .lte('created_at', endDate.toISOString())
+            .limit(10)
+        console.log('📊 Transactions without org filter:', allTx?.length || 0)
+        if (allTx && allTx.length > 0) {
+            console.log('📊 Sample unfiltered transactions (showing ALL org_ids):', JSON.stringify(allTx, null, 2))
+            console.log('📊 COMPARISON - Looking for org_id:', organizationId)
+            console.log('📊 COMPARISON - Found org_ids:', [...new Set(allTx.map(t => t.organization_id))])
+        }
+    }
+
     // Calculate metrics as NUMBERS (not formatted strings)
     const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0
     const transactionCount = transactions?.length || 0
     const averageTransaction = transactionCount > 0 ? totalRevenue / transactionCount : 0
 
+    // Format dates in Italian timezone for display
+    const startDateItaly = new Date(startDate.getTime() + italyOffsetMs)
+    const endDateItaly = new Date(endDate.getTime() + italyOffsetMs)
+
     return {
         success: true,
         date_range,
-        period: `${startDate.toLocaleDateString('it-IT')} - ${endDate.toLocaleDateString('it-IT')}`,
+        period: `${startDateItaly.toLocaleDateString('it-IT')} - ${endDateItaly.toLocaleDateString('it-IT')}`,
         total_revenue: totalRevenue,
         transaction_count: transactionCount,
         average_transaction: averageTransaction

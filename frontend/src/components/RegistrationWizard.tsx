@@ -1535,17 +1535,29 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             console.log('✅ Referrer trovato:', referralProgram);
             addDebugInfo(`✅ Referrer trovato: ${referralProgram.customer_id}`);
 
-            // Ottieni i punti dalla tier del referrer
-            // Fix: Handle potential array response from Supabase join
+            // 1. Carica settings referral per punti dinamici
+            const { data: refSettings, error: settingsError } = await supabase
+              .from('referral_settings')
+              .select('points_per_referral, welcome_bonus_points')
+              .eq('organization_id', organizationId)
+              .single();
+
+            if (settingsError) {
+              console.error('⚠️ Errore caricamento settings referral:', settingsError);
+            }
+
+            // 2. Ottieni i punti dalla tier del referrer (se esistono) o dai settings
             const tierData = referralProgram.referral_tiers as any;
             const tier = Array.isArray(tierData) ? tierData[0] : tierData;
 
-            const referrerPoints = tier?.points_per_referral || 20;
-            const refereePoints = tier?.points_for_referee || 20;
+            // Usa tier se esistono, altrimenti usa settings, altrimenti fallback a 0
+            const referrerPoints = tier?.points_per_referral || refSettings?.points_per_referral || 0;
+            const refereePoints = tier?.welcome_bonus_points || refSettings?.welcome_bonus_points || 0;
 
             console.log(`🎁 Punti da assegnare - Referrer: ${referrerPoints}, Referee: ${refereePoints}`);
+            console.log(`📊 Fonte punti: ${tier ? 'tier' : 'settings'}`);
 
-            // 2. Chiama RPC sicura per processare il referral
+            // 3. Chiama RPC sicura per processare il referral
             const { data: rpcResult, error: rpcError } = await supabase.rpc('process_referral_conversion', {
               p_organization_id: organizationId,
               p_referrer_id: referralProgram.customer_id,
