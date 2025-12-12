@@ -543,10 +543,10 @@
 }
 
 .dashboard-layout.pos-mode .metric-card {
-  gap: 2rem;
-  padding: 2.5rem;
-  border-radius: 16px;
-  border-width: 3px;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  border-width: 2px;
 }
 
 .metric-icon {
@@ -560,13 +560,13 @@
 }
 
 .dashboard-layout.pos-mode .metric-icon {
-  width: 96px;
-  height: 96px;
+  width: 56px;
+  height: 56px;
 }
 
 .dashboard-layout.pos-mode .metric-icon svg {
-  width: 48px;
-  height: 48px;
+  width: 28px;
+  height: 28px;
 }
 
 .metric-icon.stamps {
@@ -602,8 +602,8 @@
 }
 
 .dashboard-layout.pos-mode .metric-value {
-  font-size: 3.5rem;
-  margin-bottom: 0.75rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .metric-label {
@@ -613,7 +613,7 @@
 }
 
 .dashboard-layout.pos-mode .metric-label {
-  font-size: 1.75rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
