@@ -93,6 +93,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [initialViewportHeight, setInitialViewportHeight] = useState<number>(0);
 
   const addDebugInfo = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -247,10 +248,15 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     }
   }, [isOpen, organizationId]);
 
-  // Handle input focus/blur to hide/show header
+  // Handle input focus/blur to minimize header only (not footer)
   useEffect(() => {
-    const handleFocus = () => setIsInputFocused(true);
-    const handleBlur = () => setIsInputFocused(false);
+    const handleFocus = () => {
+      setIsInputFocused(true);
+    };
+
+    const handleBlur = () => {
+      setIsInputFocused(false);
+    };
 
     // Add listeners to all input, select, and textarea elements
     const inputs = document.querySelectorAll('.wizard-modal input, .wizard-modal select, .wizard-modal textarea');
@@ -265,7 +271,58 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
         input.removeEventListener('blur', handleBlur);
       });
     };
-  }, [currentStep]); // Re-run when step changes
+  }, [currentStep]);
+
+  // Cattura l'altezza iniziale del viewport quando il wizard si apre
+  useEffect(() => {
+    if (isOpen) {
+      // Usa window.innerHeight che rappresenta l'altezza REALE del viewport
+      const vh = window.innerHeight;
+      setInitialViewportHeight(vh);
+
+      // Imposta una variabile CSS custom con l'altezza iniziale
+      document.documentElement.style.setProperty('--initial-vh', `${vh}px`);
+
+      console.log('Initial viewport height captured:', vh);
+    }
+  }, [isOpen]);
+
+  // Blocca lo scroll del body quando l'input è in focus
+  useEffect(() => {
+    if (isInputFocused) {
+      // Salva la posizione corrente dello scroll
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+
+      // Usa l'altezza iniziale invece di 100vh per evitare che il footer si sposti
+      if (initialViewportHeight > 0) {
+        document.body.style.height = `${initialViewportHeight}px`;
+      }
+    } else {
+      // Ripristina lo scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // Cleanup: assicurati di ripristinare lo stato del body
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    };
+  }, [isInputFocused, initialViewportHeight]);
 
   const resetForm = () => {
     setCurrentStep(1);
@@ -1617,60 +1674,61 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     // Quick mode: Step 1 combines personal data + contact info
     if (isQuickMode && currentStep === 1) {
       return (
-        <div className="wizard-step-content" style={{ maxHeight: '60vh', overflowY: 'auto', overflowX: 'hidden' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a' }}>
+        <div className="wizard-step-content">
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a', marginBottom: '16px' }}>
             <User size={24} color="#ef4444" />
             Dati Principali
           </h3>
 
-          {/* Loading indicator for organization data */}
-          {loadingOrganization && (
-            <div style={{
-              padding: '10px',
-              backgroundColor: '#f0f9ff',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #bae6fd',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
+          <div style={{ overflowY: 'auto', overflowX: 'hidden', paddingRight: '8px' }}>
+            {/* Loading indicator for organization data */}
+            {loadingOrganization && (
               <div style={{
-                width: '16px',
-                height: '16px',
-                border: '2px solid #3b82f6',
-                borderTop: '2px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></div>
-              <span style={{ color: '#1e40af', fontSize: '14px' }}>
-                Caricamento dati organizzazione...
-              </span>
-            </div>
-          )}
-
-          {/* Show organization info when loaded */}
-          {organization && !loadingOrganization && (
-            <div style={{
-              padding: '10px',
-              backgroundColor: '#f0f9ff',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #bae6fd'
-            }}>
-              <div style={{ color: '#1e40af', fontSize: '14px', fontWeight: '600' }}>
-                🏢 {organization.name}
+                padding: '10px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                border: '1px solid #bae6fd',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #3b82f6',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                <span style={{ color: '#1e40af', fontSize: '14px' }}>
+                  Caricamento dati organizzazione...
+                </span>
               </div>
-              {organization.loyalty_tiers && organization.loyalty_tiers.length > 0 && (
-                <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
-                  🏆 {organization.loyalty_tiers.length} livelli loyalty personalizzati
-                </div>
-              )}
-            </div>
-          )}
+            )}
 
-          {/* Personal Data */}
-          <div className="form-row">
+            {/* Show organization info when loaded */}
+            {organization && !loadingOrganization && (
+              <div style={{
+                padding: '10px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                border: '1px solid #bae6fd'
+              }}>
+                <div style={{ color: '#1e40af', fontSize: '14px', fontWeight: '600' }}>
+                  🏢 {organization.name}
+                </div>
+                {organization.loyalty_tiers && organization.loyalty_tiers.length > 0 && (
+                  <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                    🏆 {organization.loyalty_tiers.length} livelli loyalty personalizzati
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Personal Data */}
+            <div className="form-row">
             <div className="form-group">
               <label>Nome *</label>
               <div className="input-with-icon">
@@ -1705,9 +1763,41 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               <div className="input-with-icon">
                 <Calendar size={18} className="input-icon" />
                 <input
-                  type="date"
+                  type="text"
+                  inputMode="numeric"
                   value={formData.birthDate}
-                  onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, ''); // Solo numeri
+                    if (value.length >= 2) {
+                      value = value.slice(0, 2) + '/' + value.slice(2);
+                    }
+                    if (value.length >= 5) {
+                      value = value.slice(0, 5) + '/' + value.slice(5, 9);
+                    }
+                    // Converti in formato YYYY-MM-DD per compatibilità
+                    if (value.length === 10) {
+                      const [day, month, year] = value.split('/');
+                      if (day && month && year && year.length === 4) {
+                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        handleInputChange('birthDate', isoDate);
+                        return;
+                      }
+                    }
+                    // Salva il valore formattato temporaneo
+                    e.target.value = value;
+                  }}
+                  onBlur={(e) => {
+                    const value = e.target.value;
+                    if (value.length === 10) {
+                      const [day, month, year] = value.split('/');
+                      if (day && month && year && year.length === 4) {
+                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        handleInputChange('birthDate', isoDate);
+                      }
+                    }
+                  }}
+                  placeholder="GG/MM/AAAA"
+                  maxLength={10}
                 />
               </div>
             </div>
@@ -1771,6 +1861,87 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             {duplicateWarning && (
               <div className="duplicate-warning">{duplicateWarning}</div>
             )}
+
+            {/* Referral Code Field */}
+            <div className="form-group" style={{ marginTop: '16px' }}>
+              <label>
+                <Gift size={16} />
+                Codice Referral
+              </label>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div className="input-with-icon" style={{ flex: 1 }}>
+                  <Gift size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    value={formData.referralCode}
+                    onChange={(e) => handleInputChange('referralCode', e.target.value)}
+                    placeholder="Inserisci il codice referral"
+                    className={referrerName ? 'success-input' : ''}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={startQrScanner}
+                  style={{
+                    padding: '10px 16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                    minHeight: '48px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                  }}
+                >
+                  <QrCode size={20} />
+                  Scansiona QR
+                </button>
+              </div>
+              {isCheckingReferral && (
+                <div style={{ marginTop: '8px', color: '#6b7280', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '14px',
+                    height: '14px',
+                    border: '2px solid #3b82f6',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  Verifica codice...
+                </div>
+              )}
+              {referrerName && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '14px',
+                  color: 'white'
+                }}>
+                  <Check size={16} />
+                  Referral valido: {referrerName}
+                </div>
+              )}
+            </div>
+          </div>
           </div>
         </div>
       );
@@ -1850,20 +2021,6 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               </button>
             </div>
           </div>
-
-          {/* Debug Panel for POS - only show on privacy step */}
-          {window.innerWidth <= 1024 && debugInfo.length > 0 && (
-            <div className="debug-panel">
-              <h4>🔧 Debug Info (POS)</h4>
-              <div className="debug-messages">
-                {debugInfo.map((info, index) => (
-                  <div key={index} className="debug-message">
-                    {info}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {formData.signature && formData.privacyConsent && (
             <div className="document-actions">
@@ -1983,9 +2140,41 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
                 <div className="input-with-icon">
                   <Calendar size={18} className="input-icon" />
                   <input
-                    type="date"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.birthDate}
-                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/\D/g, ''); // Solo numeri
+                      if (value.length >= 2) {
+                        value = value.slice(0, 2) + '/' + value.slice(2);
+                      }
+                      if (value.length >= 5) {
+                        value = value.slice(0, 5) + '/' + value.slice(5, 9);
+                      }
+                      // Converti in formato YYYY-MM-DD per compatibilità
+                      if (value.length === 10) {
+                        const [day, month, year] = value.split('/');
+                        if (day && month && year && year.length === 4) {
+                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                          handleInputChange('birthDate', isoDate);
+                          return;
+                        }
+                      }
+                      // Salva il valore formattato temporaneo
+                      e.target.value = value;
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      if (value.length === 10) {
+                        const [day, month, year] = value.split('/');
+                        if (day && month && year && year.length === 4) {
+                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                          handleInputChange('birthDate', isoDate);
+                        }
+                      }
+                    }}
+                    placeholder="GG/MM/AAAA"
+                    maxLength={10}
                   />
                 </div>
               </div>
@@ -2253,20 +2442,6 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               </div>
             </div>
 
-            {/* Debug Panel for POS - only show on step 4 */}
-            {window.innerWidth <= 1024 && debugInfo.length > 0 && (
-              <div className="debug-panel">
-                <h4>🔧 Debug Info (POS)</h4>
-                <div className="debug-messages">
-                  {debugInfo.map((info, index) => (
-                    <div key={index} className="debug-message">
-                      {info}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {formData.signature && formData.privacyConsent && (
               <div className="document-actions">
                 <h4>Documento Consensi Privacy</h4>
@@ -2300,9 +2475,9 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
   };
 
   return (
-    <div className="wizard-overlay">
-      <div className="wizard-modal">
-        <div className={`wizard-header ${isInputFocused ? 'header-hidden' : ''}`}>
+    <div className={`wizard-overlay ${isInputFocused ? 'wizard-overlay-input-focused' : ''}`}>
+      <div className={`wizard-modal ${isInputFocused ? 'wizard-modal-input-focused' : ''}`}>
+        <div className={`wizard-header ${isInputFocused ? 'header-minimized' : ''}`}>
           <button className="back-btn" onClick={onClose}>
             <ArrowLeft size={20} />
             Torna Indietro
@@ -2354,7 +2529,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           <div style={{ width: '120px' }}></div>
         </div>
 
-        <div className={`wizard-progress ${isInputFocused ? 'progress-hidden' : ''}`}>
+        <div className={`wizard-progress ${isInputFocused ? 'progress-minimized' : ''}`}>
           {steps.map((step) => {
             const IconComponent = step.icon;
             return (
@@ -2373,7 +2548,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
           })}
         </div>
 
-        <div className="wizard-content">
+        <div className={`wizard-content ${isInputFocused ? 'wizard-content-compact' : ''}`}>
           {renderStepContent()}
         </div>
 

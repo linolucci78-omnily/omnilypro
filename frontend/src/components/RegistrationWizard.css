@@ -1,21 +1,52 @@
 /* Registration Wizard - OMNILY PRO Styling - Full Page Mode */
 .wizard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
   height: 100vh;
+  /* Usa variabile CSS per altezza fissa quando input focused */
+  height: var(--initial-vh, 100vh);
+  z-index: 9999;
   overflow-y: auto;
   background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
   padding-bottom: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
+/* BLOCCA SCROLL OVERLAY QUANDO INPUT FOCUSED - impedisce auto-scroll del browser */
+.wizard-overlay-input-focused {
+  overflow: hidden !important;
+  position: fixed !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
 .wizard-modal {
   background: white;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: calc(100vh - 2rem);
+  height: 100vh;
+  height: var(--initial-vh, 100vh);
+  min-height: 100vh;
+  min-height: var(--initial-vh, 100vh);
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* BLOCCA SCROLL DEL MODAL QUANDO INPUT FOCUSED - classe dedicata per evitare override */
+.wizard-modal-input-focused {
+  overflow: hidden !important;
+  position: relative !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
 }
 
 @keyframes fadeIn {
@@ -59,9 +90,83 @@
   flex-shrink: 0;
 }
 
-/* Hide header when input is focused (for better keyboard visibility on POS) */
-.wizard-header.header-hidden {
-  display: none;
+/* NASCONDI COMPLETAMENTE HEADER quando input focused */
+.wizard-header.header-minimized {
+  display: none !important;
+}
+
+/* NASCONDI COMPLETAMENTE PROGRESS BAR quando input focused */
+.wizard-progress.progress-minimized {
+  display: none !important;
+}
+
+/* COMPATTA IL CONTENT quando input focused - riduci spacing tra campi E BLOCCA POSIZIONE */
+.wizard-content-compact {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 100px !important; /* Spazio per il footer fisso */
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  padding-bottom: 120px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  background: white !important;
+  z-index: 9998 !important;
+}
+
+.wizard-content-compact .form-row {
+  margin-bottom: 12px !important;
+  gap: 12px !important;
+}
+
+.wizard-content-compact .form-group {
+  gap: 4px !important;
+  margin-bottom: 0 !important;
+}
+
+.wizard-content-compact .form-group label {
+  font-size: 13px !important;
+  margin-bottom: 2px !important;
+}
+
+.wizard-content-compact .form-group input,
+.wizard-content-compact .form-group select,
+.wizard-content-compact .form-group textarea {
+  padding: 10px 14px !important;
+  font-size: 15px !important;
+}
+
+/* OVERRIDE per input con icona in modalità compact */
+.wizard-content-compact .input-with-icon input,
+.wizard-content-compact .input-with-icon select {
+  padding-left: 45px !important; /* Spazio per icona quando compact */
+}
+
+.wizard-content-compact h3 {
+  margin-bottom: 16px !important;
+  font-size: 18px !important;
+}
+
+/* QUANDO INPUT FOCUSED: rendi content fixed tra header e footer */
+.wizard-registration-input-focus-fullscreen-mode {
+  position: fixed !important;
+  top: 100px !important; /* Sotto header (60px) + progress (40px) */
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 100px !important; /* Sopra footer */
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 40px !important;
+  padding-bottom: 40px !important;
+  box-sizing: border-box !important;
+  background: white !important;
+  z-index: 10000 !important;
+  transition: all 0.3s ease !important;
 }
 
 .wizard-header h2 {
@@ -201,10 +306,11 @@
 /* Content */
 .wizard-content {
   padding: 40px;
-  min-height: 450px;
+  padding-bottom: 20px; /* Ridotto per eliminare spazio bianco */
+  min-height: auto; /* Auto invece di 450px fisso */
   max-height: 600px;
   overflow-y: auto;
-  flex: 1 1 auto;
+  flex: 0 1 auto; /* NON espandere - usa solo lo spazio necessario */
   display: flex;
   flex-direction: column;
 }
@@ -261,22 +367,18 @@
   padding-left: 52px !important;
 }
 
-/* Mobile - aumenta lo spazio tra icona e testo */
+/* Mobile - posizione icona (il padding è gestito dentro @media POS più sotto) */
 @media (max-width: 1024px) {
   .input-icon {
-    left: 12px;
-  }
-
-  .input-with-icon input,
-  .input-with-icon select {
-    padding-left: 300px !important;
+    left: 20px;
+    font-size: 20px; /* Icona leggermente più grande su POS */
   }
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 12px 16px;
+  padding: 12px 20px; /* Aumentato padding destro da 16px a 20px */
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 16px;
@@ -297,6 +399,11 @@
 .form-group select.error {
   border-color: var(--secondary-color, #ef4444);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-group input.success-input {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
 .error-text {
@@ -459,8 +566,13 @@
   transform: scale(1.05);
 }
 
-/* Actions */
+/* Actions - ALWAYS FIXED AT BOTTOM */
 .wizard-actions {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
   padding: 30px 40px;
   background: #f8fafc;
   border-top: 1px solid #f1f5f9;
@@ -469,6 +581,15 @@
   gap: 16px;
   min-height: 90px;
   flex-shrink: 0;
+  z-index: 10001 !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  /* Usa altezza fissa del viewport iniziale invece di bottom: 0 quando input focused */
+}
+
+/* FOOTER BLOCCATO quando input è focused - cambia da fixed a absolute */
+.wizard-modal-input-focused .wizard-actions {
+  position: absolute !important;
+  /* Rimane bottom: 0 ma ora è relativo al wizard-modal invece che al viewport */
 }
 
 .flex-spacer {
@@ -605,9 +726,23 @@
 
 /* POS Mode (Tablets and Touch Terminals) - PRIORITY RESPONSIVE */
 @media (max-width: 1024px) {
+  /* BLOCCA OVERLAY QUANDO INPUT FOCUSED - POS MODE */
+  .wizard-overlay-input-focused {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: var(--initial-vh, 100vh) !important;
+    max-height: var(--initial-vh, 100vh) !important;
+    overflow: hidden !important;
+  }
+
   .wizard-modal {
     width: 100vw !important;
     height: 100vh !important;
+    height: var(--initial-vh, 100vh) !important;
     max-width: none !important;
     max-height: none !important;
     border-radius: 0 !important;
@@ -615,73 +750,113 @@
     flex-direction: column !important;
   }
 
+  /* BLOCCA MODAL QUANDO INPUT FOCUSED - POS MODE */
+  .wizard-modal-input-focused {
+    position: relative !important;
+    width: 100vw !important;
+    height: var(--initial-vh, 100vh) !important;
+    max-height: var(--initial-vh, 100vh) !important;
+    overflow: hidden !important;
+  }
+
+  /* BLOCCA COMPLETAMENTE IL CONTENT QUANDO INPUT FOCUSED - POS MODE */
+  .wizard-content-compact {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 85px !important; /* Spazio per il footer - ridotto da 100px */
+    max-width: 100vw !important;
+    width: 100vw !important;
+    height: calc(var(--initial-vh, 100vh) - 85px) !important; /* Altezza fissa basata su vh iniziale */
+    margin: 0 !important;
+    padding: 1.5rem !important;
+    padding-bottom: 20px !important; /* Ridotto drasticamente per eliminare spazio bianco */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: white !important;
+    z-index: 9998 !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important; /* Previene il bounce su iOS */
+  }
+
+  /* FOOTER BLOCCATO IN POSIZIONE ASSOLUTA - POS MODE */
+  .wizard-modal-input-focused .wizard-actions {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+  }
+
   .wizard-header {
-    padding: 1.5rem 2rem !important;
-    min-height: 80px !important;
+    padding: 1rem 1.5rem !important;
+    min-height: 70px !important;
     flex-shrink: 0;
   }
 
   .wizard-header h2 {
-    font-size: 1.5rem !important;
+    font-size: 1.4rem !important;
     font-weight: 700 !important;
   }
 
   .close-btn {
-    width: 50px !important;
-    height: 50px !important;
-    font-size: 24px !important;
+    width: 45px !important;
+    height: 45px !important;
+    font-size: 22px !important;
   }
 
   .wizard-progress {
-    padding: 1.5rem 2rem !important;
-    min-height: 100px !important;
+    padding: 1rem 1.5rem !important;
+    min-height: 85px !important;
     flex-shrink: 0;
   }
 
   .step-circle {
-    width: 70px !important;
-    height: 70px !important;
-    font-size: 24px !important;
-    border-width: 4px !important;
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 20px !important;
+    border-width: 3px !important;
   }
 
   .step-title {
-    font-size: 1.1rem !important;
+    font-size: 1rem !important;
     font-weight: 600 !important;
   }
 
   .wizard-content {
-    padding: 2rem !important;
-    min-height: 300px !important;
-    max-height: calc(100vh - 400px) !important;
+    padding: 1.5rem !important;
+    padding-bottom: 1rem !important; /* Riduci padding inferiore per eliminare spazio bianco */
+    min-height: auto !important; /* Auto invece di 300px fisso */
+    max-height: calc(100vh - 240px) !important; /* Più spazio per il content - riduciamo header+progress+footer */
     font-size: 1.1rem !important;
-    flex: 1 !important;
+    flex: 0 1 auto !important; /* NON espandere - usa solo lo spazio necessario */
     overflow-y: auto !important;
   }
 
   .wizard-step-content h3 {
-    font-size: 1.5rem !important;
-    margin-bottom: 2rem !important;
+    font-size: 1.4rem !important;
+    margin-bottom: 1.5rem !important;
   }
 
   .form-row {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 24px !important;
-    margin-bottom: 32px !important;
+    gap: 18px !important;
+    margin-bottom: 24px !important;
   }
 
   .form-group {
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 8px !important;
     width: 100% !important;
   }
 
   .form-group label {
-    font-size: 1.2rem !important;
+    font-size: 1.1rem !important;
     font-weight: 700 !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 8px !important;
     color: #0f172a !important;
     display: block !important;
   }
@@ -689,17 +864,23 @@
   .form-group input,
   .form-group select,
   .form-group textarea {
-    padding: 20px 24px !important;
-    font-size: 1.2rem !important;
-    min-height: 70px !important;
+    padding: 16px 24px !important; /* Padding base per POS */
+    font-size: 1.1rem !important;
+    min-height: 60px !important;
     border-width: 3px !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     border: 3px solid #e2e8f0 !important;
     background: white !important;
     color: #0f172a !important;
     width: 100% !important;
     box-sizing: border-box !important;
     display: block !important;
+  }
+
+  /* OVERRIDE per input con icona - deve essere DOPO la regola generale */
+  .input-with-icon input,
+  .input-with-icon select {
+    padding-left: 60px !important; /* Spazio per icona su POS */
   }
 
   .form-group input:focus,
@@ -711,29 +892,33 @@
   }
 
   .wizard-actions {
-    padding: 1.5rem 2rem !important;
-    min-height: 100px !important;
+    padding: 1rem 1.5rem !important;
+    min-height: 85px !important; /* Ridotto da 100px */
     flex-shrink: 0;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 16px !important;
+    gap: 12px !important;
     background: #f8fafc !important;
     border-top: 1px solid #f1f5f9 !important;
-    position: sticky !important;
+    position: fixed !important;
     bottom: 0 !important;
-    z-index: 10 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10001 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
   }
 
   .btn-primary,
   .btn-secondary,
   .btn-success {
-    padding: 18px 32px !important;
-    font-size: 1.2rem !important;
+    padding: 14px 28px !important;
+    font-size: 1.1rem !important;
     font-weight: 700 !important;
-    min-height: 70px !important;
-    min-width: 180px !important;
-    border-radius: 12px !important;
+    min-height: 60px !important; /* Ridotto da 70px */
+    min-width: 160px !important;
+    border-radius: 10px !important;
     border: none !important;
     cursor: pointer !important;
     display: flex !important;
@@ -830,37 +1015,6 @@
     transform: scale(1.05) !important;
   }
 
-  /* DEBUG PANEL - For POS troubleshooting */
-  .debug-panel {
-    background: #fef3c7 !important;
-    border: 2px solid #f59e0b !important;
-    border-radius: 12px !important;
-    padding: 2rem !important;
-    margin: 2rem 0 !important;
-  }
-
-  .debug-panel h4 {
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-    margin-bottom: 1rem !important;
-    color: #92400e !important;
-  }
-
-  .debug-messages {
-    max-height: 200px !important;
-    overflow-y: auto !important;
-  }
-
-  .debug-message {
-    font-size: 1rem !important;
-    font-family: monospace !important;
-    padding: 8px 12px !important;
-    margin: 4px 0 !important;
-    background: white !important;
-    border-radius: 6px !important;
-    border: 1px solid #f3f4f6 !important;
-    color: #374151 !important;
-  }
 
   .checkbox-custom {
     width: 32px !important;
