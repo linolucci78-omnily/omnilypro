@@ -249,14 +249,28 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
     }
   }, [isOpen, organizationId]);
 
-  // Handle input focus/blur to minimize header only (not footer)
+  // Handle input focus/blur to minimize header and progress
   useEffect(() => {
-    const handleFocus = () => {
+    const handleFocus = (e: Event) => {
+      console.log('🎯 Input focused - activating compact mode');
       setIsInputFocused(true);
+
+      // Force scroll lock on body
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100vh';
     };
 
     const handleBlur = () => {
+      console.log('👋 Input blurred - deactivating compact mode');
       setIsInputFocused(false);
+
+      // Restore body scroll
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
     };
 
     // Add listeners to all input, select, and textarea elements
