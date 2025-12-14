@@ -95,10 +95,26 @@ function App() {
   // Registra handler MDM per comandi da Android
   useMDMCommands()
 
-  // Detect if running in POS mode (only posomnily=true)
-  // IMPORTANTE: Controlla SOLO il parametro URL, NO localStorage
-  const isPOSMode = typeof window !== 'undefined' &&
-    window.location.search.includes('posomnily=true')
+  // Detect if running in POS mode (controlla localStorage prima di tutto)
+  // Una volta in modalità POS, rimani SEMPRE in modalità POS
+  const isPOSMode = (() => {
+    if (typeof window === 'undefined') return false;
+
+    // PRIMA controlla localStorage - se già in POS mode, rimani sempre in POS
+    const storedPOSMode = localStorage.getItem('omnily_pos_mode');
+    if (storedPOSMode === 'true') {
+      return true; // SEMPRE POS, ignora URL
+    }
+
+    // Se NON sei in POS mode, controlla se URL vuole attivarla
+    const urlHasPOSParam = window.location.search.includes('posomnily=true');
+    if (urlHasPOSParam) {
+      localStorage.setItem('omnily_pos_mode', 'true');
+      return true;
+    }
+
+    return false;
+  })()
 
   // Check if this should be customer display
   // IMPORTANTE: Solo se ESPLICITAMENTE customer=true nell'URL iniziale
