@@ -2642,7 +2642,7 @@ const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 10000
+            zIndex: 10002 // Sopra footer (10001) e content (10000)
           }}
           onClick={stopQrScanner}
         >
