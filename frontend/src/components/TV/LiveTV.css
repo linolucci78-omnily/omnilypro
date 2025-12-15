@@ -1,0 +1,446 @@
+:root {
+    --tv-primary: #111;
+    --tv-secondary: #fff;
+    --tv-bg: #f8f9fa;
+    --tv-text: #1f2937;
+}
+
+/* Live TV Global Styles - Force full height in iframe context */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    /* Fallback dark */
+}
+
+/* Global reset for TV page context (Scoped) */
+/* Shared Viewport Logic: Applies to both the real Body (Standalone) and the Preview Wrapper (Admin) */
+.tv-viewport {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+    background-color: #0f172a;
+    /* Dark base color */
+    position: relative;
+}
+
+/* When applied to Body, use !important to override browser defaults */
+body.tv-viewport {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    /* FIXED: Was 100vh (wrong), now 100vw (correct) */
+    height: 100vh !important;
+    min-height: 100vh !important;
+    overflow: hidden !important;
+}
+
+/* Ensure #root fills the viewport */
+.tv-viewport #root {
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+}
+
+/*
+  Dynamic "Living" Background
+  Uses CSS variables injected by the layout for Primary/Secondary colors
+*/
+.tv-layout {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    color: #ffffff;
+    overflow: hidden;
+
+    /* Dynamic Animated Mesh Gradient + Texture */
+    /* SIMPLIFIED: Removed complex mesh gradients to ensure clean image + overlay rendering */
+    background-color: #000;
+
+    color: white;
+}
+
+/*
+   Dedicated Background Image Layer
+   Allows independent opacity control without affecting the mesh gradients behind it.
+   Uses FIXED position for Live TV to ensure full viewport coverage.
+*/
+/*
+   Dedicated Background Image Layer
+   Allows independent opacity control without affecting the mesh gradients behind it.
+   Position is handled inline (Fixed for live, Absolute for preview)
+*/
+.tv-background-layer {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+/* Full height only in live mode, not preview */
+body.tv-viewport .tv-background-layer {
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+}
+
+/*
+   Overlay Layer (Tint)
+   Sits on top of the background image to provide contrast/color.
+*/
+.tv-overlay-layer {
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Full height only in live mode, not preview */
+body.tv-viewport .tv-overlay-layer {
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+}
+
+/*
+   PREVIEW MODE OVERRIDES
+   Fill container instead of fixed dimensions
+*/
+.tv-preview-mode {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Scale everything proportionally in preview mode */
+.tv-preview-mode .tv-content {
+    padding: 20px !important;
+    padding-bottom: 80px !important;
+}
+
+.tv-preview-mode .tv-header {
+    padding: 0 20px !important;
+    height: 50px !important;
+    font-size: 0.5em !important;
+}
+
+.tv-preview-mode .tv-footer {
+    height: 40px !important;
+    font-size: 0.5em !important;
+}
+
+.tv-preview-mode .tv-brand h1 {
+    font-size: 0.9rem !important;
+}
+
+.tv-preview-mode .tv-clock {
+    font-size: 1rem !important;
+}
+
+.tv-preview-mode .tv-logo {
+    height: 40px !important;
+}
+
+.tv-preview-mode .tv-ticker {
+    font-size: 0.8rem !important;
+}
+
+.tv-preview-mode .tv-ticker-wrap {
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Remove max-width constraints on slides in preview mode */
+.tv-preview-mode .tv-content > * {
+    max-width: none !important;
+    width: 100% !important;
+    transform: scale(0.45) !important;
+    transform-origin: center center !important;
+}
+
+/* Force all child divs to expand */
+.tv-preview-mode .tv-content > * > div {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+/* Add a floating "Orb" effect using pseudo-elements for more depth */
+.tv-layout::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, var(--color-primary-transparent, rgba(255, 255, 255, 0.1)) 0%, transparent 60%);
+    opacity: 0.4;
+    z-index: 0;
+    animation: rotate-orb 60s linear infinite;
+}
+
+.tv-layout::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -20%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--color-secondary-transparent, rgba(255, 255, 255, 0.1)) 0%, transparent 70%);
+    opacity: 0.3;
+    z-index: 0;
+    animation: float-up 20s ease-in-out infinite alternate;
+}
+
+@keyframes bg-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes rotate-orb {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes float-up {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    100% {
+        transform: translateY(-50px) scale(1.1);
+    }
+}
+
+/* Ensure content sits above the background effects */
+.tv-header,
+.tv-content,
+.tv-footer {
+    position: relative;
+    z-index: 10;
+}
+
+/* Header */
+.tv-header {
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    /* Glassmorphism instead of solid white */
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.tv-brand h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    /* White text for dark backgrounds */
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.tv-logo {
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.tv-clock {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    /* White text */
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Main Content */
+.tv-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    padding: 40px;
+    padding-bottom: 120px;
+    /* Space for fixed footer */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Removed white background to show dynamic mesh */
+    background: transparent !important;
+}
+
+/* Footer Ticker */
+.tv-footer {
+    position: fixed;
+    /* Force it to stay at bottom */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent dark */
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 100;
+    /* Ensure it stays on top */
+}
+
+.tv-ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.tv-ticker {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 30s linear infinite;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+@keyframes ticker {
+    0% {
+        transform: translate3d(100%, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(-100%, 0, 0);
+    }
+}
+
+/* Slide Styles */
+.tv-slide-title {
+    font-size: 4rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 40px;
+    background: linear-gradient(135deg, var(--tv-primary), var(--tv-secondary));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.leaderboard-grid {
+    display: grid;
+    gap: 24px;
+    width: 100%;
+    max-width: 1400px;
+}
+
+.leaderboard-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transform-origin: center;
+    animation: popIn 0.5s ease-out backwards;
+}
+
+.leaderboard-rank {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #cbd5e1;
+    min-width: 80px;
+}
+
+.leaderboard-card.top-1 .leaderboard-rank {
+    color: #fbbf24;
+}
+
+/* Gold */
+.leaderboard-card.top-2 .leaderboard-rank {
+    color: #94a3b8;
+}
+
+/* Silver */
+.leaderboard-card.top-3 .leaderboard-rank {
+    color: #b45309;
+}
+
+/* Bronze */
+
+.leaderboard-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--tv-primary);
+}
+
+.leaderboard-info {
+    flex: 1;
+}
+
+.leaderboard-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: block;
+}
+
+.leaderboard-tier {
+    font-size: 1.5rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.leaderboard-points {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--tv-secondary);
+    text-align: right;
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

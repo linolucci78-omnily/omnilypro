@@ -9,6 +9,7 @@ import { useToast } from '../../contexts/ToastContext'
 import { Zap, Award, CheckCircle2, Building2, Users, User, BarChart3, Shield, Gift, Palette, UserPlus, Bell, Star, Settings, Globe, Smartphone, Phone, Mail, Globe2, MessageSquare, Upload, X, CreditCard, Printer, ArrowRight, ArrowLeft, Package, AlertCircle } from 'lucide-react'
 import styles from './EnterpriseWizard.module.css'
 import './icon-styles.css'
+import { INDUSTRY_TEMPLATES } from '../../config/industryTemplates'
 import './EnterpriseWizardAdmin.css'
 import './EnterpriseWizardContent.css'
 // import POSTestPanel from '../POS/POSTestPanel'
@@ -38,7 +39,7 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
   // Dynamic plans from database
   const [availablePlans, setAvailablePlans] = useState<OmnilyProPlan[]>([])
   const [plansLoading, setPlansLoading] = useState(true)
-  
+
   // Carica dati salvati da localStorage  
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem('omnily-wizard-data')
@@ -49,113 +50,113 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
         console.warn('Errore caricamento dati salvati:', e)
       }
     }
-    
+
     // Dati di default se non ci sono salvataggi
     return {
-    // Plan Selection (admin mode only)
-    planId: null, // Will be set when plans are loaded
+      // Plan Selection (admin mode only)
+      planId: null, // Will be set when plans are loaded
 
-    // Step 1: Organization Basics
-    organizationName: '',
-    partitaIVA: '',
-    codiceFiscale: '',
-    industry: 'retail',
-    teamSize: '1-10',
-    phoneNumber: '',
-    businessEmail: '',
-    website: '',
-    tagline: '',
-    logoUrl: '',
-    address: '',
-    city: '',
-    province: '',
-    cap: '',
+      // Step 1: Organization Basics
+      organizationName: '',
+      partitaIVA: '',
+      codiceFiscale: '',
+      industry: 'retail',
+      teamSize: '1-10',
+      phoneNumber: '',
+      businessEmail: '',
+      website: '',
+      tagline: '',
+      logoUrl: '',
+      address: '',
+      city: '',
+      province: '',
+      cap: '',
 
-    // Owner Information
-    ownerFirstName: '',
-    ownerLastName: '',
-    ownerEmail: '',
-    ownerPhone: '',
-    ownerAvatarUrl: '',
+      // Owner Information
+      ownerFirstName: '',
+      ownerLastName: '',
+      ownerEmail: '',
+      ownerPhone: '',
+      ownerAvatarUrl: '',
 
-    // Step 2: Loyalty System Setup
-    pointsName: 'Punti',
-    pointsPerEuro: '1',
-    rewardThreshold: '100',
-    welcomeBonus: '50',
-    pointsExpiry: '12', // mesi
-    enableTierSystem: true,
-    loyaltyTiers: [
-      { name: 'Iniziale', threshold: '0', multiplier: '1', color: '#94a3b8', gradient: false, gradientEnd: '#94a3b8' },
-      { name: 'Affezionato', threshold: '300', multiplier: '1.5', color: '#3b82f6', gradient: false, gradientEnd: '#3b82f6' },
-      { name: 'VIP', threshold: '800', multiplier: '2', color: '#f59e0b', gradient: true, gradientEnd: '#dc2626' }
-    ],
-    
-    // Step 3: Products & Categories  
-    importProducts: true,
-    productCategories: ['Alimentari', 'Bevande', 'Accessori'],
-    bonusCategories: [
-      { category: 'Alimentari', multiplier: '1' },
-      { category: 'Bevande', multiplier: '1.2' },
-      { category: 'Accessori', multiplier: '1.5' }
-    ],
-    
-    // Step 4: Rewards Configuration
-    rewardTypes: ['discount', 'freeProduct', 'cashback'],
-    defaultRewards: [
-      { points: '100', requiredTier: 'Iniziale', type: 'discount', value: '5', description: '5€ di sconto' },
-      { points: '200', requiredTier: 'Affezionato', type: 'discount', value: '10', description: '10€ di sconto' },
-      { points: '300', requiredTier: 'VIP', type: 'freeProduct', value: 'caffè', description: 'Caffè gratuito' }
-    ],
-    
-    // Step 5: Branding Setup
-    primaryColor: '#ef4444',
-    secondaryColor: '#dc2626',
-    appName: '',
-    
-    // Social Media Links
-    facebookUrl: '',
-    instagramUrl: '',
-    linkedinUrl: '',
-    twitterUrl: '',
-    
-    // Step 6: Channels Integration
-    enablePOS: true,
-    enableEcommerce: false,
-    enableApp: true,
-    posDevices: '1',
-    
-    // Step 7: Marketing Campaigns
-    welcomeCampaign: true,
-    birthdayRewards: true,
-    inactiveCampaign: true,
-    seasonalCampaigns: false,
-    
-    // Step 8: Team Setup
-    inviteEmails: [''],
-    adminName: '',
-    adminEmail: '',
-    
-    // Step 9: POS Integration
-    posEnabled: true,
-    posModel: 'Z108', // Z90, Z91, Z92, Z100, Z108, Z70, Z45
-    posConnection: 'usb', // usb, bluetooth
-    enableReceiptPrint: true,
-    enableNFC: true,
-    enableEMV: true,
-    enablePinPad: true,
-    posTestResults: null,
-    
-    // Step 10: Notifications & Communication
-    enableEmailNotifications: true,
-    enableSMS: false,
-    enablePushNotifications: true,
-    welcomeEmailEnabled: true,
-    
-    // Step 10: Analytics & Reports
-    enableAdvancedAnalytics: true,
-    reportFrequency: 'weekly',
-    kpiTracking: ['customer_retention', 'average_transaction', 'loyalty_roi']
+      // Step 2: Loyalty System Setup
+      pointsName: 'Punti',
+      pointsPerEuro: '1',
+      rewardThreshold: '100',
+      welcomeBonus: '50',
+      pointsExpiry: '12', // mesi
+      enableTierSystem: true,
+      loyaltyTiers: [
+        { name: 'Iniziale', threshold: '0', multiplier: '1', color: '#94a3b8', gradient: false, gradientEnd: '#94a3b8' },
+        { name: 'Affezionato', threshold: '300', multiplier: '1.5', color: '#3b82f6', gradient: false, gradientEnd: '#3b82f6' },
+        { name: 'VIP', threshold: '800', multiplier: '2', color: '#f59e0b', gradient: true, gradientEnd: '#dc2626' }
+      ],
+
+      // Step 3: Products & Categories  
+      importProducts: true,
+      productCategories: ['Alimentari', 'Bevande', 'Accessori'],
+      bonusCategories: [
+        { category: 'Alimentari', multiplier: '1' },
+        { category: 'Bevande', multiplier: '1.2' },
+        { category: 'Accessori', multiplier: '1.5' }
+      ],
+
+      // Step 4: Rewards Configuration
+      rewardTypes: ['discount', 'freeProduct', 'cashback'],
+      defaultRewards: [
+        { points: '100', requiredTier: 'Iniziale', type: 'discount', value: '5', description: '5€ di sconto' },
+        { points: '200', requiredTier: 'Affezionato', type: 'discount', value: '10', description: '10€ di sconto' },
+        { points: '300', requiredTier: 'VIP', type: 'freeProduct', value: 'caffè', description: 'Caffè gratuito' }
+      ],
+
+      // Step 5: Branding Setup
+      primaryColor: '#ef4444',
+      secondaryColor: '#dc2626',
+      appName: '',
+
+      // Social Media Links
+      facebookUrl: '',
+      instagramUrl: '',
+      linkedinUrl: '',
+      twitterUrl: '',
+
+      // Step 6: Channels Integration
+      enablePOS: true,
+      enableEcommerce: false,
+      enableApp: true,
+      posDevices: '1',
+
+      // Step 7: Marketing Campaigns
+      welcomeCampaign: true,
+      birthdayRewards: true,
+      inactiveCampaign: true,
+      seasonalCampaigns: false,
+
+      // Step 8: Team Setup
+      inviteEmails: [''],
+      adminName: '',
+      adminEmail: '',
+
+      // Step 9: POS Integration
+      posEnabled: true,
+      posModel: 'Z108', // Z90, Z91, Z92, Z100, Z108, Z70, Z45
+      posConnection: 'usb', // usb, bluetooth
+      enableReceiptPrint: true,
+      enableNFC: true,
+      enableEMV: true,
+      enablePinPad: true,
+      posTestResults: null,
+
+      // Step 10: Notifications & Communication
+      enableEmailNotifications: true,
+      enableSMS: false,
+      enablePushNotifications: true,
+      welcomeEmailEnabled: true,
+
+      // Step 10: Analytics & Reports
+      enableAdvancedAnalytics: true,
+      reportFrequency: 'weekly',
+      kpiTracking: ['customer_retention', 'average_transaction', 'loyalty_roi']
     }
   })
 
@@ -247,12 +248,13 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
   ]
 
   const industries = [
-    { value: 'retail', label: 'Retail e Commercio' },
-    { value: 'restaurant', label: 'Ristorazione e Food' },
-    { value: 'healthcare', label: 'Sanità e Benessere' },
+    { value: 'retail', label: 'Retail e Fashion' },
+    { value: 'restaurant', label: 'Ristorazione e Pizzeria' },
     { value: 'beauty', label: 'Beauty e Wellness' },
-    { value: 'automotive', label: 'Automotive' },
-    { value: 'other', label: 'Altro' }
+    { value: 'gym', label: 'Palestra e Fitness' },
+    { value: 'grocery', label: 'Supermercato e Alimentari' },
+    { value: 'automotive', label: 'Automotive e Motori' },
+    { value: 'other', label: 'Altro / Generico' }
   ]
 
   const teamSizes = [
@@ -265,9 +267,46 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
   const handleInputChange = (field: string, value: string | boolean | string[] | any[]) => {
     const newData = { ...formData, [field]: value }
     setFormData(newData)
-    
+
     // Salva automaticamente in localStorage
     localStorage.setItem('omnily-wizard-data', JSON.stringify(newData))
+  }
+
+  // 🪄 SMART TEMPLATE APPLICATION
+  const applyIndustryTemplate = (industry: string) => {
+    const template = INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES['retail'] // Fallback
+
+    console.log('🪄 Applying Industry Template:', template.name)
+
+    setFormData((prev: any) => ({
+      ...prev,
+      industry: industry,
+
+      // Branding
+      primaryColor: template.colors.primary,
+      secondaryColor: template.colors.secondary,
+
+      // Loyalty Config
+      pointsName: template.pointsName,
+      pointsPerEuro: template.pointsPerEuro,
+      rewardThreshold: template.rewardThreshold,
+      welcomeBonus: template.welcomeBonus,
+
+      // Tiers
+      loyaltyTiers: template.loyaltyTiers,
+
+      // Catalog
+      productCategories: template.productCategories,
+      bonusCategories: template.bonusCategories,
+
+      // Rewards
+      defaultRewards: template.defaultRewards,
+
+      // Note: We could also set specific toggle defaults here if needed
+    }))
+
+    // Toast notification would be nice here
+    // showSuccess(`Template ${template.name} applicato!`)
   }
 
   // 🇮🇹 RICONOSCIMENTO AUTOMATICO PARTITA IVA - FEATURE ENTERPRISE ITALIANA
@@ -343,7 +382,7 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
 
   const handlePartitaIVAChange = async (piva: string) => {
     setFormData((prev: any) => ({ ...prev, partitaIVA: piva }))
-    
+
     if (piva.length === 11) {
       console.log('🔍 Validazione Partita IVA in corso...')
       await validatePartitaIVA(piva)
@@ -406,11 +445,11 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
       // Last config step - deploy
       setLoading(true)
       setCurrentStep(steps.length - 1)
-      
+
       try {
         // Create organization with full configuration
         await createOrganization()
-        
+
         // Redirect after success
         setTimeout(() => {
           window.location.href = '/dashboard'
@@ -631,7 +670,7 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
         // CLIENT MODE: Command Center - Dynamic Overview Dashboard
         const calculateProgress = (step: number) => {
           // Calculate completion % for each section based on formData
-          switch(step) {
+          switch (step) {
             case 1: return formData.organizationName && formData.partitaIVA ? 100 : 0
             case 2: return formData.pointsName && formData.pointsPerEuro ? 80 : 0
             case 3: return formData.productCategories?.length > 0 ? 60 : 0
@@ -1023,6 +1062,36 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                       </option>
                     ))}
                   </select>
+                  {/* Template Applicator Badge - Only visible in Admin Mode or if user clicks magic wand */}
+                  <div style={{ marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => applyIndustryTemplate(formData.industry)}
+                      style={{
+                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Zap size={12} fill="white" />
+                      Applica Template {formData.industry === 'retail' ? 'Retail' :
+                        formData.industry === 'restaurant' ? 'Ristorazione' :
+                          formData.industry === 'beauty' ? 'Beauty' :
+                            formData.industry === 'gym' ? 'Palestra' :
+                              formData.industry === 'grocery' ? 'Market' : 'Standard'}
+                    </button>
+                    <small style={{ display: 'block', marginTop: '4px', color: '#64748b', fontSize: '11px' }}>
+                      Sovrascrive rewards, colori e impostazioni con i valori consigliati per il settore.
+                    </small>
+                  </div>
                 </div>
                 <div className="wizard-form-group">
                   <label>Dimensione Team</label>
@@ -1137,11 +1206,11 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
               {/* Upload logo */}
               <div className={styles.formGroup}>
                 <label className={styles.label}><Building2 size={16} className={styles.labelIcon} /> Logo Aziendale</label>
-                
+
                 <div className={styles.logoUploadZone}>
                   {/* Layout sempre uguale: Pulsante + Anteprima affiancati */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    
+
                     {/* Pulsante upload sempre visibile */}
                     <div>
                       <input
@@ -1151,9 +1220,9 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                         style={{ display: 'none' }}
                         onChange={(e) => handleLogoUpload(e)}
                       />
-                      
-                      <label 
-                        htmlFor="logoUpload" 
+
+                      <label
+                        htmlFor="logoUpload"
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -1172,18 +1241,18 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                         <Upload size={18} />
                         {formData.logoUrl ? 'Sostituisci Logo' : 'Carica Logo'}
                       </label>
-                      
+
                       <div style={{ marginTop: '8px' }}>
                         <small style={{ color: '#9ca3af', fontSize: '12px' }}>
                           JPG, PNG, SVG • Max 2MB
                         </small>
                       </div>
                     </div>
-                    
+
                     {/* Anteprima logo */}
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: '12px',
                       flex: '1'
                     }}>
@@ -1199,9 +1268,9 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                         overflow: 'hidden'
                       }}>
                         {formData.logoUrl ? (
-                          <img 
-                            src={formData.logoUrl} 
-                            alt="Logo preview" 
+                          <img
+                            src={formData.logoUrl}
+                            alt="Logo preview"
                             style={{
                               width: '100%',
                               height: '100%',
@@ -1209,9 +1278,9 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                             }}
                           />
                         ) : (
-                          <div style={{ 
-                            display: 'flex', 
-                            flexDirection: 'column', 
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             color: '#9ca3af'
                           }}>
@@ -1220,10 +1289,10 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Pulsante rimuovi quando c'è il logo */}
                       {formData.logoUrl && (
-                        <button 
+                        <button
                           type="button"
                           onClick={() => handleInputChange('logoUrl', '')}
                           style={{
@@ -3253,95 +3322,95 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
               </div>
 
               <div style={{
-              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-              border: '2px solid #3b82f6',
-              borderRadius: '16px',
-              padding: '2rem',
-              marginBottom: '2rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
-                <div style={{
-                  background: '#3b82f6',
-                  borderRadius: '8px',
-                  padding: '8px',
-                  display: 'flex'
-                }}>
-                  <Mail size={24} color="white" />
-                </div>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e40af', margin: 0 }}>
-                  Link di Attivazione
-                </h3>
-              </div>
-
-              <p style={{ fontSize: '14px', color: '#1e40af', marginBottom: '1rem' }}>
-                Invia questo link al proprietario dell'azienda per completare l'attivazione e il pagamento:
-              </p>
-
-              <div style={{
-                background: 'white',
-                border: '2px dashed #3b82f6',
-                borderRadius: '12px',
-                padding: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '1rem'
+                background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                border: '2px solid #3b82f6',
+                borderRadius: '16px',
+                padding: '2rem',
+                marginBottom: '2rem'
               }}>
-                <input
-                  type="text"
-                  value={activationUrl}
-                  readOnly
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    outline: 'none',
-                    fontSize: '14px',
-                    fontFamily: 'monospace',
-                    color: '#1e40af',
-                    background: 'transparent'
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(activationUrl)
-                    showSuccess('Link copiato!', 'Il link di attivazione è stato copiato negli appunti')
-                  }}
-                  style={{
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                  <div style={{
                     background: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
                     borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
-                >
-                  📋 Copia Link
-                </button>
-              </div>
+                    padding: '8px',
+                    display: 'flex'
+                  }}>
+                    <Mail size={24} color="white" />
+                  </div>
+                  <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e40af', margin: 0 }}>
+                    Link di Attivazione
+                  </h3>
+                </div>
 
-              <div style={{
-                background: '#fef3c7',
-                border: '1px solid #fbbf24',
-                borderRadius: '8px',
-                padding: '12px',
-                display: 'flex',
-                alignItems: 'start',
-                gap: '8px'
-              }}>
-                <AlertCircle size={20} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <p style={{ fontSize: '13px', color: '#92400e', margin: 0 }}>
-                  <strong>Importante:</strong> L'azienda sarà attiva solo dopo che il proprietario completerà il pagamento tramite questo link.
+                <p style={{ fontSize: '14px', color: '#1e40af', marginBottom: '1rem' }}>
+                  Invia questo link al proprietario dell'azienda per completare l'attivazione e il pagamento:
                 </p>
+
+                <div style={{
+                  background: 'white',
+                  border: '2px dashed #3b82f6',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '1rem'
+                }}>
+                  <input
+                    type="text"
+                    value={activationUrl}
+                    readOnly
+                    style={{
+                      flex: 1,
+                      border: 'none',
+                      outline: 'none',
+                      fontSize: '14px',
+                      fontFamily: 'monospace',
+                      color: '#1e40af',
+                      background: 'transparent'
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(activationUrl)
+                      showSuccess('Link copiato!', 'Il link di attivazione è stato copiato negli appunti')
+                    }}
+                    style={{
+                      background: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
+                  >
+                    📋 Copia Link
+                  </button>
+                </div>
+
+                <div style={{
+                  background: '#fef3c7',
+                  border: '1px solid #fbbf24',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  display: 'flex',
+                  alignItems: 'start',
+                  gap: '8px'
+                }}>
+                  <AlertCircle size={20} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{ fontSize: '13px', color: '#92400e', margin: 0 }}>
+                    <strong>Importante:</strong> L'azienda sarà attiva solo dopo che il proprietario completerà il pagamento tramite questo link.
+                  </p>
+                </div>
               </div>
-            </div>
 
               <div className="wizard-nav-buttons">
                 <button
@@ -3412,9 +3481,8 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
             </div>
 
             {/* Auto-save Indicator */}
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-6 ${
-              false ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
-            }`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-6 ${false ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
+              }`}>
               <CheckCircle2 size={14} className="text-green-500" />
               <span className={`text-xs font-semibold ${false ? 'text-green-400' : 'text-green-700'}`}>
                 Auto-salvataggio attivo
@@ -3434,65 +3502,59 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`relative group cursor-pointer rounded-xl p-3 transition-all duration-300 ${
-                      isActive
-                        ? false
-                          ? 'bg-gradient-to-r from-blue-400/20 to-blue-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10'
-                          : 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 shadow-lg'
-                        : isCompleted
+                    className={`relative group cursor-pointer rounded-xl p-3 transition-all duration-300 ${isActive
+                      ? false
+                        ? 'bg-gradient-to-r from-blue-400/20 to-blue-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10'
+                        : 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 shadow-lg'
+                      : isCompleted
                         ? false
                           ? 'bg-white/5 border border-white/10 hover:bg-white/10'
                           : 'bg-white/60 border border-gray-200 hover:bg-white/80'
                         : false
-                        ? 'bg-white/5 border border-white/10 hover:bg-white/10 opacity-60'
-                        : 'bg-white/40 border border-gray-200 hover:bg-white/60 opacity-60'
-                    }`}
+                          ? 'bg-white/5 border border-white/10 hover:bg-white/10 opacity-60'
+                          : 'bg-white/40 border border-gray-200 hover:bg-white/60 opacity-60'
+                      }`}
                   >
                     {/* Progress line connector */}
                     {index < steps.length - 1 && (
-                      <div className={`absolute left-[22px] top-full w-0.5 h-2 ${
-                        isCompleted
-                          ? 'bg-gradient-to-b from-green-500 to-green-400'
-                          : false ? 'bg-white/10' : 'bg-gray-200'
-                      }`} />
+                      <div className={`absolute left-[22px] top-full w-0.5 h-2 ${isCompleted
+                        ? 'bg-gradient-to-b from-green-500 to-green-400'
+                        : false ? 'bg-white/10' : 'bg-gray-200'
+                        }`} />
                     )}
 
                     <div className="flex items-center gap-3">
                       {/* Step Number/Check */}
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
-                        isCompleted
-                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                          : isActive
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${isCompleted
+                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                        : isActive
                           ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-lg shadow-blue-500/30'
                           : false
-                          ? 'bg-white/10 text-gray-400'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}>
+                            ? 'bg-white/10 text-gray-400'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}>
                         {isCompleted ? <CheckCircle2 size={16} /> : index + 1}
                       </div>
 
                       {/* Step Info */}
                       <div className="flex-1 min-w-0">
-                        <div className={`font-bold text-xs mb-0.5 truncate ${
-                          isActive
-                            ? false ? 'text-blue-400' : 'text-blue-500'
-                            : false ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+                        <div className={`font-bold text-xs mb-0.5 truncate ${isActive
+                          ? false ? 'text-blue-400' : 'text-blue-500'
+                          : false ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
                           {step.title}
                         </div>
-                        <div className={`text-[10px] truncate ${
-                          false ? 'text-gray-500' : 'text-gray-500'
-                        }`}>
+                        <div className={`text-[10px] truncate ${false ? 'text-gray-500' : 'text-gray-500'
+                          }`}>
                           {step.subtitle}
                         </div>
                       </div>
 
                       {/* Icon */}
-                      <div className={`flex-shrink-0 ${
-                        isActive
-                          ? false ? 'text-blue-400' : 'text-blue-500'
-                          : false ? 'text-gray-600' : 'text-gray-400'
-                      }`}>
+                      <div className={`flex-shrink-0 ${isActive
+                        ? false ? 'text-blue-400' : 'text-blue-500'
+                        : false ? 'text-gray-600' : 'text-gray-400'
+                        }`}>
                         <IconComponent size={16} />
                       </div>
                     </div>
@@ -3509,11 +3571,10 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`border-b backdrop-blur-xl sticky top-0 z-40 ${
-              false
-                ? 'bg-white/5 border-white/10'
-                : 'bg-white/80 border-gray-200 shadow-lg'
-            }`}
+            className={`border-b backdrop-blur-xl sticky top-0 z-40 ${false
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white/80 border-gray-200 shadow-lg'
+              }`}
           >
             <div className="px-8 py-6">
               <div className="flex items-center justify-between mb-4">
@@ -3525,19 +3586,17 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                     {steps[currentStep]?.subtitle}
                   </p>
                 </div>
-                <div className={`px-4 py-2 rounded-xl font-bold text-sm ${
-                  false
-                    ? 'bg-white/10 text-gray-300 border border-white/20'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200'
-                }`}>
+                <div className={`px-4 py-2 rounded-xl font-bold text-sm ${false
+                  ? 'bg-white/10 text-gray-300 border border-white/20'
+                  : 'bg-gray-100 text-gray-700 border border-gray-200'
+                  }`}>
                   Step {currentStep + 1} / {steps.length}
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className={`w-full h-2 rounded-full overflow-hidden ${
-                false ? 'bg-white/10' : 'bg-gray-200'
-              }`}>
+              <div className={`w-full h-2 rounded-full overflow-hidden ${false ? 'bg-white/10' : 'bg-gray-200'
+                }`}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
@@ -3585,11 +3644,10 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`border-t backdrop-blur-xl sticky bottom-0 ${
-              false
-                ? 'bg-white/5 border-white/10'
-                : 'bg-white/80 border-gray-200 shadow-2xl'
-            }`}
+            className={`border-t backdrop-blur-xl sticky bottom-0 ${false
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white/80 border-gray-200 shadow-2xl'
+              }`}
           >
             <div className="px-8 py-6">
               <div className="flex items-center justify-between gap-4">
@@ -3599,11 +3657,10 @@ const EnterpriseWizard: React.FC<EnterpriseWizardProps> = ({ mode = 'client', on
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     onClick={handlePrevious}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 transition-all duration-300 hover:scale-105 ${
-                      false
-                        ? 'bg-white/5 border-white/20 text-white hover:bg-white/10'
-                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400 shadow-lg hover:shadow-xl'
-                    }`}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 transition-all duration-300 hover:scale-105 ${false
+                      ? 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                      : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400 shadow-lg hover:shadow-xl'
+                      }`}
                   >
                     <ArrowLeft size={20} />
                     Indietro

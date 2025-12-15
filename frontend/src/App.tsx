@@ -1,6 +1,10 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import LiveTVPage from './pages/TV/LiveTVPage'
+import PairingPage from './pages/TV/PairingPage'
+import TVControlPage from './pages/Admin/TVControlPage'
+import SignageCMSPage from './pages/Admin/SignageCMSPage'
 import { Toaster } from 'react-hot-toast'
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
@@ -263,83 +267,89 @@ function App() {
               <Toaster position="top-center" />
               <div className="App">
                 <Routes>
+                  {/* TV Display Routes */}
+                  <Route path="/tv/pair" element={<PairingPage />} />
+                  <Route path="/tv/:orgId/live" element={<LiveTVPage />} />
+                  <Route path="/tv/live/:orgId" element={<LiveTVPage />} />
                   <Route path="/" element={<Landing />} />
-                <Route path="/landing-test" element={<LandingTest />} />
-                <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
-                {/* ...tutte le altre route originali... */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/update-password" element={<UpdatePassword />} />
-                <Route path="/activate/:token" element={<ActivateOrganization />} />
-                <Route path="/activation-success" element={<ActivationSuccess />} />
-                <Route path="/strapi-test" element={<StrapiTest />} />
-                <Route path="/test" element={<div style={{ padding: '2rem', textAlign: 'center' }}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
-                <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
-                <Route path="/device-setup" element={<DeviceSetup />} />
-                <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
-                <Route path="/dashboard/push-notifications" element={<ProtectedRoute><><Navbar /><PushNotifications /></></ProtectedRoute>} />
-                <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
-                <Route path="/gaming-test" element={<GamingTest />} />
-                <Route path="/omny-wallet-test" element={<OmnyWalletTestPage />} />
-                <Route path="/lottery/display/:eventId" element={<LotteryDisplayPage />} />
-                <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="control-center" element={<SuperAdminControlCenter onBack={() => {}} />} />
-                  <Route path="organizations" element={<Admin />} />
-                  <Route path="new-organization" element={<EnterpriseWizard mode="admin" />} />
-                  <Route path="business-owners" element={<BusinessOwners />} />
-                  <Route path="pending-customers" element={<PendingCustomers />} />
-                  <Route path="users" element={<UsersManagement />} />
-                  <Route path="profile" element={<ProfileSettings />} />
-                  <Route path="system-overview" element={<SystemOverview />} />
-                  <Route path="root-access" element={<RootAccessControl />} />
-                  <Route path="founders" element={<FounderManagement />} />
-                  <Route path="crm" element={<CRMLeadsDashboard />} />
-                  <Route path="demo-requests" element={<DemoRequestsDashboard />} />
-                  <Route path="contracts" element={<ContractsDashboard />} />
-                  <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
-                  <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
-                  <Route path="mdm" element={<MDMDashboard />} />
-                  <Route path="inventory" element={<InventoryDashboard />} />
-                  <Route path="subscriptions" element={<BillingDashboard />} />
-                  <Route path="security" element={<SecurityDashboard />} />
-                  <Route path="settings" element={<SystemSettings />} />
-                  <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
-                  <Route path="plan-features" element={<PlanFeaturesManager />} />
-                  <Route path="omnilypro-plans" element={<AdminPlansManager />} />
-                  <Route path="analytics" element={<AnalyticsDashboard />} />
-                  <Route path="activity" element={<ActivityLogDashboard />} />
-                  <Route path="notifications" element={<NotificationsDashboard />} />
-                  <Route path="emails" element={<EmailTemplatesDashboard />} />
-                  <Route path="database" element={<DatabaseDashboard />} />
-                  <Route path="support" element={<SupportDashboard />} />
-                  <Route path="branding" element={<BrandingDashboard />} />
-                  <Route path="websites" element={<WebsiteManager />} />
-                  <Route path="websites-v2" element={<WebsiteManagerV2 />} />
-                  <Route path="domains" element={<SubdomainManagementHub />} />
-                  <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
-                  <Route path="memberships" element={<AdminMembershipsDashboard />} />
-                  <Route path="docs" element={<DocumentationDashboard />} />
-                  <Route path="downloads" element={<Downloads />} />
-                  <Route path="omny" element={<AdminOmnyDashboard />} />
-                  <Route path="omny-wallet" element={<OmnyWalletTestPage />} />
-                  <Route path="omny-assistant" element={<OrganizationAssistant />} />
-                  <Route path="stripe-config" element={<StripeConfigDashboard />} />
-                </Route>
-                <Route path="/sign/:signatureId" element={
-                  <React.Suspense fallback={<div>Caricamento...</div>}>
-                    <ContractSignature />
-                  </React.Suspense>
-                } />
-                <Route path="/customer-display" element={<CustomerDisplay />} />
-                <Route path="/sites/:subdomain" element={<PublicSite />} />
-                <Route path="/w/:slug" element={<PublicWebsite />} />
-              </Routes>
-            </div>
-          </ToastProvider>
-        </AuthProvider>
+                  <Route path="/landing-test" element={<LandingTest />} />
+                  <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
+                  {/* ...tutte le altre route originali... */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/update-password" element={<UpdatePassword />} />
+                  <Route path="/activate/:token" element={<ActivateOrganization />} />
+                  <Route path="/activation-success" element={<ActivationSuccess />} />
+                  <Route path="/strapi-test" element={<StrapiTest />} />
+                  <Route path="/test" element={<div style={{ padding: '2rem', textAlign: 'center' }}><h1>TEST ROUTE WORKS! 🎉</h1></div>} />
+                  <Route path="/customer-display" element={<div>CUSTOMER DISPLAY TEST</div>} />
+                  <Route path="/device-setup" element={<DeviceSetup />} />
+                  <Route path="/onboarding" element={<ProtectedRoute><><Navbar /><Onboarding /></></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/dashboard/customers" element={<ProtectedRoute><><Navbar /><BusinessCustomers /></></ProtectedRoute>} />
+                  <Route path="/dashboard/push-notifications" element={<ProtectedRoute><><Navbar /><PushNotifications /></></ProtectedRoute>} />
+                  <Route path="/receipt-layout-editor" element={<ProtectedRoute><ReceiptLayoutEditorPage /></ProtectedRoute>} />
+                  <Route path="/gaming-test" element={<GamingTest />} />
+                  <Route path="/omny-wallet-test" element={<OmnyWalletTestPage />} />
+                  <Route path="/lottery/display/:eventId" element={<LotteryDisplayPage />} />
+                  <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} >
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="tv-control" element={<TVControlPage />} />
+                    <Route path="signage-cms" element={<SignageCMSPage />} />
+                    <Route path="control-center" element={<SuperAdminControlCenter onBack={() => { }} />} />
+                    <Route path="organizations" element={<Admin />} />
+                    <Route path="new-organization" element={<EnterpriseWizard mode="admin" />} />
+                    <Route path="business-owners" element={<BusinessOwners />} />
+                    <Route path="pending-customers" element={<PendingCustomers />} />
+                    <Route path="users" element={<UsersManagement />} />
+                    <Route path="profile" element={<ProfileSettings />} />
+                    <Route path="system-overview" element={<SystemOverview />} />
+                    <Route path="root-access" element={<RootAccessControl />} />
+                    <Route path="founders" element={<FounderManagement />} />
+                    <Route path="crm" element={<CRMLeadsDashboard />} />
+                    <Route path="demo-requests" element={<DemoRequestsDashboard />} />
+                    <Route path="contracts" element={<ContractsDashboard />} />
+                    <Route path="supplier-orders" element={<SupplierOrdersDashboard />} />
+                    <Route path="hardware-orders" element={<HardwareOrdersDashboard />} />
+                    <Route path="mdm" element={<MDMDashboard />} />
+                    <Route path="inventory" element={<InventoryDashboard />} />
+                    <Route path="subscriptions" element={<BillingDashboard />} />
+                    <Route path="security" element={<SecurityDashboard />} />
+                    <Route path="settings" element={<SystemSettings />} />
+                    <Route path="subscription-plans" element={<SubscriptionFeaturesManager />} />
+                    <Route path="plan-features" element={<PlanFeaturesManager />} />
+                    <Route path="omnilypro-plans" element={<AdminPlansManager />} />
+                    <Route path="analytics" element={<AnalyticsDashboard />} />
+                    <Route path="activity" element={<ActivityLogDashboard />} />
+                    <Route path="notifications" element={<NotificationsDashboard />} />
+                    <Route path="emails" element={<EmailTemplatesDashboard />} />
+                    <Route path="database" element={<DatabaseDashboard />} />
+                    <Route path="support" element={<SupportDashboard />} />
+                    <Route path="branding" element={<BrandingDashboard />} />
+                    <Route path="websites" element={<WebsiteManager />} />
+                    <Route path="websites-v2" element={<WebsiteManagerV2 />} />
+                    <Route path="domains" element={<SubdomainManagementHub />} />
+                    <Route path="gift-certificates" element={<AdminGiftCertificatesDashboard />} />
+                    <Route path="memberships" element={<AdminMembershipsDashboard />} />
+                    <Route path="docs" element={<DocumentationDashboard />} />
+                    <Route path="downloads" element={<Downloads />} />
+                    <Route path="omny" element={<AdminOmnyDashboard />} />
+                    <Route path="omny-wallet" element={<OmnyWalletTestPage />} />
+                    <Route path="omny-assistant" element={<OrganizationAssistant />} />
+                    <Route path="stripe-config" element={<StripeConfigDashboard />} />
+                  </Route>
+                  <Route path="/sign/:signatureId" element={
+                    <React.Suspense fallback={<div>Caricamento...</div>}>
+                      <ContractSignature />
+                    </React.Suspense>
+                  } />
+                  <Route path="/customer-display" element={<CustomerDisplay />} />
+                  <Route path="/sites/:subdomain" element={<PublicSite />} />
+                  <Route path="/w/:slug" element={<PublicWebsite />} />
+                </Routes>
+              </div>
+            </ToastProvider>
+          </AuthProvider>
         </ThemeProvider>
       </Router>
     </HelmetProvider>

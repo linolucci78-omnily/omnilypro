@@ -38,7 +38,8 @@ import {
   Crown,
   Presentation,
   ChevronDown,
-  Coins
+  Coins,
+  Tv
 } from 'lucide-react'
 import OmnyAssistant from '../OmnyAssistant/OmnyAssistant'
 import './AdminLayout.css'
@@ -118,7 +119,9 @@ const AdminLayout = () => {
       group: 'Founder Dashboard',
       items: [
         { path: '/admin', icon: Home, label: 'Panoramica', exact: true },
-        { path: '/admin/control-center', icon: Activity, label: 'Control Center', disabled: false },
+        { path: '/admin/tv-control', icon: Tv, label: 'Regia TV Live', disabled: false },
+        { path: '/admin/signage-cms', icon: Presentation, label: 'Digital Signage CMS', disabled: false },
+        { path: '/admin/control-center', icon: Activity, label: 'Control Center (SuperAdmin)', disabled: false },
         { path: '/admin/system-overview', icon: BarChart3, label: 'System Overview' },
         { path: '/admin/root-access', icon: Shield, label: 'Root Access Control' },
         { path: '/admin/founders', icon: Crown, label: 'Founder Management' }
