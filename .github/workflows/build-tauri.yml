@@ -1,0 +1,87 @@
+ name: Build Tauri App
+
+  on:
+    push:
+      branches:
+        - main
+      tags:
+        - 'v*'
+    pull_request:
+      branches:
+        - main
+
+  jobs:
+    build:
+      strategy:
+        fail-fast: false
+        matrix:
+          include:
+            # ARM64 for Raspberry Pi (Linux)
+            - platform: ubuntu-latest
+              target: aarch64-unknown-linux-gnu
+              arch: arm64
+
+      runs-on: ${{ matrix.platform }}
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+
+        - name: Install Rust stable
+          uses: dtolnay/rust-toolchain@stable
+          with:
+            targets: ${{ matrix.target }}
+
+        - name: Install dependencies (Ubuntu)
+          if: matrix.platform == 'ubuntu-latest'
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y libwebkit2gtk-4.1-dev \
+              build-essential \
+              curl \
+              wget \
+              file \
+              libssl-dev \
+              libayatana-appindicator3-dev \
+              librsvg2-dev
+
+        - name: Install cross-compilation tools (ARM64)
+          if: matrix.target == 'aarch64-unknown-linux-gnu'
+          run: |
+            sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+        - name: Install frontend dependencies
+          working-directory: frontend
+          run: npm install
+
+        - name: Build frontend
+          working-directory: frontend
+          run: npm run build
+
+        - name: Build Tauri app
+          uses: tauri-apps/tauri-action@v0
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+            TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          with:
+            projectPath: ./frontend/src-tauri
+            args: --target ${{ matrix.target }}
+            tagName: ${{ github.ref_name }}
+            releaseName: 'OmnilyPro Signage v__VERSION__'
+            releaseBody: 'See the assets to download and install this version.'
+            releaseDraft: false
+            prerelease: false
+
+        - name: Upload ARM64 binary artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: omnilypro-signage-arm64
+            path: |
+              frontend/src-tauri/target/${{ matrix.target }}/release/omnilypro-signage
+            if-no-files-found: error
