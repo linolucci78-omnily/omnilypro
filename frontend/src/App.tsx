@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import LiveTVPage from './pages/TV/LiveTVPage'
 import PairingPage from './pages/TV/PairingPage'
+import SplashPage from './pages/TV/SplashPage'
 import TVControlPage from './pages/Admin/TVControlPage'
 import SignageCMSPage from './pages/Admin/SignageCMSPage'
 import { Toaster } from 'react-hot-toast'
@@ -268,6 +269,7 @@ function App() {
               <div className="App">
                 <Routes>
                   {/* TV Display Routes */}
+                  <Route path="/tv/splash" element={<SplashPage />} />
                   <Route path="/tv/pair" element={<PairingPage />} />
                   <Route path="/tv/:orgId/live" element={<LiveTVPage />} />
                   <Route path="/tv/live/:orgId" element={<LiveTVPage />} />

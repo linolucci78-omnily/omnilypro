@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmnilyPro Digital Signage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Stelle animate */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle linear infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.5);
+            }
+        }
+
+        .splash-container {
+            text-align: center;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .logo-container {
+            margin-bottom: 3rem;
+            animation: scaleIn 0.6s ease-out;
+        }
+
+        .logo {
+            width: 400px;
+            height: 400px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .logo img {
+            width: 100%;
+            height: auto;
+            filter: brightness(0) invert(1) drop-shadow(0 0 20px rgba(255,255,255,0.3));
+            /* Questo rende il logo completamente bianco con glow */
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .title {
+            color: white;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+            animation: slideUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: slideUp 0.8s ease-out 0.4s backwards;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .loading {
+            margin-top: -1rem;
+            animation: slideUp 0.8s ease-out 0.6s backwards;
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .loading-bar {
+            width: 400px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .loading-progress {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.8) 50%,
+                rgba(255,255,255,0) 100%);
+            border-radius: 10px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                transform: translateX(-100%);
+                opacity: 0.5;
+                box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            }
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 30px rgba(255,255,255,0.8);
+            }
+            100% {
+                transform: translateX(100%);
+                opacity: 0.5;
+                box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            }
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.2rem 2rem;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            animation: slideUpFromBottom 0.6s ease-out 0.8s backwards;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-text {
+            color: #1b2735;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .version-left {
+            position: absolute;
+            left: 2rem;
+            color: #1b2735;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.6;
+        }
+
+        .copyright-right {
+            position: absolute;
+            right: 2rem;
+            color: #1b2735;
+            font-size: 0.75rem;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        @keyframes slideUpFromBottom {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Stelle animate -->
+    <div class="stars" id="stars"></div>
+
+    <div class="splash-container">
+        <div class="logo-container">
+            <div class="logo">
+                <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OmnilyPro Logo">
+            </div>
+            <div class="loading">
+                <div class="loading-text">Loading...</div>
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="version-left">v1.0.0</div>
+        <div class="status-text" id="statusText">Initializing application...</div>
+        <div class="copyright-right">© 2025 OmnilyPro. All rights reserved.</div>
+    </div>
+
+    <script>
+        // Genera stelle casuali
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const numberOfStars = 200;
+
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+
+                // Posizione casuale
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+
+                // Dimensione casuale (stelle più grandi e più piccole)
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+
+                // Durata animazione casuale (2-5 secondi)
+                const duration = Math.random() * 3 + 2;
+                star.style.animationDuration = duration + 's';
+
+                // Delay casuale
+                const delay = Math.random() * 3;
+                star.style.animationDelay = delay + 's';
+
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Crea stelle all'avvio
+        createStars();
+
+        // Simula le fasi di caricamento
+        const loadingPhases = [
+            'Initializing application...',
+            'Loading configuration...',
+            'Connecting to services...',
+            'Loading resources...',
+            'Starting application...'
+        ];
+
+        let currentPhase = 0;
+        const statusText = document.getElementById('statusText');
+
+        function updateLoadingPhase() {
+            if (currentPhase < loadingPhases.length) {
+                statusText.textContent = loadingPhases[currentPhase];
+                currentPhase++;
+                setTimeout(updateLoadingPhase, 600);
+            }
+        }
+
+        // Inizia dopo 500ms
+        setTimeout(updateLoadingPhase, 500);
+    </script>
+</body>
+</html>
