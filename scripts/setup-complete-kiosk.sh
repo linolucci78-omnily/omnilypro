@@ -34,8 +34,7 @@ sudo apt install -y \
     xinit \
     x11-xserver-utils \
     matchbox-window-manager \
-    unclutter \
-    chromium-browser
+    unclutter
 
 echo "✅ Ambiente grafico installato"
 
