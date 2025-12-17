@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 const SplashPage: React.FC = () => {
     const navigate = useNavigate()
     const [statusText, setStatusText] = useState('Initializing application...')
+    const [logoError, setLogoError] = useState(false)
 
     useEffect(() => {
         // Create stars
@@ -148,17 +149,35 @@ const SplashPage: React.FC = () => {
                             }} />
 
                             {/* Logo */}
-                            <img
-                                src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
-                                alt="OmnilyPro Logo"
-                                style={{
+                            {logoError ? (
+                                <div style={{
                                     width: '100%',
-                                    height: 'auto',
-                                    filter: 'brightness(0) invert(1) drop-shadow(0 0 20px rgba(255,255,255,0.3))',
-                                    position: 'relative',
-                                    zIndex: 1
-                                }}
-                            />
+                                    height: '200px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '4rem',
+                                    fontWeight: 'bold',
+                                    textShadow: '0 0 20px rgba(255,255,255,0.3)',
+                                    letterSpacing: '0.2em'
+                                }}>
+                                    OMNILYPRO
+                                </div>
+                            ) : (
+                                <img
+                                    src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png"
+                                    alt="OmnilyPro Logo"
+                                    onError={() => setLogoError(true)}
+                                    style={{
+                                        width: '100%',
+                                        height: 'auto',
+                                        filter: 'brightness(0) invert(1) drop-shadow(0 0 20px rgba(255,255,255,0.3))',
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                />
+                            )}
                         </div>
 
                         {/* Loading */}

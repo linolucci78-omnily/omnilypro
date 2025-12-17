@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import LiveTVPage from './pages/TV/LiveTVPage'
 import PairingPage from './pages/TV/PairingPage'
 import SplashPage from './pages/TV/SplashPage'
+import DiagnosticPage from './pages/DiagnosticPage'
 import TVControlPage from './pages/Admin/TVControlPage'
 import SignageCMSPage from './pages/Admin/SignageCMSPage'
 import { Toaster } from 'react-hot-toast'
@@ -99,6 +100,10 @@ import OrganizationAssistant from './components/Admin/OmnyAssistant/Organization
 function App() {
   // Registra handler MDM per comandi da Android
   useMDMCommands()
+
+  // Detect if running in Tauri (desktop app) - METODO GEMINI (sincrono)
+  // window.__TAURI_IPC__ esiste solo in Tauri v2
+  const isTauriApp = typeof window !== 'undefined' && !!(window as any).__TAURI_IPC__
 
   // Detect if running in POS mode (controlla localStorage prima di tutto)
   // Una volta in modalità POS, rimani SEMPRE in modalità POS
@@ -273,7 +278,9 @@ function App() {
                   <Route path="/tv/pair" element={<PairingPage />} />
                   <Route path="/tv/:orgId/live" element={<LiveTVPage />} />
                   <Route path="/tv/live/:orgId" element={<LiveTVPage />} />
-                  <Route path="/" element={<Landing />} />
+                  {/* TEMPORARY: Always show diagnostic to see what's in window */}
+                  <Route path="/" element={<DiagnosticPage />} />
+                  {/* ORIGINAL: <Route path="/" element={isTauriApp ? <SplashPage /> : <Landing />} /> */}
                   <Route path="/landing-test" element={<LandingTest />} />
                   <Route path="/request-demo" element={<DemoRequestWizard onClose={() => window.location.href = '/'} />} />
                   {/* ...tutte le altre route originali... */}
