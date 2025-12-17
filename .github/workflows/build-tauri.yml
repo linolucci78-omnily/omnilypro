@@ -37,3 +37,12 @@ jobs:
           path: |
             frontend/src-tauri/target/release/omnilypro-signage
           if-no-files-found: error
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: frontend/src-tauri/target/release/omnilypro-signage
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
