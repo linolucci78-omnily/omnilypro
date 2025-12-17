@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "url": "tv/splash",
+        "url": "tv/pairing",
         "fullscreen": true,
         "resizable": false,
         "title": "OmnilyPro Digital Signage",
