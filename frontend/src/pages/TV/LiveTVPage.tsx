@@ -254,6 +254,7 @@ const LiveTVPage: React.FC = () => {
 
         const loadFromSupabase = async () => {
             try {
+                console.log('🔄 Loading config from Supabase for orgId:', orgId)
                 const { data: config, error } = await supabase
                     .from('tv_configurations')
                     .select('*')
@@ -261,7 +262,7 @@ const LiveTVPage: React.FC = () => {
                     .single()
 
                 if (error) {
-                    console.warn('No TV config found, using defaults:', error)
+                    console.warn('⚠️ No TV config found, using defaults:', error)
                     return
                 }
 
@@ -319,15 +320,18 @@ const LiveTVPage: React.FC = () => {
         loadFromSupabase()
 
         // 2. Real-Time Listener via Supabase Realtime
+        console.log('🔌 Setting up Realtime channel for orgId:', orgId)
+        const channelName = `tv_config_${orgId}`
+        console.log('📝 Channel name:', channelName)
         const channel = supabase
-            .channel('tv_config_changes')
+            .channel(channelName)
             .on('postgres_changes', {
-                event: '*',
+                event: 'UPDATE',
                 schema: 'public',
                 table: 'tv_configurations',
                 filter: `organization_id=eq.${orgId}`
             }, (payload) => {
-                console.log('📺 Real-time update received:', payload)
+                console.log('🎉 UPDATE event received:', payload)
                 const config = payload.new as any
             setOrgData(prev => ({
                 ...prev,
@@ -372,10 +376,21 @@ const LiveTVPage: React.FC = () => {
                 setLotteryLastPrize(config.lottery_last_prize)
             }
         })
-        .subscribe()
+        .subscribe((status, err) => {
+            console.log('📡 Realtime subscription status:', status, err ? `Error: ${err}` : '')
+            if (status === 'SUBSCRIBED') {
+                console.log('✅ Successfully subscribed to tv_config_changes channel')
+            }
+            if (status === 'CHANNEL_ERROR') {
+                console.error('❌ Channel error:', err)
+            }
+        })
+
+        console.log('✅ Realtime channel subscribed')
 
         // 3. Fallback Polling (Safety net)
         const poller = setInterval(loadFromSupabase, 5000)
+        console.log('⏰ Fallback polling started (every 5s)')
 
         return () => {
             channel.unsubscribe()
