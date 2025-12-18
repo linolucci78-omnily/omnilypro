@@ -272,19 +272,41 @@ const TVControlPage: React.FC = () => {
     const handleSave = async () => {
         setSaving(true)
         try {
-            // 1. Persist
+            if (!userOrgId) {
+                alert("Errore: ID organizzazione mancante")
+                return
+            }
+
+            // Salva su Supabase per sincronizzazione real-time con i display
+            const { error } = await supabase
+                .from('tv_configurations')
+                .upsert({
+                    organization_id: userOrgId,
+                    background_image: config.background_image,
+                    background_opacity: config.background_opacity,
+                    overlay_color: config.overlay_color,
+                    overlay_opacity: config.overlay_opacity,
+                    ticker_text: config.ticker_text,
+                    ticker_speed: config.ticker_speed,
+                    rewards_count: config.rewards_count,
+                    weather_city: config.weather_city,
+                    lottery_name: config.lottery_name,
+                    lottery_prize: config.lottery_prize,
+                    lottery_prize_image: config.lottery_prize_image,
+                    updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'organization_id'
+                })
+
+            if (error) throw error
+
+            // Mantieni anche localStorage per compatibilità (opzionale)
             localStorage.setItem('tv_config_simulation', JSON.stringify(config))
 
-            // 2. Broadcast Instantly
-            const channel = new BroadcastChannel('tv_channel')
-            channel.postMessage(config)
-            setTimeout(() => channel.close(), 100)
-
-            await new Promise(resolve => setTimeout(resolve, 500))
-            alert("Configurazione TV aggiornata! Le modifiche sono live.")
+            alert("✅ Configurazione TV salvata! I display si aggiorneranno automaticamente.")
         } catch (error) {
             console.error("Failed to save", error)
-            alert("Errore nel salvataggio.")
+            alert("❌ Errore nel salvataggio: " + (error as Error).message)
         } finally {
             setSaving(false)
         }

@@ -37,6 +37,32 @@ const LiveTVPage: React.FC = () => {
     console.log('User object:', user)
     console.log('URL orgId:', urlOrgId)
 
+    // Heartbeat - Send device status every 10 seconds
+    useEffect(() => {
+        const deviceCode = localStorage.getItem('tv_device_code')
+        if (!deviceCode) return
+
+        const sendHeartbeat = async () => {
+            try {
+                await supabase.rpc('update_device_heartbeat', {
+                    p_device_code: deviceCode,
+                    p_ip_address: null,
+                    p_user_agent: navigator.userAgent
+                })
+            } catch (error) {
+                console.error('Error sending heartbeat:', error)
+            }
+        }
+
+        // Send immediately on mount
+        sendHeartbeat()
+
+        // Then every 10 seconds
+        const interval = setInterval(sendHeartbeat, 10000)
+
+        return () => clearInterval(interval)
+    }, [])
+
     // Fetch user's organization ID from organization_users
     useEffect(() => {
         const fetchUserOrganization = async () => {
@@ -209,12 +235,25 @@ const LiveTVPage: React.FC = () => {
         }
     }
 
-    // Load Dynamic Configuration (Real-Time Broadcast + Persistence)
+    // Load Dynamic Configuration from Supabase with Real-Time Updates
     useEffect(() => {
-        const loadFromStorage = () => {
-            const stored = localStorage.getItem('tv_config_simulation')
-            if (stored) {
-                const config = JSON.parse(stored)
+        if (!orgId) return
+
+        const loadFromSupabase = async () => {
+            try {
+                const { data: config, error } = await supabase
+                    .from('tv_configurations')
+                    .select('*')
+                    .eq('organization_id', orgId)
+                    .single()
+
+                if (error) {
+                    console.warn('No TV config found, using defaults:', error)
+                    return
+                }
+
+                if (config) {
+                    console.log('📺 Loaded TV config from Supabase:', config)
                 setOrgData(prev => ({
                     ...prev,
                     background_image: config.background_image || prev.background_image,
@@ -257,16 +296,26 @@ const LiveTVPage: React.FC = () => {
                 if (config.lottery_last_prize) {
                     setLotteryLastPrize(config.lottery_last_prize)
                 }
+                }
+            } catch (error) {
+                console.error('Error loading TV config:', error)
             }
         }
 
         // 1. Initial Load
-        loadFromStorage()
+        loadFromSupabase()
 
-        // 2. Real-Time Listener (Instant)
-        const channel = new BroadcastChannel('tv_channel')
-        channel.onmessage = (event) => {
-            const config = event.data
+        // 2. Real-Time Listener via Supabase Realtime
+        const channel = supabase
+            .channel('tv_config_changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'tv_configurations',
+                filter: `organization_id=eq.${orgId}`
+            }, (payload) => {
+                console.log('📺 Real-time update received:', payload)
+                const config = payload.new as any
             setOrgData(prev => ({
                 ...prev,
                 background_image: config.background_image || prev.background_image,
@@ -309,16 +358,17 @@ const LiveTVPage: React.FC = () => {
             if (config.lottery_last_prize) {
                 setLotteryLastPrize(config.lottery_last_prize)
             }
-        }
+        })
+        .subscribe()
 
         // 3. Fallback Polling (Safety net)
-        const poller = setInterval(loadFromStorage, 5000)
+        const poller = setInterval(loadFromSupabase, 5000)
 
         return () => {
-            channel.close()
+            channel.unsubscribe()
             clearInterval(poller)
         }
-    }, [])
+    }, [orgId])
 
     // Slide Rotation Logic (Every 8 seconds)
     useEffect(() => {

@@ -9,6 +9,7 @@ interface TVDevice {
     device_name: string | null
     status: 'pending' | 'active' | 'inactive'
     last_seen: string | null
+    last_heartbeat: string | null
     paired_at: string | null
     created_at: string
 }
@@ -26,6 +27,11 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
     const [pairing, setPairing] = useState(false)
     const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
+    const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ show: boolean; deviceId: string | null; deviceName: string | null }>({
+        show: false,
+        deviceId: null,
+        deviceName: null
+    })
 
     useEffect(() => {
         loadDevices()
@@ -85,18 +91,35 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
         }
     }
 
-    const handleDeleteDevice = async (deviceId: string) => {
-        if (!confirm('Sei sicuro di voler eliminare questo dispositivo?')) return
+    const openDeleteConfirm = (deviceId: string, deviceName: string | null) => {
+        setDeleteConfirmModal({
+            show: true,
+            deviceId,
+            deviceName
+        })
+    }
+
+    const closeDeleteConfirm = () => {
+        setDeleteConfirmModal({
+            show: false,
+            deviceId: null,
+            deviceName: null
+        })
+    }
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmModal.deviceId) return
 
         try {
             const { error } = await supabase
                 .from('tv_devices')
                 .delete()
-                .eq('id', deviceId)
+                .eq('id', deleteConfirmModal.deviceId)
 
             if (error) throw error
 
             toast.success('Dispositivo eliminato')
+            closeDeleteConfirm()
             loadDevices()
         } catch (error) {
             console.error('Error deleting device:', error)
@@ -128,12 +151,12 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
         }
     }
 
-    const isOnline = (lastSeen: string | null) => {
-        if (!lastSeen) return false
-        const lastSeenDate = new Date(lastSeen)
+    const isOnline = (lastHeartbeat: string | null) => {
+        if (!lastHeartbeat) return false
+        const lastHeartbeatDate = new Date(lastHeartbeat)
         const now = new Date()
-        const diffMinutes = (now.getTime() - lastSeenDate.getTime()) / 1000 / 60
-        return diffMinutes < 2 // Online if seen in last 2 minutes
+        const diffSeconds = (now.getTime() - lastHeartbeatDate.getTime()) / 1000
+        return diffSeconds < 30 // Online if heartbeat in last 30 seconds
     }
 
     const formatLastSeen = (lastSeen: string | null) => {
@@ -179,7 +202,7 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
             ) : (
                 <div className="grid gap-4">
                     {devices.map((device) => {
-                        const online = isOnline(device.last_seen)
+                        const online = isOnline(device.last_heartbeat)
                         const isEditing = editingDeviceId === device.id
 
                         return (
@@ -269,8 +292,9 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
                                     </div>
 
                                     <button
-                                        onClick={() => handleDeleteDevice(device.id)}
+                                        onClick={() => openDeleteConfirm(device.id, device.device_name)}
                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Elimina dispositivo"
                                     >
                                         <Trash2 size={20} />
                                     </button>
@@ -278,6 +302,49 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
                             </div>
                         )
                     })}
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmModal.show && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+                                <Trash2 className="text-blue-900" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">Elimina Dispositivo</h3>
+                        </div>
+
+                        <p className="text-gray-700 mb-2">
+                            Sei sicuro di voler eliminare questo dispositivo?
+                        </p>
+
+                        {deleteConfirmModal.deviceName && (
+                            <p className="text-sm font-semibold text-gray-900 bg-gray-100 px-3 py-2 rounded mb-4">
+                                {deleteConfirmModal.deviceName}
+                            </p>
+                        )}
+
+                        <p className="text-sm text-gray-600 mb-6">
+                            Questa azione non può essere annullata. Il dispositivo dovrà essere associato nuovamente per riconnettersi.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={closeDeleteConfirm}
+                                className="flex-1 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors"
+                            >
+                                Annulla
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-950 transition-colors"
+                            >
+                                Elimina
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
