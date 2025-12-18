@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Tv, Save, Play, Square, Image as ImageIcon, MessageSquare, Ticket, Layout, Monitor, Gift, Smartphone } from 'lucide-react'
+import toast from 'react-hot-toast'
 import LiveTVLayout from '../../components/TV/LiveTVLayout'
 import LeaderboardSlide from '../../components/TV/LeaderboardSlide'
 import RewardsSlide from '../../components/TV/RewardsSlide'
@@ -273,12 +274,14 @@ const TVControlPage: React.FC = () => {
         setSaving(true)
         try {
             if (!userOrgId) {
-                alert("Errore: ID organizzazione mancante")
+                toast.error("Errore: ID organizzazione mancante")
                 return
             }
 
+            console.log('💾 Salvando configurazione TV per org:', userOrgId)
+
             // Salva su Supabase per sincronizzazione real-time con i display
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('tv_configurations')
                 .upsert({
                     organization_id: userOrgId,
@@ -297,16 +300,19 @@ const TVControlPage: React.FC = () => {
                 }, {
                     onConflict: 'organization_id'
                 })
+                .select()
+
+            console.log('💾 Risultato salvataggio:', { data, error })
 
             if (error) throw error
 
             // Mantieni anche localStorage per compatibilità (opzionale)
             localStorage.setItem('tv_config_simulation', JSON.stringify(config))
 
-            alert("✅ Configurazione TV salvata! I display si aggiorneranno automaticamente.")
+            toast.success('Configurazione salvata con successo')
         } catch (error) {
-            console.error("Failed to save", error)
-            alert("❌ Errore nel salvataggio: " + (error as Error).message)
+            console.error("❌ Errore nel salvataggio:", error)
+            toast.error("Errore nel salvataggio: " + (error as Error).message)
         } finally {
             setSaving(false)
         }

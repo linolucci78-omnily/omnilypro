@@ -111,19 +111,27 @@ const TVDevicesManager: React.FC<TVDevicesManagerProps> = ({ organizationId }) =
         if (!deleteConfirmModal.deviceId) return
 
         try {
-            const { error } = await supabase
+            console.log('🗑️ Attempting to delete device:', deleteConfirmModal.deviceId)
+            const { data, error } = await supabase
                 .from('tv_devices')
                 .delete()
                 .eq('id', deleteConfirmModal.deviceId)
+                .select()
 
-            if (error) throw error
+            console.log('🗑️ Delete result:', { data, error })
 
+            if (error) {
+                console.error('❌ Delete error:', error)
+                throw error
+            }
+
+            console.log('✅ Device deleted successfully')
             toast.success('Dispositivo eliminato')
             closeDeleteConfirm()
             loadDevices()
         } catch (error) {
-            console.error('Error deleting device:', error)
-            toast.error('Errore durante l\'eliminazione')
+            console.error('❌ Error deleting device:', error)
+            toast.error(`Errore durante l'eliminazione: ${(error as any).message || 'Sconosciuto'}`)
         }
     }
 
