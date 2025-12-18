@@ -73,9 +73,14 @@ const PairingPage: React.FC = () => {
 
     const initializeDevice = async () => {
         try {
+            console.log('🔍 initializeDevice started')
+            console.log('🔍 Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
+            console.log('🔍 Location origin:', window.location.origin)
+
             // Check if device code is already stored in localStorage
             const storedCode = localStorage.getItem('tv_device_code')
             const storedOrgId = localStorage.getItem('tv_org_id')
+            console.log('🔍 Stored code:', storedCode, 'Stored orgId:', storedOrgId)
 
             if (storedCode && storedOrgId) {
                 // Device was already paired, verify it's still valid
@@ -110,23 +115,31 @@ const PairingPage: React.FC = () => {
             // Generate new device code
             if (storedCode) {
                 // Reuse existing code if available
+                console.log('🔍 Reusing stored code:', storedCode)
                 setDeviceCode(storedCode)
                 setStatus('waiting')
             } else {
                 // Create new unpaired device
+                console.log('🔍 Calling create_unpaired_device RPC...')
                 const { data, error } = await supabase.rpc('create_unpaired_device')
+
+                console.log('🔍 RPC response - data:', data, 'error:', error)
 
                 if (error) throw error
 
                 const newCode = data[0].device_code
+                console.log('🔍 New device code created:', newCode)
                 setDeviceCode(newCode)
                 localStorage.setItem('tv_device_code', newCode)
                 setStatus('waiting')
             }
         } catch (error) {
             console.error('Error initializing device:', error)
+            const errorMsg = error instanceof Error
+                ? `${error.message}\n\nStack: ${error.stack}`
+                : JSON.stringify(error, null, 2)
             setStatus('error')
-            setErrorMessage('Errore durante l\'inizializzazione del dispositivo')
+            setErrorMessage(errorMsg)
         }
     }
 
