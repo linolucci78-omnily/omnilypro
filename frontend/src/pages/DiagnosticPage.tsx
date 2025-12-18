@@ -20,9 +20,14 @@ const DiagnosticPage: React.FC = () => {
             hasTauriInternals: '__TAURI_INTERNALS__' in window,
             hasTauriIPC: '__TAURI_IPC__' in window,
             hasTauriMetadata: '__TAURI_METADATA__' in window,
+            hasMetadata: '__metadata' in window,
+            hasBundleData: '__bundleData' in window,
+            hasCRRAB: '__CRRA_B__' in window,
             windowKeys: keys,
             allWindowKeys: Object.keys(window).length,
-            userAgent: navigator.userAgent
+            userAgent: navigator.userAgent,
+            locationOrigin: window.location.origin,
+            locationHref: window.location.href
         }
 
         // Try to access each property safely
@@ -62,7 +67,19 @@ const DiagnosticPage: React.FC = () => {
                     <p>✓ '__TAURI_INTERNALS__' in window: {tauriInfo.hasTauriInternals ? 'YES ✅' : 'NO ❌'}</p>
                     <p>✓ '__TAURI_IPC__' in window: {tauriInfo.hasTauriIPC ? 'YES ✅' : 'NO ❌'}</p>
                     <p>✓ '__TAURI_METADATA__' in window: {tauriInfo.hasTauriMetadata ? 'YES ✅' : 'NO ❌'}</p>
+                    <p>✓ '__metadata' in window: {tauriInfo.hasMetadata ? 'YES ✅' : 'NO ❌'}</p>
+                    <p>✓ '__bundleData' in window: {tauriInfo.hasBundleData ? 'YES ✅' : 'NO ❌'}</p>
+                    <p>✓ '__CRRA_B__' in window: {tauriInfo.hasCRRAB ? 'YES ✅' : 'NO ❌'}</p>
                     <p>✓ Total window keys: {tauriInfo.allWindowKeys}</p>
+                </div>
+            </div>
+
+            <div style={{ marginBottom: '30px' }}>
+                <h2 style={{ color: '#ff0' }}>Location Info (IMPORTANTE!):</h2>
+                <div style={{ marginLeft: '20px' }}>
+                    <p>✓ Origin: <span style={{ color: tauriInfo.locationOrigin?.includes('tauri://') ? '#0f0' : '#f00' }}>{tauriInfo.locationOrigin}</span></p>
+                    <p style={{ fontSize: '12px', color: '#aaa' }}>Se vedi "tauri://" = NATIVO ✅ | Se vedi "http://" = WEB ❌</p>
+                    <p>✓ Full URL: {tauriInfo.locationHref}</p>
                 </div>
             </div>
 

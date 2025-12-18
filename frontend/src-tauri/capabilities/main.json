@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-capability",
+  "description": "Sblocca il bridge e le API per il Player OMNILY PRO",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:app:default",
+    "core:event:default",
+    "core:window:default",
+    "core:webview:default",
+    "core:path:default"
+  ]
+}
