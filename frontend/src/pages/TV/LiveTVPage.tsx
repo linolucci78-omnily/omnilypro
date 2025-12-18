@@ -68,13 +68,22 @@ const LiveTVPage: React.FC = () => {
         const fetchUserOrganization = async () => {
             // If URL has orgId, use it (for public displays)
             if (urlOrgId) {
+                console.log('✅ Using orgId from URL:', urlOrgId)
                 setOrgId(urlOrgId)
+                return
+            }
+
+            // Try to get orgId from localStorage (saved during pairing)
+            const storedOrgId = localStorage.getItem('tv_org_id')
+            if (storedOrgId) {
+                console.log('✅ Using orgId from localStorage:', storedOrgId)
+                setOrgId(storedOrgId)
                 return
             }
 
             // Otherwise, fetch from user's organization_users
             if (!user) {
-                console.log('No user logged in and no URL orgId')
+                console.log('⚠️ No user logged in, no URL orgId, and no localStorage orgId')
                 return
             }
 
@@ -237,7 +246,11 @@ const LiveTVPage: React.FC = () => {
 
     // Load Dynamic Configuration from Supabase with Real-Time Updates
     useEffect(() => {
-        if (!orgId) return
+        console.log('🔍 Config useEffect - orgId:', orgId)
+        if (!orgId) {
+            console.warn('⚠️ orgId is undefined, skipping config load')
+            return
+        }
 
         const loadFromSupabase = async () => {
             try {
