@@ -40,9 +40,10 @@ const CustomSlideRenderer: React.FC<CustomSlideRendererProps> = ({ slide }) => {
         <div style={{
             width: '100%',
             height: '100%',
+            minHeight: '100vh',
             position: 'relative',
             overflow: 'hidden',
-            background: '#000'
+            background: 'transparent'
         }}>
             {slide.content.zones.map((zone: any, index: number) => {
                 console.log(`   Zone ${index}:`, zone.type, zone.id, 'content:', zone.content?.substring(0, 50))
@@ -71,18 +72,27 @@ const CustomSlideRenderer: React.FC<CustomSlideRendererProps> = ({ slide }) => {
                         }}
                     >
                     {zone.type === 'image' && zone.content && (
-                        <img
-                            src={zone.content}
-                            alt=""
-                            onLoad={() => console.log('✅ IMAGE LOADED:', zone.content)}
-                            onError={(e) => console.error('❌ IMAGE ERROR:', zone.content, e)}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                display: 'block'
-                            }}
-                        />
+                        <>
+                            {console.log('🖼️ Rendering image zone:', zone.content)}
+                            <img
+                                src={zone.content}
+                                alt=""
+                                onLoad={(e) => {
+                                    console.log('✅ IMAGE LOADED successfully:', zone.content)
+                                    console.log('   Image dimensions:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight)
+                                }}
+                                onError={(e) => {
+                                    console.error('❌ IMAGE LOAD ERROR:', zone.content)
+                                    console.error('   Error details:', e)
+                                }}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    display: 'block'
+                                }}
+                            />
+                        </>
                     )}
                     {zone.type === 'text' && zone.content && (
                         <div style={{

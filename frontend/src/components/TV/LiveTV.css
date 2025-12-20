@@ -287,9 +287,9 @@ body.tv-viewport .tv-overlay-layer {
     flex: 1;
     position: relative;
     overflow: hidden;
-    padding: 80px 40px;
-    padding-bottom: 120px;
-    /* Space for fixed footer */
+    padding: 40px;
+    padding-bottom: 400px;
+    /* Space for fixed footer + extra margin */
     display: flex;
     align-items: center;
     justify-content: center;

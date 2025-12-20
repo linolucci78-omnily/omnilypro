@@ -1,8 +1,8 @@
 /* ActivityFeedSlide Component Styles */
 
 .activity-feed-container {
-    max-width: 1000px;
-    gap: 30px;
+    max-width: 1400px;
+    gap: 40px;
 }
 
 .activity-feed-header {
@@ -11,7 +11,7 @@
 }
 
 .activity-feed-title {
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: 900;
     background: linear-gradient(135deg, var(--tv-primary), var(--tv-secondary));
     -webkit-background-clip: text;
@@ -37,11 +37,11 @@
 
 .activity-feed-item {
     background: white;
-    border-radius: 16px;
-    padding: 24px 40px;
+    border-radius: 20px;
+    padding: 32px 50px;
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 40px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
 }
 

@@ -8,10 +8,12 @@ import LotterySlide from '../../components/TV/LotterySlide'
 import ActivityFeedSlide from '../../components/TV/ActivityFeedSlide'
 import HowItWorksSlide from '../../components/TV/HowItWorksSlide'
 import RewardsSlide from '../../components/TV/RewardsSlide'
+import ReferralSlide from '../../components/TV/ReferralSlide'
 import CustomSlideRenderer from '../../components/TV/CustomSlideRenderer'
 import { tvService, Customer, Reward } from '../../services/tvService'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { Cloud, CloudRain, Sun, CloudSnow, Wind } from 'lucide-react'
 
 interface CustomSlide {
     id: string
@@ -43,9 +45,58 @@ const LiveTVPage: React.FC = () => {
     const [pointsName, setPointsName] = useState('PUNTI')
     const [lastWinnerGender, setLastWinnerGender] = useState<'male' | 'female' | undefined>(undefined)
     const [customSlides, setCustomSlides] = useState<CustomSlide[]>([])
+    const [weather, setWeather] = useState<{
+        temp: number
+        condition: string
+        icon: string
+    } | null>(null)
 
     console.log('User object:', user)
     console.log('URL orgId:', urlOrgId)
+
+    // Load weather data
+    useEffect(() => {
+        const fetchWeather = async () => {
+            try {
+                const geoResponse = await fetch(
+                    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(weatherCity)}&count=1&language=en&format=json`
+                )
+                const geoData = await geoResponse.json()
+
+                if (geoData.results && geoData.results.length > 0) {
+                    const { latitude, longitude } = geoData.results[0]
+                    const response = await fetch(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&timezone=auto`
+                    )
+                    const data = await response.json()
+
+                    if (data.current) {
+                        const weatherCode = data.current.weather_code
+                        let condition = 'Sereno'
+                        let icon = 'sun'
+
+                        if (weatherCode === 0) { condition = 'Sereno'; icon = 'sun' }
+                        else if (weatherCode <= 3) { condition = 'Nuvoloso'; icon = 'cloud' }
+                        else if (weatherCode <= 67) { condition = 'Pioggia'; icon = 'rain' }
+                        else if (weatherCode <= 77) { condition = 'Neve'; icon = 'snow' }
+                        else { condition = 'Vento'; icon = 'wind' }
+
+                        setWeather({
+                            temp: Math.round(data.current.temperature_2m),
+                            condition,
+                            icon
+                        })
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching weather:', error)
+            }
+        }
+
+        fetchWeather()
+        const interval = setInterval(fetchWeather, 600000) // Refresh every 10 minutes
+        return () => clearInterval(interval)
+    }, [weatherCity])
 
     // Heartbeat - Send device status every 10 seconds
     useEffect(() => {
@@ -488,11 +539,11 @@ const LiveTVPage: React.FC = () => {
 
     // Slide Rotation Logic - Fidelity slides first, then custom slides
     useEffect(() => {
-        const totalFidelitySlides = 6 // Leaderboard, Rewards, GetCard, HowItWorks, ActivityFeed, Lottery
+        const totalFidelitySlides = 7 // Leaderboard, Rewards, GetCard, HowItWorks, ActivityFeed, Lottery, Referral
         const totalCustomSlides = customSlides.length
         const totalSlides = totalFidelitySlides + totalCustomSlides
 
-        // If we're on a custom slide (index >= 6), use its custom duration
+        // If we're on a custom slide (index >= 7), use its custom duration
         let duration = 8000 // Default 8 seconds for fidelity slides
 
         if (slideIndex >= totalFidelitySlides && slideIndex < totalSlides) {
@@ -504,12 +555,12 @@ const LiveTVPage: React.FC = () => {
             }
         }
 
-        console.log(`⏰ Setting timer for slide ${slideIndex}, duration: ${duration}ms, total slides: ${totalSlides}`)
+        console.log(`⏰ Setting timer for slide ${slideIndex}, duration: ${duration}ms, total slides: ${totalSlides}, fidelity: ${totalFidelitySlides}, custom: ${totalCustomSlides}`)
 
         const timer = setTimeout(() => {
             setSlideIndex(prev => {
                 const next = (prev + 1) % totalSlides
-                console.log(`🔄 Slide rotation: ${prev} -> ${next} (total: ${totalSlides})`)
+                console.log(`🔄 Slide rotation: ${prev} -> ${next} (total: ${totalSlides}, calculation: (${prev} + 1) % ${totalSlides} = ${next})`)
                 return next
             })
         }, duration)
@@ -519,23 +570,99 @@ const LiveTVPage: React.FC = () => {
         }
     }, [slideIndex, customSlides.length])
 
-    // Check if we're showing a custom slide (fullscreen, no layout)
-    const totalFidelitySlides = 6
+    // Check if we're showing a custom slide
+    const totalFidelitySlides = 7
     const isShowingCustomSlide = slideIndex >= totalFidelitySlides && customSlides.length > 0
     const customSlideIndex = slideIndex - totalFidelitySlides
 
-    // If showing custom slide, render it fullscreen without LiveTVLayout
+    // If showing custom slide, render fullscreen with header and ticker (no background)
     if (isShowingCustomSlide && customSlides[customSlideIndex]) {
         const currentCustomSlide = customSlides[customSlideIndex]
         console.log('🎬 Rendering custom slide:', currentCustomSlide.name)
+        console.log('📋 Custom slide content:', JSON.stringify(currentCustomSlide.content, null, 2))
+        console.log('📋 Custom slide zones:', currentCustomSlide.content?.zones)
         return (
-            <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-                <CustomSlideRenderer slide={currentCustomSlide} />
+            <div className="tv-viewport" style={{ backgroundColor: '#000000', position: 'relative' }}>
+                {/* Background Image Layer - Full viewport */}
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 0
+                }}>
+                    <CustomSlideRenderer slide={currentCustomSlide} />
+                </div>
+
+                <div className="tv-layout" style={{ backgroundColor: 'transparent', position: 'relative', zIndex: 1 }}>
+                    {/* Header */}
+                    <header className="tv-header" style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)'
+                    }}>
+                        <div className="tv-brand" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            {orgData.logo_url && (
+                                <img src={orgData.logo_url} alt="Logo" className="tv-logo" />
+                            )}
+                            <h1>{orgData.name || 'OMNILY PRO'}</h1>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+                            {/* Weather Widget */}
+                            {weather && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '15px',
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    backdropFilter: 'blur(10px)',
+                                    padding: '15px 25px',
+                                    borderRadius: '20px'
+                                }}>
+                                    {weather.icon === 'sun' && <Sun size={36} color="#fbbf24" />}
+                                    {weather.icon === 'cloud' && <Cloud size={36} color="#e5e7eb" />}
+                                    {weather.icon === 'rain' && <CloudRain size={36} color="#60a5fa" />}
+                                    {weather.icon === 'snow' && <CloudSnow size={36} color="#dbeafe" />}
+                                    {weather.icon === 'wind' && <Wind size={36} color="#9ca3af" />}
+                                    <div>
+                                        <div style={{ fontSize: '2rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>
+                                            {weather.temp}°C
+                                        </div>
+                                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
+                                            {weather.condition}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="tv-clock">{new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    </header>
+
+                    {/* Content spacer - to maintain layout but transparent */}
+                    <div style={{
+                        flex: 1,
+                        position: 'relative',
+                        overflow: 'hidden',
+                        minHeight: '800px'
+                    }}>
+                        {/* Empty - image is in background */}
+                    </div>
+
+                    {/* Footer Ticker */}
+                    <div className="tv-footer">
+                        <div className="tv-ticker-wrap">
+                            <div className="tv-ticker" style={{ animationDuration: `${tickerSpeed}s` }}>
+                                {orgData.ticker_text}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     }
 
-    // Otherwise, show fidelity slides inside LiveTVLayout
+    // Render fidelity slides inside LiveTVLayout
     return (
         <LiveTVLayout
             organization={orgData}
@@ -559,8 +686,10 @@ const LiveTVPage: React.FC = () => {
             ) : loading ? (
                 <div style={{ color: 'white', fontSize: '2rem', textAlign: 'center' }}>Caricamento...</div>
             ) : (
-                // Fidelity Slide Rotation (0-5)
-                slideIndex === 0 ? <LeaderboardSlide customers={topCustomers} pointsName={pointsName} /> :
+                <>
+                    {console.log(`🎬 Rendering slide ${slideIndex}`)}
+                    {/* Fidelity Slide Rotation (0-6) */}
+                    {slideIndex === 0 ? <LeaderboardSlide customers={topCustomers} pointsName={pointsName} /> :
                     slideIndex === 1 ? <RewardsSlide rewards={rewards} /> :
                         slideIndex === 2 ? <GetCardSlide
                             organizationName={orgData.name}
@@ -579,7 +708,13 @@ const LiveTVPage: React.FC = () => {
                                         drawDate={lotteryDrawDate}
                                         pointsName={pointsName}
                                         lastWinnerGender={lastWinnerGender}
-                                    /> : null
+                                    /> :
+                                        slideIndex === 6 ? <ReferralSlide
+                                            organizationName={orgData.name}
+                                            primaryColor={orgData.primary_color}
+                                            secondaryColor={orgData.secondary_color}
+                                        /> : null}
+                </>
             )}
         </LiveTVLayout>
     )
