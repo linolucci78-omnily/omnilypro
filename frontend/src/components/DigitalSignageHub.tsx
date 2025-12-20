@@ -5,6 +5,7 @@ import TVControlPage from '../pages/Admin/TVControlPage'
 import MediaLibrary from './Admin/Signage/MediaLibrary'
 import PlaylistManager from './Admin/Signage/PlaylistManager'
 import SlideBuilder from './Admin/Signage/SlideBuilder'
+import PlaylistScheduler from './Admin/Signage/PlaylistScheduler'
 import './DigitalSignageHub.css'
 
 interface DigitalSignageHubProps {
@@ -189,7 +190,23 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
         )
     }
 
-    if (activeView === 'schedules' || activeView === 'analytics') {
+    if (activeView === 'schedules') {
+        return (
+            <div>
+                <button
+                    className="back-button"
+                    onClick={() => setActiveView('hub')}
+                    style={{ color: primaryColor }}
+                >
+                    <ArrowLeft size={20} />
+                    <span>Torna al Digital Signage</span>
+                </button>
+                <PlaylistScheduler organizationId={organizationId} />
+            </div>
+        )
+    }
+
+    if (activeView === 'analytics') {
         return (
             <div>
                 <button
@@ -208,27 +225,13 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                     textAlign: 'center',
                     marginTop: '24px'
                 }}>
-                    {activeView === 'schedules' ? (
-                        <>
-                            <Calendar size={64} style={{ color: '#9ca3af', margin: '0 auto 16px' }} />
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', marginBottom: '8px' }}>
-                                Programmazione (Coming Soon)
-                            </h3>
-                            <p style={{ color: '#6b7280' }}>
-                                Pianifica quando mostrare le tue playlist su ogni display
-                            </p>
-                        </>
-                    ) : (
-                        <>
-                            <BarChart3 size={64} style={{ color: '#9ca3af', margin: '0 auto 16px' }} />
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', marginBottom: '8px' }}>
-                                Analytics (Coming Soon)
-                            </h3>
-                            <p style={{ color: '#6b7280' }}>
-                                Monitora le performance dei tuoi contenuti
-                            </p>
-                        </>
-                    )}
+                    <BarChart3 size={64} style={{ color: '#9ca3af', margin: '0 auto 16px' }} />
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', marginBottom: '8px' }}>
+                        Analytics (Coming Soon)
+                    </h3>
+                    <p style={{ color: '#6b7280' }}>
+                        Monitora le performance dei tuoi contenuti
+                    </p>
                 </div>
             </div>
         )
