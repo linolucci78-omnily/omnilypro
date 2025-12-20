@@ -1,0 +1,113 @@
+/* ActivityFeedSlide Component Styles */
+
+.activity-feed-container {
+    max-width: 1000px;
+    gap: 30px;
+}
+
+.activity-feed-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.activity-feed-title {
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--tv-primary), var(--tv-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.activity-feed-subtitle {
+    font-size: 1.5rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.activity-feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.activity-feed-item {
+    background: white;
+    border-radius: 16px;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+.activity-feed-item.redeem {
+    border-left: 6px solid #2563eb;
+}
+
+.activity-feed-item.levelup {
+    border-left: 6px solid #d97706;
+}
+
+.activity-feed-item.join {
+    border-left: 6px solid #16a34a;
+}
+
+.activity-feed-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: #f9fafb;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-feed-content {
+    flex: 1;
+}
+
+.activity-feed-content-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.activity-feed-user {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.activity-feed-time {
+    font-size: 1.2rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.activity-feed-detail {
+    font-size: 1.5rem;
+    color: #4b5563;
+    display: block;
+    font-weight: 500;
+}
+
+.activity-feed-detail-highlight {
+    color: var(--tv-primary);
+    margin-left: 8px;
+    text-transform: uppercase;
+}
+
+.activity-feed-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+}

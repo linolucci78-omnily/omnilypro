@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Upload, Image, Video, File, Trash2, Search, Grid, List } from 'lucide-react'
+import { Upload, Image as ImageIcon, Video, File, Trash2, Search, Grid, List } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import toast from 'react-hot-toast'
+import './MediaLibrary.css'
 
 interface Media {
     id: string
@@ -20,12 +21,16 @@ interface Media {
 
 interface MediaLibraryProps {
     organizationId: string
+    primaryColor?: string
+    secondaryColor?: string
     onSelectMedia?: (media: Media) => void
     selectionMode?: boolean
 }
 
 const MediaLibrary: React.FC<MediaLibraryProps> = ({
     organizationId,
+    primaryColor,
+    secondaryColor,
     onSelectMedia,
     selectionMode = false
 }) => {
@@ -206,7 +211,13 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div
+            className="bg-white rounded-lg shadow-sm p-6"
+            style={{
+                '--primary-color': primaryColor,
+                '--secondary-color': secondaryColor
+            } as React.CSSProperties}
+        >
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -214,7 +225,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <p className="text-gray-600 mt-1">Gestisci immagini, video e file per i tuoi display</p>
                 </div>
 
-                <label className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer">
+                <label className="media-upload-button">
                     <Upload size={20} />
                     {uploading ? 'Caricamento...' : 'Carica File'}
                     <input
@@ -238,7 +249,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Cerca file..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="media-search-input w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
                     />
                 </div>
 
@@ -246,7 +257,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value as any)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="media-select-input px-4 py-2 border border-gray-300 rounded-lg"
                 >
                     <option value="all">Tutti i file</option>
                     <option value="image">Solo immagini</option>
@@ -258,13 +269,13 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 <div className="flex gap-2">
                     <button
                         onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded ${viewMode === 'grid' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                        className={`p-2 rounded ${viewMode === 'grid' ? 'media-view-button-active' : 'text-gray-600 hover:bg-gray-100'}`}
                     >
                         <Grid size={20} />
                     </button>
                     <button
                         onClick={() => setViewMode('list')}
-                        className={`p-2 rounded ${viewMode === 'list' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                        className={`p-2 rounded ${viewMode === 'list' ? 'media-view-button-active' : 'text-gray-600 hover:bg-gray-100'}`}
                     >
                         <List size={20} />
                     </button>
@@ -286,7 +297,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                         <div
                             key={item.id}
                             className={`border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow ${
-                                selectionMode ? 'cursor-pointer hover:border-purple-500' : ''
+                                selectionMode ? 'media-card-selectable cursor-pointer' : ''
                             }`}
                             onClick={() => selectionMode && onSelectMedia?.(item)}
                         >
@@ -339,8 +350,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                         >
                             {/* Icon */}
                             <div className="flex-shrink-0">
-                                {item.file_type === 'image' ? <Image size={24} className="text-blue-500" /> :
-                                 item.file_type === 'video' ? <Video size={24} className="text-purple-500" /> :
+                                {item.file_type === 'image' ? <ImageIcon size={24} className="text-blue-500" /> :
+                                 item.file_type === 'video' ? <Video size={24} className="media-video-icon" /> :
                                  <File size={24} className="text-gray-500" />}
                             </div>
 

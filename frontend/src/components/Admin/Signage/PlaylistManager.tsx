@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Play, Plus, Edit2, Trash2, Copy, Star } from 'lucide-react'
+import { Play, Plus, Edit2, Trash2, Copy, Star, Settings } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import toast from 'react-hot-toast'
+import PlaylistEditor from './PlaylistEditor'
+import './PlaylistManager.css'
 
 interface Playlist {
     id: string
@@ -16,13 +18,20 @@ interface Playlist {
 
 interface PlaylistManagerProps {
     organizationId: string
+    primaryColor?: string
+    secondaryColor?: string
 }
 
-const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => {
+const PlaylistManager: React.FC<PlaylistManagerProps> = ({
+    organizationId,
+    primaryColor,
+    secondaryColor
+}) => {
     const [playlists, setPlaylists] = useState<Playlist[]>([])
     const [loading, setLoading] = useState(true)
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null)
+    const [editingPlaylistId, setEditingPlaylistId] = useState<string | null>(null)
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -31,8 +40,10 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
     })
 
     useEffect(() => {
-        loadPlaylists()
-    }, [organizationId])
+        if (!editingPlaylistId) {
+            loadPlaylists()
+        }
+    }, [organizationId, editingPlaylistId])
 
     const loadPlaylists = async () => {
         try {
@@ -194,8 +205,30 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
         }
     }
 
+    // Show editor if editingPlaylistId is set
+    if (editingPlaylistId) {
+        return (
+            <PlaylistEditor
+                playlistId={editingPlaylistId}
+                organizationId={organizationId}
+                primaryColor={primaryColor}
+                secondaryColor={secondaryColor}
+                onBack={() => {
+                    setEditingPlaylistId(null)
+                    loadPlaylists()
+                }}
+            />
+        )
+    }
+
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div
+            className="bg-white rounded-lg shadow-sm p-6"
+            style={{
+                '--primary-color': primaryColor,
+                '--secondary-color': secondaryColor
+            } as React.CSSProperties}
+        >
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -204,7 +237,7 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    className="playlist-create-button"
                 >
                     <Plus size={20} />
                     Nuova Playlist
@@ -257,6 +290,13 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
                                 {/* Actions */}
                                 <div className="flex gap-2">
                                     <button
+                                        onClick={() => setEditingPlaylistId(playlist.id)}
+                                        className="playlist-action-button playlist-action-button-primary"
+                                        title="Apri Editor"
+                                    >
+                                        <Settings size={18} />
+                                    </button>
+                                    <button
                                         onClick={() => {
                                             setEditingPlaylist(playlist)
                                             setFormData({
@@ -267,13 +307,13 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
                                             })
                                         }}
                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                                        title="Modifica"
+                                        title="Modifica Info"
                                     >
                                         <Edit2 size={18} />
                                     </button>
                                     <button
                                         onClick={() => handleDuplicate(playlist)}
-                                        className="p-2 text-purple-600 hover:bg-purple-50 rounded"
+                                        className="playlist-action-button playlist-action-button-primary"
                                         title="Duplica"
                                     >
                                         <Copy size={18} />
@@ -311,73 +351,83 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
                 </div>
             )}
 
-            {/* Create/Edit Modal */}
+            {/* Create/Edit Modal - Professional Dark Style */}
             {(showCreateModal || editingPlaylist) && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => {
+                <div className="playlist-modal-overlay" onClick={() => {
                     setShowCreateModal(false)
                     setEditingPlaylist(null)
                 }}>
-                    <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                            {editingPlaylist ? 'Modifica Playlist' : 'Nuova Playlist'}
-                        </h3>
+                    <div className="playlist-modal-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="playlist-modal-header">
+                            <div className="playlist-modal-icon">
+                                <Play size={24} />
+                            </div>
+                            <h3 className="playlist-modal-title">
+                                {editingPlaylist ? 'Modifica Playlist' : 'Nuova Playlist'}
+                            </h3>
+                        </div>
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+                        <div className="playlist-modal-form">
+                            <div className="playlist-form-group">
+                                <label className="playlist-form-label">Nome Playlist</label>
                                 <input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="es. Menù Colazione"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="es. Auguri Natale 2024"
+                                    className="playlist-form-input"
+                                    autoFocus
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Descrizione (opzionale)</label>
+                            <div className="playlist-form-group">
+                                <label className="playlist-form-label">Descrizione (opzionale)</label>
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Descrizione playlist..."
+                                    placeholder="Descrivi il contenuto della playlist..."
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    className="playlist-form-textarea"
                                 />
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="checkbox"
-                                    id="loop"
-                                    checked={formData.loop_enabled}
-                                    onChange={(e) => setFormData({ ...formData, loop_enabled: e.target.checked })}
-                                    className="w-5 h-5 text-purple-600"
-                                />
-                                <label htmlFor="loop" className="text-sm font-medium text-gray-700">
-                                    Loop continuo
+                            <div className="playlist-checkbox-container">
+                                <label className="playlist-checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        id="loop"
+                                        checked={formData.loop_enabled}
+                                        onChange={(e) => setFormData({ ...formData, loop_enabled: e.target.checked })}
+                                        className="playlist-checkbox-input"
+                                    />
+                                    <div className="playlist-checkbox-text">
+                                        <div className="playlist-checkbox-title">🔁 Loop Continuo</div>
+                                        <div className="playlist-checkbox-subtitle">Ripeti la playlist automaticamente</div>
+                                    </div>
                                 </label>
-                            </div>
 
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="checkbox"
-                                    id="shuffle"
-                                    checked={formData.shuffle_enabled}
-                                    onChange={(e) => setFormData({ ...formData, shuffle_enabled: e.target.checked })}
-                                    className="w-5 h-5 text-purple-600"
-                                />
-                                <label htmlFor="shuffle" className="text-sm font-medium text-gray-700">
-                                    Riproduzione casuale
+                                <label className="playlist-checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        id="shuffle"
+                                        checked={formData.shuffle_enabled}
+                                        onChange={(e) => setFormData({ ...formData, shuffle_enabled: e.target.checked })}
+                                        className="playlist-checkbox-input"
+                                    />
+                                    <div className="playlist-checkbox-text">
+                                        <div className="playlist-checkbox-title">🔀 Riproduzione Casuale</div>
+                                        <div className="playlist-checkbox-subtitle">Mostra le slide in ordine casuale</div>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
-                        <div className="flex gap-3 mt-6">
+                        <div className="playlist-modal-actions">
                             <button
                                 onClick={editingPlaylist ? handleUpdate : handleCreate}
-                                className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                                className="playlist-btn-primary"
                             >
-                                {editingPlaylist ? 'Aggiorna' : 'Crea Playlist'}
+                                {editingPlaylist ? '✓ Aggiorna' : '✓ Crea Playlist'}
                             </button>
                             <button
                                 onClick={() => {
@@ -385,7 +435,7 @@ const PlaylistManager: React.FC<PlaylistManagerProps> = ({ organizationId }) => 
                                     setEditingPlaylist(null)
                                     setFormData({ name: '', description: '', loop_enabled: true, shuffle_enabled: false })
                                 }}
-                                className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                                className="playlist-btn-secondary"
                             >
                                 Annulla
                             </button>

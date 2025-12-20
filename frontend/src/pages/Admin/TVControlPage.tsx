@@ -38,11 +38,12 @@ const INITIAL_CONFIG = {
         { id: 3, title: "T-Shirt VIP", points: 1200, tier: "Gold" }
     ],
     background_image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1974&auto=format&fit=crop",
-    background_opacity: 80,
+    background_opacity: 100, // Always 100% - image fully visible
     overlay_color: '#000000',
-    overlay_opacity: 50,
+    overlay_opacity: 30, // Overlay darkness on top of image
     rewards_count: 3, // Number of random rewards to display
-    weather_city: "Rome" // City for weather widget
+    weather_city: "Rome", // City for weather widget
+    slide_duration: 8 // Durata in secondi per ogni slide (default 8s)
 }
 
 const TVControlPage: React.FC = () => {
@@ -445,7 +446,7 @@ const TVControlPage: React.FC = () => {
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-sm font-semibold text-slate-500">Velocità Scorrimento</label>
+                                    <label className="text-sm font-semibold text-slate-500">Velocità Scorrimento Ticker</label>
                                     <span className="text-sm font-bold text-slate-700">{config.ticker_speed}s</span>
                                 </div>
                                 <input
@@ -462,6 +463,29 @@ const TVControlPage: React.FC = () => {
                                 </div>
                                 <p className="text-xs text-slate-400 mt-2">
                                     Tempo in secondi per completare uno scorrimento completo del ticker.
+                                </p>
+                            </div>
+
+                            {/* Slide Duration Slider */}
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="text-sm font-semibold text-slate-500">Durata Slide</label>
+                                    <span className="text-sm font-bold text-slate-700">{config.slide_duration}s</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="5"
+                                    max="30"
+                                    value={config.slide_duration}
+                                    onChange={(e) => setConfig({ ...config, slide_duration: parseInt(e.target.value) })}
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                />
+                                <div className="flex justify-between text-xs text-slate-400 mt-1">
+                                    <span>Rapide (5s)</span>
+                                    <span>Lente (30s)</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    Quanto tempo rimane visibile ogni slide prima di cambiare.
                                 </p>
                             </div>
                         </div>
@@ -544,31 +568,16 @@ const TVControlPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Opacity Slider */}
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <label className="text-sm font-semibold text-slate-500">Opacità Sfondo</label>
-                                    <span className="text-sm font-bold text-slate-700">{config.background_opacity}%</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={config.background_opacity}
-                                    onChange={(e) => setConfig({ ...config, background_opacity: parseInt(e.target.value) })}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
-                                />
-                                <p className="text-xs text-slate-400 mt-1">Regola la trasparenza per fondere l'immagine con il tema scuro.</p>
-                            </div>
-
                             {/* Separator */}
-                            <div className="h-px bg-slate-100 my-2"></div>
+                            <div className="h-px bg-slate-100 my-4"></div>
 
                             {/* OVERLAY CONTROLS */}
-                            <div className="grid grid-cols-2 gap-6">
-                                {/* Tint Color */}
+                            <div>
+                                <h3 className="text-sm font-bold text-slate-700 mb-3">Overlay Scuro</h3>
+                                <div className="grid grid-cols-2 gap-6">
+                                {/* Overlay Color */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-500 mb-2">Colore Tinta</label>
+                                    <label className="block text-sm font-semibold text-slate-500 mb-2">Colore Overlay</label>
                                     <div className="flex items-center gap-3">
                                         <input
                                             type="color"
@@ -578,12 +587,13 @@ const TVControlPage: React.FC = () => {
                                         />
                                         <span className="text-sm font-mono text-slate-600 uppercase">{config.overlay_color}</span>
                                     </div>
+                                    <p className="text-xs text-slate-400 mt-2">Colore dell'overlay sopra l'immagine</p>
                                 </div>
 
-                                {/* Tint Opacity */}
+                                {/* Overlay Opacity */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <label className="text-sm font-semibold text-slate-500">Opacità Tinta</label>
+                                        <label className="text-sm font-semibold text-slate-500">Intensità Overlay</label>
                                         <span className="text-sm font-bold text-slate-700">{config.overlay_opacity}%</span>
                                     </div>
                                     <input
@@ -594,7 +604,13 @@ const TVControlPage: React.FC = () => {
                                         onChange={(e) => setConfig({ ...config, overlay_opacity: parseInt(e.target.value) })}
                                         className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                     />
+                                    <div className="flex justify-between text-xs text-slate-400 mt-1">
+                                        <span>Trasparente (0%)</span>
+                                        <span>Opaco (100%)</span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-2">Quanto scuro appare l'overlay</p>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </section>

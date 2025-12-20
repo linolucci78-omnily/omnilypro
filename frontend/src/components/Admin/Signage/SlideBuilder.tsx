@@ -3,6 +3,7 @@ import { Plus, Image, Type, Video, Layout, Save, X, Eye } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import toast from 'react-hot-toast'
 import MediaLibrary from './MediaLibrary'
+import './SlideBuilder.css'
 
 interface Template {
     id: string
@@ -17,6 +18,14 @@ interface Template {
             y: number
             width: number
             height: number
+        }[]
+    }
+    default_content?: {
+        zones: {
+            id: string
+            type: string
+            content: string
+            style?: any
         }[]
     }
 }
@@ -39,9 +48,15 @@ interface Slide {
 
 interface SlideBuilderProps {
     organizationId: string
+    primaryColor?: string
+    secondaryColor?: string
 }
 
-const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
+const SlideBuilder: React.FC<SlideBuilderProps> = ({
+    organizationId,
+    primaryColor,
+    secondaryColor
+}) => {
     const [slides, setSlides] = useState<Slide[]>([])
     const [templates, setTemplates] = useState<Template[]>([])
     const [loading, setLoading] = useState(true)
@@ -93,7 +108,8 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
         setCurrentSlide({
             name: 'Nuova Slide',
             template_id: template?.id || null,
-            content: template ? template.layout_config : { zones: [] },
+            // Use default_content if available (has example content), otherwise use layout_config (empty structure)
+            content: template?.default_content || template?.layout_config || { zones: [] },
             duration: 10,
             transition_type: 'fade'
         })
@@ -212,7 +228,13 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div
+            className="bg-white rounded-lg shadow-sm p-6"
+            style={{
+                '--primary-color': primaryColor,
+                '--secondary-color': secondaryColor
+            } as React.CSSProperties}
+        >
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -221,7 +243,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                 </div>
                 <button
                     onClick={() => handleCreateSlide()}
-                    className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    className="slide-create-button"
                 >
                     <Plus size={20} />
                     Nuova Slide
@@ -233,27 +255,90 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                 <>
                     <div className="mb-8">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Template Disponibili</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {templates.map(template => (
-                                <div
-                                    key={template.id}
-                                    onClick={() => handleCreateSlide(template)}
-                                    className="border border-gray-200 rounded-lg overflow-hidden hover:border-purple-500 hover:shadow-md transition-all cursor-pointer"
-                                >
-                                    <div className="aspect-video bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-                                        <Layout size={48} className="text-purple-600" />
+                        {templates.length === 0 ? (
+                            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                                <Layout size={48} className="text-gray-400 mx-auto mb-3" />
+                                <p className="text-gray-600 mb-4">Nessun template trovato</p>
+                                <p className="text-sm text-gray-500 mb-4">I template predefiniti dovrebbero essere creati durante la migration del database</p>
+                                <p className="text-sm text-gray-500">Per ora, usa il pulsante "Nuova Slide" per creare slide personalizzate</p>
+                            </div>
+                        ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {templates.map(template => {
+                                // Define visual previews for each template using CSS classes
+                                const getTemplatePreview = (name: string) => {
+                                    switch(name) {
+                                        case 'Immagine Full Screen':
+                                            return <div className="template-preview-fullscreen" />
+                                        case 'Titolo + Immagine':
+                                            return (
+                                                <div className="template-preview-title-image">
+                                                    <div className="template-preview-title-image-header">
+                                                        <span>TITOLO</span>
+                                                    </div>
+                                                    <div className="template-preview-title-image-body" />
+                                                </div>
+                                            )
+                                        case 'Split 50/50':
+                                            return (
+                                                <div className="template-preview-split">
+                                                    <div className="template-preview-split-image" />
+                                                    <div className="template-preview-split-text" />
+                                                </div>
+                                            )
+                                        case 'Video Full Screen':
+                                            return (
+                                                <div className="template-preview-video">
+                                                    <Video size={32} className="text-white" />
+                                                </div>
+                                            )
+                                        case 'Annuncio':
+                                            return (
+                                                <div className="template-preview-announcement">
+                                                    <div className="template-preview-announcement-content">
+                                                        <div className="template-preview-announcement-title">ANNUNCIO</div>
+                                                        <div className="template-preview-announcement-subtitle">Testo importante</div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        case 'Menu Ristorante':
+                                            return (
+                                                <div className="template-preview-menu">
+                                                    <div className="template-preview-menu-header">
+                                                        <span>MENU</span>
+                                                    </div>
+                                                    <div className="template-preview-menu-body" />
+                                                </div>
+                                            )
+                                        default:
+                                            return <Layout size={48} className="slide-template-icon" />
+                                    }
+                                }
+
+                                return (
+                                    <div
+                                        key={template.id}
+                                        onClick={() => handleCreateSlide(template)}
+                                        className="template-card"
+                                    >
+                                        <div className="template-card-preview">
+                                            {getTemplatePreview(template.name)}
+                                        </div>
+                                        <div className="template-card-content">
+                                            <h4 className="template-card-title">{template.name}</h4>
+                                            <p className="template-card-description">{template.description}</p>
+                                            <span className="template-card-badge">
+                                                {template.category}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="p-3">
-                                        <h4 className="font-semibold text-sm text-gray-900">{template.name}</h4>
-                                        <p className="text-xs text-gray-500">{template.category}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                )
+                            })}
 
                             {/* Blank Template */}
                             <div
                                 onClick={() => handleCreateSlide()}
-                                className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden hover:border-purple-500 hover:bg-purple-50 transition-all cursor-pointer"
+                                className="slide-template-card-hover border-2 border-dashed border-gray-300 rounded-lg overflow-hidden transition-all cursor-pointer"
                             >
                                 <div className="aspect-video flex items-center justify-center">
                                     <div className="text-center">
@@ -263,6 +348,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                                 </div>
                             </div>
                         </div>
+                        )}
                     </div>
 
                     {/* Slides List */}
@@ -324,7 +410,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                             type="text"
                             value={currentSlide.name}
                             onChange={(e) => setCurrentSlide({ ...currentSlide, name: e.target.value })}
-                            className="text-2xl font-bold text-gray-900 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded px-4 py-2"
+                            className="slide-input-focus text-2xl font-bold text-gray-900 bg-white border border-gray-300 rounded px-4 py-2"
                         />
                         <div className="flex gap-2">
                             <button
@@ -338,7 +424,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                             </button>
                             <button
                                 onClick={handleSaveSlide}
-                                className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                                className="slide-save-button"
                             >
                                 <Save size={20} />
                                 Salva Slide
@@ -377,7 +463,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                             {currentSlide.content?.zones?.map(zone => (
                                 <div
                                     key={zone.id}
-                                    className="absolute border-2 border-dashed border-purple-500 cursor-move p-4"
+                                    className="slide-zone-border absolute cursor-move p-4"
                                     style={{
                                         top: '50%',
                                         left: '50%',
@@ -390,7 +476,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                                         <textarea
                                             value={zone.content}
                                             onChange={(e) => handleUpdateZone(zone.id, { content: e.target.value })}
-                                            className="w-full h-full resize-none border-none focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                            className="slide-zone-textarea w-full h-full resize-none border-none bg-white"
                                             style={{ fontSize: zone.style?.fontSize, color: zone.style?.color }}
                                         />
                                     )}
@@ -443,7 +529,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                                 type="number"
                                 value={currentSlide.duration}
                                 onChange={(e) => setCurrentSlide({ ...currentSlide, duration: parseInt(e.target.value) })}
-                                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="slide-input-focus w-full px-4 py-2 bg-white border border-gray-300 rounded-lg"
                             />
                         </div>
                         <div>
@@ -451,7 +537,7 @@ const SlideBuilder: React.FC<SlideBuilderProps> = ({ organizationId }) => {
                             <select
                                 value={currentSlide.transition_type}
                                 onChange={(e) => setCurrentSlide({ ...currentSlide, transition_type: e.target.value })}
-                                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="slide-input-focus w-full px-4 py-2 bg-white border border-gray-300 rounded-lg"
                             >
                                 <option value="fade">Dissolvenza</option>
                                 <option value="slide">Scorrimento</option>

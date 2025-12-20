@@ -1,0 +1,136 @@
+/* GetCardSlide Component Styles */
+
+.get-card-text-content {
+    flex: 1;
+    text-align: left;
+}
+
+.get-card-badge {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--tv-primary);
+    background: rgba(255,255,255,0.8);
+    padding: 10px 30px;
+    border-radius: 50px;
+    display: inline-block;
+    margin-bottom: 30px;
+}
+
+.get-card-title {
+    font-size: 5.5rem;
+    line-height: 1.1;
+    margin-bottom: 40px;
+    background: linear-gradient(135deg, var(--tv-primary), var(--tv-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+}
+
+.get-card-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.get-card-benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 2rem;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.get-card-benefit-icon {
+    padding: 15px;
+    border-radius: 50%;
+}
+
+.get-card-benefit-icon.blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.get-card-benefit-icon.green {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.get-card-visual-container {
+    flex: 0.8;
+}
+
+.get-card-perspective {
+    position: relative;
+    perspective: 1000px;
+}
+
+.get-card-3d {
+    width: 500px;
+    height: 300px;
+    /* Background set dynamically via inline style */
+    border-radius: 24px;
+    padding: 30px;
+    color: white;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.get-card-3d-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.get-card-3d-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    opacity: 0.9;
+}
+
+.get-card-3d-number {
+    text-align: left;
+}
+
+.get-card-3d-number span {
+    font-size: 2rem;
+    letter-spacing: 4px;
+    opacity: 0.8;
+}
+
+.get-card-3d-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.get-card-3d-member-info {
+}
+
+.get-card-3d-member-label {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    display: block;
+}
+
+.get-card-3d-member-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.get-card-cta-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--tv-primary);
+    margin: 0;
+}
+
+.get-card-cta-subtitle {
+    font-size: 1.5rem;
+    color: #6b7280;
+    margin-top: 10px;
+}

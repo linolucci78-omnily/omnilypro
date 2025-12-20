@@ -1,0 +1,271 @@
+/* Template Preview Styles */
+.template-preview-fullscreen {
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23e5e7eb"/><text x="200" y="150" text-anchor="middle" font-size="24" fill="%236b7280" font-family="Arial">🖼️ Immagine</text></svg>');
+    background-size: cover;
+    background-position: center;
+}
+
+.template-preview-title-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+}
+
+.template-preview-title-image-header {
+    height: 30%;
+    background: var(--primary-color, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid var(--primary-color, #8b5cf6);
+}
+
+.template-preview-title-image-header span {
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.template-preview-title-image-body {
+    height: 70%;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f3f4f6"/><rect x="50" y="50" width="300" height="200" fill="%23d1d5db" rx="8"/><text x="200" y="150" text-anchor="middle" font-size="20" fill="%239ca3af" font-family="Arial">📸 Foto</text></svg>');
+    background-size: cover;
+}
+
+.template-preview-split {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background: white;
+}
+
+.template-preview-split-image {
+    width: 50%;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300"><rect width="200" height="300" fill="%23e5e7eb"/><rect x="30" y="80" width="140" height="140" fill="%23d1d5db" rx="8"/><text x="100" y="160" text-anchor="middle" font-size="18" fill="%239ca3af" font-family="Arial">📷</text></svg>');
+    background-size: cover;
+}
+
+.template-preview-split-text {
+    width: 50%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    gap: 0.5rem;
+}
+
+.template-preview-split-text span {
+    color: #1f2937;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.template-preview-split-text::before {
+    content: "Testo Promozionale";
+    display: block;
+    font-size: 0.6rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.template-preview-video {
+    width: 100%;
+    height: 100%;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.template-preview-video::before {
+    content: "🎬 VIDEO";
+    position: absolute;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.template-preview-announcement {
+    width: 100%;
+    height: 100%;
+    background: var(--primary-color, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border: 3px solid var(--primary-color, #8b5cf6);
+}
+
+.template-preview-announcement-content {
+    color: white;
+    text-align: center;
+    background: rgba(109, 40, 217, 0.3);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 2px dashed white;
+}
+
+.template-preview-announcement-title {
+    font-size: 0.875rem;
+    font-weight: 900;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.1em;
+}
+
+.template-preview-announcement-subtitle {
+    font-size: 0.6rem;
+    opacity: 0.9;
+}
+
+.template-preview-menu {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #f9fafb;
+}
+
+.template-preview-menu-header {
+    height: 25%;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 3px solid #f59e0b;
+}
+
+.template-preview-menu-header span {
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.template-preview-menu-body {
+    height: 75%;
+    background: white;
+    padding: 0.75rem;
+    font-size: 0.5rem;
+    color: #1f2937;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+.template-preview-menu-body::before {
+    content: "🍝 Primo: Pasta €12\A🥩 Secondo: Carne €18\A🍰 Dolce: Tiramisù €6";
+    white-space: pre;
+}
+
+.template-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.template-card:hover {
+    border-color: var(--primary-color, #8b5cf6);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+}
+
+.template-card-preview {
+    aspect-ratio: 16/9;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.template-card-content {
+    padding: 0.75rem;
+    background: white;
+}
+
+.template-card-title {
+    font-weight: bold;
+    font-size: 0.875rem;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.template-card-description {
+    font-size: 0.75rem;
+    color: #4b5563;
+}
+
+.template-card-badge {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    background: #f3e8ff;
+    color: #6b21a8;
+    border-radius: 9999px;
+    font-weight: 600;
+}
+
+/* Slide Builder Buttons */
+.slide-create-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary-color, #8b5cf6);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: opacity 0.2s;
+}
+
+.slide-create-button:hover {
+    opacity: 0.9;
+}
+
+.slide-save-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary-color, #8b5cf6);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+
+.slide-save-button:hover {
+    opacity: 0.9;
+}
+
+.slide-input-focus:focus {
+    outline: none;
+    border-color: var(--primary-color, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.slide-template-icon {
+    color: var(--primary-color, #8b5cf6);
+}
+
+.slide-template-card-hover:hover {
+    border-color: var(--primary-color, #8b5cf6);
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.slide-zone-border {
+    border: 2px dashed var(--primary-color, #8b5cf6);
+}
+
+.slide-zone-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary-color, #8b5cf6);
+}

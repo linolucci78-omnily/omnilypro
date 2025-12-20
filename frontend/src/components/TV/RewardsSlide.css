@@ -1,0 +1,120 @@
+/* RewardsSlide Component Styles */
+
+.rewards-header {
+    margin-bottom: 40px;
+    text-align: center;
+    z-index: 10;
+}
+
+.rewards-title {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    margin: 0;
+}
+
+.rewards-divider {
+    width: 180px;
+    height: 5px;
+    background: linear-gradient(90deg, transparent, #ea580c, transparent);
+    margin: 15px auto;
+}
+
+.rewards-cards-container {
+    display: flex;
+    gap: 60px;
+    perspective: 2000px;
+    justify-content: center;
+    align-items: center;
+}
+
+.rewards-card {
+    width: 320px;
+    height: 440px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    transform-style: preserve-3d;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.rewards-card-image-container {
+    height: 60%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.rewards-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.rewards-card-image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.rewards-card-content {
+    padding: 25px;
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4));
+}
+
+.rewards-card-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 8px 0;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    line-height: 1.2;
+}
+
+.rewards-card-points-badge {
+    background: #fff;
+    padding: 8px 20px;
+    border-radius: 50px;
+    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    transform: translateY(-8px);
+}
+
+.rewards-card-points-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #b45309;
+    font-variant-numeric: tabular-nums;
+}
+
+.rewards-card-tier-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #fcd34d, #f59e0b);
+    color: #78350f;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 1px solid #fff;
+}

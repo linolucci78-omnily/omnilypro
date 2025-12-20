@@ -1,0 +1,309 @@
+/* LeaderboardSlide - Dedicated CSS */
+
+/* Header styles */
+.leaderboard-slide-container {
+    gap: 40px;
+}
+
+.leaderboard-header {
+    text-align: center;
+    margin-bottom: 100px;
+}
+
+.leaderboard-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 10px 30px;
+    border-radius: 50px;
+    margin-bottom: 20px;
+}
+
+.leaderboard-header-badge-text {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.leaderboard-header-title {
+    font-size: 4.5rem;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    color: #ffffff;
+}
+
+.leaderboard-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 60px;
+    align-items: end;
+}
+
+.leaderboard-podium {
+    display: flex;
+    align-items: end;
+    gap: 20px;
+}
+
+.leaderboard-podium-place {
+    flex: 1;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-podium-silver {
+    height: 70%;
+    background: linear-gradient(to bottom, #f1f5f9, #cbd5e1);
+}
+
+.leaderboard-podium-gold {
+    flex: 1.2;
+    height: 90%;
+    background-image: linear-gradient(to bottom, #fcd34d, #f59e0b);
+    box-shadow: 0 30px 60px rgba(245, 158, 11, 0.3);
+    z-index: 10;
+}
+
+.leaderboard-podium-bronze {
+    height: 60%;
+    background: linear-gradient(to bottom, #fed7aa, #fdba74);
+}
+
+.leaderboard-position-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-position-badge.silver {
+    background: #94a3b8;
+}
+
+.leaderboard-position-badge.bronze {
+    background: #c2410c;
+}
+
+.leaderboard-avatar {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+}
+
+.leaderboard-avatar.small {
+    top: -40px;
+    width: 80px;
+    height: 80px;
+    font-size: 1.5rem;
+    color: #64748b;
+}
+
+.leaderboard-avatar.large {
+    top: -60px;
+    width: 120px;
+    height: 120px;
+    font-size: 2.5rem;
+    color: #b45309;
+    border: 4px solid #fffbeb;
+    box-shadow: 0 15px 30px rgba(245, 158, 11, 0.2);
+}
+
+.leaderboard-avatar.silver {
+    color: #64748b;
+}
+
+.leaderboard-avatar.bronze {
+    color: #9a3412;
+}
+
+.leaderboard-crown {
+    position: absolute;
+    top: -40px;
+    transform: rotate(-15deg);
+}
+
+.leaderboard-podium-content {
+    text-align: center;
+}
+
+.leaderboard-podium-content.small {
+    margin-top: 50px;
+}
+
+.leaderboard-podium-content.large {
+    margin-top: 80px;
+    color: white;
+}
+
+.leaderboard-rank-number {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.leaderboard-name {
+    margin: 0 0 10px;
+    font-size: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-name.small {
+    font-size: 1.5rem;
+    color: #334155;
+    margin: 0;
+}
+
+.leaderboard-points-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 20px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.leaderboard-points {
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.leaderboard-points.small {
+    font-size: 2rem;
+}
+
+.leaderboard-points-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-left: 10px;
+    opacity: 0.9;
+}
+
+.leaderboard-points-label.small {
+    font-size: 1rem;
+    margin-left: 8px;
+}
+
+.leaderboard-points.silver {
+    color: #475569;
+}
+
+.leaderboard-points-label.silver {
+    color: #94a3b8;
+}
+
+.leaderboard-points.bronze {
+    color: #9a3412;
+}
+
+.leaderboard-points-label.bronze {
+    color: #c2410c;
+}
+
+.leaderboard-name.bronze {
+    color: #7c2d12;
+}
+
+/* Rest of list */
+.leaderboard-rest {
+    padding-bottom: 20px;
+}
+
+.leaderboard-rest-header {
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.leaderboard-rest-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+
+.leaderboard-rest-rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    width: 40px;
+}
+
+.leaderboard-rest-avatar {
+    width: 50px;
+    height: 50px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #64748b;
+}
+
+.leaderboard-rest-info {
+    flex: 1;
+}
+
+.leaderboard-rest-name {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.leaderboard-rest-tier {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.leaderboard-rest-points {
+    text-align: right;
+}
+
+.leaderboard-rest-points-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.leaderboard-rest-points-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-left: 6px;
+}
+
+.leaderboard-rest-trend {
+    margin-left: 8px;
+    display: inline;
+}

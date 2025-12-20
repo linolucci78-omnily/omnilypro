@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import LiveTVPage from './pages/TV/LiveTVPage'
 import PairingPage from './pages/TV/PairingPage'
 import SplashPage from './pages/TV/SplashPage'
+import HeartbeatDebug from './pages/TV/HeartbeatDebug'
 import DiagnosticPage from './pages/DiagnosticPage'
 import TVControlPage from './pages/Admin/TVControlPage'
 import SignageCMSPage from './pages/Admin/SignageCMSPage'
@@ -276,6 +277,7 @@ function App() {
                   {/* TV Display Routes */}
                   <Route path="/tv/splash" element={<SplashPage />} />
                   <Route path="/tv/pair" element={<PairingPage />} />
+                  <Route path="/tv/debug" element={<HeartbeatDebug />} />
                   <Route path="/tv/:orgId/live" element={<LiveTVPage />} />
                   <Route path="/tv/live/:orgId" element={<LiveTVPage />} />
                   <Route path="/" element={isTauriApp ? <SplashPage /> : <Landing />} />

@@ -1,0 +1,39 @@
+.media-upload-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary-color, #8b5cf6);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: opacity 0.2s;
+    cursor: pointer;
+}
+
+.media-upload-button:hover {
+    opacity: 0.9;
+}
+
+.media-search-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.media-select-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #8b5cf6);
+}
+
+.media-view-button-active {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--primary-color, #8b5cf6);
+}
+
+.media-card-selectable:hover {
+    border-color: var(--primary-color, #8b5cf6);
+}
+
+.media-video-icon {
+    color: var(--primary-color, #8b5cf6);
+}

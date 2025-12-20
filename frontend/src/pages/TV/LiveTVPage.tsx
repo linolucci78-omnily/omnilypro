@@ -8,9 +8,18 @@ import LotterySlide from '../../components/TV/LotterySlide'
 import ActivityFeedSlide from '../../components/TV/ActivityFeedSlide'
 import HowItWorksSlide from '../../components/TV/HowItWorksSlide'
 import RewardsSlide from '../../components/TV/RewardsSlide'
+import CustomSlideRenderer from '../../components/TV/CustomSlideRenderer'
 import { tvService, Customer, Reward } from '../../services/tvService'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
+
+interface CustomSlide {
+    id: string
+    name: string
+    content: any
+    duration: number
+    slide_type: string
+}
 
 const LiveTVPage: React.FC = () => {
     const { orgId: urlOrgId } = useParams()
@@ -33,6 +42,7 @@ const LiveTVPage: React.FC = () => {
     const [lotteryLastPrize, setLotteryLastPrize] = useState('')
     const [pointsName, setPointsName] = useState('PUNTI')
     const [lastWinnerGender, setLastWinnerGender] = useState<'male' | 'female' | undefined>(undefined)
+    const [customSlides, setCustomSlides] = useState<CustomSlide[]>([])
 
     console.log('User object:', user)
     console.log('URL orgId:', urlOrgId)
@@ -131,6 +141,82 @@ const LiveTVPage: React.FC = () => {
         logo_url: undefined
     })
 
+    // Load custom slides from playlist
+    useEffect(() => {
+        const loadCustomSlides = async () => {
+            if (!orgId) return
+
+            try {
+                console.log('🎬 Loading custom slides for org:', orgId)
+
+                // Get active/default playlist
+                const { data: playlist, error: playlistError } = await supabase
+                    .from('signage_playlists')
+                    .select('id')
+                    .eq('organization_id', orgId)
+                    .eq('is_active', true)
+                    .or('is_default.eq.true')
+                    .limit(1)
+                    .single()
+
+                if (playlistError || !playlist) {
+                    console.log('⚠️ No active playlist found')
+                    return
+                }
+
+                console.log('📺 Found playlist:', playlist.id)
+
+                // Get playlist items with slide data
+                const { data: items, error: itemsError } = await supabase
+                    .from('signage_playlist_items')
+                    .select(`
+                        id,
+                        slide_id,
+                        slide_type,
+                        display_order,
+                        duration_override,
+                        signage_slides (
+                            id,
+                            name,
+                            content,
+                            duration
+                        )
+                    `)
+                    .eq('playlist_id', playlist.id)
+                    .eq('slide_type', 'custom')
+                    .order('display_order')
+
+                if (itemsError) {
+                    console.error('Error loading playlist items:', itemsError)
+                    return
+                }
+
+                console.log('🎨 Loaded playlist items:', items)
+
+                // Map to custom slides
+                const slides = items
+                    .filter(item => item.signage_slides)
+                    .map(item => ({
+                        id: item.signage_slides.id,
+                        name: item.signage_slides.name,
+                        content: item.signage_slides.content,
+                        duration: item.duration_override || item.signage_slides.duration,
+                        slide_type: 'custom'
+                    }))
+
+                console.log('✅ Custom slides loaded:', slides.length)
+                setCustomSlides(slides)
+            } catch (error) {
+                console.error('Error loading custom slides:', error)
+            }
+        }
+
+        loadCustomSlides()
+        // Refresh every 60 seconds
+        const interval = setInterval(loadCustomSlides, 60000)
+        return () => clearInterval(interval)
+    }, [orgId])
+
     // Load real data from Supabase
     useEffect(() => {
         const loadData = async () => {
@@ -148,7 +234,7 @@ const LiveTVPage: React.FC = () => {
                 const [orgInfo, customersData, rewardsData] = await Promise.all([
                     supabase
                         .from('organizations')
-                        .select('name, industry, logo_url, points_name')
+                        .select('name, industry, logo_url, points_name, primary_color, secondary_color')
                         .eq('id', orgId)
                         .single(),
                     tvService.getTopCustomers(orgId, 5),
@@ -165,7 +251,9 @@ const LiveTVPage: React.FC = () => {
                         ...prev,
                         name: orgInfo.data.name,
                         industry: orgInfo.data.industry || prev.industry,
-                        logo_url: orgInfo.data.logo_url || prev.logo_url
+                        logo_url: orgInfo.data.logo_url || prev.logo_url,
+                        primary_color: orgInfo.data.primary_color || prev.primary_color,
+                        secondary_color: orgInfo.data.secondary_color || prev.secondary_color
                     }))
 
                     // Update points name
@@ -398,15 +486,56 @@ const LiveTVPage: React.FC = () => {
         }
     }, [orgId])
 
-    // Slide Rotation Logic (Every 8 seconds)
+    // Slide Rotation Logic - Fidelity slides first, then custom slides
     useEffect(() => {
-        const timer = setInterval(() => {
-            // Rotate: 0(Leaderboard) -> 1(Rewards/Photos) -> 2(Promo) -> 3(Activity) -> 4(Lottery) -> 5(HowTo)
-            setSlideIndex(prev => (prev + 1) % 6)
-        }, 8000)
-        return () => clearInterval(timer)
-    }, [])
+        const totalFidelitySlides = 6 // Leaderboard, Rewards, GetCard, HowItWorks, ActivityFeed, Lottery
+        const totalCustomSlides = customSlides.length
+        const totalSlides = totalFidelitySlides + totalCustomSlides
 
+        // If we're on a custom slide (index >= 6), use its custom duration
+        let duration = 8000 // Default 8 seconds for fidelity slides
+
+        if (slideIndex >= totalFidelitySlides && slideIndex < totalSlides) {
+            const customSlideIndex = slideIndex - totalFidelitySlides
+            const customSlide = customSlides[customSlideIndex]
+            if (customSlide) {
+                duration = customSlide.duration * 1000 // Convert seconds to milliseconds
+                console.log(`⏱️ Custom slide "${customSlide.name}" duration: ${duration}ms`)
+            }
+        }
+
+        console.log(`⏰ Setting timer for slide ${slideIndex}, duration: ${duration}ms, total slides: ${totalSlides}`)
+
+        const timer = setTimeout(() => {
+            setSlideIndex(prev => {
+                const next = (prev + 1) % totalSlides
+                console.log(`🔄 Slide rotation: ${prev} -> ${next} (total: ${totalSlides})`)
+                return next
+            })
+        }, duration)
+
+        return () => {
+            clearTimeout(timer)
+        }
+    }, [slideIndex, customSlides.length])
+
+    // Check if we're showing a custom slide (fullscreen, no layout)
+    const totalFidelitySlides = 6
+    const isShowingCustomSlide = slideIndex >= totalFidelitySlides && customSlides.length > 0
+    const customSlideIndex = slideIndex - totalFidelitySlides
+
+    // If showing custom slide, render it fullscreen without LiveTVLayout
+    if (isShowingCustomSlide && customSlides[customSlideIndex]) {
+        const currentCustomSlide = customSlides[customSlideIndex]
+        console.log('🎬 Rendering custom slide:', currentCustomSlide.name)
+        return (
+            <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+                <CustomSlideRenderer slide={currentCustomSlide} />
+            </div>
+        )
+    }
+
+    // Otherwise, show fidelity slides inside LiveTVLayout
     return (
         <LiveTVLayout
             organization={orgData}
@@ -417,8 +546,8 @@ const LiveTVPage: React.FC = () => {
             weatherCity={weatherCity}
             tickerSpeed={tickerSpeed}
         >
-            {/* 
-         If a trigger is present (pushed by Xogo or URL), show the Interrupt Overlay 
+            {/*
+         If a trigger is present (pushed by Xogo or URL), show the Interrupt Overlay
          Otherwise rotate between passive slides
       */}
             {triggerType === 'welcome' && triggerName ? (
@@ -430,13 +559,17 @@ const LiveTVPage: React.FC = () => {
             ) : loading ? (
                 <div style={{ color: 'white', fontSize: '2rem', textAlign: 'center' }}>Caricamento...</div>
             ) : (
-                // Slide Rotation
+                // Fidelity Slide Rotation (0-5)
                 slideIndex === 0 ? <LeaderboardSlide customers={topCustomers} pointsName={pointsName} /> :
                     slideIndex === 1 ? <RewardsSlide rewards={rewards} /> :
-                        slideIndex === 2 ? <GetCardSlide /> :
+                        slideIndex === 2 ? <GetCardSlide
+                            organizationName={orgData.name}
+                            primaryColor={orgData.primary_color}
+                            secondaryColor={orgData.secondary_color}
+                        /> :
                             slideIndex === 3 ? <HowItWorksSlide pointsName={pointsName} /> :
-                                slideIndex === 4 ? <ActivityFeedSlide /> :
-                                    <LotterySlide
+                                slideIndex === 4 ? <ActivityFeedSlide organizationId={orgId} /> :
+                                    slideIndex === 5 ? <LotterySlide
                                         lotteryName={lotteryName}
                                         jackpot={jackpot}
                                         prizeName={lotteryPrize}
@@ -446,7 +579,7 @@ const LiveTVPage: React.FC = () => {
                                         drawDate={lotteryDrawDate}
                                         pointsName={pointsName}
                                         lastWinnerGender={lastWinnerGender}
-                                    />
+                                    /> : null
             )}
         </LiveTVLayout>
     )

@@ -7,7 +7,7 @@ import RewardModal from './RewardModal'
 import { useAuth } from '../contexts/AuthContext'
 // REMOVED: useGamingNotifications - using console.log instead for stability
 // import { useGamingNotifications } from '../contexts/GamingNotificationsContext'
-import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet, Coins, Sparkles } from 'lucide-react'
+import { BarChart3, Users, Gift, Target, TrendingUp, Settings, HelpCircle, LogOut, Search, QrCode, CreditCard, UserCheck, AlertTriangle, X, StopCircle, CheckCircle2, XCircle, Star, Award, Package, Mail, Phone, UserPlus, Zap, Bell, Globe, Palette, Building2, Crown, Lock, Plus, Edit2, Trash2, Megaphone, Wifi, Printer, Smartphone, Activity, RefreshCw, Terminal, BookOpen, LayoutGrid, Table, UserCog, Share2, Copy, Send, Eye, MessageSquare, Ticket as TicketIcon, Ticket, Wallet, Coins, Sparkles, Tv } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import RegistrationWizard from './RegistrationWizard'
 import CustomerSlidePanel from './CustomerSlidePanel'
@@ -67,6 +67,7 @@ import GamingHubWrapper from './Gaming/GamingHubWrapper'
 import WebsiteHub from './WebsiteHub'
 import PushNotificationsHub from './PushNotificationsHub'
 import { ContactMessagesPanel } from './ContactMessagesPanel'
+import DigitalSignageHub from './DigitalSignageHub'
 import { hasAccessSync, getUpgradePlan, PlanType, getPlanFeaturesSync, PLAN_NAMES, fetchPlanOverrides } from '../utils/planPermissions'
 import UpgradeModal from './UI/UpgradeModal'
 import OrganizationSelectorModal from './OrganizationSelectorModal'
@@ -2577,6 +2578,7 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
       { id: 'pos-integration', icon: Zap, label: 'Integrazione POS', feature: 'posIntegration' },
       { id: 'analytics-reports', icon: TrendingUp, label: 'Analytics & Report', feature: 'analyticsReports' },
       { id: 'branding-social', icon: Palette, label: 'Branding & Social', feature: 'brandingSocial' },
+      { id: 'digital-signage', icon: Tv, label: 'Digital Signage', feature: 'digitalSignage' },
       { id: 'website-editor', icon: Globe, label: 'Il Mio Sito Web', feature: null },
       { id: 'channels', icon: Globe, label: 'Canali Integrazione', feature: 'channelsIntegration' },
       { id: 'settings', icon: Settings, label: 'Impostazioni', feature: null },
@@ -3261,6 +3263,18 @@ const OrganizationsDashboard: React.FC<OrganizationsDashboardProps> = ({
                   setPreviewColors({ primary: null, secondary: null })
                 }
               }}
+            />
+          </div>
+        ) : null
+
+      case 'digital-signage':
+        return currentOrganization ? (
+          <div className="dashboard-content" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+            <DigitalSignageHub
+              organizationId={currentOrganization.id}
+              primaryColor={previewColors.primary || currentOrganization.primary_color}
+              secondaryColor={previewColors.secondary || currentOrganization.secondary_color}
+              onBack={() => handleSectionChange('dashboard')}
             />
           </div>
         ) : null

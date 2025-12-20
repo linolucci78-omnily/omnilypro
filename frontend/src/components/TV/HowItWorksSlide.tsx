@@ -1,6 +1,6 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { Euro, Coins, Gift, ArrowRight } from 'lucide-react'
+import './HowItWorksSlide.css'
 
 interface HowItWorksSlideProps {
     pointsName?: string
@@ -30,132 +30,62 @@ const HowItWorksSlide: React.FC<HowItWorksSlideProps> = ({ pointsName = 'PUNTI' 
     ]
 
     return (
-        <div style={{ width: '100%', maxWidth: '1400px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '60px' }}>
+        <div className="tv-slide-vertical how-it-works-container">
 
             {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-                style={{ textAlign: 'center' }}
-            >
-                <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '15px',
-                    background: '#eff6ff',
-                    padding: '12px 40px',
-                    borderRadius: '50px',
-                    marginBottom: '20px',
-                    border: '1px solid #dbeafe',
-                    color: '#1e40af'
-                }}>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
+            <div className="how-it-works-header animate-scale-in">
+                <div className="how-it-works-badge">
+                    <span className="how-it-works-badge-text">
                         Come Funziona
                     </span>
                 </div>
-                <h2 style={{
-                    fontSize: '4.5rem',
-                    fontWeight: 900,
-                    margin: 0,
-                    textTransform: 'uppercase',
-                    letterSpacing: '-2px',
-                    color: '#ffffff'
-                }}>
+                <h2 className="how-it-works-title">
                     Semplice & Veloce
                 </h2>
-            </motion.div>
+            </div>
 
             {/* Steps Container */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '20px' }}>
+            <div className="how-it-works-steps">
 
                 {steps.map((step, index) => (
                     <React.Fragment key={index}>
                         {/* Step Card */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.4, type: 'spring', bounce: 0.5 }}
+                        <div
+                            className="how-it-works-step-card animate-podium"
                             style={{
-                                background: 'white',
-                                borderRadius: '30px',
-                                padding: '50px 30px',
-                                width: '380px',
-                                height: '420px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                textAlign: 'center',
-                                boxShadow: '0 20px 50px rgba(0,0,0,0.08)',
-                                position: 'relative',
-                                zIndex: 1
+                                animationDelay: `${index * 400}ms`
                             }}
                         >
-                            <div style={{
-                                background: '#f8fafc',
-                                width: '140px',
-                                height: '140px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: '30px',
-                                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.05)'
-                            }}>
+                            <div className="how-it-works-icon-circle">
                                 {step.icon}
                             </div>
 
-                            <h3 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1f2937', margin: '0 0 10px 0' }}>
+                            <h3 className="how-it-works-step-title">
                                 {step.title}
                             </h3>
 
-                            <p style={{ fontSize: '1.5rem', color: '#64748b', margin: '0 0 10px 0', fontWeight: 500 }}>
+                            <p className="how-it-works-step-desc">
                                 {step.desc}
                             </p>
 
-                            <div style={{
-                                background: index === 0 ? '#eff6ff' : index === 1 ? '#fefce8' : '#fdf2f8',
-                                color: index === 0 ? '#2563eb' : index === 1 ? '#ca8a04' : '#db2777',
-                                padding: '10px 25px',
-                                borderRadius: '15px',
-                                fontSize: '1.5rem',
-                                fontWeight: 800,
-                                textTransform: 'uppercase',
-                                letterSpacing: '1px'
-                            }}>
+                            <div className={`how-it-works-step-highlight ${index === 0 ? 'blue' : index === 1 ? 'yellow' : 'pink'}`}>
                                 {step.highlight}
                             </div>
 
                             {/* Step Number Badge */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '20px',
-                                left: '20px',
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '50%',
-                                background: '#1f2937',
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '1.2rem',
-                                fontWeight: 700
-                            }}>
+                            <div className="how-it-works-step-badge">
                                 {index + 1}
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Arrow (except after last step) */}
                         {index < steps.length - 1 && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.4 + 0.2, duration: 0.5 }}
+                            <div
+                                className="how-it-works-arrow animate-fade-in"
+                                style={{ animationDelay: `${index * 400 + 200}ms` }}
                             >
                                 <ArrowRight size={50} color="#cbd5e1" strokeWidth={3} />
-                            </motion.div>
+                            </div>
                         )}
                     </React.Fragment>
                 ))}

@@ -53,6 +53,7 @@ export interface PlanFeatures {
   analyticsReports: boolean
   brandingSocial: boolean
   channelsIntegration: boolean
+  digitalSignage: boolean
 
   // Commerce Features
   coupons: boolean
@@ -106,6 +107,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     analyticsReports: false,   // ❌ Solo Pro+
     brandingSocial: false,     // ❌ Solo Pro+
     channelsIntegration: false,// ❌ Solo Enterprise
+    digitalSignage: false,     // ❌ Solo Enterprise
 
     // Commerce Features
     coupons: false,            // ❌ Solo Basic+
@@ -158,6 +160,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     analyticsReports: false,   // ❌ Solo Pro+
     brandingSocial: false,     // ❌ Solo Pro+
     channelsIntegration: false,// ❌ Solo Enterprise
+    digitalSignage: false,     // ❌ Solo Enterprise
 
     // Commerce Features
     coupons: true,             // ✅ Basic+
@@ -210,6 +213,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     analyticsReports: true,    // ✅ Pro+
     brandingSocial: true,      // ✅ Pro+
     channelsIntegration: false,// ❌ Solo Enterprise
+    digitalSignage: false,     // ❌ Solo Enterprise
 
     // Commerce Features
     coupons: true,             // ✅ Basic+
@@ -262,6 +266,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     analyticsReports: true,
     brandingSocial: true,
     channelsIntegration: true, // ✅ Solo Enterprise
+    digitalSignage: true,      // ✅ Solo Enterprise - TV Display Management
 
     // Commerce Features - All Available
     coupons: true,             // ✅ Enterprise

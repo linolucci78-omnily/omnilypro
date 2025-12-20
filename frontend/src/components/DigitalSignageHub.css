@@ -1,0 +1,391 @@
+/* ============================================
+   DIGITAL SIGNAGE HUB - TV DISPLAY MANAGEMENT
+   ============================================ */
+
+.signage-hub {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.signage-hub-header {
+  margin-bottom: 2.5rem;
+}
+
+.signage-hub-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.signage-hub-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--primary-color, #8b5cf6), var(--secondary-color, #a78bfa));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
+}
+
+.signage-hub-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.signage-hub-header p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   STATISTICHE OVERVIEW
+   ============================================ */
+
+.signage-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.signage-stat-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.signage-stat-card:hover {
+  border-color: var(--primary-color, #8b5cf6);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
+  transform: translateY(-4px);
+}
+
+.signage-stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.signage-stat-icon-primary {
+  background: linear-gradient(135deg, var(--primary-color, #8b5cf6), var(--secondary-color, #a78bfa));
+}
+
+.signage-stat-icon-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.signage-stat-icon-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.signage-stat-icon-info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.signage-stat-content {
+  flex: 1;
+}
+
+.signage-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.signage-stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   TOP DEVICES SECTION
+   ============================================ */
+
+.signage-top-section {
+  margin-bottom: 2.5rem;
+}
+
+.signage-top-section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.signage-top-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.signage-top-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.signage-top-card:hover {
+  border-color: var(--primary-color, #8b5cf6);
+  box-shadow: 0 16px 40px rgba(139, 92, 246, 0.2);
+  transform: translateY(-4px);
+}
+
+.signage-top-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary-color, #8b5cf6), var(--secondary-color, #a78bfa));
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.signage-top-placeholder {
+  width: 100%;
+  height: 140px;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.signage-top-info h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+}
+
+.signage-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.signage-top-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.signage-top-status.online {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.signage-top-status.offline {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.signage-top-code {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* ============================================
+   HUB CARDS - AZIONI PRINCIPALI
+   ============================================ */
+
+.signage-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.signage-hub-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 2.5rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.signage-hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 0%, rgba(139, 92, 246, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.signage-hub-card:hover::before {
+  opacity: 1;
+}
+
+.signage-hub-card:hover {
+  border-color: var(--primary-color, #8b5cf6);
+  box-shadow: 0 20px 48px rgba(139, 92, 246, 0.2);
+  transform: translateY(-8px);
+}
+
+.signage-hub-card-primary .signage-hub-card-icon {
+  background: linear-gradient(135deg, var(--primary-color, #8b5cf6), var(--secondary-color, #a78bfa));
+}
+
+.signage-hub-card-secondary .signage-hub-card-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.signage-hub-card-tertiary .signage-hub-card-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.signage-hub-card-quaternary .signage-hub-card-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.signage-hub-card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+  transition: all 0.3s;
+}
+
+.signage-hub-card:hover .signage-hub-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.signage-hub-card-content h3 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.signage-hub-card-content p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.6;
+}
+
+.signage-hub-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.signage-hub-card-features li {
+  font-size: 0.9375rem;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.signage-hub-card-arrow {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 3rem;
+  color: var(--primary-color, #8b5cf6);
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.signage-hub-card:hover .signage-hub-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: var(--primary-color, #8b5cf6);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.back-button:hover {
+  border-color: var(--primary-color, #8b5cf6);
+  background: #faf5ff;
+  transform: translateX(-4px);
+}

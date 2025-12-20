@@ -1,7 +1,7 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Crown, Medal, TrendingUp } from 'lucide-react'
 import { Customer } from '../../services/tvService'
+import './LeaderboardSlide.css'
 
 // MOCK DATA for Prototype (fallback)
 const MOCK_LEADERS = [
@@ -29,259 +29,109 @@ const LeaderboardSlide: React.FC<LeaderboardSlideProps> = ({ customers, pointsNa
 
     const [top1, top2, top3, ...rest] = paddedLeaders
 
-    const podiumVariants = {
-        hidden: { scale: 0.8, opacity: 0 },
-        visible: (i: number) => ({
-            scale: 1,
-            opacity: 1,
-            transition: {
-                delay: i * 0.2,
-                type: 'spring',
-                stiffness: 100,
-                damping: 12
-            }
-        })
-    }
-
     return (
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div className="tv-slide-vertical leaderboard-slide-container">
 
             {/* Header */}
-            <motion.div style={{ textAlign: 'center', marginBottom: '20px' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '15px',
-                    background: 'rgba(0,0,0,0.05)',
-                    padding: '10px 30px',
-                    borderRadius: '50px',
-                    marginBottom: '20px'
-                }}>
+            <div className="leaderboard-header animate-fade-in">
+                <div className="leaderboard-header-badge">
                     <Crown size={24} color="#ea580c" />
-                    <span style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#64748b' }}>
+                    <span className="leaderboard-header-badge-text">
                         Hall of Fame
                     </span>
                 </div>
-                <h2 style={{
-                    fontSize: '4.5rem',
-                    fontWeight: 900,
-                    margin: 0,
-                    textTransform: 'uppercase',
-                    letterSpacing: '-1px',
-                    color: '#ffffff'
-                }}>
+                <h2 className="leaderboard-header-title">
                     Top Customers
                 </h2>
-            </motion.div>
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: '60px', alignItems: 'end' }}>
+            <div className="leaderboard-container">
 
                 {/* PODIUM (Top 3) */}
-                <div style={{ display: 'flex', alignItems: 'end', gap: '20px', height: '500px' }}>
+                <div className="leaderboard-podium">
 
                     {/* #2 Silver */}
-                    <motion.div
-                        custom={1}
-                        variants={podiumVariants}
-                        initial="hidden"
-                        animate="visible"
-                        style={{
-                            flex: 1,
-                            background: 'linear-gradient(to bottom, #f1f5f9, #cbd5e1)',
-                            borderRadius: '20px 20px 0 0',
-                            height: '70%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            padding: '20px',
-                            position: 'relative',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-                        }}
-                    >
+                    <div className="leaderboard-podium-place leaderboard-podium-silver animate-podium delay-200">
                         {/* Position Badge */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '10px',
-                            left: '10px',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: '#94a3b8',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.5rem',
-                            fontWeight: 900,
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                        }}>
+                        <div className="leaderboard-position-badge silver">
                             2
                         </div>
-                        <div style={{
-                            position: 'absolute', top: '-40px',
-                            background: 'white', borderRadius: '50%', width: '80px', height: '80px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                            fontSize: '1.5rem', fontWeight: 'bold', color: '#64748b'
-                        }}>
+                        <div className="leaderboard-avatar small silver">
                             {top2.avatar}
                         </div>
-                        <div style={{ marginTop: '50px', textAlign: 'center' }}>
-                            <Medal size={32} color="#94a3b8" style={{ margin: '0 auto 10px' }} />
-                            <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#334155' }}>{top2.name}</h3>
+                        <div className="leaderboard-podium-content small">
+                            <Medal size={32} color="#94a3b8" />
+                            <h3 className="leaderboard-name small">{top2.name}</h3>
                             <div>
-                                <span style={{ fontSize: '2rem', fontWeight: 800, color: '#475569' }}>{top2.points}</span>
-                                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#94a3b8', marginLeft: '8px' }}>{pointsName}</span>
+                                <span className="leaderboard-points small silver">{top2.points}</span>
+                                <span className="leaderboard-points-label small silver">{pointsName}</span>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* #1 Gold */}
-                    <motion.div
-                        custom={2}
-                        variants={podiumVariants}
-                        initial="hidden"
-                        animate="visible"
-                        style={{
-                            flex: 1.2,
-                            background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', // Gold/Warm feel placeholder, overridden by style below
-                            backgroundImage: 'linear-gradient(to bottom, #fcd34d, #f59e0b)',
-                            borderRadius: '20px 20px 0 0',
-                            height: '90%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            padding: '20px',
-                            position: 'relative',
-                            boxShadow: '0 30px 60px rgba(245, 158, 11, 0.3)',
-                            zIndex: 10
-                        }}
-                    >
-                        <div style={{
-                            position: 'absolute', top: '-60px',
-                            background: 'white', borderRadius: '50%', width: '120px', height: '120px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 15px 30px rgba(245, 158, 11, 0.2)',
-                            fontSize: '2.5rem', fontWeight: 'bold', color: '#b45309',
-                            border: '4px solid #fffbeb'
-                        }}>
-                            <Crown size={60} color="#f59e0b" style={{ position: 'absolute', top: '-40px', transform: 'rotate(-15deg)' }} />
+                    <div className="leaderboard-podium-place leaderboard-podium-gold animate-podium delay-400">
+                        <div className="leaderboard-avatar large">
+                            <Crown size={60} color="#f59e0b" className="leaderboard-crown" />
                             {top1.avatar}
                         </div>
-                        <div style={{ marginTop: '80px', textAlign: 'center', color: 'white' }}>
-                            <div style={{ fontSize: '5rem', fontWeight: 900, lineHeight: 1 }}>1</div>
-                            <h3 style={{ margin: '0 0 10px', fontSize: '2rem', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{top1.name}</h3>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '5px 20px', borderRadius: '20px', display: 'inline-block' }}>
-                                <span style={{ fontSize: '2.5rem', fontWeight: 800 }}>{top1.points}</span>
-                                <span style={{ fontSize: '1.2rem', fontWeight: 600, marginLeft: '10px', opacity: 0.9 }}>{pointsName}</span>
+                        <div className="leaderboard-podium-content large">
+                            <div className="leaderboard-rank-number">1</div>
+                            <h3 className="leaderboard-name">{top1.name}</h3>
+                            <div className="leaderboard-points-badge">
+                                <span className="leaderboard-points">{top1.points}</span>
+                                <span className="leaderboard-points-label">{pointsName}</span>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* #3 Bronze */}
-                    <motion.div
-                        custom={0}
-                        variants={podiumVariants}
-                        initial="hidden"
-                        animate="visible"
-                        style={{
-                            flex: 1,
-                            background: 'linear-gradient(to bottom, #fed7aa, #fdba74)',
-                            borderRadius: '20px 20px 0 0',
-                            height: '60%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            padding: '20px',
-                            position: 'relative',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.05)'
-                        }}
-                    >
+                    <div className="leaderboard-podium-place leaderboard-podium-bronze animate-podium">
                         {/* Position Badge */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '10px',
-                            left: '10px',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: '#c2410c',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.5rem',
-                            fontWeight: 900,
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                        }}>
+                        <div className="leaderboard-position-badge bronze">
                             3
                         </div>
-                        <div style={{
-                            position: 'absolute', top: '-40px',
-                            background: 'white', borderRadius: '50%', width: '80px', height: '80px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                            fontSize: '1.5rem', fontWeight: 'bold', color: '#9a3412'
-                        }}>
+                        <div className="leaderboard-avatar small bronze">
                             {top3.avatar}
                         </div>
-                        <div style={{ marginTop: '50px', textAlign: 'center' }}>
-                            <Medal size={32} color="#c2410c" style={{ margin: '0 auto 10px' }} />
-                            <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#7c2d12' }}>{top3.name}</h3>
+                        <div className="leaderboard-podium-content small">
+                            <Medal size={32} color="#c2410c" />
+                            <h3 className="leaderboard-name small bronze">{top3.name}</h3>
                             <div>
-                                <span style={{ fontSize: '2rem', fontWeight: 800, color: '#9a3412' }}>{top3.points}</span>
-                                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#c2410c', marginLeft: '8px' }}>{pointsName}</span>
+                                <span className="leaderboard-points small bronze">{top3.points}</span>
+                                <span className="leaderboard-points-label small bronze">{pointsName}</span>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
 
                 {/* BEST OF THE REST (List) */}
-                <div style={{ paddingBottom: '20px' }}>
-                    <h4 style={{
-                        fontSize: '1.2rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '2px',
-                        color: '#94a3b8',
-                        marginBottom: '20px',
-                        borderBottom: '1px solid #e2e8f0',
-                        paddingBottom: '10px'
-                    }}>
+                <div className="leaderboard-rest">
+                    <h4 className="leaderboard-rest-header">
                         In scalata
                     </h4>
                     {rest.map((leader, i) => (
-                        <motion.div
+                        <div
                             key={i}
-                            initial={{ x: 50, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.5 + (i * 0.1) }}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '20px',
-                                background: 'white',
-                                padding: '20px',
-                                borderRadius: '16px',
-                                marginBottom: '15px',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
-                            }}
+                            className="leaderboard-rest-item animate-slide-in"
+                            style={{ animationDelay: `${500 + (i * 100)}ms` }}
                         >
-                            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#cbd5e1', width: '40px' }}>#{i + 4}</span>
-                            <div style={{ width: '50px', height: '50px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#64748b' }}>
+                            <span className="leaderboard-rest-rank">#{i + 4}</span>
+                            <div className="leaderboard-rest-avatar">
                                 {leader.avatar}
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <span style={{ display: 'block', fontSize: '1.2rem', fontWeight: 600, color: '#334155' }}>{leader.name}</span>
-                                <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>{leader.tier}</span>
+                            <div className="leaderboard-rest-info">
+                                <span className="leaderboard-rest-name">{leader.name}</span>
+                                <span className="leaderboard-rest-tier">{leader.tier}</span>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
+                            <div className="leaderboard-rest-points">
                                 <div>
-                                    <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>{leader.points}</span>
-                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#64748b', marginLeft: '6px' }}>{pointsName}</span>
-                                    <TrendingUp size={16} color="#22c55e" style={{ marginLeft: '8px', display: 'inline' }} />
+                                    <span className="leaderboard-rest-points-value">{leader.points}</span>
+                                    <span className="leaderboard-rest-points-label">{pointsName}</span>
+                                    <TrendingUp size={16} color="#22c55e" className="leaderboard-rest-trend" />
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
 

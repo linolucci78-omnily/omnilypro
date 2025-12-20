@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 
 interface WelcomeInterruptProps {
@@ -38,7 +37,8 @@ const WelcomeInterrupt: React.FC<WelcomeInterruptProps> = ({ customerName, point
     }, [])
 
     return (
-        <motion.div
+        <div
+            className="animate-scale-in"
             style={{
                 position: 'fixed',
                 inset: 0,
@@ -51,14 +51,10 @@ const WelcomeInterrupt: React.FC<WelcomeInterruptProps> = ({ customerName, point
                 color: 'white',
                 textAlign: 'center'
             }}
-            initial={{ opacity: 0, scale: 1.2 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
         >
-            <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
+            <div
+                className="animate-fade-in"
+                style={{ animationDelay: '200ms' }}
             >
                 <h1 style={{ fontSize: '4rem', marginBottom: '20px', color: '#cbd5e1' }}>BENTORNATO</h1>
                 <h2 style={{ fontSize: '8rem', fontWeight: 900, margin: 0, background: 'linear-gradient(to right, #fcd34d, #fb923c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -78,8 +74,8 @@ const WelcomeInterrupt: React.FC<WelcomeInterruptProps> = ({ customerName, point
                     <span style={{ width: '2px', height: '40px', background: 'rgba(255,255,255,0.3)' }}></span>
                     <span style={{ fontSize: '3rem', textTransform: 'uppercase', color: '#fcd34d' }}>{tier}</span>
                 </div>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     )
 }
 

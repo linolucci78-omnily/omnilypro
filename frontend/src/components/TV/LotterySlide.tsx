@@ -1,17 +1,38 @@
 import React, { useEffect, useState } from 'react'
-import { motion, useSpring, useTransform } from 'framer-motion'
 import { Ticket, Clock } from 'lucide-react'
+import './LotterySlide.css'
 
-// Odometer Component for rolling numbers
+// Odometer Component for rolling numbers - CSS optimized
 const Odometer = ({ value }: { value: number }) => {
-    const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
-    const display = useTransform(spring, (current) => Math.round(current).toLocaleString());
+    const [displayValue, setDisplayValue] = useState(value);
 
     useEffect(() => {
-        spring.set(value);
-    }, [value, spring]);
+        const duration = 1000; // 1 second animation
+        const startValue = displayValue;
+        const endValue = value;
+        const startTime = Date.now();
 
-    return <motion.span>{display}</motion.span>;
+        const animate = () => {
+            const now = Date.now();
+            const progress = Math.min((now - startTime) / duration, 1);
+
+            // Easing function (ease-out)
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+
+            const currentValue = Math.round(startValue + (endValue - startValue) * easeOut);
+            setDisplayValue(currentValue);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        if (value !== displayValue) {
+            requestAnimationFrame(animate);
+        }
+    }, [value]);
+
+    return <span>{displayValue.toLocaleString()}</span>;
 };
 
 interface LotterySlideProps {
@@ -53,141 +74,64 @@ const LotterySlide: React.FC<LotterySlideProps> = ({
     }, [])
 
     return (
-        <div style={{ width: '100%', maxWidth: '1400px', textAlign: 'center' }}>
+        <div className="tv-slide-vertical lottery-container">
 
             {/* Header with Neon Effect */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, type: 'spring' }}
-                style={{
-                    marginBottom: '60px',
-                    position: 'relative'
-                }}
-            >
-                <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '600px',
-                    height: '200px',
-                    background: 'radial-gradient(ellipse, rgba(234, 88, 12, 0.4) 0%, rgba(255,255,255,0) 70%)',
-                    zIndex: 0,
-                    filter: 'blur(40px)'
-                }}></div>
+            <div className="lottery-header animate-scale-in">
+                <div className="lottery-neon-glow"></div>
 
-                <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '20px',
-                    background: '#111',
-                    padding: '20px 60px',
-                    borderRadius: '100px',
-                    border: '4px solid #fcd34d',
-                    boxShadow: '0 0 30px #fcd34d',
-                    position: 'relative',
-                    zIndex: 1
-                }}>
+                <div className="lottery-title-badge">
                     <Ticket size={80} color="#fcd34d" />
-                    <span style={{
-                        fontSize: '4rem',
-                        fontWeight: 900,
-                        color: 'white',
-                        textTransform: 'uppercase',
-                        letterSpacing: '5px'
-                    }}>
+                    <span className="lottery-title-text">
                         {lotteryName}
                     </span>
                 </div>
-            </motion.div>
+            </div>
 
             {/* MAIN JACKPOT DISPLAY */}
-            <motion.div
-                style={{ marginBottom: '80px' }}
-                animate={{ scale: [1, 1.02, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            <div
+                className="lottery-jackpot-section animate-fade-in"
+                style={{ animationDelay: '200ms' }}
             >
-                <span style={{
-                    display: 'block',
-                    fontSize: '2rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '10px',
-                    color: '#64748b',
-                    marginBottom: '10px'
-                }}>
+                <span className="lottery-jackpot-label">
                     Montepremi Attuale
                 </span>
 
-                <h1 style={{
-                    fontSize: '12rem',
-                    fontWeight: 900,
-                    margin: 0,
-                    lineHeight: 1,
-                    fontVariantNumeric: 'tabular-nums',
-                    background: 'linear-gradient(to bottom, #d4af37, #b45309)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    textShadow: '0 10px 30px rgba(180, 83, 9, 0.3)'
-                }}>
+                <h1 className="lottery-jackpot-amount">
                     <Odometer value={pot} />
                 </h1>
 
-                <div style={{ fontSize: '3rem', fontWeight: 700, color: '#b45309', marginTop: '-20px', marginBottom: '40px' }}>{pointsName}</div>
+                <div className="lottery-points-label">{pointsName}</div>
 
                 {/* SUPER PRIZE TEASER */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '30px',
-                        background: 'rgba(255,255,255,0.05)',
-                        padding: '15px 40px',
-                        borderRadius: '50px',
-                        border: '1px solid rgba(255,255,255,0.1)'
-                    }}
+                <div
+                    className="lottery-prize-teaser animate-fade-in"
+                    style={{ animationDelay: '500ms' }}
                 >
                     <img
                         src={prizeImage}
                         alt="Dream Prize"
-                        style={{ width: '80px', height: '80px', borderRadius: '15px', objectFit: 'cover', border: '2px solid #fff' }}
+                        className="lottery-prize-image"
                     />
-                    <div style={{ textAlign: 'left' }}>
-                        <span style={{ display: 'block', fontSize: '1rem', color: '#94a3b8', letterSpacing: '2px' }}>SUPER PREMIO</span>
-                        <span style={{ fontSize: '2rem', fontWeight: 700, color: 'white' }}>{prizeName}</span>
+                    <div className="lottery-prize-info">
+                        <span className="lottery-prize-label">SUPER PREMIO</span>
+                        <span className="lottery-prize-name">{prizeName}</span>
                     </div>
-                </motion.div>
-            </motion.div>
+                </div>
+            </div>
 
             {/* Footer Grid - Conditional layout based on available data */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: lastWinner ? '1fr 1fr' : '1fr',
-                gap: '40px',
-                justifyContent: 'center'
-            }}>
+            <div className={`lottery-footer-grid ${lastWinner ? 'two-columns' : 'single-column'}`}>
 
                 {/* Countdown Box - Only show if draw date is provided */}
                 {drawDate && (
-                    <div style={{
-                        background: 'white',
-                        padding: '40px',
-                        borderRadius: '30px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '30px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
-                        border: '1px solid #e2e8f0'
-                    }}>
-                        <div style={{ background: '#fef2f2', padding: '20px', borderRadius: '50%', color: '#ef4444' }}>
+                    <div className="lottery-countdown-box">
+                        <div className="lottery-countdown-icon">
                             <Clock size={50} />
                         </div>
-                        <div style={{ textAlign: 'left' }}>
-                            <span style={{ display: 'block', fontSize: '1.2rem', color: '#64748b', fontWeight: 600 }}>PROSSIMA ESTRAZIONE</span>
-                            <span style={{ fontSize: '3rem', fontWeight: 800, color: '#1f2937' }}>
+                        <div className="lottery-countdown-content">
+                            <span className="lottery-countdown-label">PROSSIMA ESTRAZIONE</span>
+                            <span className="lottery-countdown-date">
                                 {new Date(drawDate).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>
                         </div>
@@ -196,16 +140,7 @@ const LotterySlide: React.FC<LotterySlideProps> = ({
 
                 {/* Last Winner Box - Only show if we have a winner name */}
                 {lastWinner && (
-                    <div style={{
-                        background: 'linear-gradient(135deg, #111, #333)',
-                        padding: '40px',
-                        borderRadius: '30px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '30px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                        color: 'white'
-                    }}>
+                    <div className="lottery-winner-box">
                         <img
                             src={`https://api.dicebear.com/7.x/${
                                 lastWinnerGender === 'female' ? 'avataaars' :
@@ -217,13 +152,13 @@ const LotterySlide: React.FC<LotterySlideProps> = ({
                                 ''
                             }`}
                             alt="Winner"
-                            style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px solid #fcd34d' }}
+                            className="lottery-winner-avatar"
                         />
-                        <div style={{ textAlign: 'left' }}>
-                            <span style={{ display: 'block', fontSize: '1.2rem', color: '#94a3b8', fontWeight: 600 }}>ULTIMO VINCITORE</span>
-                            <span style={{ fontSize: '2.5rem', fontWeight: 700, color: '#fcd34d' }}>{lastWinner}</span>
+                        <div className="lottery-winner-content">
+                            <span className="lottery-winner-label">ULTIMO VINCITORE</span>
+                            <span className="lottery-winner-name">{lastWinner}</span>
                             {lastPrize && (
-                                <span style={{ display: 'block', fontSize: '1.2rem', color: '#cbd5e1' }}>Ha vinto {lastPrize}!</span>
+                                <span className="lottery-winner-prize">Ha vinto {lastPrize}!</span>
                             )}
                         </div>
                     </div>
