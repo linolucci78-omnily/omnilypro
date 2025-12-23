@@ -44,9 +44,17 @@ const SplashPage: React.FC = () => {
             }
         }, 600)
 
-        // Navigate to pairing page after 7 seconds
+        // Navigate after 7 seconds - check if already paired
         const timer = setTimeout(() => {
-            navigate('/tv/pair')
+            // Check if device is already paired (deviceId stored in localStorage)
+            const deviceId = localStorage.getItem('tv_device_id')
+            if (deviceId) {
+                // Already paired, go directly to live TV
+                navigate('/tv/live')
+            } else {
+                // Not paired, go to pairing page
+                navigate('/tv/pair')
+            }
         }, 7000)
 
         return () => {

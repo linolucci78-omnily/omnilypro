@@ -19,7 +19,18 @@
         "width": 1920,
         "height": 1080,
         "decorations": false,
-        "skipTaskbar": true
+        "skipTaskbar": true,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "url": "/tv/loading",
+        "fullscreen": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "width": 1920,
+        "height": 1080
       }
     ],
     "security": {

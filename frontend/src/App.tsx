@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import LiveTVPage from './pages/TV/LiveTVPage'
 import PairingPage from './pages/TV/PairingPage'
 import SplashPage from './pages/TV/SplashPage'
+import InitialLoadingPage from './pages/TV/InitialLoadingPage'
 import HeartbeatDebug from './pages/TV/HeartbeatDebug'
 import DiagnosticPage from './pages/DiagnosticPage'
 import TVControlPage from './pages/Admin/TVControlPage'
@@ -13,6 +14,7 @@ import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import GlobalStylesFix from './components/GlobalStylesFix'
 // REMOVED: GamingNotificationsProvider - using console.log instead for stability
 // import { GamingNotificationsProvider } from './contexts/GamingNotificationsContext'
 import { useMDMCommands } from './hooks/useMDMCommands'
@@ -208,6 +210,7 @@ function App() {
           <ThemeProvider>
             <AuthProvider>
               <ToastProvider>
+                <GlobalStylesFix />
                 <PublicWebsiteSubdomain />
               </ToastProvider>
             </AuthProvider>
@@ -229,6 +232,7 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
+              <GlobalStylesFix />
               <div className="App" style={{ margin: 0, padding: 0 }}>
                 <Routes>
                   <Route path="/" element={<Login />} />
@@ -271,10 +275,12 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
+              <GlobalStylesFix />
               <Toaster position="top-center" />
               <div className="App">
                 <Routes>
                   {/* TV Display Routes */}
+                  <Route path="/tv/loading" element={<InitialLoadingPage />} />
                   <Route path="/tv/splash" element={<SplashPage />} />
                   <Route path="/tv/pair" element={<PairingPage />} />
                   <Route path="/tv/debug" element={<HeartbeatDebug />} />
