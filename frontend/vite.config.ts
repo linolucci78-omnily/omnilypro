@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
+import { copyFileSync } from 'fs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,7 +9,17 @@ export default defineConfig({
     react({
       // Disabilita fast refresh completamente
       devTarget: 'esnext',
-    })
+    }),
+    // Plugin per copiare loading.html nella build
+    {
+      name: 'copy-loading-html',
+      closeBundle() {
+        copyFileSync(
+          path.resolve(__dirname, 'public/loading.html'),
+          path.resolve(__dirname, 'dist/loading.html')
+        )
+      }
+    }
   ],
   esbuild: {
     // Disabilita inject per React
