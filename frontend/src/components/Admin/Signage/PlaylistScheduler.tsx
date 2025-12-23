@@ -69,26 +69,49 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
     const loadData = async () => {
         setLoading(true)
         try {
-            // Load schedules
+            // First get all playlists for this org to get their IDs
+            const { data: orgPlaylists } = await supabase
+                .from('signage_playlists')
+                .select('id, name, description, is_default')
+                .eq('organization_id', organizationId)
+                .order('name')
+
+            const playlistIds = orgPlaylists?.map(p => p.id) || []
+
+            // Load devices first (we'll match them manually)
+            const { data: devicesData, error: devicesError } = await supabase
+                .from('tv_devices')
+                .select('id, device_code, location')
+                .eq('organization_id', organizationId)
+
+            if (devicesError) {
+                console.error('Error loading devices:', devicesError)
+            }
+
+            // Create device lookup map
+            const deviceMap = new Map(devicesData?.map(d => [d.id, d]) || [])
+            // Create playlist lookup map
+            const playlistMap = new Map(orgPlaylists?.map(p => [p.id, p]) || [])
+
+            // Load schedules for these playlists (simpler query without joins)
             const { data: schedulesData, error: schedulesError } = await supabase
                 .from('signage_schedules')
-                .select(`
-                    *,
-                    signage_playlists!inner(name, organization_id),
-                    tv_devices(device_code, location)
-                `)
-                .eq('signage_playlists.organization_id', organizationId)
+                .select('*')
+                .in('playlist_id', playlistIds.length > 0 ? playlistIds : ['00000000-0000-0000-0000-000000000000'])
                 .order('priority', { ascending: false })
 
-            if (schedulesError) throw schedulesError
+            if (schedulesError) {
+                console.error('Error loading schedules:', schedulesError)
+                throw schedulesError
+            }
 
-            // Format schedules
+            // Format schedules with manual lookups
             const formatted = schedulesData?.map(s => ({
                 id: s.id,
                 playlist_id: s.playlist_id,
-                playlist_name: s.signage_playlists?.name,
+                playlist_name: playlistMap.get(s.playlist_id)?.name,
                 device_id: s.device_id,
-                device_name: s.tv_devices?.device_code,
+                device_name: s.device_id ? deviceMap.get(s.device_id)?.device_code : undefined,
                 name: s.name,
                 start_date: s.start_date,
                 end_date: s.end_date,
@@ -101,25 +124,11 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
 
             setSchedules(formatted)
 
-            // Load playlists (only custom, not default fidelity)
-            const { data: playlistsData, error: playlistsError } = await supabase
-                .from('signage_playlists')
-                .select('id, name, description')
-                .eq('organization_id', organizationId)
-                .eq('is_default', false) // Solo custom, non quella fidelity di default
-                .order('name')
+            // Set playlists (only custom, not default fidelity)
+            const customPlaylists = orgPlaylists?.filter(p => !p.is_default) || []
+            setPlaylists(customPlaylists)
 
-            if (playlistsError) throw playlistsError
-            setPlaylists(playlistsData || [])
-
-            // Load devices
-            const { data: devicesData, error: devicesError } = await supabase
-                .from('tv_devices')
-                .select('id, device_code, location')
-                .eq('organization_id', organizationId)
-                .order('device_code')
-
-            if (devicesError) throw devicesError
+            // Set devices (already loaded above)
             setDevices(devicesData || [])
 
         } catch (error) {
@@ -280,7 +289,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                                 value={newSchedule.name}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, name: e.target.value })}
                                 placeholder="es: Menu Colazione, Promo Natale"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             />
                         </div>
 
@@ -292,7 +301,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                             <select
                                 value={newSchedule.playlist_id}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, playlist_id: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             >
                                 <option value="">Seleziona playlist...</option>
                                 {playlists.map(p => (
@@ -310,7 +319,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                             <select
                                 value={newSchedule.device_id || ''}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, device_id: e.target.value || undefined })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             >
                                 <option value="">Tutti i dispositivi</option>
                                 {devices.map(d => (
@@ -331,7 +340,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                                 type="date"
                                 value={newSchedule.start_date || ''}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, start_date: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             />
                         </div>
 
@@ -344,7 +353,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                                 type="date"
                                 value={newSchedule.end_date || ''}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, end_date: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             />
                         </div>
 
@@ -358,7 +367,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                                 type="time"
                                 value={newSchedule.start_time || ''}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, start_time: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             />
                         </div>
 
@@ -371,7 +380,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                                 type="time"
                                 value={newSchedule.end_time || ''}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, end_time: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             />
                         </div>
 
@@ -412,7 +421,7 @@ const PlaylistScheduler: React.FC<PlaylistSchedulerProps> = ({ organizationId })
                                 max="100"
                                 value={newSchedule.priority}
                                 onChange={(e) => setNewSchedule({ ...newSchedule, priority: parseInt(e.target.value) })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                             />
                             <p className="text-xs text-gray-500 mt-1">
                                 Priorità più alta vince in caso di sovrapposizione

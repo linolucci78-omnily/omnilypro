@@ -24,7 +24,7 @@
       },
       {
         "label": "splashscreen",
-        "url": "/tv/loading",
+        "url": "/loading.html",
         "fullscreen": true,
         "decorations": false,
         "alwaysOnTop": true,

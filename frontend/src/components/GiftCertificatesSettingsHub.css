@@ -35,23 +35,7 @@
   padding: 2rem;
 }
 
-.back-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  transition: all 0.2s;
-}
-
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateX(-4px);
-}
+/* Back button styles removed - now using global styles from index.css */
 
 .gc-settings-header-content {
   display: flex;

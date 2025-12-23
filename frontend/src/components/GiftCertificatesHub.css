@@ -320,31 +320,7 @@
   transform: translateX(0);
 }
 
-/* ============================================
-   BACK BUTTON
-   ============================================ */
-
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  color: var(--primary-color, #dc2626);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-bottom: 2rem;
-}
-
-.back-button:hover {
-  border-color: var(--primary-color, #dc2626);
-  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
-  transform: translateX(-4px);
-}
+/* Back button styles removed - now using global styles from index.css */
 
 /* ============================================
    RESPONSIVE - TABLET

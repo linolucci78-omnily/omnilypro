@@ -192,7 +192,7 @@ const LiveTVPage: React.FC = () => {
         logo_url: undefined
     })
 
-    // Load custom slides from playlist
+    // Load custom slides from playlist based on schedule
     useEffect(() => {
         const loadCustomSlides = async () => {
             if (!orgId) return
@@ -200,22 +200,44 @@ const LiveTVPage: React.FC = () => {
             try {
                 console.log('🎬 Loading custom slides for org:', orgId)
 
-                // Get active/default playlist
-                const { data: playlist, error: playlistError } = await supabase
-                    .from('signage_playlists')
-                    .select('id')
-                    .eq('organization_id', orgId)
-                    .eq('is_active', true)
-                    .or('is_default.eq.true')
-                    .limit(1)
-                    .single()
+                // Get device ID from localStorage (if available)
+                const deviceId = localStorage.getItem('tv_device_id')
+                console.log('📺 Device ID:', deviceId || 'none (using org default)')
 
-                if (playlistError || !playlist) {
-                    console.log('⚠️ No active playlist found')
-                    return
+                let playlistId: string | null = null
+
+                // If we have a device ID, use get_active_playlist function
+                if (deviceId) {
+                    const { data, error } = await supabase
+                        .rpc('get_active_playlist', { p_device_id: deviceId })
+
+                    if (error) {
+                        console.error('Error calling get_active_playlist:', error)
+                    } else {
+                        playlistId = data
+                        console.log('📅 Schedule-based playlist:', playlistId)
+                    }
                 }
 
-                console.log('📺 Found playlist:', playlist.id)
+                // Fallback: Get default playlist if no schedule matches
+                if (!playlistId) {
+                    const { data: playlist, error: playlistError } = await supabase
+                        .from('signage_playlists')
+                        .select('id')
+                        .eq('organization_id', orgId)
+                        .eq('is_active', true)
+                        .or('is_default.eq.true')
+                        .limit(1)
+                        .single()
+
+                    if (playlistError || !playlist) {
+                        console.log('⚠️ No active playlist found')
+                        return
+                    }
+
+                    playlistId = playlist.id
+                    console.log('📺 Fallback to default playlist:', playlistId)
+                }
 
                 // Get playlist items with slide data
                 const { data: items, error: itemsError } = await supabase
@@ -233,7 +255,7 @@ const LiveTVPage: React.FC = () => {
                             duration
                         )
                     `)
-                    .eq('playlist_id', playlist.id)
+                    .eq('playlist_id', playlistId)
                     .eq('slide_type', 'custom')
                     .order('display_order')
 
@@ -263,7 +285,8 @@ const LiveTVPage: React.FC = () => {
         }
 
         loadCustomSlides()
-        // Refresh every 60 seconds
+        // Refresh every 60 seconds to check for schedule changes
+        // (e.g., new schedule becomes active, or current schedule expires)
         const interval = setInterval(loadCustomSlides, 60000)
         return () => clearInterval(interval)
     }, [orgId])

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #090a0f;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .logo-container {
+            width: 500px;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: auto;
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="https://sjvatdnvewohvswfrdiv.supabase.co/storage/v1/object/public/IMG/OMNILYPRO.png" alt="OmnilyPro">
+    </div>
+
+    <script>
+        // Dopo 1.5 secondi, naviga alla splash screen
+        setTimeout(() => {
+            window.location.href = '/tv/splash';
+        }, 1500);
+    </script>
+</body>
+</html>

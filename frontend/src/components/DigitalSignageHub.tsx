@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tv, Monitor, Wifi, WifiOff, Image, Play, Calendar, BarChart3, Layout, Settings, ArrowLeft, Plus, Upload, Layers, Zap, Eye } from 'lucide-react'
+import { Tv, Monitor, Wifi, WifiOff, Image, Play, Calendar, BarChart3, Layout, Settings, ArrowLeft, Plus, Upload, Layers, Zap, Eye, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import TVControlPage from '../pages/Admin/TVControlPage'
 import MediaLibrary from './Admin/Signage/MediaLibrary'
@@ -111,7 +111,6 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                         setActiveView('hub')
                         fetchData()
                     }}
-                    style={{ color: primaryColor }}
                 >
                     <ArrowLeft size={20} />
                     <span>Torna al Digital Signage</span>
@@ -130,7 +129,6 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                         setActiveView('hub')
                         fetchData()
                     }}
-                    style={{ color: primaryColor }}
                 >
                     <ArrowLeft size={20} />
                     <span>Torna al Digital Signage</span>
@@ -153,7 +151,6 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                         setActiveView('hub')
                         fetchData()
                     }}
-                    style={{ color: primaryColor }}
                 >
                     <ArrowLeft size={20} />
                     <span>Torna al Digital Signage</span>
@@ -176,7 +173,6 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                         setActiveView('hub')
                         fetchData()
                     }}
-                    style={{ color: primaryColor }}
                 >
                     <ArrowLeft size={20} />
                     <span>Torna al Digital Signage</span>
@@ -196,7 +192,6 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                 <button
                     className="back-button"
                     onClick={() => setActiveView('hub')}
-                    style={{ color: primaryColor }}
                 >
                     <ArrowLeft size={20} />
                     <span>Torna al Digital Signage</span>
@@ -212,7 +207,6 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                 <button
                     className="back-button"
                     onClick={() => setActiveView('hub')}
-                    style={{ color: primaryColor }}
                 >
                     <ArrowLeft size={20} />
                     <span>Torna al Digital Signage</span>
@@ -420,6 +414,26 @@ const DigitalSignageHub: React.FC<DigitalSignageHubProps> = ({
                             <li><Layers size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Ordina slide</li>
                             <li><Zap size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Assegna ai display</li>
                             <li><Play size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Durata personalizzata</li>
+                        </ul>
+                    </div>
+                    <div className="signage-hub-card-arrow">→</div>
+                </div>
+
+                {/* Card: Programmazione */}
+                <div
+                    className="signage-hub-card signage-hub-card-primary"
+                    onClick={() => setActiveView('schedules')}
+                >
+                    <div className="signage-hub-card-icon">
+                        <Calendar size={32} />
+                    </div>
+                    <div className="signage-hub-card-content">
+                        <h3>Programmazione</h3>
+                        <p>Pianifica quando mostrare le playlist custom con orari e giorni</p>
+                        <ul className="signage-hub-card-features">
+                            <li><Calendar size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Date e orari</li>
+                            <li><Clock size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Giorni settimana</li>
+                            <li><Zap size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.5rem' }} />Priorità automatica</li>
                         </ul>
                     </div>
                     <div className="signage-hub-card-arrow">→</div>

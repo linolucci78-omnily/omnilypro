@@ -5279,3 +5279,65 @@ input:checked + .slider:before {
     justify-content: center;
   }
 }
+
+/* ============================================
+   BACK BUTTON - Global styles for all organization components
+   IMPORTANT: Using multiple selectors for maximum specificity
+   ============================================ */
+
+/* Default back button for most hubs (white background) */
+button.back-button,
+.back-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.625rem !important;
+  padding: 0.75rem 1.25rem !important;
+  background: white !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  color: var(--primary-color, #8b5cf6) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  margin-bottom: 1.5rem !important;
+}
+
+button.back-button:hover,
+.back-button:hover {
+  border-color: var(--primary-color, #8b5cf6) !important;
+  background: #faf5ff !important;
+  transform: translateX(-4px) !important;
+}
+
+/* Specific override for headers with colored backgrounds (like ReferralHub) */
+.referral-header button.back-button,
+.referral-header .back-button,
+.loyalty-header button.back-button,
+.loyalty-header .back-button,
+.wallet-header button.back-button,
+.wallet-header .back-button,
+.hub-header button.back-button,
+.hub-header .back-button,
+[class*="-header"] button.back-button,
+[class*="-header"] .back-button {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.referral-header button.back-button:hover,
+.referral-header .back-button:hover,
+.loyalty-header button.back-button:hover,
+.loyalty-header .back-button:hover,
+.wallet-header button.back-button:hover,
+.wallet-header .back-button:hover,
+.hub-header button.back-button:hover,
+.hub-header .back-button:hover,
+[class*="-header"] button.back-button:hover,
+[class*="-header"] .back-button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}

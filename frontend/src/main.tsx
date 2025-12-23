@@ -4,6 +4,7 @@ import './index.css'
 import './styles/design-system.css'
 import App from './App.tsx'
 import ErrorBoundary from './ErrorBoundary'
+import './global-fixes.css' // IMPORTANT: Load last to override all component styles
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -12,4 +13,4 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 )
-// Force rebuild Ven 19 Set 2025 19:31:51 CEST
+// Force rebuild - Fix back-button global styles - 2025-12-20

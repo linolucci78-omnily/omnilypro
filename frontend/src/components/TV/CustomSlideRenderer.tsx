@@ -113,11 +113,17 @@ const CustomSlideRenderer: React.FC<CustomSlideRendererProps> = ({ slide }) => {
                             src={zone.content}
                             autoPlay
                             loop
-                            muted
+                            playsInline
                             style={{
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                                console.error('❌ VIDEO ERROR:', zone.content, e)
+                            }}
+                            onLoadedData={() => {
+                                console.log('✅ VIDEO LOADED with audio:', zone.content)
                             }}
                         />
                     )}

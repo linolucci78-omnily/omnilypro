@@ -12,13 +12,16 @@ fn main() {
             let splashscreen_window = app.get_webview_window("splashscreen").unwrap();
             let main_window = app.get_webview_window("main").unwrap();
 
+            // IMPORTANT: Show splashscreen immediately to avoid black screen
+            splashscreen_window.show().unwrap();
+
             // Clone app handle for updater
             let app_handle = app.handle().clone();
 
             // Close splashscreen and show main window when ready
             tauri::async_runtime::spawn(async move {
-                // Wait for the main window to finish loading
-                tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+                // Wait for the main window to finish loading (increased to 10 seconds)
+                tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
 
                 // Show main window and close splash
                 main_window.show().unwrap();
